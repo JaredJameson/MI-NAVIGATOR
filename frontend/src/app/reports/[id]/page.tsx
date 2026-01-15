@@ -75,6 +75,386 @@ interface Comment {
   resolved_at: string | null
 }
 
+interface SWOTData {
+  strengths: string[]
+  weaknesses: string[]
+  opportunities: string[]
+  threats: string[]
+}
+
+// Function to parse SWOT content
+function parseSWOTContent(content: string): SWOTData | null {
+  const strengths: string[] = []
+  const weaknesses: string[] = []
+  const opportunities: string[] = []
+  const threats: string[] = []
+
+  // Identify which quadrant we're currently parsing
+  let currentSection: 'strengths' | 'weaknesses' | 'opportunities' | 'threats' | null = null
+
+  const lines = content.split('\n')
+
+  for (const line of lines) {
+    const trimmedLine = line.trim()
+
+    // Detect section headers
+    if (trimmedLine.toLowerCase().includes('mocne strony') || trimmedLine.toLowerCase().includes('strengths')) {
+      currentSection = 'strengths'
+      continue
+    } else if (trimmedLine.toLowerCase().includes('słabe strony') || trimmedLine.toLowerCase().includes('weaknesses')) {
+      currentSection = 'weaknesses'
+      continue
+    } else if (trimmedLine.toLowerCase().includes('szanse') || trimmedLine.toLowerCase().includes('opportunities')) {
+      currentSection = 'opportunities'
+      continue
+    } else if (trimmedLine.toLowerCase().includes('zagrożenia') || trimmedLine.toLowerCase().includes('threats')) {
+      currentSection = 'threats'
+      continue
+    }
+
+    // Parse bullet points (starting with -)
+    if (trimmedLine.startsWith('-') && currentSection) {
+      const item = trimmedLine.substring(1).trim()
+      if (item) {
+        switch (currentSection) {
+          case 'strengths':
+            strengths.push(item)
+            break
+          case 'weaknesses':
+            weaknesses.push(item)
+            break
+          case 'opportunities':
+            opportunities.push(item)
+            break
+          case 'threats':
+            threats.push(item)
+            break
+        }
+      }
+    }
+  }
+
+  // Only return SWOT data if we found at least some items
+  if (strengths.length === 0 && weaknesses.length === 0 && opportunities.length === 0 && threats.length === 0) {
+    return null
+  }
+
+  return { strengths, weaknesses, opportunities, threats }
+}
+
+// SWOT Diagram Component
+function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (quadrant: string, item: string) => void }) {
+  const [expandedQuadrant, setExpandedQuadrant] = useState<string | null>(null)
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+
+  const quadrants = [
+    {
+      key: 'strengths',
+      title: 'Mocne strony',
+      subtitle: 'Strengths',
+      items: data.strengths,
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-300',
+      headerBg: 'bg-green-500',
+      headerText: 'text-white',
+      itemBg: 'bg-green-100',
+      itemText: 'text-green-800',
+      icon: '💪',
+      hoverBg: 'hover:bg-green-200',
+    },
+    {
+      key: 'weaknesses',
+      title: 'Słabe strony',
+      subtitle: 'Weaknesses',
+      items: data.weaknesses,
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-300',
+      headerBg: 'bg-red-500',
+      headerText: 'text-white',
+      itemBg: 'bg-red-100',
+      itemText: 'text-red-800',
+      icon: '⚠️',
+      hoverBg: 'hover:bg-red-200',
+    },
+    {
+      key: 'opportunities',
+      title: 'Szanse',
+      subtitle: 'Opportunities',
+      items: data.opportunities,
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
+      headerBg: 'bg-blue-500',
+      headerText: 'text-white',
+      itemBg: 'bg-blue-100',
+      itemText: 'text-blue-800',
+      icon: '🚀',
+      hoverBg: 'hover:bg-blue-200',
+    },
+    {
+      key: 'threats',
+      title: 'Zagrożenia',
+      subtitle: 'Threats',
+      items: data.threats,
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-300',
+      headerBg: 'bg-amber-500',
+      headerText: 'text-white',
+      itemBg: 'bg-amber-100',
+      itemText: 'text-amber-800',
+      icon: '⚡',
+      hoverBg: 'hover:bg-amber-200',
+    },
+  ]
+
+  const toggleExpand = (key: string) => {
+    setExpandedQuadrant(expandedQuadrant === key ? null : key)
+  }
+
+  return (
+    <div className="w-full">
+      {/* SWOT Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Internal Factors Label */}
+        <div className="col-span-2 flex items-center justify-center">
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <span className="flex items-center gap-1">
+              <span className="text-green-500">●</span> Pozytywne
+            </span>
+            <span className="mx-4 text-gray-300">|</span>
+            <span className="flex items-center gap-1">
+              <span className="text-red-500">●</span> Negatywne
+            </span>
+          </div>
+        </div>
+
+        {/* Row 1: Internal factors */}
+        <div className="col-span-2 text-center text-xs text-gray-400 uppercase tracking-wider mb-1">
+          Czynniki wewnętrzne
+        </div>
+
+        {/* Strengths */}
+        <div
+          className={`${quadrants[0].bgColor} ${quadrants[0].borderColor} border-2 rounded-xl overflow-hidden transition-all duration-300 ${expandedQuadrant === 'strengths' ? 'ring-2 ring-green-400 shadow-lg' : ''}`}
+        >
+          <div
+            className={`${quadrants[0].headerBg} ${quadrants[0].headerText} px-4 py-3 flex items-center justify-between cursor-pointer`}
+            onClick={() => toggleExpand('strengths')}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{quadrants[0].icon}</span>
+              <div>
+                <div className="font-semibold">{quadrants[0].title}</div>
+                <div className="text-xs opacity-80">{quadrants[0].subtitle}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{quadrants[0].items.length}</span>
+              <svg
+                className={`h-5 w-5 transition-transform duration-300 ${expandedQuadrant === 'strengths' ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <div className={`p-4 transition-all duration-300 ${expandedQuadrant === 'strengths' ? 'max-h-96' : 'max-h-48'} overflow-y-auto`}>
+            <ul className="space-y-2">
+              {quadrants[0].items.map((item, idx) => (
+                <li
+                  key={idx}
+                  className={`${quadrants[0].itemBg} ${quadrants[0].itemText} ${quadrants[0].hoverBg} px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors duration-200`}
+                  onClick={() => onItemClick?.('strengths', item)}
+                  onMouseEnter={() => setHoveredItem(`strengths-${idx}`)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="mr-2">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Weaknesses */}
+        <div
+          className={`${quadrants[1].bgColor} ${quadrants[1].borderColor} border-2 rounded-xl overflow-hidden transition-all duration-300 ${expandedQuadrant === 'weaknesses' ? 'ring-2 ring-red-400 shadow-lg' : ''}`}
+        >
+          <div
+            className={`${quadrants[1].headerBg} ${quadrants[1].headerText} px-4 py-3 flex items-center justify-between cursor-pointer`}
+            onClick={() => toggleExpand('weaknesses')}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{quadrants[1].icon}</span>
+              <div>
+                <div className="font-semibold">{quadrants[1].title}</div>
+                <div className="text-xs opacity-80">{quadrants[1].subtitle}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{quadrants[1].items.length}</span>
+              <svg
+                className={`h-5 w-5 transition-transform duration-300 ${expandedQuadrant === 'weaknesses' ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <div className={`p-4 transition-all duration-300 ${expandedQuadrant === 'weaknesses' ? 'max-h-96' : 'max-h-48'} overflow-y-auto`}>
+            <ul className="space-y-2">
+              {quadrants[1].items.map((item, idx) => (
+                <li
+                  key={idx}
+                  className={`${quadrants[1].itemBg} ${quadrants[1].itemText} ${quadrants[1].hoverBg} px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors duration-200`}
+                  onClick={() => onItemClick?.('weaknesses', item)}
+                  onMouseEnter={() => setHoveredItem(`weaknesses-${idx}`)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="mr-2">✗</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Row 2: External factors */}
+        <div className="col-span-2 text-center text-xs text-gray-400 uppercase tracking-wider mt-2 mb-1">
+          Czynniki zewnętrzne
+        </div>
+
+        {/* Opportunities */}
+        <div
+          className={`${quadrants[2].bgColor} ${quadrants[2].borderColor} border-2 rounded-xl overflow-hidden transition-all duration-300 ${expandedQuadrant === 'opportunities' ? 'ring-2 ring-blue-400 shadow-lg' : ''}`}
+        >
+          <div
+            className={`${quadrants[2].headerBg} ${quadrants[2].headerText} px-4 py-3 flex items-center justify-between cursor-pointer`}
+            onClick={() => toggleExpand('opportunities')}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{quadrants[2].icon}</span>
+              <div>
+                <div className="font-semibold">{quadrants[2].title}</div>
+                <div className="text-xs opacity-80">{quadrants[2].subtitle}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{quadrants[2].items.length}</span>
+              <svg
+                className={`h-5 w-5 transition-transform duration-300 ${expandedQuadrant === 'opportunities' ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <div className={`p-4 transition-all duration-300 ${expandedQuadrant === 'opportunities' ? 'max-h-96' : 'max-h-48'} overflow-y-auto`}>
+            <ul className="space-y-2">
+              {quadrants[2].items.map((item, idx) => (
+                <li
+                  key={idx}
+                  className={`${quadrants[2].itemBg} ${quadrants[2].itemText} ${quadrants[2].hoverBg} px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors duration-200`}
+                  onClick={() => onItemClick?.('opportunities', item)}
+                  onMouseEnter={() => setHoveredItem(`opportunities-${idx}`)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="mr-2">→</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Threats */}
+        <div
+          className={`${quadrants[3].bgColor} ${quadrants[3].borderColor} border-2 rounded-xl overflow-hidden transition-all duration-300 ${expandedQuadrant === 'threats' ? 'ring-2 ring-amber-400 shadow-lg' : ''}`}
+        >
+          <div
+            className={`${quadrants[3].headerBg} ${quadrants[3].headerText} px-4 py-3 flex items-center justify-between cursor-pointer`}
+            onClick={() => toggleExpand('threats')}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{quadrants[3].icon}</span>
+              <div>
+                <div className="font-semibold">{quadrants[3].title}</div>
+                <div className="text-xs opacity-80">{quadrants[3].subtitle}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{quadrants[3].items.length}</span>
+              <svg
+                className={`h-5 w-5 transition-transform duration-300 ${expandedQuadrant === 'threats' ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <div className={`p-4 transition-all duration-300 ${expandedQuadrant === 'threats' ? 'max-h-96' : 'max-h-48'} overflow-y-auto`}>
+            <ul className="space-y-2">
+              {quadrants[3].items.map((item, idx) => (
+                <li
+                  key={idx}
+                  className={`${quadrants[3].itemBg} ${quadrants[3].itemText} ${quadrants[3].hoverBg} px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors duration-200`}
+                  onClick={() => onItemClick?.('threats', item)}
+                  onMouseEnter={() => setHoveredItem(`threats-${idx}`)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  <span className="mr-2">!</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Legend / Summary */}
+      <div className="mt-4 flex items-center justify-center gap-6 text-xs text-gray-500">
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded bg-green-500"></span>
+          <span>S: {data.strengths.length}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded bg-red-500"></span>
+          <span>W: {data.weaknesses.length}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded bg-blue-500"></span>
+          <span>O: {data.opportunities.length}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded bg-amber-500"></span>
+          <span>T: {data.threats.length}</span>
+        </div>
+        <span className="text-gray-400">|</span>
+        <span>Razem: {data.strengths.length + data.weaknesses.length + data.opportunities.length + data.threats.length} czynników</span>
+      </div>
+
+      {/* Tip for interaction */}
+      <div className="mt-3 text-center text-xs text-gray-400">
+        💡 Kliknij nagłówek sekcji, aby ją rozwinąć
+      </div>
+    </div>
+  )
+}
+
+// Helper function to check if section is SWOT
+function isSWOTSection(title: string): boolean {
+  return title.toLowerCase().includes('swot') ||
+         (title.toLowerCase().includes('analiza') &&
+          (title.toLowerCase().includes('mocne') || title.toLowerCase().includes('słabe')))
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -1490,40 +1870,57 @@ export default function ReportViewerPage() {
 
         {/* Report Sections */}
         <div className="space-y-8">
-          {report.sections.map((section, index) => (
-            <section
-              key={section.id}
-              id={`section-${section.id}`}
-              className="rounded-xl bg-white p-6 shadow-sm"
-            >
-              <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                {index + 1}. {section.title}
-              </h2>
-              <div className="prose prose-gray max-w-none">
-                {section.content.split('\n').map((paragraph, pIdx) => (
-                  <p key={pIdx} className="mb-4 text-gray-700 whitespace-pre-wrap">
-                    {highlightText(paragraph, section.id)}
-                  </p>
-                ))}
-              </div>
-              {/* Section Annotations */}
-              {getSectionAnnotations(section.id).length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="text-sm font-medium text-yellow-700 mb-2">
-                    Adnotacje w tej sekcji:
+          {report.sections.map((section, index) => {
+            // Check if this is a SWOT section
+            const swotData = isSWOTSection(section.title) ? parseSWOTContent(section.content) : null
+
+            return (
+              <section
+                key={section.id}
+                id={`section-${section.id}`}
+                className="rounded-xl bg-white p-6 shadow-sm"
+              >
+                <h2 className="mb-4 text-xl font-semibold text-gray-900">
+                  {index + 1}. {section.title}
+                  {swotData && (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                      📊 Diagram interaktywny
+                    </span>
+                  )}
+                </h2>
+
+                {/* SWOT Diagram Visualization */}
+                {swotData ? (
+                  <SWOTDiagram data={swotData} />
+                ) : (
+                  <div className="prose prose-gray max-w-none">
+                    {section.content.split('\n').map((paragraph, pIdx) => (
+                      <p key={pIdx} className="mb-4 text-gray-700 whitespace-pre-wrap">
+                        {highlightText(paragraph, section.id)}
+                      </p>
+                    ))}
                   </div>
-                  {getSectionAnnotations(section.id).map((annotation) => (
-                    <div key={annotation.id} className="bg-yellow-50 rounded-lg p-3 mb-2 text-sm">
-                      <div className="text-gray-500 italic mb-1">
-                        &quot;{annotation.selected_text.substring(0, 50)}...&quot;
-                      </div>
-                      <div className="text-gray-700">{annotation.comment}</div>
+                )}
+
+                {/* Section Annotations */}
+                {getSectionAnnotations(section.id).length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-sm font-medium text-yellow-700 mb-2">
+                      Adnotacje w tej sekcji:
                     </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          ))}
+                    {getSectionAnnotations(section.id).map((annotation) => (
+                      <div key={annotation.id} className="bg-yellow-50 rounded-lg p-3 mb-2 text-sm">
+                        <div className="text-gray-500 italic mb-1">
+                          &quot;{annotation.selected_text.substring(0, 50)}...&quot;
+                        </div>
+                        <div className="text-gray-700">{annotation.comment}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )
+          })}
         </div>
 
         {/* Sources */}
