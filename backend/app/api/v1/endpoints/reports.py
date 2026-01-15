@@ -373,6 +373,11 @@ class ExportRequest(BaseModel):
     format: str = "pdf"  # pdf, xlsx, docx
 
 
+class BulkExportRequest(BaseModel):
+    report_ids: List[str]
+    format: str = "xlsx"  # xlsx, pdf
+
+
 def parse_financial_data_from_content(content: str) -> List[dict]:
     """Parse financial data from report content for Excel export."""
     financial_data = []
@@ -660,6 +665,129 @@ async def export_to_excel(report: dict) -> StreamingResponse:
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
+
+
+@router.post("/bulk-export")
+async def bulk_export_reports(
+    request: BulkExportRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Export multiple reports at once."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    if not request.report_ids:
+        raise HTTPException(status_code=400, detail="No report IDs provided")
+
+    # Find all requested reports
+    reports_to_export = []
+    for report_id in request.report_ids:
+        for r in MOCK_REPORTS:
+            if r["id"] == report_id:
+                reports_to_export.append(r)
+                break
+
+    if not reports_to_export:
+        raise HTTPException(status_code=404, detail="No reports found")
+
+    if request.format == "xlsx":
+        # Create single Excel file with multiple sheets (one per report)
+        wb = Workbook()
+
+        # Title styling
+        title_font = Font(name='Calibri', size=14, bold=True, color='FFFFFF')
+        header_font = Font(name='Calibri', size=11, bold=True)
+        header_fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+
+        # First sheet: Summary of all reports
+        ws_summary = wb.active
+        ws_summary.title = "Podsumowanie"
+
+        ws_summary['A1'] = "ZBIORCZE ZESTAWIENIE RAPORTÓW"
+        ws_summary['A1'].font = title_font
+        ws_summary['A1'].fill = header_fill
+        ws_summary.merge_cells('A1:E1')
+
+        ws_summary['A3'] = "Lp."
+        ws_summary['B3'] = "Tytuł raportu"
+        ws_summary['C3'] = "Typ"
+        ws_summary['D3'] = "Firma"
+        ws_summary['E3'] = "Data utworzenia"
+        for col in ['A', 'B', 'C', 'D', 'E']:
+            ws_summary[f'{col}3'].font = header_font
+            ws_summary[f'{col}3'].fill = PatternFill(start_color='D6DCE5', end_color='D6DCE5', fill_type='solid')
+
+        for i, report in enumerate(reports_to_export):
+            row = i + 4
+            ws_summary[f'A{row}'] = i + 1
+            ws_summary[f'B{row}'] = report['title']
+            ws_summary[f'C{row}'] = report['type']
+            ws_summary[f'D{row}'] = report.get('company', 'N/A')
+            ws_summary[f'E{row}'] = report['created_at']
+
+        ws_summary.column_dimensions['A'].width = 5
+        ws_summary.column_dimensions['B'].width = 40
+        ws_summary.column_dimensions['C'].width = 20
+        ws_summary.column_dimensions['D'].width = 25
+        ws_summary.column_dimensions['E'].width = 20
+
+        # Create a sheet for each report
+        for i, report in enumerate(reports_to_export):
+            # Sheet name limited to 31 chars (Excel limitation)
+            sheet_name = f"{i+1}. {report['title']}"[:31]
+            ws = wb.create_sheet(sheet_name)
+
+            # Report header
+            ws['A1'] = report['title']
+            ws['A1'].font = title_font
+            ws['A1'].fill = header_fill
+            ws.merge_cells('A1:D1')
+
+            ws['A2'] = f"Typ: {report['type']}"
+            ws['A3'] = f"Firma: {report.get('company', 'N/A')}"
+            ws['A4'] = f"Data: {report['created_at']}"
+            ws['A5'] = ""
+            ws['A6'] = "Podsumowanie:"
+            ws['A6'].font = Font(bold=True)
+            ws['A7'] = report['summary']
+            ws.merge_cells('A7:D7')
+
+            # Sections content
+            row = 9
+            for j, section in enumerate(report.get('sections', [])):
+                ws[f'A{row}'] = f"{j+1}. {section['title']}"
+                ws[f'A{row}'].font = Font(bold=True, size=11)
+                row += 1
+
+                # Split content into lines
+                for line in section['content'].split('\n'):
+                    if line.strip():
+                        ws[f'A{row}'] = line.strip()
+                        row += 1
+                row += 1
+
+            ws.column_dimensions['A'].width = 80
+
+        # Save to buffer
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        filename = f"raporty_eksport_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+        )
+
+    elif request.format == "pdf":
+        # For PDF, we'd create a ZIP with individual PDFs
+        # For now, return a placeholder
+        return {"message": "PDF bulk export coming soon"}
+
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
 
 
 @router.post("/{report_id}/share")
