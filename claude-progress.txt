@@ -1,5 +1,51 @@
 # MI-Navigator Development Progress
 
+## Session 9 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #239: Report version history - PASSED
+- Verified existing version history implementation in backend and frontend
+- Backend endpoints already implemented:
+  - GET /reports/{id}/versions - list all versions
+  - GET /reports/{id}/versions/{version} - get specific version content
+- REPORT_VERSIONS mock data with 3 versions for report_001:
+  - Version 1: Initial creation (1 section)
+  - Version 2: Updated financial data (2 sections)
+  - Version 3: Added SWOT analysis (4 sections, current)
+- Frontend version history panel:
+  - Clock icon button in header to open panel
+  - Side panel with all versions listed
+  - Version details: number, change description, author, date
+  - "Aktualna" badge for current version
+  - Click to load and view any historical version
+  - Title updates to show "(wersja X)" when viewing old versions
+- Full end-to-end testing verified through browser automation
+
+#### Regression Test Passed:
+- User Profile Update (Feature #205): Settings page loads, profile edits save and persist
+
+### Statistics:
+- Total features: 380
+- Passing features: 54 (14.2%)
+- In progress: 0
+
+### Git Commits This Session:
+- (No code changes - version history was already implemented in previous session)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Continue with report-related features or move to other areas
+3. Consider implementing real database storage for versions (currently mock data)
+
+---
+
 ## Session 8 - Date: 2026-01-15
 
 ### Completed in This Session:
@@ -18,26 +64,43 @@
   - TechSoft due diligence (2 sections)
 - Fixed highlighting bug where paragraph indexes were mismatched
 
+#### Feature #238: Report annotation feature - PASSED
+- Text selection detection in report sections
+- "Dodaj adnotacje" tooltip appears on text selection
+- Annotation modal with comment textarea
+- Backend API endpoints:
+  - GET /reports/{id}/annotations - list user's annotations
+  - POST /reports/{id}/annotations - create new annotation
+  - DELETE /reports/{id}/annotations/{ann_id} - delete annotation
+- In-memory annotation storage (per user, per report)
+- Annotations summary section at top of report
+- Section-specific annotations displayed inline
+- Annotations persist across page refresh
+
 #### Technical Changes:
 1. **Backend:**
    - backend/app/api/v1/endpoints/reports.py - Complete rewrite with mock data
    - Added MOCK_REPORTS with 3 detailed reports
    - Added Pydantic models: ReportSummary, ReportSection, ReportSource, ReportDetail
+   - Added REPORT_ANNOTATIONS storage and annotation CRUD endpoints
+   - Added AnnotationCreate, Annotation models
    - Added auth protection via Depends(get_current_user)
 
 2. **Frontend:**
    - frontend/src/app/reports/page.tsx - Reports list with filtering
-   - frontend/src/app/reports/[id]/page.tsx - Report viewer with full-text search
-   - Keyboard shortcuts (Ctrl+F, Escape)
-   - highlightText function for search results
+   - frontend/src/app/reports/[id]/page.tsx - Report viewer with:
+     - Full-text search (Ctrl+F, Escape)
+     - Text selection annotation feature
+     - Annotation modal and display components
 
 ### Statistics:
 - Total features: 380
-- Passing features: 52 (13.7%)
+- Passing features: 53 (13.9%)
 - In progress: 0
 
 ### Git Commits This Session:
 - 1042847 - Add reports page with full-text search feature (Feature #237)
+- d1daf53 - Add report annotation feature (Feature #238)
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI)
@@ -46,9 +109,9 @@
 - Redis: localhost:6395
 
 ### Next Steps for Future Agents:
-1. Use `feature_get_next` to get next feature (#238: Report annotation feature)
-2. Feature #238 requires text selection and annotation persistence
-3. Consider adding annotation storage in backend
+1. Use `feature_get_next` to get next feature (#239: Report version history)
+2. Feature #239 requires version history UI and backend support
+3. Consider storing report versions in backend
 
 ---
 
