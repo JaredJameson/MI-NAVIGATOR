@@ -239,6 +239,186 @@ Firma wykazuje zdrową strukturę finansową z rosnącymi przychodami i dodatnim
             {"name": "LinkedIn", "confidence": 0.75, "url": "https://linkedin.com"},
             {"name": "Strona firmowa", "confidence": 0.80, "url": "https://techsoft.pl"}
         ]
+    },
+    {
+        "id": "report_004",
+        "title": "Analiza konkurencji - sektor IT",
+        "type": "competitive",
+        "company": None,
+        "created_at": "2026-01-11T14:00:00Z",
+        "updated_at": "2026-01-11T17:30:00Z",
+        "status": "completed",
+        "summary": "Analiza głównych konkurentów w sektorze IT w Polsce - porównanie ofert, pozycji rynkowej i strategii.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Główni gracze",
+                "content": "Analiza Top 5 firm IT w Polsce pod względem przychodów i zatrudnienia."
+            }
+        ],
+        "sources": [
+            {"name": "Computerworld", "confidence": 0.85, "url": "https://computerworld.pl"}
+        ]
+    },
+    {
+        "id": "report_005",
+        "title": "Profil firmy Splast S.A.",
+        "type": "company_profile",
+        "company": "Splast S.A.",
+        "created_at": "2026-01-10T09:00:00Z",
+        "updated_at": "2026-01-10T12:00:00Z",
+        "status": "completed",
+        "summary": "Kompleksowy profil Splast S.A. - lidera rynku opakowań przemysłowych w Polsce.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Informacje podstawowe",
+                "content": "Splast S.A. to lider rynku opakowań przemysłowych z przychodami przekraczającymi 900 mln PLN."
+            }
+        ],
+        "sources": [
+            {"name": "KRS", "confidence": 0.95, "url": "https://api.krs.pl"}
+        ]
+    },
+    {
+        "id": "report_006",
+        "title": "Analiza rynku e-commerce w Polsce",
+        "type": "market_analysis",
+        "company": None,
+        "created_at": "2026-01-09T10:00:00Z",
+        "updated_at": "2026-01-09T15:00:00Z",
+        "status": "completed",
+        "summary": "Kompleksowa analiza rynku e-commerce w Polsce - trendy, prognozy, główni gracze.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Wielkość rynku",
+                "content": "Rynek e-commerce w Polsce osiągnął wartość 120 mld PLN w 2025 roku."
+            }
+        ],
+        "sources": [
+            {"name": "PwC", "confidence": 0.90, "url": "https://pwc.pl"}
+        ]
+    },
+    {
+        "id": "report_007",
+        "title": "Due Diligence - StartupXYZ",
+        "type": "due_diligence",
+        "company": "StartupXYZ Sp. z o.o.",
+        "created_at": "2026-01-08T11:00:00Z",
+        "updated_at": "2026-01-08T16:00:00Z",
+        "status": "completed",
+        "summary": "Raport due diligence dla startupu technologicznego StartupXYZ Sp. z o.o.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Ocena modelu biznesowego",
+                "content": "Analiza modelu SaaS i potencjału skalowalności."
+            }
+        ],
+        "sources": [
+            {"name": "Crunchbase", "confidence": 0.80, "url": "https://crunchbase.com"}
+        ]
+    },
+    {
+        "id": "report_008",
+        "title": "Analiza konkurencji - branża logistyczna",
+        "type": "competitive",
+        "company": None,
+        "created_at": "2026-01-07T08:00:00Z",
+        "updated_at": "2026-01-07T14:00:00Z",
+        "status": "completed",
+        "summary": "Porównanie głównych firm logistycznych w Polsce - InPost, DPD, DHL, Poczta Polska.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Przegląd rynku",
+                "content": "Rynek usług kurierskich w Polsce wart 12 mld PLN rocznie."
+            }
+        ],
+        "sources": [
+            {"name": "Logistyka.net", "confidence": 0.75, "url": "https://logistyka.net"}
+        ]
+    },
+    {
+        "id": "report_009",
+        "title": "Profil firmy GreenEnergy Sp. z o.o.",
+        "type": "company_profile",
+        "company": "GreenEnergy Sp. z o.o.",
+        "created_at": "2026-01-06T09:30:00Z",
+        "updated_at": "2026-01-06T13:30:00Z",
+        "status": "completed",
+        "summary": "Analiza firmy GreenEnergy - producenta paneli fotowoltaicznych.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Dane podstawowe",
+                "content": "GreenEnergy Sp. z o.o. działa od 2015 roku i jest jednym z czołowych producentów paneli PV w Polsce."
+            }
+        ],
+        "sources": [
+            {"name": "KRS", "confidence": 0.95, "url": "https://api.krs.pl"}
+        ]
+    },
+    {
+        "id": "report_010",
+        "title": "Analiza rynku OZE w Polsce",
+        "type": "market_analysis",
+        "company": None,
+        "created_at": "2026-01-05T10:00:00Z",
+        "updated_at": "2026-01-05T16:00:00Z",
+        "status": "completed",
+        "summary": "Rynek odnawialnych źródeł energii w Polsce - fotowoltaika, wiatr, biomasa.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Moc zainstalowana",
+                "content": "Łączna moc zainstalowana OZE w Polsce przekroczyła 25 GW w 2025 roku."
+            }
+        ],
+        "sources": [
+            {"name": "URE", "confidence": 0.95, "url": "https://ure.gov.pl"}
+        ]
+    },
+    {
+        "id": "report_011",
+        "title": "Due Diligence - BioPharm Polska",
+        "type": "due_diligence",
+        "company": "BioPharm Polska S.A.",
+        "created_at": "2026-01-04T11:00:00Z",
+        "updated_at": "2026-01-04T17:00:00Z",
+        "status": "completed",
+        "summary": "Due diligence firmy farmaceutycznej BioPharm Polska przed potencjalną akwizycją.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Portfolio produktowe",
+                "content": "Firma posiada 45 produktów w portfolio i 12 w fazie rozwoju."
+            }
+        ],
+        "sources": [
+            {"name": "EMA", "confidence": 0.90, "url": "https://ema.europa.eu"}
+        ]
+    },
+    {
+        "id": "report_012",
+        "title": "Analiza konkurencji - retail spożywczy",
+        "type": "competitive",
+        "company": None,
+        "created_at": "2026-01-03T09:00:00Z",
+        "updated_at": "2026-01-03T15:00:00Z",
+        "status": "completed",
+        "summary": "Porównanie sieci handlowych: Biedronka, Lidl, Żabka, Dino.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Udziały rynkowe",
+                "content": "Biedronka prowadzi z 32% udziałem w rynku dyskontów."
+            }
+        ],
+        "sources": [
+            {"name": "Nielsen", "confidence": 0.90, "url": "https://nielsen.com"}
+        ]
     }
 ]
 
@@ -329,6 +509,35 @@ async def list_reports(
         "page": page,
         "limit": limit,
         "pages": (total + limit - 1) // limit
+    }
+
+
+@router.get("/ids")
+async def get_all_report_ids(
+    type: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all report IDs (for select all across pages functionality)."""
+    filtered_reports = MOCK_REPORTS
+
+    # Filter by type
+    if type:
+        filtered_reports = [r for r in filtered_reports if r["type"] == type]
+
+    # Filter by search query
+    if search:
+        search_lower = search.lower()
+        filtered_reports = [
+            r for r in filtered_reports
+            if search_lower in r["title"].lower()
+            or search_lower in r["summary"].lower()
+            or (r["company"] and search_lower in r["company"].lower())
+        ]
+
+    return {
+        "ids": [r["id"] for r in filtered_reports],
+        "total": len(filtered_reports)
     }
 
 

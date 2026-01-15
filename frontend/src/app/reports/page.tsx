@@ -25,6 +25,11 @@ interface ReportsResponse {
   pages: number
 }
 
+interface AllIdsResponse {
+  ids: string[]
+  total: number
+}
+
 interface Project {
   id: string
   name: string
@@ -51,11 +56,19 @@ export default function ReportsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState('')
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalReports, setTotalReports] = useState(0)
+  const pageSize = 5 // Reports per page
+
   // Bulk selection state
   const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [showBulkExportMenu, setShowBulkExportMenu] = useState(false)
   const [isBulkExporting, setIsBulkExporting] = useState(false)
+  const [allReportIds, setAllReportIds] = useState<string[]>([])
+  const [showSelectAllModal, setShowSelectAllModal] = useState(false)
 
   // Project assignment state
   const [showProjectModal, setShowProjectModal] = useState(false)
@@ -71,7 +84,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchReports()
-  }, [filterType])
+  }, [filterType, currentPage])
 
   const fetchReports = async () => {
     const token = getStoredToken()
@@ -85,6 +98,8 @@ export default function ReportsPage() {
 
     try {
       const params = new URLSearchParams()
+      params.append('page', currentPage.toString())
+      params.append('limit', pageSize.toString())
       if (filterType) params.append('type', filterType)
       if (searchQuery) params.append('search', searchQuery)
 
@@ -103,6 +118,8 @@ export default function ReportsPage() {
 
       const data: ReportsResponse = await response.json()
       setReports(data.items)
+      setTotalPages(data.pages)
+      setTotalReports(data.total)
     } catch (err) {
       setError('Nie udało się załadować raportów')
     } finally {
@@ -110,8 +127,37 @@ export default function ReportsPage() {
     }
   }
 
+  // Fetch all report IDs for "select all across pages"
+  const fetchAllReportIds = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const params = new URLSearchParams()
+      if (filterType) params.append('type', filterType)
+      if (searchQuery) params.append('search', searchQuery)
+
+      const response = await fetch(
+        `${API_BASE_URL}/reports/ids?${params.toString()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        const data: AllIdsResponse = await response.json()
+        setAllReportIds(data.ids)
+      }
+    } catch (err) {
+      console.error('Failed to fetch all report IDs:', err)
+    }
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    setCurrentPage(1)
     fetchReports()
   }
 
@@ -145,12 +191,43 @@ export default function ReportsPage() {
     })
   }
 
-  const selectAllReports = () => {
-    if (selectedReports.size === reports.length) {
-      setSelectedReports(new Set())
+  // Check if all items on current page are selected
+  const allOnPageSelected = reports.length > 0 && reports.every(r => selectedReports.has(r.id))
+
+  // Check if all items across all pages are selected
+  const allAcrossPagesSelected = allReportIds.length > 0 && selectedReports.size === allReportIds.length
+
+  const selectAllOnPage = () => {
+    if (allOnPageSelected) {
+      // Deselect all on current page
+      const newSet = new Set(selectedReports)
+      reports.forEach(r => newSet.delete(r.id))
+      setSelectedReports(newSet)
     } else {
-      setSelectedReports(new Set(reports.map(r => r.id)))
+      // Select all on current page
+      const newSet = new Set(selectedReports)
+      reports.forEach(r => newSet.add(r.id))
+      setSelectedReports(newSet)
+
+      // Show option to select all across pages if there are more pages
+      if (totalPages > 1 && !allAcrossPagesSelected) {
+        fetchAllReportIds()
+        setShowSelectAllModal(true)
+      }
     }
+  }
+
+  const selectAllAcrossPages = async () => {
+    if (allReportIds.length === 0) {
+      await fetchAllReportIds()
+    }
+    setSelectedReports(new Set(allReportIds))
+    setShowSelectAllModal(false)
+  }
+
+  const clearSelection = () => {
+    setSelectedReports(new Set())
+    setShowSelectAllModal(false)
   }
 
   const exitSelectionMode = () => {
@@ -158,6 +235,8 @@ export default function ReportsPage() {
     setSelectedReports(new Set())
     setShowBulkExportMenu(false)
     setShowProjectModal(false)
+    setShowSelectAllModal(false)
+    setAllReportIds([])
   }
 
   // Fetch projects for assignment modal
@@ -472,22 +551,70 @@ export default function ReportsPage() {
         <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
           <div className="mx-auto max-w-6xl flex items-center justify-between">
             <div className="flex items-center gap-4">
+              {/* Select all checkbox */}
               <button
-                onClick={selectAllReports}
+                onClick={selectAllOnPage}
+                className="flex items-center gap-2 cursor-pointer"
+                type="button"
+              >
+                <div
+                  className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    allOnPageSelected
+                      ? 'bg-blue-600 border-blue-600'
+                      : allAcrossPagesSelected
+                        ? 'bg-blue-600 border-blue-600'
+                        : selectedReports.size > 0
+                          ? 'bg-blue-200 border-blue-400'
+                          : 'bg-white border-gray-300 hover:border-blue-400'
+                  }`}
+                >
+                  {(allOnPageSelected || allAcrossPagesSelected) && (
+                    <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  {!allOnPageSelected && !allAcrossPagesSelected && selectedReports.size > 0 && (
+                    <div className="h-2 w-2 bg-blue-600 rounded-sm"></div>
+                  )}
+                </div>
+                <span className="text-sm text-blue-700">
+                  {allAcrossPagesSelected ? 'Zaznaczono wszystkie' : allOnPageSelected ? 'Zaznaczono stronę' : 'Zaznacz wszystkie'}
+                </span>
+              </button>
+              <span className="text-sm text-blue-600 font-medium">
+                {selectedReports.size} z {totalReports} wybranych
+              </span>
+              {/* Select all across pages notification */}
+              {showSelectAllModal && totalPages > 1 && !allAcrossPagesSelected && (
+                <div className="flex items-center gap-2 ml-2 px-3 py-1 bg-yellow-100 rounded-lg border border-yellow-300">
+                  <span className="text-sm text-yellow-800">
+                    Zaznaczono wszystkie {reports.length} na tej stronie.
+                  </span>
+                  <button
+                    onClick={selectAllAcrossPages}
+                    className="text-sm font-medium text-blue-700 hover:text-blue-900 underline"
+                  >
+                    Zaznacz wszystkie {totalReports} raportów
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {selectedReports.size > 0 && (
+                <button
+                  onClick={clearSelection}
+                  className="text-sm text-gray-600 hover:text-gray-900"
+                >
+                  Wyczyść zaznaczenie
+                </button>
+              )}
+              <button
+                onClick={exitSelectionMode}
                 className="text-sm text-blue-700 hover:text-blue-900"
               >
-                {selectedReports.size === reports.length ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
+                Anuluj
               </button>
-              <span className="text-sm text-blue-600">
-                {selectedReports.size} z {reports.length} wybranych
-              </span>
             </div>
-            <button
-              onClick={exitSelectionMode}
-              className="text-sm text-blue-700 hover:text-blue-900"
-            >
-              Anuluj
-            </button>
           </div>
         </div>
       )}
@@ -620,6 +747,59 @@ export default function ReportsPage() {
                 </div>
               )
             })}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                {/* Previous button */}
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Poprzednia
+                </button>
+
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-10 w-10 rounded-lg text-sm font-medium transition-colors ${
+                        page === currentPage
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next button */}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Następna
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* Page info */}
+            {totalReports > 0 && (
+              <div className="mt-4 text-center text-sm text-gray-500">
+                Pokazano {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalReports)} z {totalReports} raportów
+              </div>
+            )}
           </div>
         )}
       </main>
