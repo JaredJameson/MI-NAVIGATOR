@@ -381,3 +381,85 @@ async def share_report(report_id: str):
         "share_url": f"https://app.minavigator.com/share/{report_id}",
         "expires_at": "2024-02-01T00:00:00Z"
     }
+
+
+# In-memory annotation storage (per user, per report)
+REPORT_ANNOTATIONS: dict = {}
+
+
+class AnnotationCreate(BaseModel):
+    section_id: str
+    selected_text: str
+    start_offset: int
+    end_offset: int
+    comment: str
+
+
+class Annotation(BaseModel):
+    id: str
+    report_id: str
+    section_id: str
+    selected_text: str
+    start_offset: int
+    end_offset: int
+    comment: str
+    created_at: str
+    user_id: str
+
+
+@router.get("/{report_id}/annotations")
+async def get_annotations(report_id: str, current_user: User = Depends(get_current_user)):
+    """Get all annotations for a report."""
+    user_key = f"{current_user.id}:{report_id}"
+    annotations = REPORT_ANNOTATIONS.get(user_key, [])
+    return {"annotations": annotations}
+
+
+@router.post("/{report_id}/annotations")
+async def create_annotation(
+    report_id: str,
+    annotation: AnnotationCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new annotation for a report."""
+    user_key = f"{current_user.id}:{report_id}"
+
+    if user_key not in REPORT_ANNOTATIONS:
+        REPORT_ANNOTATIONS[user_key] = []
+
+    # Generate unique ID
+    annotation_id = f"ann_{len(REPORT_ANNOTATIONS[user_key]) + 1}_{int(datetime.now().timestamp())}"
+
+    new_annotation = Annotation(
+        id=annotation_id,
+        report_id=report_id,
+        section_id=annotation.section_id,
+        selected_text=annotation.selected_text,
+        start_offset=annotation.start_offset,
+        end_offset=annotation.end_offset,
+        comment=annotation.comment,
+        created_at=datetime.now().isoformat() + "Z",
+        user_id=str(current_user.id)
+    )
+
+    REPORT_ANNOTATIONS[user_key].append(new_annotation.model_dump())
+
+    return new_annotation
+
+
+@router.delete("/{report_id}/annotations/{annotation_id}")
+async def delete_annotation(
+    report_id: str,
+    annotation_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete an annotation."""
+    user_key = f"{current_user.id}:{report_id}"
+
+    if user_key not in REPORT_ANNOTATIONS:
+        return {"error": "Annotation not found"}
+
+    annotations = REPORT_ANNOTATIONS[user_key]
+    REPORT_ANNOTATIONS[user_key] = [a for a in annotations if a["id"] != annotation_id]
+
+    return {"message": "Annotation deleted successfully"}

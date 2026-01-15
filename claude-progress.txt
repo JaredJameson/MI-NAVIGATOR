@@ -1,5 +1,157 @@
 # MI-Navigator Development Progress
 
+## Session 8 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #237: Full text search in reports - PASSED
+- Created /reports page for listing reports with type filtering
+- Created /reports/[id] report viewer page with:
+  - In-page search (Ctrl+F keyboard shortcut)
+  - Text highlighting (yellow for matches, orange for current match)
+  - Navigation between matches (prev/next buttons)
+  - Match counter showing "X / Y" format
+  - Escape key to close search
+- Added comprehensive mock reports data:
+  - FADO company profile (4 sections)
+  - Market analysis report (2 sections)
+  - TechSoft due diligence (2 sections)
+- Fixed highlighting bug where paragraph indexes were mismatched
+
+#### Technical Changes:
+1. **Backend:**
+   - backend/app/api/v1/endpoints/reports.py - Complete rewrite with mock data
+   - Added MOCK_REPORTS with 3 detailed reports
+   - Added Pydantic models: ReportSummary, ReportSection, ReportSource, ReportDetail
+   - Added auth protection via Depends(get_current_user)
+
+2. **Frontend:**
+   - frontend/src/app/reports/page.tsx - Reports list with filtering
+   - frontend/src/app/reports/[id]/page.tsx - Report viewer with full-text search
+   - Keyboard shortcuts (Ctrl+F, Escape)
+   - highlightText function for search results
+
+### Statistics:
+- Total features: 380
+- Passing features: 52 (13.7%)
+- In progress: 0
+
+### Git Commits This Session:
+- 1042847 - Add reports page with full-text search feature (Feature #237)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature (#238: Report annotation feature)
+2. Feature #238 requires text selection and annotation persistence
+3. Consider adding annotation storage in backend
+
+---
+
+## Session 7 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #236: PKD code search - PASSED
+- Created /search page for PKD code search functionality
+- Added PKD code database with 26 Polish business classification codes
+- Display companies matching searched PKD code
+- Show PKD description and category in header
+- Highlight searched PKD code in company cards
+- Popular PKD codes for quick selection (plastics, IT, transport, construction, accounting, fuel)
+- Added PKD Search button to dashboard for navigation
+- Fixed docker-compose ports (PostgreSQL: 5460, Redis: 6395)
+
+#### Technical Changes:
+1. **Backend:**
+   - backend/app/api/v1/endpoints/companies.py - PKD search endpoint
+   - PKD_CODES dictionary with code names and categories
+   - MOCK_COMPANIES database with sample companies
+
+2. **Frontend:**
+   - frontend/src/app/search/page.tsx - PKD search interface
+   - frontend/src/app/dashboard/page.tsx - Added PKD Search link
+
+3. **Infrastructure:**
+   - docker-compose.yml - Fixed port mappings for PostgreSQL and Redis
+
+### Statistics:
+- Total features: 380
+- Passing features: 51 (13.4%)
+- In progress: 0
+
+### Git Commits This Session:
+- 86253f9 - Add PKD code search feature (Feature #236)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Consider implementing company profiles
+3. Expand PKD database with more codes
+
+---
+
+## Session 6 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #235: Geographic filter for analysis - PASSED
+- Created market analysis page at /analysis
+- Implemented geographic filtering with Poland and Europe (EU) options
+- Backend returns different market data based on selected geography:
+  - Poland: Regional data (Mazowieckie, Śląskie, Wielkopolskie, etc.)
+  - Europe: Country-level data (Germany, France, Italy, Spain, Poland, etc.)
+- Geography-specific insights and market trends
+- Added Market Analysis button to dashboard
+
+#### Technical Changes:
+1. **Backend:**
+   - Updated backend/app/api/v1/endpoints/analysis.py
+   - Added MarketAnalysisRequest, MarketDataPoint, MarketAnalysisResponse models
+   - Added POLAND_MARKET_DATA and EUROPE_MARKET_DATA mock data
+   - Geographic filtering logic in analyze_market endpoint
+
+2. **Frontend:**
+   - Created frontend/src/app/analysis/page.tsx
+   - Industry dropdown (Manufacturing, Technology, Logistics, Retail, Services)
+   - Geographic filter buttons with flags (Poland, Europe EU, CEE, Global)
+   - Results display with data table, insights, and trends
+   - Added link from dashboard to analysis page
+
+3. **Infrastructure:**
+   - Added backend/Makefile for easier server management
+   - Added start_backend.sh script
+
+### Statistics:
+- Total features: 380
+- Passing features: 50 (13.2%)
+- In progress: 0
+
+### Git Commits This Session:
+- db47b58 - Add market analysis page with geographic filtering (Feature #235)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Consider implementing more analysis features
+3. Dashboard has growing functionality
+
+---
+
 ## Session 5 - Date: 2026-01-15
 
 ### Completed in This Session:

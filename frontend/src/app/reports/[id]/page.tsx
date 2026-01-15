@@ -40,6 +40,18 @@ interface SearchMatch {
   context: string
 }
 
+interface Annotation {
+  id: string
+  report_id: string
+  section_id: string
+  selected_text: string
+  start_offset: number
+  end_offset: number
+  comment: string
+  created_at: string
+  user_id: string
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -56,8 +68,22 @@ export default function ReportViewerPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
+  // Annotation state
+  const [annotations, setAnnotations] = useState<Annotation[]>([])
+  const [selectedText, setSelectedText] = useState('')
+  const [selectionInfo, setSelectionInfo] = useState<{
+    sectionId: string
+    startOffset: number
+    endOffset: number
+    rect: DOMRect | null
+  } | null>(null)
+  const [annotationComment, setAnnotationComment] = useState('')
+  const [showAnnotationModal, setShowAnnotationModal] = useState(false)
+  const [isSavingAnnotation, setIsSavingAnnotation] = useState(false)
+
   useEffect(() => {
     fetchReport()
+    fetchAnnotations()
   }, [reportId])
 
   // Keyboard shortcut for search (Ctrl+F)
@@ -72,11 +98,54 @@ export default function ReportViewerPage() {
         setIsSearchOpen(false)
         setSearchQuery('')
         setSearchMatches([])
+        setShowAnnotationModal(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  // Text selection handler
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection()
+      if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+        return
+      }
+
+      const text = selection.toString().trim()
+      if (text.length < 3) return // Minimum 3 characters
+
+      // Find which section the selection is in
+      const anchorNode = selection.anchorNode
+      if (!anchorNode) return
+
+      let element: HTMLElement | null = anchorNode.nodeType === Node.TEXT_NODE
+        ? anchorNode.parentElement
+        : anchorNode as HTMLElement
+
+      while (element && !element.id?.startsWith('section-')) {
+        element = element.parentElement
+      }
+
+      if (element && element.id) {
+        const sectionId = element.id.replace('section-', '')
+        const range = selection.getRangeAt(0)
+        const rect = range.getBoundingClientRect()
+
+        setSelectedText(text)
+        setSelectionInfo({
+          sectionId,
+          startOffset: range.startOffset,
+          endOffset: range.endOffset,
+          rect
+        })
+      }
+    }
+
+    document.addEventListener('selectionchange', handleSelectionChange)
+    return () => document.removeEventListener('selectionchange', handleSelectionChange)
   }, [])
 
   const fetchReport = async () => {
@@ -106,9 +175,99 @@ export default function ReportViewerPage() {
       const data = await response.json()
       setReport(data)
     } catch (err) {
-      setError('Nie udało się załadować raportu')
+      setError('Nie udalo sie zaladowac raportu')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchAnnotations = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/annotations`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setAnnotations(data.annotations || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch annotations:', err)
+    }
+  }
+
+  const saveAnnotation = async () => {
+    if (!selectedText || !selectionInfo || !annotationComment.trim()) return
+
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsSavingAnnotation(true)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/annotations`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            section_id: selectionInfo.sectionId,
+            selected_text: selectedText,
+            start_offset: selectionInfo.startOffset,
+            end_offset: selectionInfo.endOffset,
+            comment: annotationComment,
+          }),
+        }
+      )
+
+      if (response.ok) {
+        const newAnnotation = await response.json()
+        setAnnotations(prev => [...prev, newAnnotation])
+        setShowAnnotationModal(false)
+        setAnnotationComment('')
+        setSelectedText('')
+        setSelectionInfo(null)
+        // Clear selection
+        window.getSelection()?.removeAllRanges()
+      }
+    } catch (err) {
+      console.error('Failed to save annotation:', err)
+    } finally {
+      setIsSavingAnnotation(false)
+    }
+  }
+
+  const deleteAnnotation = async (annotationId: string) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/annotations/${annotationId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        setAnnotations(prev => prev.filter(a => a.id !== annotationId))
+      }
+    } catch (err) {
+      console.error('Failed to delete annotation:', err)
     }
   }
 
@@ -257,12 +416,17 @@ export default function ReportViewerPage() {
     })
   }
 
+  // Get annotations for a specific section
+  const getSectionAnnotations = (sectionId: string) => {
+    return annotations.filter(a => a.section_id === sectionId)
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="h-8 w-8 mx-auto animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          <p className="mt-3 text-gray-600">Ładowanie raportu...</p>
+          <p className="mt-3 text-gray-600">Ladowanie raportu...</p>
         </div>
       </div>
     )
@@ -274,7 +438,7 @@ export default function ReportViewerPage() {
         <div className="text-center">
           <p className="text-red-600">{error || 'Nie znaleziono raportu'}</p>
           <Link href="/reports" className="mt-4 inline-block text-blue-600 hover:underline">
-            Wróć do listy raportów
+            Wroc do listy raportow
           </Link>
         </div>
       </div>
@@ -351,7 +515,7 @@ export default function ReportViewerPage() {
                 onClick={goToNextMatch}
                 disabled={searchMatches.length === 0}
                 className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                title="Następny wynik"
+                title="Nastepny wynik"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -375,6 +539,76 @@ export default function ReportViewerPage() {
         </div>
       )}
 
+      {/* Annotation Tooltip - shows when text is selected */}
+      {selectedText && selectionInfo && selectionInfo.rect && !showAnnotationModal && (
+        <div
+          className="fixed z-50 bg-gray-900 text-white rounded-lg shadow-lg px-3 py-2 text-sm"
+          style={{
+            top: selectionInfo.rect.bottom + window.scrollY + 8,
+            left: selectionInfo.rect.left + selectionInfo.rect.width / 2,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <button
+            onClick={() => setShowAnnotationModal(true)}
+            className="flex items-center gap-2 hover:text-blue-300"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            Dodaj adnotacje
+          </button>
+        </div>
+      )}
+
+      {/* Annotation Modal */}
+      {showAnnotationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Dodaj adnotacje</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Zaznaczony tekst:
+              </label>
+              <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-gray-700">
+                &quot;{selectedText.substring(0, 100)}{selectedText.length > 100 ? '...' : ''}&quot;
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Komentarz:
+              </label>
+              <textarea
+                value={annotationComment}
+                onChange={(e) => setAnnotationComment(e.target.value)}
+                placeholder="Wpisz swoj komentarz..."
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                rows={3}
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowAnnotationModal(false)
+                  setAnnotationComment('')
+                }}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={saveAnnotation}
+                disabled={!annotationComment.trim() || isSavingAnnotation}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isSavingAnnotation ? 'Zapisywanie...' : 'Zapisz'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto max-w-4xl px-4 py-8">
         {/* Report Header */}
         <div className="mb-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
@@ -385,7 +619,7 @@ export default function ReportViewerPage() {
                report.type === 'due_diligence' ? 'Due Diligence' : report.type}
             </span>
             {report.company && (
-              <span className="text-blue-100">• {report.company}</span>
+              <span className="text-blue-100">&#x2022; {report.company}</span>
             )}
           </div>
           <h1 className="text-2xl font-bold">{report.title}</h1>
@@ -398,7 +632,7 @@ export default function ReportViewerPage() {
 
         {/* Table of Contents */}
         <div className="mb-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 font-semibold text-gray-900">Spis treści</h2>
+          <h2 className="mb-4 font-semibold text-gray-900">Spis tresci</h2>
           <nav className="space-y-2">
             {report.sections.map((section, index) => (
               <a
@@ -411,6 +645,44 @@ export default function ReportViewerPage() {
             ))}
           </nav>
         </div>
+
+        {/* Annotations Summary */}
+        {annotations.length > 0 && (
+          <div className="mb-8 rounded-xl bg-yellow-50 border border-yellow-200 p-6">
+            <h2 className="mb-4 font-semibold text-gray-900 flex items-center gap-2">
+              <svg className="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              Adnotacje ({annotations.length})
+            </h2>
+            <div className="space-y-3">
+              {annotations.map((annotation) => (
+                <div key={annotation.id} className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-500 mb-1">
+                        Zaznaczony tekst:
+                      </div>
+                      <div className="text-sm text-gray-700 italic mb-2">
+                        &quot;{annotation.selected_text.substring(0, 80)}{annotation.selected_text.length > 80 ? '...' : ''}&quot;
+                      </div>
+                      <div className="text-gray-800">{annotation.comment}</div>
+                    </div>
+                    <button
+                      onClick={() => deleteAnnotation(annotation.id)}
+                      className="ml-2 text-gray-400 hover:text-red-500"
+                      title="Usun adnotacje"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Report Sections */}
         <div className="space-y-8">
@@ -430,13 +702,29 @@ export default function ReportViewerPage() {
                   </p>
                 ))}
               </div>
+              {/* Section Annotations */}
+              {getSectionAnnotations(section.id).length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="text-sm font-medium text-yellow-700 mb-2">
+                    Adnotacje w tej sekcji:
+                  </div>
+                  {getSectionAnnotations(section.id).map((annotation) => (
+                    <div key={annotation.id} className="bg-yellow-50 rounded-lg p-3 mb-2 text-sm">
+                      <div className="text-gray-500 italic mb-1">
+                        &quot;{annotation.selected_text.substring(0, 50)}...&quot;
+                      </div>
+                      <div className="text-gray-700">{annotation.comment}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           ))}
         </div>
 
         {/* Sources */}
         <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 font-semibold text-gray-900">Źródła</h2>
+          <h2 className="mb-4 font-semibold text-gray-900">Zrodla</h2>
           <div className="space-y-3">
             {report.sources.map((source, idx) => (
               <div key={idx} className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
@@ -447,7 +735,7 @@ export default function ReportViewerPage() {
                   </a>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Pewność:</span>
+                  <span className="text-sm text-gray-500">Pewnosc:</span>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                     source.confidence >= 0.9 ? 'bg-green-100 text-green-800' :
                     source.confidence >= 0.75 ? 'bg-yellow-100 text-yellow-800' :
@@ -459,6 +747,12 @@ export default function ReportViewerPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Annotation Instructions */}
+        <div className="mt-8 rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-700">
+          <div className="font-medium mb-1">Jak dodac adnotacje?</div>
+          <p>Zaznacz dowolny tekst w raporcie, a pojawi sie opcja dodania komentarza. Twoje adnotacje zostana zapisane i beda widoczne przy kolejnych wizytach.</p>
         </div>
       </main>
     </div>
