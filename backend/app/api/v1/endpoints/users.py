@@ -53,6 +53,34 @@ class UserPreferencesUpdate(BaseModel):
     preferred_format: Optional[str] = None
 
 
+class NotificationPreferencesResponse(BaseModel):
+    """Notification preferences response."""
+    email_notifications: bool = True
+    in_app_notifications: bool = True
+    email_report_ready: bool = True
+    email_alert_triggered: bool = True
+    email_weekly_digest: bool = False
+    in_app_report_ready: bool = True
+    in_app_alert_triggered: bool = True
+    in_app_project_updates: bool = True
+
+
+class NotificationPreferencesUpdate(BaseModel):
+    """Notification preferences update request."""
+    email_notifications: Optional[bool] = None
+    in_app_notifications: Optional[bool] = None
+    email_report_ready: Optional[bool] = None
+    email_alert_triggered: Optional[bool] = None
+    email_weekly_digest: Optional[bool] = None
+    in_app_report_ready: Optional[bool] = None
+    in_app_alert_triggered: Optional[bool] = None
+    in_app_project_updates: Optional[bool] = None
+
+
+# In-memory storage for notification preferences (mock)
+NOTIFICATION_PREFS: dict = {}
+
+
 @router.get("/me", response_model=UserProfileResponse)
 async def get_user_profile(
     current_user: User = Depends(get_current_user)
@@ -139,3 +167,47 @@ async def update_user_preferences(
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf"
     )
+
+
+@router.get("/me/notifications", response_model=NotificationPreferencesResponse)
+async def get_notification_preferences(
+    current_user: User = Depends(get_current_user)
+):
+    """Get notification preferences."""
+    user_id = str(current_user.id)
+    if user_id in NOTIFICATION_PREFS:
+        return NotificationPreferencesResponse(**NOTIFICATION_PREFS[user_id])
+    return NotificationPreferencesResponse()
+
+
+@router.put("/me/notifications", response_model=NotificationPreferencesResponse)
+async def update_notification_preferences(
+    prefs_data: NotificationPreferencesUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update notification preferences."""
+    user_id = str(current_user.id)
+
+    # Get existing or default preferences
+    if user_id not in NOTIFICATION_PREFS:
+        NOTIFICATION_PREFS[user_id] = NotificationPreferencesResponse().model_dump()
+
+    # Update only provided fields
+    if prefs_data.email_notifications is not None:
+        NOTIFICATION_PREFS[user_id]["email_notifications"] = prefs_data.email_notifications
+    if prefs_data.in_app_notifications is not None:
+        NOTIFICATION_PREFS[user_id]["in_app_notifications"] = prefs_data.in_app_notifications
+    if prefs_data.email_report_ready is not None:
+        NOTIFICATION_PREFS[user_id]["email_report_ready"] = prefs_data.email_report_ready
+    if prefs_data.email_alert_triggered is not None:
+        NOTIFICATION_PREFS[user_id]["email_alert_triggered"] = prefs_data.email_alert_triggered
+    if prefs_data.email_weekly_digest is not None:
+        NOTIFICATION_PREFS[user_id]["email_weekly_digest"] = prefs_data.email_weekly_digest
+    if prefs_data.in_app_report_ready is not None:
+        NOTIFICATION_PREFS[user_id]["in_app_report_ready"] = prefs_data.in_app_report_ready
+    if prefs_data.in_app_alert_triggered is not None:
+        NOTIFICATION_PREFS[user_id]["in_app_alert_triggered"] = prefs_data.in_app_alert_triggered
+    if prefs_data.in_app_project_updates is not None:
+        NOTIFICATION_PREFS[user_id]["in_app_project_updates"] = prefs_data.in_app_project_updates
+
+    return NotificationPreferencesResponse(**NOTIFICATION_PREFS[user_id])

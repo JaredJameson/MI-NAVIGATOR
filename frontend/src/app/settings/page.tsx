@@ -74,8 +74,13 @@ export default function SettingsPage() {
   const [depth, setDepth] = useState('standard')
   const [format, setFormat] = useState('pdf')
 
+  // Notification preferences
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [inAppNotifications, setInAppNotifications] = useState(true)
+
   useEffect(() => {
     fetchProfile()
+    fetchNotificationPreferences()
   }, [])
 
   const fetchProfile = async () => {
@@ -112,6 +117,27 @@ export default function SettingsPage() {
       setError('Failed to load profile')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchNotificationPreferences = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/me/notifications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setEmailNotifications(data.email_notifications ?? true)
+        setInAppNotifications(data.in_app_notifications ?? true)
+      }
+    } catch (err) {
+      console.error('Failed to fetch notification preferences:', err)
     }
   }
 
@@ -158,6 +184,23 @@ export default function SettingsPage() {
 
       if (!prefsResponse.ok) {
         throw new Error('Failed to update preferences')
+      }
+
+      // Update notification preferences
+      const notifResponse = await fetch(`${API_BASE_URL}/users/me/notifications`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email_notifications: emailNotifications,
+          in_app_notifications: inAppNotifications,
+        }),
+      })
+
+      if (!notifResponse.ok) {
+        throw new Error('Failed to update notification preferences')
       }
 
       setSuccess('Settings saved successfully!')
@@ -377,6 +420,65 @@ export default function SettingsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+        </section>
+
+        {/* Notifications Section */}
+        <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
+          <h2 className="mb-6 text-lg font-semibold text-gray-900">Notifications</h2>
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <label htmlFor="emailNotifications" className="block text-sm font-medium text-gray-900">
+                  Email Notifications
+                </label>
+                <p className="text-sm text-gray-500">
+                  Receive email notifications about reports, alerts, and updates
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={emailNotifications}
+                onClick={() => setEmailNotifications(!emailNotifications)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  emailNotifications ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    emailNotifications ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label htmlFor="inAppNotifications" className="block text-sm font-medium text-gray-900">
+                  In-App Notifications
+                </label>
+                <p className="text-sm text-gray-500">
+                  Show notifications within the application
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={inAppNotifications}
+                onClick={() => setInAppNotifications(!inAppNotifications)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  inAppNotifications ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    inAppNotifications ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
           </div>
         </section>
