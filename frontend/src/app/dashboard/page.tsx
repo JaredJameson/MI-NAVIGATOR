@@ -1,10 +1,26 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { authApi } from '@/services/api'
 
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await authApi.logout()
+      router.push('/auth/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,6 +39,13 @@ export default function DashboardPage() {
               <Link href="/settings" className="text-gray-600 hover:text-gray-900">
                 Settings
               </Link>
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
+              </button>
             </nav>
           </div>
         </div>

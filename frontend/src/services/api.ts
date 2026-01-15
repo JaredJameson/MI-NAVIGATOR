@@ -159,6 +159,24 @@ export const authApi = {
 
     return { data };
   },
+
+  async forgotPassword(email: string): Promise<ApiResponse<{ message: string }>> {
+    return fetchApi('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async resetPassword(token: string, password: string, confirmPassword: string): Promise<ApiResponse<{ message: string }>> {
+    return fetchApi('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        token,
+        password,
+        confirm_password: confirmPassword,
+      }),
+    });
+  },
 };
 
 export default fetchApi;

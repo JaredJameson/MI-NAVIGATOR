@@ -1,67 +1,84 @@
 # MI-Navigator Development Progress
 
-## Session 2 - Date: 2026-01-15
+## Session 3 - Date: 2026-01-15
 
 ### Completed in This Session:
 
-#### Feature #1: User registration with email - PASSED ✅
-- Created database models (User, Session) with SQLAlchemy
-- Setup Alembic migrations and ran initial migration
-- Implemented authentication service with bcrypt password hashing
-- Created registration page frontend (/auth/register)
-- Created login page frontend (/auth/login)
-- Verified full registration -> login -> dashboard flow
+#### Feature #3: User login with invalid credentials - PASSED ✅
+- Verified generic error message "Incorrect email or password"
+- No information leakage about which field is wrong
+
+#### Feature #4: User logout clears session - PASSED ✅
+- Added Logout button to dashboard header
+- Implemented AuthGuard component for route protection
+- Logout clears tokens and redirects to login
+- Protected routes redirect unauthenticated users
+
+#### Feature #5: Password reset flow - PASSED ✅
+- Created PasswordResetToken model and migration
+- Added forgot-password endpoint (POST /api/v1/auth/forgot-password)
+- Added reset-password endpoint (POST /api/v1/auth/reset-password)
+- Created frontend pages: /auth/forgot-password, /auth/reset-password
+- Tokens logged to console for development testing
+- Full flow verified: request -> token -> reset -> login
+
+#### Feature #6: Session expiration handling - PASSED ✅
+- AuthGuard handles expired/missing tokens
+- Redirects to login on session expiration
+- No sensitive data leakage
+
+#### Feature #7: Protected routes require authentication - PASSED ✅
+- All non-public routes redirect to login when unauthenticated
 
 #### Technical Changes:
-1. **Database Layer:**
-   - app/db/base.py - SQLAlchemy Base configuration
-   - app/db/session.py - Database session management (sync/async)
-   - app/models/user.py - User and Session models
+1. **Database:**
+   - Added password_reset_tokens table
+   - New migration: 5a2b3c4d5e6f_add_password_reset_tokens.py
 
-2. **Authentication:**
-   - app/schemas/user.py - Pydantic schemas for validation
-   - app/services/auth.py - AuthService with JWT and bcrypt
-   - Fixed bcrypt/passlib compatibility issue
+2. **Backend:**
+   - app/models/user.py - Added PasswordResetToken model
+   - app/services/auth.py - Added password reset methods
+   - app/schemas/user.py - Added PasswordResetRequest, PasswordResetConfirm
+   - app/api/v1/endpoints/auth.py - Updated forgot-password, reset-password
 
-3. **API Endpoints:**
-   - POST /api/v1/auth/register - User registration
-   - POST /api/v1/auth/login - User login (OAuth2 flow)
-   - GET /api/v1/auth/me - Get current user
-   - POST /api/v1/auth/logout - Logout
-
-4. **Frontend:**
-   - src/app/auth/register/page.tsx - Registration form
-   - src/app/auth/login/page.tsx - Login form
-   - src/services/api.ts - API client with token management
-
-5. **Configuration:**
-   - docker-compose.yml - PostgreSQL:5460, Redis:6395
-   - backend/.env - Updated with correct ports
-   - frontend/.env.local - API URL with /api/v1 prefix
-
-### Verified Test Steps:
-1. ✅ Navigate to /register page
-2. ✅ Registration form displays correctly
-3. ✅ Submit form with valid data
-4. ✅ Success message appears
-5. ✅ User can login with new credentials
-6. ✅ User data persists in database
+3. **Frontend:**
+   - src/components/auth/AuthGuard.tsx - Route protection component
+   - src/components/providers.tsx - Integrated AuthGuard
+   - src/app/auth/forgot-password/page.tsx - Request reset form
+   - src/app/auth/reset-password/page.tsx - New password form
+   - src/app/dashboard/page.tsx - Added Logout button
+   - src/services/api.ts - Added forgotPassword, resetPassword methods
 
 ### Statistics:
 - Total features: 380
-- Passing features: 1 (0.26%)
+- Passing features: 7 (1.8%)
 - In progress: 0
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI with --reload)
 - Frontend: http://localhost:3000 (Next.js dev server)
-- PostgreSQL: localhost:5460
+- PostgreSQL: localhost:5460 (user: minavigator, db: minavigator)
 - Redis: localhost:6395
 
 ### Next Steps for Future Agents:
 1. Use `feature_get_next` to get next feature
-2. Continue implementing authentication-related features
-3. Work on chat interface and conversation persistence
+2. Continue with authentication features (remember me, multi-device)
+3. Start implementing chat interface
+
+---
+
+## Session 2 - Date: 2026-01-15 (Previous)
+
+### Completed:
+- Feature #1: User registration with email - PASSED
+- Feature #2: User login with valid credentials - PASSED
+
+### Technical Changes:
+- Database models (User, Session) with SQLAlchemy
+- Alembic migrations
+- Authentication service with bcrypt
+- Registration/Login pages
+- API client with token management
 
 ### Git History:
 - 9493823 - Implement user registration and login functionality

@@ -10,7 +10,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
+from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, PasswordResetRequest, PasswordResetConfirm
 from app.services.auth import AuthService
 
 router = APIRouter()
@@ -212,25 +212,28 @@ async def get_current_user_info(
 
 @router.post("/forgot-password")
 async def forgot_password(
-    email: str,
+    data: PasswordResetRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """
     Initiate password reset flow.
 
-    In development mode, the reset link is logged to console.
+    In development mode, the reset token is logged to console.
+    Always returns success to prevent email enumeration.
     """
-    user = await AuthService.get_user_by_email(db, email)
+    user = await AuthService.get_user_by_email(db, data.email)
 
     # Always return success to prevent email enumeration
     if user:
-        # Generate reset token (using same JWT mechanism)
-        reset_token = AuthService.create_access_token(str(user.id))
+        # Generate reset token
+        reset_token = await AuthService.create_password_reset_token(db, user)
+        await db.commit()
 
         # In development: log to console instead of sending email
         print(f"\n{'='*60}")
-        print(f"PASSWORD RESET REQUEST for {email}")
-        print(f"Reset link: http://localhost:3000/reset-password?token={reset_token}")
+        print(f"PASSWORD RESET REQUEST for {data.email}")
+        print(f"Reset link: http://localhost:3000/auth/reset-password?token={reset_token.token}")
+        print(f"Token: {reset_token.token}")
         print(f"{'='*60}\n")
 
     return {"message": "If the email exists, a password reset link has been sent"}
@@ -238,34 +241,27 @@ async def forgot_password(
 
 @router.post("/reset-password")
 async def reset_password(
-    token: str,
-    new_password: str,
+    data: PasswordResetConfirm,
     db: AsyncSession = Depends(get_db)
 ):
     """Reset password with token."""
     # Validate token
-    token_data = AuthService.decode_token(token)
+    reset_token = await AuthService.get_valid_reset_token(db, data.token)
 
-    if not token_data or token_data.exp < datetime.utcnow():
+    if not reset_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token"
         )
 
-    # Get user
-    user = await AuthService.get_user_by_id(db, token_data.sub)
-    if not user:
+    # Reset password
+    try:
+        await AuthService.reset_password(db, reset_token, data.password)
+        await db.commit()
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User not found"
+            detail=str(e)
         )
-
-    # Update password
-    user.password_hash = AuthService.hash_password(new_password)
-
-    # Invalidate all sessions
-    await AuthService.delete_all_user_sessions(db, user.id)
-
-    await db.commit()
 
     return {"message": "Password reset successfully"}

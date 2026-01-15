@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.models.user import User, Session
+from app.models.user import User, Session, PasswordResetToken
 from app.schemas.user import UserCreate, Token, TokenPayload
 
 
@@ -173,3 +173,76 @@ class AuthService:
         """Update user's last login timestamp."""
         user.last_login_at = datetime.utcnow()
         await db.flush()
+
+    @staticmethod
+    def generate_reset_token() -> str:
+        """Generate a random password reset token."""
+        import secrets
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    async def create_password_reset_token(
+        db: AsyncSession,
+        user: User,
+        expires_hours: int = 24
+    ) -> PasswordResetToken:
+        """Create a password reset token for a user."""
+        # Invalidate any existing tokens for this user
+        existing = await db.execute(
+            select(PasswordResetToken).where(
+                PasswordResetToken.user_id == user.id,
+                PasswordResetToken.used == False
+            )
+        )
+        for token in existing.scalars().all():
+            token.used = True
+
+        # Create new token
+        reset_token = PasswordResetToken(
+            user_id=user.id,
+            token=AuthService.generate_reset_token(),
+            expires_at=datetime.utcnow() + timedelta(hours=expires_hours)
+        )
+        db.add(reset_token)
+        await db.flush()
+        await db.refresh(reset_token)
+        return reset_token
+
+    @staticmethod
+    async def get_valid_reset_token(
+        db: AsyncSession,
+        token: str
+    ) -> Optional[PasswordResetToken]:
+        """Get a valid (not expired, not used) password reset token."""
+        result = await db.execute(
+            select(PasswordResetToken).where(
+                PasswordResetToken.token == token,
+                PasswordResetToken.used == False,
+                PasswordResetToken.expires_at > datetime.utcnow()
+            )
+        )
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def reset_password(
+        db: AsyncSession,
+        reset_token: PasswordResetToken,
+        new_password: str
+    ) -> User:
+        """Reset user's password using a valid reset token."""
+        # Get user
+        user = await AuthService.get_user_by_id(db, str(reset_token.user_id))
+        if not user:
+            raise ValueError("User not found")
+
+        # Update password
+        user.password_hash = AuthService.hash_password(new_password)
+
+        # Mark token as used
+        reset_token.used = True
+
+        # Invalidate all sessions (security measure)
+        await AuthService.delete_all_user_sessions(db, user.id)
+
+        await db.flush()
+        return user
