@@ -463,3 +463,229 @@ async def delete_annotation(
     REPORT_ANNOTATIONS[user_key] = [a for a in annotations if a["id"] != annotation_id]
 
     return {"message": "Annotation deleted successfully"}
+
+
+# Version history mock data
+REPORT_VERSIONS = {
+    "report_001": [
+        {
+            "version": 3,
+            "created_at": "2026-01-14T14:22:00Z",
+            "author": "Jan Kowalski",
+            "changes": "Dodano sekcje Analiza SWOT",
+            "is_current": True
+        },
+        {
+            "version": 2,
+            "created_at": "2026-01-14T12:15:00Z",
+            "author": "Jan Kowalski",
+            "changes": "Zaktualizowano dane finansowe",
+            "is_current": False,
+            "sections": [
+                {
+                    "id": "section_1",
+                    "title": "Informacje podstawowe",
+                    "content": """FADO Sp. z o.o. to polska firma założona w 1998 roku, specjalizująca się w produkcji wyrobów z tworzyw sztucznych. Firma posiada siedzibę w Warszawie przy ul. Przemysłowej 15.
+
+**Dane rejestrowe:**
+- NIP: 5260016831
+- REGON: 012567834
+- KRS: 0000145732
+- Forma prawna: Spółka z ograniczoną odpowiedzialnością
+
+Firma zatrudnia około 120 pracowników."""
+                },
+                {
+                    "id": "section_2",
+                    "title": "Analiza finansowa",
+                    "content": """**Przychody i rentowność (2022):**
+- Przychody ze sprzedaży: 40,2 mln PLN
+- Wzrost r/r: +8,5%
+- Marża brutto: 26,2%
+- Zysk netto: 3,9 mln PLN
+
+Firma wykazuje stabilny wzrost przychodów."""
+                }
+            ]
+        },
+        {
+            "version": 1,
+            "created_at": "2026-01-13T09:30:00Z",
+            "author": "System",
+            "changes": "Utworzono raport",
+            "is_current": False,
+            "sections": [
+                {
+                    "id": "section_1",
+                    "title": "Informacje podstawowe",
+                    "content": """FADO Sp. z o.o. to polska firma założona w 1998 roku.
+
+**Dane rejestrowe:**
+- NIP: 5260016831
+- REGON: 012567834
+- KRS: 0000145732
+
+Wstępne dane firmy."""
+                }
+            ]
+        }
+    ],
+    "report_002": [
+        {
+            "version": 1,
+            "created_at": "2026-01-13T09:15:00Z",
+            "author": "System",
+            "changes": "Utworzono raport",
+            "is_current": True
+        }
+    ],
+    "report_003": [
+        {
+            "version": 1,
+            "created_at": "2026-01-12T11:00:00Z",
+            "author": "System",
+            "changes": "Utworzono raport",
+            "is_current": True
+        }
+    ]
+}
+
+
+class ReportVersion(BaseModel):
+    version: int
+    created_at: str
+    author: str
+    changes: str
+    is_current: bool
+
+
+class ReportVersionDetail(BaseModel):
+    version: int
+    created_at: str
+    author: str
+    changes: str
+    is_current: bool
+    sections: Optional[List[ReportSection]] = None
+
+
+@router.get("/{report_id}/versions")
+async def get_report_versions(report_id: str, current_user: User = Depends(get_current_user)):
+    """Get version history for a report."""
+    versions = REPORT_VERSIONS.get(report_id, [])
+    return {
+        "versions": [
+            ReportVersion(
+                version=v["version"],
+                created_at=v["created_at"],
+                author=v["author"],
+                changes=v["changes"],
+                is_current=v["is_current"]
+            ) for v in versions
+        ]
+    }
+
+
+@router.get("/{report_id}/versions/{version}")
+async def get_report_version(
+    report_id: str,
+    version: int,
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific version of a report."""
+    versions = REPORT_VERSIONS.get(report_id, [])
+
+    for v in versions:
+        if v["version"] == version:
+            # If it's the current version, return the main report
+            if v["is_current"]:
+                for report in MOCK_REPORTS:
+                    if report["id"] == report_id:
+                        return ReportDetail(
+                            id=report["id"],
+                            title=report["title"] + f" (wersja {version})",
+                            type=report["type"],
+                            company=report["company"],
+                            created_at=v["created_at"],
+                            updated_at=v["created_at"],
+                            status=report["status"],
+                            summary=report["summary"],
+                            sections=[ReportSection(**s) for s in report["sections"]],
+                            sources=[ReportSource(**s) for s in report["sources"]]
+                        )
+            else:
+                # Return the historical version
+                for report in MOCK_REPORTS:
+                    if report["id"] == report_id:
+                        return ReportDetail(
+                            id=report["id"],
+                            title=report["title"] + f" (wersja {version})",
+                            type=report["type"],
+                            company=report["company"],
+                            created_at=v["created_at"],
+                            updated_at=v["created_at"],
+                            status="archived",
+                            summary=report["summary"],
+                            sections=[ReportSection(**s) for s in v.get("sections", [])],
+                            sources=[ReportSource(**s) for s in report["sources"]]
+                        )
+
+    return {"error": "Version not found"}
+
+
+class RestoreVersionRequest(BaseModel):
+    version: int
+
+
+@router.post("/{report_id}/versions/restore")
+async def restore_report_version(
+    report_id: str,
+    request: RestoreVersionRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Restore a report to a previous version.
+
+    This creates a new version with the content from the specified historical version.
+    """
+    versions = REPORT_VERSIONS.get(report_id, [])
+
+    if not versions:
+        return {"error": "Report not found"}
+
+    # Find the version to restore
+    version_to_restore = None
+    for v in versions:
+        if v["version"] == request.version:
+            version_to_restore = v
+            break
+
+    if not version_to_restore:
+        return {"error": "Version not found"}
+
+    # Get the current max version
+    max_version = max(v["version"] for v in versions)
+
+    # Mark all versions as not current
+    for v in versions:
+        v["is_current"] = False
+
+    # Create new version with restored content
+    new_version = {
+        "version": max_version + 1,
+        "created_at": datetime.now().isoformat() + "Z",
+        "author": current_user.name or current_user.email,
+        "changes": f"Przywrócono wersję {request.version}",
+        "is_current": True,
+    }
+
+    # Copy sections from the restored version if it has them
+    if "sections" in version_to_restore:
+        new_version["sections"] = version_to_restore["sections"].copy()
+
+    # Add the new version at the beginning (most recent first)
+    REPORT_VERSIONS[report_id].insert(0, new_version)
+
+    return {
+        "message": "Wersja przywrócona pomyślnie",
+        "new_version": new_version["version"],
+        "restored_from": request.version
+    }

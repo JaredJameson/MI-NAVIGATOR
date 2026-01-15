@@ -52,6 +52,14 @@ interface Annotation {
   user_id: string
 }
 
+interface ReportVersion {
+  version: number
+  created_at: string
+  author: string
+  changes: string
+  is_current: boolean
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -81,9 +89,22 @@ export default function ReportViewerPage() {
   const [showAnnotationModal, setShowAnnotationModal] = useState(false)
   const [isSavingAnnotation, setIsSavingAnnotation] = useState(false)
 
+  // Version history state
+  const [versions, setVersions] = useState<ReportVersion[]>([])
+  const [showVersionHistory, setShowVersionHistory] = useState(false)
+  const [currentVersion, setCurrentVersion] = useState<number | null>(null)
+  const [isLoadingVersion, setIsLoadingVersion] = useState(false)
+
+  // Restore version state
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false)
+  const [versionToRestore, setVersionToRestore] = useState<number | null>(null)
+  const [isRestoring, setIsRestoring] = useState(false)
+  const [restoreMessage, setRestoreMessage] = useState('')
+
   useEffect(() => {
     fetchReport()
     fetchAnnotations()
+    fetchVersions()
   }, [reportId])
 
   // Keyboard shortcut for search (Ctrl+F)
@@ -99,6 +120,7 @@ export default function ReportViewerPage() {
         setSearchQuery('')
         setSearchMatches([])
         setShowAnnotationModal(false)
+        setShowRestoreConfirm(false)
       }
     }
 
@@ -202,6 +224,109 @@ export default function ReportViewerPage() {
     } catch (err) {
       console.error('Failed to fetch annotations:', err)
     }
+  }
+
+  const fetchVersions = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/versions`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setVersions(data.versions || [])
+        // Set current version
+        const current = data.versions?.find((v: ReportVersion) => v.is_current)
+        if (current) {
+          setCurrentVersion(current.version)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch versions:', err)
+    }
+  }
+
+  const loadVersion = async (version: number) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsLoadingVersion(true)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/versions/${version}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setReport(data)
+        setCurrentVersion(version)
+        setShowVersionHistory(false)
+      }
+    } catch (err) {
+      console.error('Failed to load version:', err)
+    } finally {
+      setIsLoadingVersion(false)
+    }
+  }
+
+  const restoreVersion = async () => {
+    if (!versionToRestore) return
+
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsRestoring(true)
+    setRestoreMessage('')
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/versions/restore`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ version: versionToRestore }),
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setRestoreMessage(`Przywrócono wersję ${versionToRestore}. Utworzono nową wersję ${data.new_version}.`)
+        setShowRestoreConfirm(false)
+        // Refresh versions and report
+        await fetchVersions()
+        await loadVersion(data.new_version)
+      } else {
+        setRestoreMessage('Nie udało się przywrócić wersji')
+      }
+    } catch (err) {
+      console.error('Failed to restore version:', err)
+      setRestoreMessage('Błąd podczas przywracania wersji')
+    } finally {
+      setIsRestoring(false)
+    }
+  }
+
+  const handleRestoreClick = (version: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setVersionToRestore(version)
+    setShowRestoreConfirm(true)
   }
 
   const saveAnnotation = async () => {
@@ -460,6 +585,15 @@ export default function ReportViewerPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowVersionHistory(!showVersionHistory)}
+              className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+              title="Historia wersji"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            <button
               onClick={() => {
                 setIsSearchOpen(!isSearchOpen)
                 if (!isSearchOpen) {
@@ -479,6 +613,122 @@ export default function ReportViewerPage() {
           </div>
         </div>
       </header>
+
+      {/* Version History Panel */}
+      {showVersionHistory && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end bg-black/30">
+          <div className="h-full w-full max-w-md bg-white shadow-xl overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Historia wersji</h2>
+              <button
+                onClick={() => setShowVersionHistory(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              {versions.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">Brak historii wersji</p>
+              ) : (
+                versions.map((version) => (
+                  <div
+                    key={version.version}
+                    className={`rounded-lg border p-4 cursor-pointer transition-colors ${
+                      currentVersion === version.version
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                    onClick={() => loadVersion(version.version)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">
+                        Wersja {version.version}
+                        {version.is_current && (
+                          <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                            Aktualna
+                          </span>
+                        )}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {!version.is_current && (
+                          <button
+                            onClick={(e) => handleRestoreClick(version.version, e)}
+                            className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200 transition-colors"
+                            title="Przywróć tę wersję"
+                          >
+                            Przywróć
+                          </button>
+                        )}
+                        {isLoadingVersion && currentVersion === version.version && (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600 mb-1">{version.changes}</div>
+                    <div className="text-xs text-gray-500">
+                      {version.author} &bull; {new Date(version.created_at).toLocaleDateString('pl-PL', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Restore Confirmation Modal */}
+      {showRestoreConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Przywróć wersję</h3>
+            <p className="text-gray-600 mb-4">
+              Czy na pewno chcesz przywrócić raport do wersji {versionToRestore}?
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Zostanie utworzona nowa wersja z zawartością wybranej wersji historycznej.
+              Obecna wersja nie zostanie utracona.
+            </p>
+            {restoreMessage && (
+              <div className={`mb-4 p-3 rounded-lg text-sm ${
+                restoreMessage.includes('Błąd') || restoreMessage.includes('Nie udało')
+                  ? 'bg-red-50 text-red-700'
+                  : 'bg-green-50 text-green-700'
+              }`}>
+                {restoreMessage}
+              </div>
+            )}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowRestoreConfirm(false)
+                  setVersionToRestore(null)
+                  setRestoreMessage('')
+                }}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                disabled={isRestoring}
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={restoreVersion}
+                disabled={isRestoring}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm text-white hover:bg-amber-700 disabled:opacity-50"
+              >
+                {isRestoring ? 'Przywracanie...' : 'Przywróć'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search Bar */}
       {isSearchOpen && (
