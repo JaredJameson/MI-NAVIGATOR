@@ -39,6 +39,27 @@ const CATEGORY_ICONS: Record<string, string> = {
   'question': '❓',
 }
 
+// Context mapping for context-sensitive help - maps page context to help categories
+const CONTEXT_TO_CATEGORY: Record<string, string> = {
+  'reports': 'reports',
+  'projects': 'projects',
+  'search': 'search',
+  'alerts': 'alerts',
+  'settings': 'settings',
+  'account': 'account',
+  'dashboard': 'getting_started',
+}
+
+const CONTEXT_LABELS: Record<string, string> = {
+  'reports': 'Raporty',
+  'projects': 'Projekty',
+  'search': 'Wyszukiwanie',
+  'alerts': 'Alerty',
+  'settings': 'Ustawienia',
+  'account': 'Konto',
+  'dashboard': 'Dashboard',
+}
+
 export default function HelpPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -50,9 +71,17 @@ export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeSearch, setActiveSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [contextFilter, setContextFilter] = useState('')
 
   useEffect(() => {
     fetchCategories()
+
+    // Check for context parameter on initial load
+    const context = searchParams.get('context')
+    if (context && CONTEXT_TO_CATEGORY[context]) {
+      setContextFilter(context)
+      setSelectedCategory(CONTEXT_TO_CATEGORY[context])
+    }
   }, [])
 
   useEffect(() => {
@@ -329,7 +358,27 @@ export default function HelpPage() {
 
             {/* Articles List */}
             <div className="flex-1">
-              {activeSearch && (
+              {contextFilter && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                  <span className="text-sm text-green-800">
+                    <span className="font-medium">Pomoc kontekstowa:</span> Wyswietlono artykuly powiazane z sekcja <strong>{CONTEXT_LABELS[contextFilter]}</strong>
+                  </span>
+                  <button
+                    onClick={() => {
+                      setContextFilter('')
+                      setSelectedCategory('')
+                      setActiveSearch('')
+                      setSearchQuery('')
+                      router.push('/help')
+                    }}
+                    className="text-green-600 hover:text-green-800 text-sm"
+                  >
+                    Pokaz wszystkie
+                  </button>
+                </div>
+              )}
+
+              {activeSearch && !contextFilter && (
                 <div className="mb-4 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
                   <span className="text-sm text-blue-800">
                     Wyniki wyszukiwania dla: <strong>{activeSearch}</strong> ({articles.length} wynikow)

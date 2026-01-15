@@ -436,6 +436,16 @@ export default function ReportsPage() {
             <h1 className="text-xl font-semibold text-gray-900">Raporty</h1>
           </div>
           <nav className="flex items-center gap-4">
+            {/* Context-sensitive help button */}
+            <Link
+              href="/help?context=reports"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
+              title="Pomoc dot. raportow"
+            >
+              <span className="text-lg">❓</span>
+              <span className="hidden sm:inline">Pomoc</span>
+            </Link>
+
             {/* Selection mode toggle */}
             <button
               onClick={() => isSelectionMode ? exitSelectionMode() : setIsSelectionMode(true)}
