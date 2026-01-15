@@ -1,5 +1,49 @@
 # MI-Navigator Development Progress
 
+## Session 16 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #255: Activity log viewing - PASSED
+- Created backend /activity API endpoint with:
+  - GET / - List activities with pagination and filtering
+  - GET /types - Get activity types with counts
+  - GET /summary - Activity statistics
+  - GET /{activity_id} - Activity details
+- 15 mock activities with various types (login, report_created, search, alerts, etc.)
+- Created frontend /activity page:
+  - Paginated activity list (10 per page)
+  - Filter sidebar by activity type
+  - Activity type icons and color coding
+  - Relative timestamps ("1 godz. temu", "2 dni temu")
+
+#### Feature #256: Activity log export - PASSED
+- Added CSV export endpoint: GET /activity/export/csv
+- Export modal with date range selection (from/to)
+- Downloads CSV with columns: ID, Date, Type, Label, Title, Description
+- Respects current type filter
+
+#### Feature #257: Notification preferences - PASSED
+- Added notification preferences endpoints:
+  - GET /users/me/notifications
+  - PUT /users/me/notifications
+- Added Notifications section to settings page:
+  - Email notifications toggle switch
+  - In-app notifications toggle switch
+- Preferences persist after save and page reload
+
+### Statistics:
+- Total features: 380
+- Passing features: 72 (18.9%)
+- In progress: 0
+
+### Git Commits This Session:
+- 8c565b2 - feat(activity): implement activity log viewing with filtering
+- c977560 - feat(activity): add activity log export with date range filtering
+- fd87196 - feat(settings): add notification preferences with toggle switches
+
+---
+
 ## Session 15 - Date: 2026-01-15
 
 ### Completed in This Session:
