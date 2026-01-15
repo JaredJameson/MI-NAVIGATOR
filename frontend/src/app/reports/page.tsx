@@ -64,6 +64,11 @@ export default function ReportsPage() {
   const [isAssigning, setIsAssigning] = useState(false)
   const [assignmentSuccess, setAssignmentSuccess] = useState('')
 
+  // Bulk delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteSuccess, setDeleteSuccess] = useState('')
+
   useEffect(() => {
     fetchReports()
   }, [filterType])
@@ -224,6 +229,52 @@ export default function ReportsPage() {
     }
   }
 
+  // Bulk delete function
+  const handleBulkDelete = async () => {
+    const token = getStoredToken()
+    if (!token || selectedReports.size === 0) return
+
+    setIsDeleting(true)
+    setError('')
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/reports/bulk-delete`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          report_ids: Array.from(selectedReports)
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Delete failed')
+      }
+
+      const data = await response.json()
+      setDeleteSuccess(data.message || `Usunięto ${selectedReports.size} raportów`)
+
+      // Close confirm modal and refresh reports
+      setShowDeleteConfirm(false)
+
+      // Remove deleted reports from local state
+      setReports(prev => prev.filter(r => !selectedReports.has(r.id)))
+
+      // Clear selection after successful delete
+      setTimeout(() => {
+        exitSelectionMode()
+        setDeleteSuccess('')
+      }, 2000)
+    } catch (err) {
+      setError('Nie udało się usunąć raportów')
+      setShowDeleteConfirm(false)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   // Bulk export function
   const handleBulkExport = async (format: 'xlsx' | 'pdf' | 'docx') => {
     const token = getStoredToken()
@@ -324,6 +375,17 @@ export default function ReportsPage() {
             {/* Bulk action buttons - only visible when reports are selected */}
             {selectedReports.size > 0 && (
               <>
+                {/* Delete button */}
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Usuń ({selectedReports.size})
+                </button>
+
                 {/* Assign to project button */}
                 <button
                   onClick={openProjectAssignment}
@@ -570,6 +632,64 @@ export default function ReportsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             {assignmentSuccess}
+          </div>
+        </div>
+      )}
+
+      {/* Delete success toast */}
+      {deleteSuccess && (
+        <div className="fixed bottom-4 right-4 rounded-lg bg-green-500 px-6 py-3 text-white shadow-lg z-50">
+          <div className="flex items-center gap-2">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {deleteSuccess}
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+            <div className="p-6">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h2 className="mb-2 text-center text-lg font-semibold text-gray-900">
+                Potwierdź usunięcie
+              </h2>
+              <p className="mb-6 text-center text-gray-600">
+                Czy na pewno chcesz usunąć <span className="font-semibold text-red-600">{selectedReports.size}</span> {selectedReports.size === 1 ? 'raport' : selectedReports.size < 5 ? 'raporty' : 'raportów'}?
+                <br />
+                <span className="text-sm text-gray-500">Ta operacja jest nieodwracalna.</span>
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={isDeleting}
+                  className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isDeleting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Usuwanie...
+                    </span>
+                  ) : (
+                    `Usuń ${selectedReports.size} ${selectedReports.size === 1 ? 'raport' : selectedReports.size < 5 ? 'raporty' : 'raportów'}`
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

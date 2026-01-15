@@ -278,6 +278,10 @@ class ReportDetail(BaseModel):
     sources: List[ReportSource]
 
 
+class BulkDeleteRequest(BaseModel):
+    report_ids: List[str]
+
+
 @router.get("/")
 async def list_reports(
     page: int = Query(1, ge=1),
@@ -363,10 +367,60 @@ async def update_report(report_id: str):
 
 
 @router.delete("/{report_id}")
-async def delete_report(report_id: str):
+async def delete_report(report_id: str, current_user: User = Depends(get_current_user)):
     """Delete a report."""
-    # TODO: Implement report deletion
-    return {"message": "Report deleted successfully"}
+    global MOCK_REPORTS
+
+    # Check if report exists
+    report_exists = any(r["id"] == report_id for r in MOCK_REPORTS)
+    if not report_exists:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Remove the report
+    MOCK_REPORTS = [r for r in MOCK_REPORTS if r["id"] != report_id]
+
+    # Also clean up related data
+    if report_id in REPORT_VERSIONS:
+        del REPORT_VERSIONS[report_id]
+    if report_id in REPORT_COMMENTS:
+        del REPORT_COMMENTS[report_id]
+
+    return {"message": "Report deleted successfully", "deleted_id": report_id}
+
+
+@router.post("/bulk-delete")
+async def bulk_delete_reports(
+    request: BulkDeleteRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete multiple reports at once."""
+    global MOCK_REPORTS
+
+    if not request.report_ids:
+        raise HTTPException(status_code=400, detail="No report IDs provided")
+
+    # Find which reports exist
+    existing_ids = {r["id"] for r in MOCK_REPORTS}
+    ids_to_delete = set(request.report_ids) & existing_ids
+
+    if not ids_to_delete:
+        raise HTTPException(status_code=404, detail="No matching reports found")
+
+    # Remove the reports
+    MOCK_REPORTS = [r for r in MOCK_REPORTS if r["id"] not in ids_to_delete]
+
+    # Clean up related data for deleted reports
+    for report_id in ids_to_delete:
+        if report_id in REPORT_VERSIONS:
+            del REPORT_VERSIONS[report_id]
+        if report_id in REPORT_COMMENTS:
+            del REPORT_COMMENTS[report_id]
+
+    return {
+        "message": f"Usunięto {len(ids_to_delete)} raportów",
+        "deleted_count": len(ids_to_delete),
+        "deleted_ids": list(ids_to_delete)
+    }
 
 
 class ExportRequest(BaseModel):
