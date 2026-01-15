@@ -68,6 +68,7 @@ interface Comment {
   user_email: string
   text: string
   created_at: string
+  parent_id: string | null
 }
 
 export default function ReportViewerPage() {
@@ -116,6 +117,7 @@ export default function ReportViewerPage() {
   const [newCommentText, setNewCommentText] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [showCommentsPanel, setShowCommentsPanel] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
   useEffect(() => {
     fetchReport()
@@ -369,7 +371,7 @@ export default function ReportViewerPage() {
     }
   }
 
-  const submitComment = async () => {
+  const submitComment = async (parentId: string | null = null) => {
     if (!newCommentText.trim()) return
 
     const token = getStoredToken()
@@ -386,7 +388,7 @@ export default function ReportViewerPage() {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ text: newCommentText }),
+          body: JSON.stringify({ text: newCommentText, parent_id: parentId }),
         }
       )
 
@@ -394,6 +396,7 @@ export default function ReportViewerPage() {
         const newComment = await response.json()
         setComments(prev => [...prev, newComment])
         setNewCommentText('')
+        setReplyingTo(null)
       }
     } catch (err) {
       console.error('Failed to submit comment:', err)
@@ -743,61 +746,160 @@ export default function ReportViewerPage() {
               {comments.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">Brak komentarzy. Bądź pierwszą osobą, która doda komentarz!</p>
               ) : (
-                comments.map((comment) => (
-                  <div key={comment.id} className="rounded-lg border border-gray-200 p-4 bg-white">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span className="text-blue-700 font-medium text-sm">
-                            {comment.user_name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 text-sm">{comment.user_name}</div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(comment.created_at).toLocaleDateString('pl-PL', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                // Show only top-level comments (no parent_id)
+                comments.filter(c => !c.parent_id).map((comment) => {
+                  // Get replies for this comment
+                  const replies = comments.filter(c => c.parent_id === comment.id)
+                  return (
+                    <div key={comment.id} className="space-y-2">
+                      <div className="rounded-lg border border-gray-200 p-4 bg-white">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-blue-700 font-medium text-sm">
+                                {comment.user_name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900 text-sm">{comment.user_name}</div>
+                              <div className="text-xs text-gray-500">
+                                {new Date(comment.created_at).toLocaleDateString('pl-PL', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                              className="text-gray-400 hover:text-blue-500"
+                              title="Odpowiedz"
+                            >
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => deleteComment(comment.id)}
+                              className="text-gray-400 hover:text-red-500"
+                              title="Usuń komentarz"
+                            >
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
+                        <p className="text-gray-700 text-sm">{comment.text}</p>
+
+                        {/* Reply input for this comment */}
+                        {replyingTo === comment.id && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex gap-2">
+                              <textarea
+                                value={newCommentText}
+                                onChange={(e) => setNewCommentText(e.target.value)}
+                                placeholder={`Odpowiedz na komentarz ${comment.user_name}...`}
+                                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                                rows={2}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault()
+                                    submitComment(comment.id)
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setReplyingTo(null)
+                                    setNewCommentText('')
+                                  }
+                                }}
+                              />
+                              <button
+                                onClick={() => submitComment(comment.id)}
+                                disabled={!newCommentText.trim() || isSubmittingComment}
+                                className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 self-end"
+                              >
+                                {isSubmittingComment ? (
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                ) : (
+                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                  </svg>
+                                )}
+                              </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Esc aby anulować</p>
+                          </div>
+                        )}
                       </div>
-                      <button
-                        onClick={() => deleteComment(comment.id)}
-                        className="text-gray-400 hover:text-red-500"
-                        title="Usuń komentarz"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+
+                      {/* Nested replies */}
+                      {replies.length > 0 && (
+                        <div className="ml-6 space-y-2">
+                          {replies.map((reply) => (
+                            <div key={reply.id} className="rounded-lg border border-gray-200 p-3 bg-gray-50">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center">
+                                    <span className="text-green-700 font-medium text-xs">
+                                      {reply.user_name.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-gray-900 text-xs">{reply.user_name}</div>
+                                    <div className="text-xs text-gray-500">
+                                      {new Date(reply.created_at).toLocaleDateString('pl-PL', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => deleteComment(reply.id)}
+                                  className="text-gray-400 hover:text-red-500"
+                                  title="Usuń odpowiedź"
+                                >
+                                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                              <p className="text-gray-700 text-xs">{reply.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-gray-700 text-sm">{comment.text}</p>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
             <div className="sticky bottom-0 bg-white border-t p-4">
               <div className="flex gap-2">
                 <textarea
-                  value={newCommentText}
-                  onChange={(e) => setNewCommentText(e.target.value)}
-                  placeholder="Dodaj komentarz..."
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  value={replyingTo ? '' : newCommentText}
+                  onChange={(e) => !replyingTo && setNewCommentText(e.target.value)}
+                  placeholder={replyingTo ? 'Wpisz odpowiedź powyżej...' : 'Dodaj komentarz...'}
+                  className={`flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${replyingTo ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   rows={2}
+                  disabled={!!replyingTo}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    if (e.key === 'Enter' && !e.shiftKey && !replyingTo) {
                       e.preventDefault()
-                      submitComment()
+                      submitComment(null)
                     }
                   }}
                 />
                 <button
-                  onClick={submitComment}
-                  disabled={!newCommentText.trim() || isSubmittingComment}
+                  onClick={() => submitComment(null)}
+                  disabled={!newCommentText.trim() || isSubmittingComment || !!replyingTo}
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 self-end"
                 >
                   {isSubmittingComment ? (

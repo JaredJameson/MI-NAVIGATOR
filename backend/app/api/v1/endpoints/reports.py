@@ -702,6 +702,7 @@ REPORT_COMMENTS: dict = {
             "user_email": "jan.kowalski@example.com",
             "text": "Świetna analiza finansowa! Warto zwrócić uwagę na wzrost marży r/r.",
             "created_at": "2026-01-14T10:45:00Z",
+            "parent_id": None,
         },
         {
             "id": "comment_2",
@@ -711,6 +712,17 @@ REPORT_COMMENTS: dict = {
             "user_email": "anna.nowak@example.com",
             "text": "Czy mamy dostęp do danych za Q4 2023? Byłoby dobrze je uwzględnić.",
             "created_at": "2026-01-14T11:30:00Z",
+            "parent_id": None,
+        },
+        {
+            "id": "comment_3",
+            "report_id": "report_001",
+            "user_id": "1",
+            "user_name": "Jan Kowalski",
+            "user_email": "jan.kowalski@example.com",
+            "text": "Tak, mam dane za Q4. Dodałem je w sekcji finansowej.",
+            "created_at": "2026-01-14T12:00:00Z",
+            "parent_id": "comment_2",
         }
     ]
 }
@@ -718,6 +730,7 @@ REPORT_COMMENTS: dict = {
 
 class CommentCreate(BaseModel):
     text: str
+    parent_id: Optional[str] = None
 
 
 class Comment(BaseModel):
@@ -728,6 +741,7 @@ class Comment(BaseModel):
     user_email: str
     text: str
     created_at: str
+    parent_id: Optional[str] = None
 
 
 @router.get("/{report_id}/comments")
@@ -743,9 +757,15 @@ async def create_comment(
     comment: CommentCreate,
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new collaboration comment for a report."""
+    """Create a new collaboration comment for a report. Supports replies via parent_id."""
     if report_id not in REPORT_COMMENTS:
         REPORT_COMMENTS[report_id] = []
+
+    # Validate parent_id if provided
+    if comment.parent_id:
+        parent_exists = any(c["id"] == comment.parent_id for c in REPORT_COMMENTS[report_id])
+        if not parent_exists:
+            return {"error": "Parent comment not found"}
 
     # Generate unique ID
     comment_id = f"comment_{len(REPORT_COMMENTS[report_id]) + 1}_{int(datetime.now().timestamp())}"
@@ -757,7 +777,8 @@ async def create_comment(
         user_name=current_user.name or current_user.email.split('@')[0],
         user_email=current_user.email,
         text=comment.text,
-        created_at=datetime.now().isoformat() + "Z"
+        created_at=datetime.now().isoformat() + "Z",
+        parent_id=comment.parent_id
     )
 
     REPORT_COMMENTS[report_id].append(new_comment.model_dump())
