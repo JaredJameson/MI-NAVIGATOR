@@ -1,5 +1,65 @@
 # MI-Navigator Development Progress
 
+## Session 12 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #245: Widget visibility toggle - PASSED
+- Extended Widget interface with 'visible' boolean property
+- Added toggleWidgetVisibility function to show/hide widgets
+- Hide button (red eye-slash icon) on each widget in customize mode
+- Show button (green eye icon) on hidden widgets
+- Hidden widgets section in customize banner for easy restoration
+- Hidden widgets styled with red border and opacity in customize mode
+- Visibility settings persist in localStorage
+- Backward compatibility for layouts without visibility property
+- Full end-to-end testing verified:
+  - Entered customize mode, clicked hide on "Usage Stats"
+  - Widget disappeared, "Ukryte widgety (1)" section appeared
+  - Saved layout, refreshed page - widget still hidden
+  - Re-entered customize mode, clicked "Usage Stats" to restore
+  - Widget reappeared, saved layout
+
+#### Feature #246: Quick search suggestions - PASSED
+- Backend: Created /api/v1/search/suggestions endpoint
+  - Returns suggestions from companies, reports, people, and PKD codes
+  - Results sorted by type (company > report > person > pkd)
+  - Protected with JWT authentication
+- Frontend: Added autocomplete dropdown to dashboard quick search
+  - Debounced API calls (200ms delay)
+  - Keyboard navigation (ArrowUp/Down, Enter, Escape)
+  - Loading spinner during search
+  - Click outside to close suggestions
+  - Type icons (🏢 company, 📄 report, 👤 person, 🏷️ pkd)
+  - Navigation to result URL on suggestion click
+- Full end-to-end testing verified:
+  - Typed "FAD" in search box
+  - Suggestions appeared: FADO company and FADO report
+  - Clicked on report suggestion
+  - Navigated to /reports/report_001 successfully
+
+### Statistics:
+- Total features: 380
+- Passing features: 61 (16.1%)
+- In progress: 0
+
+### Git Commits This Session:
+- 858edd0 - Add widget visibility toggle feature (Feature #245)
+- 2279566 - Add quick search suggestions feature (Feature #246)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Continue with dashboard or search-related features
+3. Consider creating /companies/[id] and /people/[id] pages for full navigation
+
+---
+
 ## Session 11 - Date: 2026-01-15
 
 ### Completed in This Session:
