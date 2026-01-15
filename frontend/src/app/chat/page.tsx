@@ -153,7 +153,7 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen flex-col bg-gray-50">
       {/* Header */}
-      <header className="border-b bg-white px-4 py-3">
+      <header className="sticky top-0 z-50 border-b bg-white px-4 py-3">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
