@@ -23,16 +23,39 @@
   - Version 4 created with "Przywrócono wersję 2" change description
   - Version 4 marked as "Aktualna" (current)
 
+#### Feature #241: Collaboration comments - PASSED
+- Implemented backend collaboration comments API:
+  - GET /reports/{id}/comments - list all comments (visible to all users)
+  - POST /reports/{id}/comments - create new comment
+  - DELETE /reports/{id}/comments/{id} - delete own comment
+  - REPORT_COMMENTS global storage (not per-user like annotations)
+  - Pre-populated mock data with 2 sample comments from Jan Kowalski and Anna Nowak
+- Implemented frontend comments panel:
+  - Chat icon button in header with comment count badge
+  - Sliding panel showing all comments
+  - User avatars with initials (first letter of name)
+  - Comment cards with author name, timestamp, and text
+  - Textarea to add new comment (Enter to submit, Shift+Enter for newline)
+  - Delete button for own comments
+  - Real-time update when new comment is added
+- Full end-to-end testing verified:
+  - Navigated to report_001, clicked comments button
+  - Existing comments displayed (2 mock comments)
+  - Typed new comment and submitted
+  - Comment appeared immediately in panel
+  - Comment count badge updated from 2 to 3
+
 #### Regression Test Passed:
 - User Profile Update (Feature #205): Settings page loads, profile edits save and persist
 
 ### Statistics:
 - Total features: 380
-- Passing features: 55 (14.5%)
+- Passing features: 56 (14.7%)
 - In progress: 0
 
 ### Git Commits This Session:
 - 88f52c3 - Add report restore previous version feature (Feature #240)
+- 4ae099b - Add collaboration comments feature (Feature #241)
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI)
@@ -43,7 +66,7 @@
 ### Next Steps for Future Agents:
 1. Use `feature_get_next` to get next feature
 2. Continue with report-related features or move to other areas
-3. Consider implementing real database storage for versions (currently mock data)
+3. Consider implementing real database storage for comments and versions (currently mock data)
 
 ---
 
