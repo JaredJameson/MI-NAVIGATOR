@@ -2,56 +2,270 @@
 Authentication API Endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from datetime import datetime
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.session import get_db
+from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
+from app.services.auth import AuthService
 
 router = APIRouter()
 
-
-@router.post("/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    """Authenticate user and return JWT tokens."""
-    # TODO: Implement authentication
-    return {
-        "access_token": "placeholder_token",
-        "token_type": "bearer",
-        "refresh_token": "placeholder_refresh"
-    }
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-@router.post("/register")
-async def register():
-    """Register a new user."""
-    # TODO: Implement registration
-    return {"message": "User registered successfully"}
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> "User":
+    """Get current authenticated user from token."""
+    from app.models.user import User
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    token_data = AuthService.decode_token(token)
+    if not token_data or token_data.type != "access":
+        raise credentials_exception
+
+    if token_data.exp < datetime.utcnow():
+        raise credentials_exception
+
+    user = await AuthService.get_user_by_id(db, token_data.sub)
+    if not user or not user.is_active:
+        raise credentials_exception
+
+    return user
+
+
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register(
+    user_data: UserCreate,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Register a new user.
+
+    Password requirements:
+    - At least 8 characters
+    - At least one uppercase letter
+    - At least one digit
+    """
+    # Check if email already exists
+    existing_user = await AuthService.get_user_by_email(db, user_data.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+
+    # Create user
+    user = await AuthService.create_user(db, user_data)
+    await db.commit()
+    await db.refresh(user)
+
+    return user
+
+
+@router.post("/login", response_model=Token)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    request: Request = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Authenticate user and return JWT tokens.
+
+    Uses OAuth2 password flow:
+    - username: user's email
+    - password: user's password
+    """
+    user = await AuthService.authenticate_user(db, form_data.username, form_data.password)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Create tokens
+    access_token = AuthService.create_access_token(str(user.id))
+    refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id))
+
+    # Store session
+    ip_address = request.client.host if request else None
+    user_agent = request.headers.get("user-agent") if request else None
+
+    await AuthService.create_session(
+        db,
+        user.id,
+        refresh_token,
+        refresh_expires,
+        ip_address,
+        user_agent
+    )
+
+    # Update last login
+    await AuthService.update_last_login(db, user)
+    await db.commit()
+
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer"
+    )
 
 
 @router.post("/logout")
-async def logout():
-    """Logout user and invalidate tokens."""
-    # TODO: Implement logout
+async def logout(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Logout user and invalidate all sessions."""
+    await AuthService.delete_all_user_sessions(db, current_user.id)
+    await db.commit()
+
     return {"message": "Logged out successfully"}
 
 
-@router.post("/refresh")
-async def refresh_token():
-    """Refresh access token."""
-    # TODO: Implement token refresh
-    return {
-        "access_token": "new_token",
-        "token_type": "bearer"
-    }
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    refresh_token: str,
+    request: Request = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """Refresh access token using refresh token."""
+    # Decode and validate refresh token
+    token_data = AuthService.decode_token(refresh_token)
+
+    if not token_data or token_data.type != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token"
+        )
+
+    if token_data.exp < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token expired"
+        )
+
+    # Get session
+    session = await AuthService.get_session_by_refresh_token(db, refresh_token)
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session not found"
+        )
+
+    # Get user
+    user = await AuthService.get_user_by_id(db, token_data.sub)
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive"
+        )
+
+    # Create new tokens
+    new_access_token = AuthService.create_access_token(str(user.id))
+    new_refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id))
+
+    # Delete old session and create new one
+    await AuthService.delete_session(db, session)
+
+    ip_address = request.client.host if request else None
+    user_agent = request.headers.get("user-agent") if request else None
+
+    await AuthService.create_session(
+        db,
+        user.id,
+        new_refresh_token,
+        refresh_expires,
+        ip_address,
+        user_agent
+    )
+
+    await db.commit()
+
+    return Token(
+        access_token=new_access_token,
+        refresh_token=new_refresh_token,
+        token_type="bearer"
+    )
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(
+    current_user = Depends(get_current_user)
+):
+    """Get current user's profile information."""
+    return current_user
 
 
 @router.post("/forgot-password")
-async def forgot_password():
-    """Initiate password reset flow."""
-    # TODO: Implement password reset
-    return {"message": "Password reset email sent"}
+async def forgot_password(
+    email: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Initiate password reset flow.
+
+    In development mode, the reset link is logged to console.
+    """
+    user = await AuthService.get_user_by_email(db, email)
+
+    # Always return success to prevent email enumeration
+    if user:
+        # Generate reset token (using same JWT mechanism)
+        reset_token = AuthService.create_access_token(str(user.id))
+
+        # In development: log to console instead of sending email
+        print(f"\n{'='*60}")
+        print(f"PASSWORD RESET REQUEST for {email}")
+        print(f"Reset link: http://localhost:3000/reset-password?token={reset_token}")
+        print(f"{'='*60}\n")
+
+    return {"message": "If the email exists, a password reset link has been sent"}
 
 
 @router.post("/reset-password")
-async def reset_password():
+async def reset_password(
+    token: str,
+    new_password: str,
+    db: AsyncSession = Depends(get_db)
+):
     """Reset password with token."""
-    # TODO: Implement password reset confirmation
+    # Validate token
+    token_data = AuthService.decode_token(token)
+
+    if not token_data or token_data.exp < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+
+    # Get user
+    user = await AuthService.get_user_by_id(db, token_data.sub)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found"
+        )
+
+    # Update password
+    user.password_hash = AuthService.hash_password(new_password)
+
+    # Invalidate all sessions
+    await AuthService.delete_all_user_sessions(db, user.id)
+
+    await db.commit()
+
     return {"message": "Password reset successfully"}

@@ -1,0 +1,1514 @@
+<project_specification>
+  <project_name>MI-NAVIGATOR - Market Intelligence Platform</project_name>
+
+  <overview>
+    Kompleksowa platforma do analizy firm, rynków i konkurencji dla polskiego rynku B2B.
+    System wykorzystuje 25+ wyspecjalizowanych agentów AI do zbierania, weryfikacji i syntezy
+    danych z wielu źródeł. Platforma oferuje interaktywny chat, dynamiczne dostosowywanie
+    kontekstu do branży użytkownika, 9 frameworków strategicznych oraz zaawansowane
+    raportowanie z eksportem do PDF/DOCX/PPTX.
+  </overview>
+
+  <technology_stack>
+    <frontend>
+      <framework>Next.js 14 (App Router)</framework>
+      <language>TypeScript</language>
+      <styling>TailwindCSS + shadcn/ui</styling>
+      <state_management>React Context + Zustand</state_management>
+      <real_time>WebSocket (native)</real_time>
+      <i18n>next-intl (PL/EN)</i18n>
+      <charts>Recharts + D3.js</charts>
+    </frontend>
+    <backend>
+      <framework>FastAPI</framework>
+      <language>Python 3.11+</language>
+      <async>asyncio + httpx</async>
+      <validation>Pydantic v2</validation>
+      <task_queue>Celery + Redis</task_queue>
+    </backend>
+    <database>
+      <primary>PostgreSQL 16 + pgvector</primary>
+      <cache>Redis</cache>
+      <search>PostgreSQL Full-Text Search + pgvector embeddings</search>
+    </database>
+    <ai>
+      <llm>Claude API (Anthropic) - pay per use</llm>
+      <embeddings>OpenAI text-embedding-3-small lub sentence-transformers (local)</embeddings>
+    </ai>
+    <storage>
+      <files>Local filesystem / MinIO (S3-compatible)</files>
+    </storage>
+    <communication>
+      <api>REST + WebSocket</api>
+      <format>JSON</format>
+    </communication>
+  </technology_stack>
+
+  <external_integrations>
+    <free_apis>
+      <api name="KRS API" type="government" purpose="Dane rejestrowe spółek">
+        - Endpoint: api.krs.pl (darmowy limit)
+        - Fallback: rejestr.io (darmowy tier)
+        - Dane: NIP, REGON, KRS, zarząd, wspólnicy, PKD
+      </api>
+      <api name="CEIDG API" type="government" purpose="Jednoosobowe działalności">
+        - Endpoint: dane.biznes.gov.pl
+        - Dane: NIP, adres, status, PKD
+      </api>
+      <api name="GUS BDL API" type="government" purpose="Statystyki gospodarcze">
+        - Dane makroekonomiczne, branżowe
+      </api>
+      <api name="Google Custom Search" type="freemium" purpose="Web search">
+        - 100 zapytań/dzień free
+        - Fallback: DuckDuckGo API
+      </api>
+      <api name="RSS Feeds" type="free" purpose="News monitoring">
+        - Polskie portale biznesowe
+        - Google News RSS
+      </api>
+    </free_apis>
+    <paid_apis_pay_per_use>
+      <api name="SerpAPI" type="pay-per-use" purpose="Google Search Results">
+        - $50/5000 searches
+        - News, SERP, related searches
+      </api>
+      <api name="Proxycurl" type="pay-per-use" purpose="LinkedIn data">
+        - $0.01/request
+        - Profile, company, employees
+      </api>
+      <api name="ScrapingBee" type="pay-per-use" purpose="Web scraping">
+        - $0.001/request
+        - JavaScript rendering
+      </api>
+    </paid_apis_pay_per_use>
+    <self_hosted_tools>
+      <tool name="Playwright" purpose="Deep website crawling">
+        - Screenshots, content extraction
+        - Tech stack detection (custom rules)
+      </tool>
+      <tool name="pdf-parse / PyMuPDF" purpose="PDF extraction">
+        - Financial statements from e-KRS
+      </tool>
+    </self_hosted_tools>
+  </external_integrations>
+
+  <prerequisites>
+    <environment_setup>
+      - Node.js 20+ (frontend)
+      - Python 3.11+ (backend)
+      - PostgreSQL 16 with pgvector extension
+      - Redis 7+
+      - Docker + Docker Compose (development)
+    </environment_setup>
+    <api_keys_required>
+      - ANTHROPIC_API_KEY (Claude API)
+      - GOOGLE_CUSTOM_SEARCH_KEY (optional)
+      - SERPAPI_KEY (optional, pay-per-use)
+      - PROXYCURL_KEY (optional, pay-per-use)
+    </api_keys_required>
+  </prerequisites>
+
+  <feature_count>380</feature_count>
+
+  <security_and_access_control>
+    <user_roles>
+      <role name="guest">
+        <permissions>
+          - Może zobaczyć landing page
+          - Może zobaczyć demo/przykładowe raporty
+          - NIE może korzystać z chatu ani analiz
+        </permissions>
+        <protected_routes>
+          - /chat/* (blocked)
+          - /research/* (blocked)
+          - /reports/* (blocked)
+          - /dashboard/* (blocked)
+        </protected_routes>
+      </role>
+      <role name="user">
+        <permissions>
+          - Pełny dostęp do chatu i analiz
+          - Tworzenie i zarządzanie własnymi projektami
+          - Eksport raportów
+          - Zarządzanie własnym profilem
+          - NIE może zarządzać innymi użytkownikami
+          - NIE może widzieć statystyk systemowych
+        </permissions>
+        <protected_routes>
+          - /admin/* (blocked)
+        </protected_routes>
+      </role>
+      <role name="admin">
+        <permissions>
+          - Wszystkie uprawnienia user
+          - Zarządzanie użytkownikami
+          - Dostęp do statystyk systemowych
+          - Konfiguracja agentów i promptów
+          - Podgląd logów i usage
+        </permissions>
+      </role>
+    </user_roles>
+    <authentication>
+      <method>Email/password + OAuth2 (Google)</method>
+      <session_timeout>24 godziny (Remember Me: 30 dni)</session_timeout>
+      <password_requirements>Min 8 znaków, 1 wielka litera, 1 cyfra</password_requirements>
+      <jwt>Access token (15min) + Refresh token (7 dni)</jwt>
+    </authentication>
+    <sensitive_operations>
+      - Usunięcie konta wymaga potwierdzenia hasłem
+      - Zmiana email wymaga weryfikacji starego i nowego
+      - Eksport wszystkich danych wymaga potwierdzenia
+    </sensitive_operations>
+  </security_and_access_control>
+
+  <core_features>
+    <!-- ==================== ONBOARDING & DYNAMIC CONTEXT ==================== -->
+    <onboarding_system>
+      - Welcome screen z prezentacją możliwości platformy
+      - Wybór branży użytkownika (taxonomy branż)
+      - Wybór roli (CEO, Sales, Analyst, BD, Operations, inne)
+      - Wybór głównych use cases (analiza konkurencji, market research, due diligence, monitoring)
+      - Preferencje output (język, format, głębokość domyślna)
+      - Zapisanie profilu użytkownika do bazy
+      - Możliwość edycji profilu później
+      - Skip onboarding dla powracających użytkowników
+    </onboarding_system>
+
+    <brief_collection_chat>
+      - Automatyczna analiza intent z wiadomości użytkownika (Claude)
+      - Interaktywne pytania doprecyzowujące (2-4 pytania max)
+      - Single choice questions z ikonami
+      - Multi choice dla specific requirements
+      - Text input dla subject/firmy
+      - Dynamiczne dostosowanie pytań do kontekstu
+      - Preview generowanego planu przed startem
+      - Możliwość modyfikacji planu przez użytkownika
+      - Akceptacja / Modyfikacja / Anulowanie planu
+      - Zapisanie briefu do projektu
+    </brief_collection_chat>
+
+    <industry_knowledge_base>
+      - Taksonomia branż (manufacturing, services, tech, retail...)
+      - Segmenty per branża (plastics_processing, injection_molding, tooling...)
+      - Terminologia branżowa PL/EN per segment
+      - Kluczowe KPI per branża
+      - Źródła danych per branża (portale, stowarzyszenia, PKD codes)
+      - Wskaźniki identyfikacji konkurentów per branża
+      - Dynamiczne ładowanie kontekstu branżowego
+      - Możliwość rozszerzania KB przez admina
+    </industry_knowledge_base>
+
+    <dynamic_prompt_composer>
+      - 3-poziomowa architektura promptów (System/Task/Context)
+      - Injection industry-specific instructions do promptów
+      - Injection task-specific instructions (due_diligence mode, market_entry mode)
+      - Injection user preferences (język, format, głębokość)
+      - Runtime context injection (zebrane dane, poprzednie wyniki)
+      - Wersjonowanie promptów
+      - A/B testing promptów (opcjonalnie)
+    </dynamic_prompt_composer>
+
+    <workflow_customizer>
+      - Dynamiczne budowanie workflow na podstawie objective
+      - Depth levels: quick (15-30min), standard (1-2h), deep (4-8h)
+      - Industry-specific steps injection
+      - Time budget fitting (dopasowanie do dostępnego czasu)
+      - Dependency resolution między agentami
+      - Checkpoints dla user review (deep mode)
+      - Progress tracking z estimated completion
+    </workflow_customizer>
+
+    <!-- ==================== CHAT INTERFACE ==================== -->
+    <chat_window>
+      - Real-time WebSocket connection
+      - Message list z auto-scroll
+      - User messages (prawa strona, niebieskie)
+      - Assistant messages (lewa strona, z avatar agenta)
+      - Typing indicator podczas odpowiedzi
+      - Message timestamps
+      - Copy message to clipboard
+      - Retry failed message
+      - Edit last user message
+      - Conversation history persistence
+      - New conversation button
+      - Conversation list sidebar
+    </chat_window>
+
+    <message_types>
+      - Text message (prosty tekst markdown)
+      - Report card (rozwijane sekcje z danymi)
+      - Comparison table (sortowalna tabela)
+      - Chart (bar, line, pie, radar - interactive)
+      - Framework visualization (SWOT quadrant, Porter pentagon)
+      - Agent status update (progress bar, subtasks)
+      - Source citation (inline z confidence)
+      - Checkpoint card (human-in-the-loop decisions)
+      - Error message (z retry option)
+      - File preview (uploaded files)
+      - URL preview (detected URLs)
+    </message_types>
+
+    <input_area>
+      - Auto-resize textarea (max 6 lines)
+      - File upload button (drag & drop zone)
+      - URL input button
+      - Command palette trigger (/)
+      - Send button z loading state
+      - Disabled state during agent work
+      - Keyboard shortcuts (Enter send, Shift+Enter newline)
+      - Paste image from clipboard
+      - Character/token counter (optional)
+    </input_area>
+
+    <file_upload>
+      - Drag & drop zone
+      - Supported: PDF, DOCX, XLSX, CSV, PNG, JPG (max 50MB)
+      - Upload progress indicator
+      - File preview thumbnail
+      - Text extraction z PDF/DOCX
+      - Table extraction z XLSX/CSV
+      - Image OCR (optional)
+      - Add to conversation context
+      - File list in sources panel
+      - Remove uploaded file
+    </file_upload>
+
+    <url_analysis>
+      - URL detection w input text
+      - URL preview card (favicon, title, description)
+      - "Analyze" button trigger
+      - Deep crawl progress indicator
+      - Extracted data display
+      - Add to conversation context
+      - History of analyzed URLs
+    </url_analysis>
+
+    <slash_commands>
+      - /profil [firma] - Company profile
+      - /finanse [firma] - Financial analysis
+      - /konkurencja [firma/branża] - Competitive analysis
+      - /rynek [branża] - Market analysis
+      - /strona [url] - Website analysis
+      - /swot [firma] - SWOT framework
+      - /porter [branża] - Porter Five Forces
+      - /pestle [branża/region] - PESTLE analysis
+      - /bcg [firma] - BCG Matrix
+      - /eksport [format] - Export current report
+      - Command autocomplete dropdown
+      - Command descriptions i shortcuts
+    </slash_commands>
+
+    <suggested_actions>
+      - Context-aware suggestions po każdej odpowiedzi
+      - Follow-up questions chips
+      - Deep dive options
+      - Framework suggestions
+      - Export options
+      - Related analysis suggestions
+      - Click to execute
+      - Max 6 suggestions visible
+    </suggested_actions>
+
+    <!-- ==================== AGENT STATUS & PIPELINE ==================== -->
+    <agent_status_display>
+      - Current agent name i avatar
+      - Current phase label
+      - Status message (co aktualnie robi)
+      - Progress bar (0-100%)
+      - Task list (pending, running, completed, error)
+      - Estimated time remaining
+      - Pause button
+      - Cancel button
+      - Expand/collapse details
+    </agent_status_display>
+
+    <pipeline_visualization>
+      - Phase list z statusami
+      - Parallel vs sequential indicator
+      - Agent badges per phase
+      - Progress flow animation
+      - Completed phases checkmark
+      - Current phase highlight
+      - Pending phases dimmed
+    </pipeline_visualization>
+
+    <checkpoints_human_in_loop>
+      - Checkpoint card z pytaniem
+      - Options buttons (continue, review, modify)
+      - Timeout z default action
+      - Auto-continue option
+      - Modification text input
+      - Confirmation before proceed
+    </checkpoints_human_in_loop>
+
+    <!-- ==================== SOURCES PANEL ==================== -->
+    <sources_panel>
+      - Collapsible sidebar (right)
+      - Source count badge
+      - Filter tabs (all, krs, website, news, files)
+      - Source cards z preview
+      - Confidence badge (%, color coded)
+      - Click to expand source details
+      - Link to original source
+      - "Used in" sections list
+      - Uploaded files section
+      - Export sources list
+    </sources_panel>
+
+    <!-- ==================== COMPANY INTELLIGENCE AGENTS ==================== -->
+    <company_profile_agent>
+      - KRS data fetch (nazwa, NIP, REGON, KRS, adres, status)
+      - CEIDG fallback dla JDG
+      - Forma prawna i data założenia
+      - Przedmiot działalności (PKD główne i dodatkowe)
+      - Kapitał zakładowy
+      - Zarząd (imiona, funkcje, od kiedy)
+      - Rada nadzorcza (jeśli dotyczy)
+      - Prokurenci
+      - Struktura JSON output
+      - Confidence scoring per field
+      - Data freshness indicator
+      - Manual override option
+    </company_profile_agent>
+
+    <financial_analysis_agent>
+      - Fetch sprawozdań z e-KRS (PDF parsing)
+      - Bilans extraction (aktywa, pasywa)
+      - Rachunek zysków i strat extraction
+      - Przychody historyczne (3-5 lat)
+      - Zysk/strata netto trend
+      - Wskaźniki płynności (current, quick ratio)
+      - Wskaźniki rentowności (ROE, ROA, ROS)
+      - Wskaźniki zadłużenia (debt to equity)
+      - Dynamika przychodów YoY
+      - Industry benchmarks comparison
+      - Charts: revenue trend, profitability
+      - Red flags detection (malejące przychody, straty)
+    </financial_analysis_agent>
+
+    <ownership_mapping_agent>
+      - Wspólnicy/akcjonariusze z KRS (nazwa, %, wartość udziałów)
+      - Beneficjenci rzeczywiści (CRBR lookup)
+      - Powiązania kapitałowe (spółki zależne, powiązane)
+      - Ownership chain tracing (parent companies)
+      - Graf powiązań (visualization ready data)
+      - Ultimate Beneficial Owner identification
+      - Foreign ownership flag
+      - PEP (Politically Exposed Person) check indication
+      - Ownership history (changes)
+    </ownership_mapping_agent>
+
+    <digital_presence_agent>
+      - Website detection i validation
+      - Deep crawl (homepage + key pages)
+      - Content extraction (about, products, team, contact)
+      - Social media profiles detection
+      - Social links extraction (LinkedIn, FB, IG, YT, X)
+      - Traffic estimation (jeśli SimilarWeb available)
+      - Tech stack detection (custom rules + headers)
+      - Mobile responsiveness check
+      - SSL/Security check
+      - Content freshness (last update)
+      - SEO basic metrics
+      - Screenshot capture
+    </digital_presence_agent>
+
+    <key_people_agent>
+      - Management team extraction z KRS
+      - LinkedIn profiles search
+      - Professional background summary
+      - Other positions (cross-company)
+      - Tenure calculation
+      - Photo (jeśli available)
+      - Contact info (jeśli public)
+      - Key person risk assessment
+    </key_people_agent>
+
+    <news_sentiment_agent>
+      - Google News search (SerpAPI lub RSS)
+      - Polish business portals monitoring
+      - Industry publications search
+      - News deduplication
+      - Sentiment analysis (Claude-based)
+      - Topic extraction
+      - Key events timeline
+      - Trend identification (positive/negative momentum)
+      - Alert-worthy news flagging
+      - Source credibility scoring
+    </news_sentiment_agent>
+
+    <!-- ==================== MARKET INTELLIGENCE AGENTS ==================== -->
+    <market_sizing_agent>
+      - TAM (Total Addressable Market) calculation
+      - SAM (Serviceable Addressable Market) calculation
+      - SOM (Serviceable Obtainable Market) estimation
+      - Top-down methodology
+      - Bottom-up methodology
+      - Market by geography (PL, CEE, EU)
+      - Market by segment
+      - Historical data (if available)
+      - Growth rate (CAGR)
+      - Forecast (3-5 years)
+      - Data sources citation
+      - Assumptions documentation
+      - Confidence level per estimate
+      - Visualization ready data
+    </market_sizing_agent>
+
+    <trend_analysis_agent>
+      - Technology trends identification
+      - Market trends identification
+      - Regulatory trends
+      - Consumer behavior trends
+      - Trend categorization (emerging, growing, mature, declining)
+      - Impact assessment (high/medium/low)
+      - Timeline (short/medium/long term)
+      - Opportunity/threat classification
+      - Supporting evidence collection
+      - Expert opinions aggregation
+    </trend_analysis_agent>
+
+    <segmentation_agent>
+      - Market segments identification
+      - Segment sizing
+      - Segment growth rates
+      - Segment attractiveness scoring
+      - White spaces detection (underserved segments)
+      - Customer profiles per segment
+      - Competitive intensity per segment
+      - Entry barriers per segment
+      - Recommendations for targeting
+    </segmentation_agent>
+
+    <value_chain_agent>
+      - Industry value chain mapping
+      - Key players per stage
+      - Value distribution analysis
+      - Margin pools identification
+      - Vertical integration opportunities
+      - Disintermediation risks
+      - Strategic positioning options
+    </value_chain_agent>
+
+    <regulatory_agent>
+      - EU regulations scan
+      - Polish regulations scan
+      - Industry-specific compliance requirements
+      - Upcoming regulatory changes
+      - Compliance cost estimation
+      - Risk assessment
+      - Recommendations
+    </regulatory_agent>
+
+    <!-- ==================== COMPETITIVE INTELLIGENCE AGENTS ==================== -->
+    <competitor_mapping_agent>
+      - Competitor identification (PKD-based search)
+      - Web search enrichment
+      - Categorization (direct, indirect, substitute)
+      - Geographic scope mapping
+      - Size tier classification (small, medium, large, enterprise)
+      - Quick profile per competitor
+      - Competitive positioning map data
+      - Emerging competitors flagging
+    </competitor_mapping_agent>
+
+    <benchmarking_agent>
+      - Multi-dimensional comparison
+      - Financial metrics comparison
+      - Product/service comparison
+      - Digital presence comparison
+      - Market position comparison
+      - Scoring system (1-10 per dimension)
+      - Weighted overall score
+      - Strengths/weaknesses per competitor
+      - Radar chart data
+      - Comparison table export
+    </benchmarking_agent>
+
+    <share_of_voice_agent>
+      - Online mentions counting
+      - Social media presence comparison
+      - News coverage comparison
+      - SEO visibility comparison
+      - Advertising visibility (if detectable)
+      - SOV calculation
+      - Trend over time
+      - Share vs market share correlation
+    </share_of_voice_agent>
+
+    <pricing_intelligence_agent>
+      - Price points collection (if public)
+      - Pricing model analysis (subscription, one-time, freemium)
+      - Price positioning (budget, mid, premium)
+      - Promotional patterns
+      - Value-price mapping
+      - Competitive pricing opportunities
+    </pricing_intelligence_agent>
+
+    <strategic_moves_agent>
+      - Recent M&A activity
+      - New product launches
+      - Geographic expansion
+      - Partnership announcements
+      - Leadership changes
+      - Funding rounds
+      - Strategic shifts interpretation
+      - Timeline visualization
+    </strategic_moves_agent>
+
+    <!-- ==================== SYNTHESIS AGENTS ==================== -->
+    <fact_checker_agent>
+      - Multi-source verification
+      - Conflict detection between sources
+      - Confidence calculation algorithm
+      - Source tiering (government, official, media, social)
+      - Flagging unverified claims
+      - Data freshness validation
+      - Correction suggestions
+    </fact_checker_agent>
+
+    <insight_generator_agent>
+      - Pattern recognition across data
+      - Opportunity identification
+      - Risk flagging
+      - Actionable recommendations generation
+      - Priority ranking
+      - Impact estimation
+      - Quick wins vs strategic moves classification
+    </insight_generator_agent>
+
+    <framework_applier_agent>
+      - Auto-framework selection based on context
+      - SWOT generation
+      - PESTLE generation
+      - Porter Five Forces generation
+      - BCG Matrix generation
+      - Ansoff Matrix generation
+      - Value Chain generation
+      - Business Model Canvas generation
+      - Lean Canvas generation
+      - Jobs to Be Done generation
+      - Framework combination for comprehensive analysis
+      - Cross-framework insights
+    </framework_applier_agent>
+
+    <report_composer_agent>
+      - Executive summary generation
+      - Section assembly from agent outputs
+      - Table of contents generation
+      - Source citations formatting
+      - Charts/visualizations embedding
+      - Recommendations section
+      - Appendices compilation
+      - Language consistency check
+      - Professional tone adjustment
+      - Export format preparation (MD, JSON, structured)
+    </report_composer_agent>
+
+    <!-- ==================== WEBSITE ANALYSIS ==================== -->
+    <deep_crawler>
+      - Homepage analysis
+      - Key pages crawl (about, products, team, contact, blog, careers)
+      - Depth control (levels)
+      - Rate limiting / politeness
+      - Robots.txt respect
+      - JavaScript rendering (Playwright)
+      - Screenshot per page
+      - Content extraction
+      - Link extraction
+      - Sitemap parsing
+    </deep_crawler>
+
+    <content_extractor>
+      - Company name extraction
+      - Tagline/slogan extraction
+      - Products/services list extraction
+      - Team members extraction
+      - Contact info extraction
+      - Location extraction
+      - Social links extraction
+      - Blog posts extraction (recent)
+      - News/press releases extraction
+      - Certifications/awards extraction
+      - Client logos extraction
+      - Structured data output
+    </content_extractor>
+
+    <tech_stack_detector>
+      - CMS detection (WordPress, Drupal, custom)
+      - Frontend frameworks (React, Vue, Angular)
+      - Analytics tools (GA, Hotjar)
+      - Marketing tools (HubSpot, Mailchimp)
+      - E-commerce platforms (if applicable)
+      - CDN detection
+      - Hosting hints
+      - Security headers check
+      - Performance basics (load time)
+    </tech_stack_detector>
+
+    <!-- ==================== FRAMEWORKS VISUALIZATION ==================== -->
+    <swot_visualization>
+      - 4-quadrant layout
+      - Color-coded (green/red/blue/yellow)
+      - Bullet points per quadrant
+      - Impact indicators per item
+      - Interactive (expand details)
+      - Export as image
+      - Edit mode
+    </swot_visualization>
+
+    <porter_visualization>
+      - Pentagon/radar layout
+      - 5 forces scores (1-10)
+      - Description per force
+      - Overall industry attractiveness
+      - Color intensity by score
+      - Interactive hover details
+    </porter_visualization>
+
+    <pestle_visualization>
+      - 6-section layout
+      - Factors per section
+      - Impact/probability scoring
+      - Timeline indicators
+      - Color-coded by sentiment
+    </pestle_visualization>
+
+    <bcg_matrix_visualization>
+      - 2x2 quadrant (Stars, Cash Cows, Question Marks, Dogs)
+      - Products/units plotted
+      - Bubble size = revenue
+      - Position = growth/share
+      - Interactive drag (what-if)
+    </bcg_matrix_visualization>
+
+    <business_model_canvas>
+      - 9-block layout
+      - Editable text per block
+      - Color themes
+      - Export options
+    </business_model_canvas>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <dashboard_home>
+      - Recent projects list
+      - Quick search bar
+      - Recent activity timeline
+      - Usage statistics (queries, reports)
+      - Saved companies quick access
+      - Alerts/notifications panel
+      - Quick actions buttons
+    </dashboard_home>
+
+    <projects_management>
+      - Create new project
+      - Project list (cards or table view)
+      - Project status (active, archived)
+      - Project details page
+      - Add research to project
+      - Project sharing (future)
+      - Delete/archive project
+      - Search/filter projects
+    </projects_management>
+
+    <saved_companies>
+      - Save company to watchlist
+      - Watchlist management
+      - Quick access to last analysis
+      - Update/refresh data
+      - Compare saved companies
+      - Remove from watchlist
+    </saved_companies>
+
+    <alerts_system>
+      - Configure alerts per company/keyword
+      - News alerts
+      - Financial changes alerts
+      - Competitor activity alerts
+      - Email notifications (optional)
+      - In-app notifications
+      - Alert history
+      - Disable/enable alerts
+    </alerts_system>
+
+    <!-- ==================== REPORTS ==================== -->
+    <reports_library>
+      - List of generated reports
+      - Filter by type, date, company
+      - Search reports
+      - Preview report
+      - Download report
+      - Delete report
+      - Share report (link)
+      - Favorite reports
+    </reports_library>
+
+    <report_viewer>
+      - Interactive report display
+      - Table of contents navigation
+      - Section expand/collapse
+      - Charts interactive
+      - Source links clickable
+      - Print-friendly view
+      - Full-screen mode
+    </report_viewer>
+
+    <report_editor>
+      - Edit report sections (AI-assisted)
+      - Add custom sections
+      - Reorder sections
+      - Add notes/comments
+      - Change visualizations
+      - Regenerate section
+      - Save draft
+      - Version history
+    </report_editor>
+
+    <export_system>
+      - Export to PDF (professional formatting)
+      - Export to DOCX (editable)
+      - Export to PPTX (presentation slides)
+      - Export to Markdown
+      - Export to JSON (structured data)
+      - Custom branding (logo, colors) - future
+      - Batch export
+      - Email report
+    </export_system>
+
+    <!-- ==================== USER SETTINGS ==================== -->
+    <user_profile>
+      - View/edit profile info
+      - Change password
+      - Change email
+      - Profile photo upload
+      - Industry/role update (from onboarding)
+      - Preferences update
+      - Delete account
+    </user_profile>
+
+    <preferences_settings>
+      - Language (PL/EN)
+      - Default analysis depth
+      - Default export format
+      - Notification preferences
+      - Theme (light/dark) - future
+      - Keyboard shortcuts customization - future
+    </preferences_settings>
+
+    <api_keys_management>
+      - Add external API keys (SerpAPI, Proxycurl)
+      - Validate keys
+      - Usage tracking per key
+      - Remove keys
+    </api_keys_management>
+
+    <!-- ==================== ADMIN PANEL ==================== -->
+    <admin_dashboard>
+      - System statistics (users, queries, reports)
+      - Usage graphs (daily, weekly, monthly)
+      - API usage and costs
+      - Error rates
+      - Active users
+    </admin_dashboard>
+
+    <user_management>
+      - List all users
+      - Search users
+      - View user details
+      - Change user role
+      - Disable/enable user
+      - Delete user
+      - Impersonate user (for debugging)
+    </user_management>
+
+    <agent_configuration>
+      - View agent prompts
+      - Edit agent prompts (versioned)
+      - Enable/disable agents
+      - Agent performance metrics
+      - A/B test configuration
+    </agent_configuration>
+
+    <knowledge_base_management>
+      - View industry taxonomy
+      - Add/edit industries
+      - Add/edit segments
+      - Add terminology
+      - Add data sources
+    </knowledge_base_management>
+
+    <system_logs>
+      - Query logs
+      - Error logs
+      - API call logs
+      - Performance logs
+      - Export logs
+    </system_logs>
+
+    <!-- ==================== INTERNATIONALIZATION ==================== -->
+    <i18n_system>
+      - Polish as primary language
+      - English as secondary
+      - Language switcher in UI
+      - All UI strings translated
+      - Date/number formatting per locale
+      - Report generation in selected language
+      - Mixed-language support (Polish UI, English report)
+    </i18n_system>
+
+    <!-- ==================== ACCESSIBILITY ==================== -->
+    <accessibility>
+      - Keyboard navigation
+      - Focus indicators
+      - ARIA labels
+      - Screen reader compatibility
+      - Color contrast compliance
+      - Skip to main content
+      - Alt text for images
+      - Form labels
+    </accessibility>
+
+    <!-- ==================== PERFORMANCE ==================== -->
+    <performance_requirements>
+      - Page load under 3s
+      - Chat response start under 5s
+      - Search results under 2s
+      - Report generation with progress indication
+      - Lazy loading for lists
+      - Image optimization
+      - Code splitting
+      - Caching strategy
+    </performance_requirements>
+
+    <!-- ==================== ERROR HANDLING ==================== -->
+    <error_handling>
+      - User-friendly error messages (PL)
+      - Error boundaries in React
+      - Retry mechanisms
+      - Offline detection
+      - API timeout handling
+      - Validation error display
+      - 404 page
+      - 500 page
+      - Rate limit handling
+    </error_handling>
+  </core_features>
+
+  <database_schema>
+    <tables>
+      <users>
+        - id (UUID, PK)
+        - email (unique, indexed)
+        - password_hash
+        - name
+        - avatar_url
+        - role (guest, user, admin)
+        - industry, industry_segment
+        - user_role (ceo, sales, analyst...)
+        - preferred_language (pl, en)
+        - preferred_depth (quick, standard, deep)
+        - preferred_format (pdf, docx, pptx)
+        - onboarding_completed (boolean)
+        - created_at, updated_at
+        - last_login_at
+        - is_active (boolean)
+      </users>
+      <sessions>
+        - id (UUID, PK)
+        - user_id (FK)
+        - refresh_token
+        - expires_at
+        - created_at
+        - ip_address
+        - user_agent
+      </sessions>
+      <projects>
+        - id (UUID, PK)
+        - user_id (FK)
+        - name
+        - description
+        - status (active, archived)
+        - created_at, updated_at
+      </projects>
+      <conversations>
+        - id (UUID, PK)
+        - user_id (FK)
+        - project_id (FK, nullable)
+        - title
+        - brief_data (JSONB)
+        - workflow_config (JSONB)
+        - status (active, completed, archived)
+        - created_at, updated_at
+      </conversations>
+      <messages>
+        - id (UUID, PK)
+        - conversation_id (FK)
+        - role (user, assistant, system)
+        - content (TEXT)
+        - structured_content (JSONB)
+        - agent_type
+        - metadata (JSONB) - sources, confidence, tokens
+        - created_at
+      </messages>
+      <sources>
+        - id (UUID, PK)
+        - conversation_id (FK)
+        - type (krs, website, linkedin, news, file)
+        - name
+        - url
+        - raw_data (JSONB)
+        - extracted_data (JSONB)
+        - confidence (FLOAT)
+        - fetched_at
+      </sources>
+      <companies>
+        - id (UUID, PK)
+        - nip (unique, indexed)
+        - krs
+        - regon
+        - name
+        - legal_form
+        - address (JSONB)
+        - pkd_codes (JSONB)
+        - status
+        - profile_data (JSONB)
+        - financial_data (JSONB)
+        - ownership_data (JSONB)
+        - digital_data (JSONB)
+        - last_updated_at
+        - created_at
+      </companies>
+      <company_watchlist>
+        - id (UUID, PK)
+        - user_id (FK)
+        - company_id (FK)
+        - created_at
+        - UNIQUE(user_id, company_id)
+      </company_watchlist>
+      <reports>
+        - id (UUID, PK)
+        - user_id (FK)
+        - conversation_id (FK, nullable)
+        - project_id (FK, nullable)
+        - title
+        - type (company_profile, market_analysis, competitive...)
+        - content (JSONB)
+        - summary (TEXT)
+        - sources (JSONB)
+        - language (pl, en)
+        - created_at, updated_at
+      </reports>
+      <report_exports>
+        - id (UUID, PK)
+        - report_id (FK)
+        - format (pdf, docx, pptx, md)
+        - file_path
+        - created_at
+      </report_exports>
+      <alerts>
+        - id (UUID, PK)
+        - user_id (FK)
+        - company_id (FK, nullable)
+        - keyword (nullable)
+        - type (news, financial, competitor)
+        - is_active (boolean)
+        - created_at
+      </alerts>
+      <alert_notifications>
+        - id (UUID, PK)
+        - alert_id (FK)
+        - content (TEXT)
+        - source_url
+        - is_read (boolean)
+        - created_at
+      </alert_notifications>
+      <uploaded_files>
+        - id (UUID, PK)
+        - user_id (FK)
+        - conversation_id (FK, nullable)
+        - original_name
+        - file_path
+        - file_type
+        - file_size
+        - extracted_content (TEXT)
+        - metadata (JSONB)
+        - created_at
+      </uploaded_files>
+      <agent_executions>
+        - id (UUID, PK)
+        - conversation_id (FK)
+        - agent_type
+        - action
+        - input_data (JSONB)
+        - output_data (JSONB)
+        - status (pending, running, completed, error)
+        - error_message (TEXT, nullable)
+        - started_at, completed_at
+        - tokens_used
+        - duration_ms
+      </agent_executions>
+      <industry_knowledge>
+        - id (UUID, PK)
+        - industry
+        - segment
+        - terminology (JSONB) - {pl: [...], en: [...]}
+        - key_metrics (JSONB)
+        - data_sources (JSONB)
+        - competitor_indicators (JSONB)
+        - created_at, updated_at
+      </industry_knowledge>
+      <prompt_templates>
+        - id (UUID, PK)
+        - agent_type
+        - prompt_level (system, task, context)
+        - content (TEXT)
+        - version
+        - is_active (boolean)
+        - created_at, updated_at
+      </prompt_templates>
+      <embeddings>
+        - id (UUID, PK)
+        - source_type (document, company, industry)
+        - source_id (UUID)
+        - content_hash
+        - embedding (VECTOR(1536))
+        - metadata (JSONB)
+        - created_at
+      </embeddings>
+      <api_usage_logs>
+        - id (UUID, PK)
+        - user_id (FK)
+        - api_name (claude, serpapi, proxycurl...)
+        - endpoint
+        - tokens_used (nullable)
+        - cost_usd (nullable)
+        - created_at
+      </api_usage_logs>
+    </tables>
+    <indexes>
+      - users: email, role, industry
+      - companies: nip, krs, name (trigram for search)
+      - messages: conversation_id, created_at
+      - reports: user_id, type, created_at
+      - embeddings: source_type, source_id + HNSW on embedding vector
+      - api_usage_logs: user_id, api_name, created_at
+    </indexes>
+  </database_schema>
+
+  <api_endpoints_summary>
+    <auth>
+      - POST /api/auth/register
+      - POST /api/auth/login
+      - POST /api/auth/logout
+      - POST /api/auth/refresh
+      - POST /api/auth/forgot-password
+      - POST /api/auth/reset-password
+      - GET /api/auth/me
+      - POST /api/auth/google (OAuth)
+    </auth>
+    <users>
+      - GET /api/users/profile
+      - PATCH /api/users/profile
+      - PATCH /api/users/password
+      - PATCH /api/users/preferences
+      - DELETE /api/users/account
+    </users>
+    <onboarding>
+      - GET /api/onboarding/status
+      - POST /api/onboarding/complete
+      - GET /api/onboarding/industries
+    </onboarding>
+    <conversations>
+      - GET /api/conversations
+      - POST /api/conversations
+      - GET /api/conversations/:id
+      - DELETE /api/conversations/:id
+      - GET /api/conversations/:id/messages
+    </conversations>
+    <chat>
+      - POST /api/chat/message
+      - POST /api/chat/brief/analyze
+      - POST /api/chat/brief/next-question
+      - POST /api/chat/brief/generate-plan
+      - POST /api/chat/checkpoint/respond
+      - WebSocket /ws/chat/:conversationId
+    </chat>
+    <companies>
+      - GET /api/companies/search
+      - GET /api/companies/:nip
+      - POST /api/companies/analyze
+      - GET /api/companies/watchlist
+      - POST /api/companies/watchlist/:companyId
+      - DELETE /api/companies/watchlist/:companyId
+    </companies>
+    <analysis>
+      - POST /api/analysis/company-profile
+      - POST /api/analysis/financial
+      - POST /api/analysis/ownership
+      - POST /api/analysis/digital
+      - POST /api/analysis/market-sizing
+      - POST /api/analysis/competitors
+      - POST /api/analysis/benchmark
+      - POST /api/analysis/framework/:type
+      - POST /api/analysis/website
+    </analysis>
+    <reports>
+      - GET /api/reports
+      - GET /api/reports/:id
+      - POST /api/reports/generate
+      - PATCH /api/reports/:id
+      - DELETE /api/reports/:id
+      - POST /api/reports/:id/export
+      - GET /api/reports/:id/export/:format
+    </reports>
+    <projects>
+      - GET /api/projects
+      - POST /api/projects
+      - GET /api/projects/:id
+      - PATCH /api/projects/:id
+      - DELETE /api/projects/:id
+    </projects>
+    <files>
+      - POST /api/files/upload
+      - GET /api/files/:id
+      - DELETE /api/files/:id
+      - POST /api/files/:id/extract
+    </files>
+    <alerts>
+      - GET /api/alerts
+      - POST /api/alerts
+      - PATCH /api/alerts/:id
+      - DELETE /api/alerts/:id
+      - GET /api/alerts/notifications
+      - PATCH /api/alerts/notifications/:id/read
+    </alerts>
+    <admin>
+      - GET /api/admin/stats
+      - GET /api/admin/users
+      - PATCH /api/admin/users/:id
+      - GET /api/admin/prompts
+      - PATCH /api/admin/prompts/:id
+      - GET /api/admin/logs
+      - GET /api/admin/knowledge-base
+      - POST /api/admin/knowledge-base
+    </admin>
+  </api_endpoints_summary>
+
+  <ui_layout>
+    <main_structure>
+      - Header: Logo | Current context | User menu | Settings
+      - Sidebar (collapsible): Navigation (Dashboard, Chat, Projects, Reports, Settings)
+      - Main content area: Dynamic based on route
+      - Sources panel (collapsible, right side - chat only)
+      - Toast notifications (bottom right)
+      - Modal system for dialogs
+    </main_structure>
+    <responsive_breakpoints>
+      - Mobile: 375px (single column, bottom nav)
+      - Tablet: 768px (collapsible sidebar)
+      - Desktop: 1280px (full layout)
+      - Wide: 1920px (expanded sources panel)
+    </responsive_breakpoints>
+    <key_pages>
+      - / (Landing/Dashboard based on auth)
+      - /login, /register, /forgot-password
+      - /onboarding (multi-step wizard)
+      - /chat (main chat interface)
+      - /chat/:conversationId
+      - /projects
+      - /projects/:id
+      - /reports
+      - /reports/:id
+      - /companies/:nip
+      - /settings
+      - /settings/profile
+      - /settings/preferences
+      - /settings/api-keys
+      - /admin (admin panel)
+      - /admin/users
+      - /admin/prompts
+      - /admin/knowledge-base
+    </key_pages>
+  </ui_layout>
+
+  <design_system>
+    <color_palette>
+      - Primary: Blue (#2563EB) - actions, links, focus
+      - Secondary: Slate (#64748B) - text, borders
+      - Success: Green (#22C55E) - confirmations, positive
+      - Warning: Amber (#F59E0B) - alerts, cautions
+      - Error: Red (#EF4444) - errors, destructive
+      - Background: White (#FFFFFF) / Slate-50 (#F8FAFC)
+      - Surface: White / Slate-100 panels
+    </color_palette>
+    <typography>
+      - Font family: Inter (system fallback)
+      - Headings: 600-700 weight
+      - Body: 400-500 weight
+      - Monospace: JetBrains Mono (code, data)
+      - Sizes: 12px (xs), 14px (sm), 16px (base), 18px (lg), 24px (xl), 32px (2xl)
+    </typography>
+    <spacing>
+      - Base unit: 4px
+      - Padding: 8px (compact), 16px (normal), 24px (relaxed)
+      - Gaps: 8px, 16px, 24px
+      - Border radius: 4px (sm), 8px (md), 12px (lg), 9999px (full)
+    </spacing>
+    <shadows>
+      - sm: 0 1px 2px rgba(0,0,0,0.05)
+      - md: 0 4px 6px rgba(0,0,0,0.1)
+      - lg: 0 10px 15px rgba(0,0,0,0.1)
+      - xl: 0 20px 25px rgba(0,0,0,0.15)
+    </shadows>
+  </design_system>
+
+  <implementation_steps>
+    <step number="1">
+      <title>Project Setup & Infrastructure</title>
+      <tasks>
+        - Initialize monorepo structure (frontend/, backend/, shared/)
+        - Setup Next.js 14 with TypeScript, Tailwind, shadcn/ui
+        - Setup FastAPI with Pydantic, async support
+        - Docker Compose for PostgreSQL + Redis
+        - pgvector extension installation
+        - Database migrations setup (Alembic)
+        - Basic CI/CD pipeline
+        - Environment configuration
+      </tasks>
+    </step>
+    <step number="2">
+      <title>Authentication & User Management</title>
+      <tasks>
+        - User registration (email/password)
+        - Login/logout flow
+        - JWT token management (access + refresh)
+        - Google OAuth integration
+        - Password reset flow (email simulation - console log)
+        - User profile CRUD
+        - Role-based access control middleware
+        - Protected routes setup
+      </tasks>
+    </step>
+    <step number="3">
+      <title>Onboarding & Dynamic Context Foundation</title>
+      <tasks>
+        - Onboarding wizard UI (multi-step)
+        - Industry taxonomy database seeding
+        - User profile storage (industry, role, preferences)
+        - Basic prompt template storage
+        - Dynamic prompt composer service
+        - User context retrieval
+      </tasks>
+    </step>
+    <step number="4">
+      <title>Chat Interface Core</title>
+      <tasks>
+        - WebSocket connection setup
+        - Chat window component
+        - Message list with different types
+        - Input area with file upload, URL detection
+        - Basic message send/receive flow
+        - Conversation persistence
+        - Conversation list sidebar
+      </tasks>
+    </step>
+    <step number="5">
+      <title>Brief Collection & Workflow Planning</title>
+      <tasks>
+        - Brief collection chat component
+        - Intent analysis endpoint (Claude integration)
+        - Question flow logic
+        - Workflow customizer service
+        - Plan preview UI
+        - Plan modification handling
+        - Workflow execution kickoff
+      </tasks>
+    </step>
+    <step number="6">
+      <title>Company Intelligence Agents</title>
+      <tasks>
+        - Base agent class
+        - KRS API integration
+        - CEIDG API integration
+        - Company Profile Agent
+        - Financial Analysis Agent (PDF extraction)
+        - Ownership Mapping Agent
+        - Digital Presence Agent (basic crawler)
+        - Agent status updates via WebSocket
+      </tasks>
+    </step>
+    <step number="7">
+      <title>Website Analysis Tools</title>
+      <tasks>
+        - Playwright setup for deep crawling
+        - Content extractor service
+        - Tech stack detector (custom rules)
+        - Screenshot capture
+        - URL analysis flow integration
+        - Website analysis agent
+      </tasks>
+    </step>
+    <step number="8">
+      <title>Market & Competitive Intelligence Agents</title>
+      <tasks>
+        - Market Sizing Agent
+        - Trend Analysis Agent
+        - Competitor Mapping Agent
+        - Benchmarking Agent
+        - News/Sentiment Agent (RSS + optional SerpAPI)
+        - Share of Voice Agent
+      </tasks>
+    </step>
+    <step number="9">
+      <title>Synthesis Agents & Frameworks</title>
+      <tasks>
+        - Fact Checker Agent
+        - Insight Generator Agent
+        - Framework Applier Agent
+        - All 9 frameworks implementation
+        - Framework visualizations (SWOT, Porter, BCG, etc.)
+        - Report Composer Agent
+      </tasks>
+    </step>
+    <step number="10">
+      <title>Sources Panel & Data Management</title>
+      <tasks>
+        - Sources panel UI
+        - Source cards with confidence
+        - File upload processing
+        - PDF/DOCX text extraction
+        - Source linkage to messages
+        - Embeddings generation (pgvector)
+      </tasks>
+    </step>
+    <step number="11">
+      <title>Reports System</title>
+      <tasks>
+        - Report generation service
+        - Report viewer UI
+        - Report editor (basic)
+        - PDF export (using puppeteer/playwright)
+        - DOCX export
+        - PPTX export (basic)
+        - Reports library UI
+      </tasks>
+    </step>
+    <step number="12">
+      <title>Dashboard & Projects</title>
+      <tasks>
+        - Dashboard home page
+        - Projects CRUD
+        - Project details page
+        - Company watchlist
+        - Recent activity
+        - Quick search
+      </tasks>
+    </step>
+    <step number="13">
+      <title>Alerts System</title>
+      <tasks>
+        - Alerts configuration UI
+        - Background monitoring jobs (Celery)
+        - In-app notifications
+        - Notification center UI
+        - Alert history
+      </tasks>
+    </step>
+    <step number="14">
+      <title>Admin Panel</title>
+      <tasks>
+        - Admin dashboard with stats
+        - User management UI
+        - Prompt templates management
+        - Knowledge base management
+        - System logs viewer
+        - Usage/cost tracking
+      </tasks>
+    </step>
+    <step number="15">
+      <title>Internationalization</title>
+      <tasks>
+        - next-intl setup
+        - All UI strings extraction
+        - Polish translations (primary)
+        - English translations
+        - Language switcher
+        - Locale-aware formatting
+      </tasks>
+    </step>
+    <step number="16">
+      <title>Performance & Polish</title>
+      <tasks>
+        - Loading states everywhere
+        - Error handling improvements
+        - Empty states
+        - Skeleton loaders
+        - Optimistic updates
+        - Caching strategy
+        - Code splitting
+        - SEO basics
+      </tasks>
+    </step>
+    <step number="17">
+      <title>Testing & Quality</title>
+      <tasks>
+        - Unit tests (critical paths)
+        - Integration tests (API endpoints)
+        - E2E tests (key user flows)
+        - Accessibility audit
+        - Performance audit
+        - Security review
+      </tasks>
+    </step>
+    <step number="18">
+      <title>Documentation & Deployment</title>
+      <tasks>
+        - API documentation (OpenAPI)
+        - User guide (PL)
+        - Admin guide
+        - Deployment scripts
+        - Docker production setup
+        - Monitoring setup
+      </tasks>
+    </step>
+  </implementation_steps>
+
+  <success_criteria>
+    <functionality>
+      - User can complete onboarding and set industry context
+      - User can have conversations with brief collection flow
+      - All 25+ agents execute correctly and return structured data
+      - All 9 frameworks generate proper visualizations
+      - Reports export correctly to PDF, DOCX, PPTX
+      - Real-time updates work via WebSocket
+      - File upload and URL analysis work
+      - Search and filtering work across all entities
+    </functionality>
+    <user_experience>
+      - Onboarding takes less than 2 minutes
+      - Brief collection chat feels natural (2-4 questions max)
+      - Chat responses start streaming within 5 seconds
+      - UI is responsive on mobile, tablet, desktop
+      - All interactions have appropriate feedback
+      - Error messages are clear and actionable (in Polish)
+      - Navigation is intuitive
+    </user_experience>
+    <technical_quality>
+      - No console errors during normal operation
+      - API response times under 500ms (excluding LLM calls)
+      - Page loads under 3 seconds
+      - WebSocket reconnects automatically
+      - Data persists correctly across sessions
+      - Authentication works securely
+      - Role-based access is enforced
+    </technical_quality>
+    <design_polish>
+      - Consistent visual design across all pages
+      - Proper typography hierarchy
+      - Appropriate use of whitespace
+      - Interactive elements have hover/focus states
+      - Animations are smooth and purposeful
+      - Dark mode ready structure (light mode first)
+    </design_polish>
+  </success_criteria>
+</project_specification>
