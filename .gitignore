@@ -1,0 +1,84 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js
+.next/
+out/
+
+# Python
+*.py[cod]
+*$py.class
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Build
+*.egg
+*.egg-info/
+.installed.cfg
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Secrets
+.env
+*.pem
+secrets/
+
+# Docker
+docker-compose.override.yml
+
+# Cache
+.cache/
+.npm/
+
+# Package locks (keep package-lock.json for frontend)
+poetry.lock
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Generated files
+*.generated.*
+
+# Feature database (managed by MCP)
+features.db
