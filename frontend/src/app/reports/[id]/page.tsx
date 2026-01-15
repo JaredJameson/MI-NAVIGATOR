@@ -60,6 +60,16 @@ interface ReportVersion {
   is_current: boolean
 }
 
+interface Comment {
+  id: string
+  report_id: string
+  user_id: string
+  user_name: string
+  user_email: string
+  text: string
+  created_at: string
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -101,10 +111,17 @@ export default function ReportViewerPage() {
   const [isRestoring, setIsRestoring] = useState(false)
   const [restoreMessage, setRestoreMessage] = useState('')
 
+  // Collaboration comments state
+  const [comments, setComments] = useState<Comment[]>([])
+  const [newCommentText, setNewCommentText] = useState('')
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [showCommentsPanel, setShowCommentsPanel] = useState(false)
+
   useEffect(() => {
     fetchReport()
     fetchAnnotations()
     fetchVersions()
+    fetchComments()
   }, [reportId])
 
   // Keyboard shortcut for search (Ctrl+F)
@@ -327,6 +344,85 @@ export default function ReportViewerPage() {
     e.stopPropagation()
     setVersionToRestore(version)
     setShowRestoreConfirm(true)
+  }
+
+  const fetchComments = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/comments`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setComments(data.comments || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch comments:', err)
+    }
+  }
+
+  const submitComment = async () => {
+    if (!newCommentText.trim()) return
+
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsSubmittingComment(true)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/comments`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: newCommentText }),
+        }
+      )
+
+      if (response.ok) {
+        const newComment = await response.json()
+        setComments(prev => [...prev, newComment])
+        setNewCommentText('')
+      }
+    } catch (err) {
+      console.error('Failed to submit comment:', err)
+    } finally {
+      setIsSubmittingComment(false)
+    }
+  }
+
+  const deleteComment = async (commentId: string) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/comments/${commentId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        setComments(prev => prev.filter(c => c.id !== commentId))
+      }
+    } catch (err) {
+      console.error('Failed to delete comment:', err)
+    }
   }
 
   const saveAnnotation = async () => {
@@ -585,6 +681,20 @@ export default function ReportViewerPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowCommentsPanel(!showCommentsPanel)}
+              className="relative rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+              title="Komentarze"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              {comments.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
+                  {comments.length}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => setShowVersionHistory(!showVersionHistory)}
               className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
               title="Historia wersji"
@@ -613,6 +723,99 @@ export default function ReportViewerPage() {
           </div>
         </div>
       </header>
+
+      {/* Comments Panel */}
+      {showCommentsPanel && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end bg-black/30">
+          <div className="h-full w-full max-w-md bg-white shadow-xl overflow-y-auto flex flex-col">
+            <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Komentarze ({comments.length})</h2>
+              <button
+                onClick={() => setShowCommentsPanel(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+              {comments.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">Brak komentarzy. Bądź pierwszą osobą, która doda komentarz!</p>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="rounded-lg border border-gray-200 p-4 bg-white">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                          <span className="text-blue-700 font-medium text-sm">
+                            {comment.user_name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">{comment.user_name}</div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(comment.created_at).toLocaleDateString('pl-PL', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => deleteComment(comment.id)}
+                        className="text-gray-400 hover:text-red-500"
+                        title="Usuń komentarz"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                    <p className="text-gray-700 text-sm">{comment.text}</p>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="sticky bottom-0 bg-white border-t p-4">
+              <div className="flex gap-2">
+                <textarea
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  placeholder="Dodaj komentarz..."
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  rows={2}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      submitComment()
+                    }
+                  }}
+                />
+                <button
+                  onClick={submitComment}
+                  disabled={!newCommentText.trim() || isSubmittingComment}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 self-end"
+                >
+                  {isSubmittingComment ? (
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Naciśnij Enter, aby wysłać. Shift+Enter dla nowej linii.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Version History Panel */}
       {showVersionHistory && (

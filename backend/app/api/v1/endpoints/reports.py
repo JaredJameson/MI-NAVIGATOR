@@ -689,3 +689,107 @@ async def restore_report_version(
         "new_version": new_version["version"],
         "restored_from": request.version
     }
+
+
+# Collaboration comments storage (global, visible to all users)
+REPORT_COMMENTS: dict = {
+    "report_001": [
+        {
+            "id": "comment_1",
+            "report_id": "report_001",
+            "user_id": "1",
+            "user_name": "Jan Kowalski",
+            "user_email": "jan.kowalski@example.com",
+            "text": "Świetna analiza finansowa! Warto zwrócić uwagę na wzrost marży r/r.",
+            "created_at": "2026-01-14T10:45:00Z",
+        },
+        {
+            "id": "comment_2",
+            "report_id": "report_001",
+            "user_id": "2",
+            "user_name": "Anna Nowak",
+            "user_email": "anna.nowak@example.com",
+            "text": "Czy mamy dostęp do danych za Q4 2023? Byłoby dobrze je uwzględnić.",
+            "created_at": "2026-01-14T11:30:00Z",
+        }
+    ]
+}
+
+
+class CommentCreate(BaseModel):
+    text: str
+
+
+class Comment(BaseModel):
+    id: str
+    report_id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    text: str
+    created_at: str
+
+
+@router.get("/{report_id}/comments")
+async def get_comments(report_id: str, current_user: User = Depends(get_current_user)):
+    """Get all collaboration comments for a report. Comments are visible to all users."""
+    comments = REPORT_COMMENTS.get(report_id, [])
+    return {"comments": comments}
+
+
+@router.post("/{report_id}/comments")
+async def create_comment(
+    report_id: str,
+    comment: CommentCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new collaboration comment for a report."""
+    if report_id not in REPORT_COMMENTS:
+        REPORT_COMMENTS[report_id] = []
+
+    # Generate unique ID
+    comment_id = f"comment_{len(REPORT_COMMENTS[report_id]) + 1}_{int(datetime.now().timestamp())}"
+
+    new_comment = Comment(
+        id=comment_id,
+        report_id=report_id,
+        user_id=str(current_user.id),
+        user_name=current_user.name or current_user.email.split('@')[0],
+        user_email=current_user.email,
+        text=comment.text,
+        created_at=datetime.now().isoformat() + "Z"
+    )
+
+    REPORT_COMMENTS[report_id].append(new_comment.model_dump())
+
+    return new_comment
+
+
+@router.delete("/{report_id}/comments/{comment_id}")
+async def delete_comment(
+    report_id: str,
+    comment_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a collaboration comment. Only the author can delete their comment."""
+    if report_id not in REPORT_COMMENTS:
+        return {"error": "Comment not found"}
+
+    comments = REPORT_COMMENTS[report_id]
+    comment_to_delete = None
+
+    for c in comments:
+        if c["id"] == comment_id:
+            comment_to_delete = c
+            break
+
+    if not comment_to_delete:
+        return {"error": "Comment not found"}
+
+    # Check if user is the author
+    if comment_to_delete["user_id"] != str(current_user.id):
+        return {"error": "Nie możesz usunąć komentarza innego użytkownika"}
+
+    REPORT_COMMENTS[report_id] = [c for c in comments if c["id"] != comment_id]
+
+    return {"message": "Komentarz został usunięty"}
