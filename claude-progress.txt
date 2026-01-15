@@ -1,5 +1,58 @@
 # MI-Navigator Development Progress
 
+## Session 17 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #267: SWOT diagram visualization - PASSED
+- Implemented interactive SWOT diagram visualization for report sections
+- Parses SWOT content from report sections with bullet points
+- Four color-coded quadrants:
+  - Strengths (green) - 💪 icon
+  - Weaknesses (red) - ⚠️ icon
+  - Opportunities (blue) - 🚀 icon
+  - Threats (amber) - ⚡ icon
+- Expandable/collapsible sections (click header to toggle)
+- Visual indicators:
+  - "CZYNNIKI WEWNĘTRZNE" (Internal factors) label for S/W
+  - "CZYNNIKI ZEWNĘTRZNE" (External factors) label for O/T
+  - Legend with Pozytywne/Negatywne indicators
+  - Summary statistics (S:5, W:3, O:4, T:4, Razem: 16)
+- Auto-detects SWOT sections by title (contains "SWOT" or "analiza" + "mocne/słabe")
+- "📊 Diagram interaktywny" badge on SWOT section headers
+- Full end-to-end testing verified:
+  - Navigated to report_001 (FADO company report)
+  - SWOT section displayed as interactive quadrant diagram
+  - All four quadrants rendered with correct labels
+  - Clicked "Mocne strony" header - section expanded
+  - All 5 strengths visible after expansion
+  - No console errors
+
+### Regression Test Passed:
+- Reports list page loads correctly with 12 reports
+- Authentication flow works (login, session persistence)
+
+### Statistics:
+- Total features: 380
+- Passing features: 78 (20.5%)
+- In progress: 0
+
+### Git Commits This Session:
+- f203e9a - Implement SWOT diagram visualization (Feature #267)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. SWOT diagram is now rendered for any section with "SWOT" in title
+3. Consider adding more visualization types (charts, graphs)
+
+---
+
 ## Session 16 - Date: 2026-01-15
 
 ### Completed in This Session:
@@ -32,15 +85,28 @@
   - In-app notifications toggle switch
 - Preferences persist after save and page reload
 
+#### Feature #258: Notification mark as read - PASSED
+- Created backend /notifications API:
+  - GET / - List notifications with unread count
+  - POST /mark-read - Mark specific notifications as read
+  - POST /mark-all-read - Mark all as read
+- 7 mock notifications of various types (report_ready, alert, project_update, comment, system)
+- Created frontend /notifications page:
+  - Unread count badge in header
+  - Filter: All / Unread only
+  - Click notification to view and auto-mark as read
+  - "Oznacz wszystkie jako przeczytane" button
+
 ### Statistics:
 - Total features: 380
-- Passing features: 72 (18.9%)
+- Passing features: 73 (19.2%)
 - In progress: 0
 
 ### Git Commits This Session:
 - 8c565b2 - feat(activity): implement activity log viewing with filtering
 - c977560 - feat(activity): add activity log export with date range filtering
 - fd87196 - feat(settings): add notification preferences with toggle switches
+- 76a47bc - feat(notifications): implement notification system with mark as read
 
 ---
 
