@@ -38,14 +38,30 @@
   - Clicked on report suggestion
   - Navigated to /reports/report_001 successfully
 
+#### Feature #247: Search history in suggestions - PASSED
+- Added SearchHistoryItem interface and state management
+- Search history saved to localStorage on suggestion click
+- History displays when search field is focused with empty query
+- "Ostatnie wyszukiwania" header with clock icon (🕐) for history items
+- Maximum 5 items stored, duplicates automatically removed
+- Click on history item navigates to saved URL
+- History persists across page refreshes
+- Full end-to-end testing verified:
+  - Searched for FADO, clicked suggestion
+  - Searched for Splast, clicked suggestion
+  - Clicked empty search field - history dropdown appeared
+  - Both companies shown with "OSTATNIE WYSZUKIWANIA" header
+  - Clicked FADO from history - navigation worked
+
 ### Statistics:
 - Total features: 380
-- Passing features: 61 (16.1%)
+- Passing features: 62 (16.3%)
 - In progress: 0
 
 ### Git Commits This Session:
 - 858edd0 - Add widget visibility toggle feature (Feature #245)
 - 2279566 - Add quick search suggestions feature (Feature #246)
+- 2a1aca4 - Add search history in suggestions feature (Feature #247)
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI)
