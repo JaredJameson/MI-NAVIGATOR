@@ -1,5 +1,65 @@
 # MI-Navigator Development Progress
 
+## Session 15 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Regression Test Passed:
+- Enter key form submission (Feature #115): Login form submits with Enter key, navigation to dashboard works
+
+#### Feature #253: Select all on page - PASSED
+- Implemented pagination for reports list:
+  - 5 reports per page (12 total reports on 3 pages)
+  - Page numbers with navigation buttons (Previous/Next)
+  - "Pokazano X-Y z Z raportów" info text
+- Created GET /reports/ids endpoint for fetching all report IDs (for select all across pages)
+- Added 9 more mock reports to MOCK_REPORTS (total 12)
+- Implemented select all checkbox in selection mode banner:
+  - Checkbox with three visual states:
+    - Empty (nothing selected)
+    - Partial/indeterminate (some selected)
+    - Full checkmark (all on page or all across pages selected)
+  - Dynamic label: "Zaznacz wszystkie" → "Zaznaczono stronę" → "Zaznaczono wszystkie"
+- Select all on page functionality:
+  - Click checkbox to select all 5 reports on current page
+  - Yellow notification appears: "Zaznaczono wszystkie 5 na tej stronie"
+  - Option to "Zaznacz wszystkie 12 raportów" (across all pages)
+- Select all across pages functionality:
+  - Fetches all report IDs via /reports/ids endpoint
+  - Updates selection to include all 12 reports
+  - Count updates to "12 z 12 wybranych"
+- Selection persists when navigating between pages
+- "Wyczyść zaznaczenie" button to clear all selections
+- Full end-to-end testing verified:
+  - Entered selection mode
+  - Clicked "Zaznacz wszystkie" checkbox
+  - All 5 reports on page 1 selected
+  - Clicked "Zaznacz wszystkie 12 raportów"
+  - All 12 reports selected across all pages
+  - Navigated to page 2 - all reports still selected
+  - Screenshots captured for verification
+
+### Statistics:
+- Total features: 380
+- Passing features: 68 (17.9%)
+- In progress: 0
+
+### Git Commits This Session:
+- 64131c1 - feat(reports): implement select all on page with pagination
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Reports list now has 12 mock reports with pagination
+3. Consider implementing real database persistence for reports
+
+---
+
 ## Session 14 - Date: 2026-01-15
 
 ### Completed in This Session:
