@@ -23,6 +23,17 @@ const DEFAULT_WIDGETS: Widget[] = [
 ]
 
 const LAYOUT_STORAGE_KEY = 'mi-navigator-dashboard-layout'
+const SEARCH_HISTORY_KEY = 'mi-navigator-search-history'
+const MAX_SEARCH_HISTORY = 5
+
+// Search history item type
+interface SearchHistoryItem {
+  id: string
+  name: string
+  type: string
+  url: string
+  timestamp: number
+}
 
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -35,6 +46,7 @@ export default function DashboardPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -61,6 +73,21 @@ export default function DashboardPage() {
         }
       } catch (e) {
         console.error('Failed to load dashboard layout:', e)
+      }
+    }
+  }, [])
+
+  // Load search history on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem(SEARCH_HISTORY_KEY)
+    if (savedHistory) {
+      try {
+        const parsed = JSON.parse(savedHistory)
+        if (Array.isArray(parsed)) {
+          setSearchHistory(parsed)
+        }
+      } catch (e) {
+        console.error('Failed to load search history:', e)
       }
     }
   }, [])
@@ -165,10 +192,36 @@ export default function DashboardPage() {
     }, 200)
   }
 
+  const addToSearchHistory = (item: SearchSuggestion) => {
+    const historyItem: SearchHistoryItem = {
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      url: item.url,
+      timestamp: Date.now()
+    }
+
+    // Remove duplicates and add new item at the beginning
+    const newHistory = [
+      historyItem,
+      ...searchHistory.filter(h => h.url !== item.url)
+    ].slice(0, MAX_SEARCH_HISTORY)
+
+    setSearchHistory(newHistory)
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(newHistory))
+  }
+
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     setShowSuggestions(false)
     setSearchQuery(suggestion.name)
+    addToSearchHistory(suggestion)
     router.push(suggestion.url)
+  }
+
+  const handleHistoryClick = (item: SearchHistoryItem) => {
+    setShowSuggestions(false)
+    setSearchQuery(item.name)
+    router.push(item.url)
   }
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -452,7 +505,12 @@ export default function DashboardPage() {
               value={searchQuery}
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
-              onFocus={() => searchQuery.length > 0 && suggestions.length > 0 && setShowSuggestions(true)}
+              onFocus={() => {
+                // Show suggestions if we have suggestions, or show history if query is empty and we have history
+                if ((searchQuery.length > 0 && suggestions.length > 0) || (searchQuery.length === 0 && searchHistory.length > 0)) {
+                  setShowSuggestions(true)
+                }
+              }}
               placeholder="Szukaj firmy, osoby, wklej URL do analizy..."
               className="w-full rounded-lg bg-white px-4 py-3 pl-12 text-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
             />
@@ -475,8 +533,34 @@ export default function DashboardPage() {
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
               </div>
             )}
+            {/* Search history dropdown (when query is empty) */}
+            {showSuggestions && searchQuery.length === 0 && searchHistory.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-lg bg-white shadow-xl"
+              >
+                <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase border-b border-gray-100">
+                  Ostatnie wyszukiwania
+                </div>
+                {searchHistory.map((item, index) => (
+                  <button
+                    key={`history-${item.url}-${item.timestamp}`}
+                    onClick={() => handleHistoryClick(item)}
+                    className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                      index === selectedSuggestionIndex ? 'bg-blue-50' : ''
+                    } ${index !== searchHistory.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  >
+                    <span className="text-xl">🕐</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 truncate">{item.name}</div>
+                    </div>
+                    <span className="text-xs text-gray-400 uppercase">{item.type}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             {/* Suggestions dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
+            {showSuggestions && suggestions.length > 0 && searchQuery.length > 0 && (
               <div
                 ref={suggestionsRef}
                 className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-lg bg-white shadow-xl"
