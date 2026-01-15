@@ -10,15 +10,16 @@ interface Widget {
   id: string
   title: string
   type: 'active-research' | 'recent-activity' | 'usage-stats' | 'projects' | 'alerts'
+  visible: boolean
 }
 
 // Default widget order
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'active-research', title: 'Active Research', type: 'active-research' },
-  { id: 'recent-activity', title: 'Recent Activity', type: 'recent-activity' },
-  { id: 'usage-stats', title: 'Usage Stats', type: 'usage-stats' },
-  { id: 'projects', title: 'My Projects', type: 'projects' },
-  { id: 'alerts', title: 'Alerts & Monitoring', type: 'alerts' },
+  { id: 'active-research', title: 'Active Research', type: 'active-research', visible: true },
+  { id: 'recent-activity', title: 'Recent Activity', type: 'recent-activity', visible: true },
+  { id: 'usage-stats', title: 'Usage Stats', type: 'usage-stats', visible: true },
+  { id: 'projects', title: 'My Projects', type: 'projects', visible: true },
+  { id: 'alerts', title: 'Alerts & Monitoring', type: 'alerts', visible: true },
 ]
 
 const LAYOUT_STORAGE_KEY = 'mi-navigator-dashboard-layout'
@@ -44,7 +45,12 @@ export default function DashboardPage() {
             parsed.some((pw: Widget) => pw.id === dw.id)
           )
           if (hasAllWidgets) {
-            setWidgets(parsed)
+            // Ensure all widgets have visible property (backward compatibility)
+            const widgetsWithVisibility = parsed.map((w: Widget) => ({
+              ...w,
+              visible: w.visible !== undefined ? w.visible : true
+            }))
+            setWidgets(widgetsWithVisibility)
           }
         }
       } catch (e) {
@@ -74,6 +80,12 @@ export default function DashboardPage() {
     // Swap widgets
     [newWidgets[index], newWidgets[targetIndex]] = [newWidgets[targetIndex], newWidgets[index]]
     setWidgets(newWidgets)
+  }
+
+  const toggleWidgetVisibility = (widgetId: string) => {
+    setWidgets(widgets.map(w =>
+      w.id === widgetId ? { ...w, visible: !w.visible } : w
+    ))
   }
 
   const saveLayout = () => {
@@ -118,8 +130,9 @@ export default function DashboardPage() {
     const isFirst = index === 0
     const isLast = index === widgets.length - 1
 
+    const isHidden = !widget.visible
     const wrapperClasses = isCustomizeMode
-      ? 'relative border-2 border-dashed border-blue-300 rounded-xl'
+      ? `relative border-2 border-dashed rounded-xl ${isHidden ? 'border-red-300 bg-red-50 opacity-60' : 'border-blue-300'}`
       : ''
 
     const CustomizeOverlay = () => (
@@ -143,6 +156,22 @@ export default function DashboardPage() {
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
+        </button>
+        <button
+          onClick={() => toggleWidgetVisibility(widget.id)}
+          className={`rounded-full p-1.5 text-white shadow-md ${isHidden ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+          title={isHidden ? 'Pokaż widget' : 'Ukryj widget'}
+        >
+          {isHidden ? (
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          ) : (
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+          )}
         </button>
       </div>
     )
@@ -188,9 +217,13 @@ export default function DashboardPage() {
     }
   }
 
+  // Get visible widgets only (unless in customize mode)
+  const visibleWidgets = isCustomizeMode ? widgets : widgets.filter(w => w.visible)
+  const hiddenWidgets = widgets.filter(w => !w.visible)
+
   // Get grid widgets (first 3) and full-width widgets (rest)
-  const gridWidgets = widgets.filter(w => ['active-research', 'recent-activity', 'usage-stats'].includes(w.type))
-  const fullWidgets = widgets.filter(w => ['projects', 'alerts'].includes(w.type))
+  const gridWidgets = visibleWidgets.filter(w => ['active-research', 'recent-activity', 'usage-stats'].includes(w.type))
+  const fullWidgets = visibleWidgets.filter(w => ['projects', 'alerts'].includes(w.type))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -231,7 +264,7 @@ export default function DashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                 </svg>
                 <span className="font-medium text-blue-800">Tryb dostosowywania</span>
-                <span className="text-sm text-blue-600">- Użyj strzałek aby zmienić kolejność widgetów</span>
+                <span className="text-sm text-blue-600">- Użyj strzałek aby zmienić kolejność, czerwonej ikony aby ukryć widget</span>
               </div>
               <div className="flex gap-2">
                 <button
@@ -255,6 +288,29 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
+            {/* Hidden widgets section */}
+            {hiddenWidgets.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <div className="text-sm text-blue-700 mb-2">
+                  Ukryte widgety ({hiddenWidgets.length}):
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {hiddenWidgets.map(w => (
+                    <button
+                      key={w.id}
+                      onClick={() => toggleWidgetVisibility(w.id)}
+                      className="flex items-center gap-1 rounded-md bg-white border border-blue-300 px-2 py-1 text-sm text-blue-700 hover:bg-blue-100"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      {w.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
