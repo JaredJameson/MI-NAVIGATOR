@@ -63,10 +63,21 @@
 - Messages sent and received correctly
 - Loading indicator works
 
+#### Feature #23: Chat loading states display - PASSED ✅
+- Loading animation with bouncing dots
+- State clears when response arrives
+
 ### Statistics:
 - Total features: 380
-- Passing features: 10 (2.6%)
+- Passing features: 11 (2.9%)
 - In progress: 0
+
+### Skipped Features (require more implementation):
+- #8: Admin routes blocked for regular users
+- #10: User cannot access other users data
+- #12-16: Dashboard features requiring backend data
+- #18-22: Chat WebSocket, persistence, file upload, URL/NIP detection
+- #24-27: Structured responses, source citations, projects
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI with --reload)
