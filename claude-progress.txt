@@ -45,17 +45,38 @@
   - Comment appeared immediately in panel
   - Comment count badge updated from 2 to 3
 
+#### Feature #242: Comment reply functionality - PASSED
+- Implemented backend reply support:
+  - Added parent_id field to Comment model
+  - POST endpoint validates parent comment exists
+  - Pre-populated mock data with threaded conversation (Anna asks Q4 question, Jan replies)
+- Implemented frontend threaded replies:
+  - Reply button (arrow icon) on each top-level comment
+  - Inline reply input appears under the comment being replied to
+  - Placeholder shows "Odpowiedz na komentarz [user]..."
+  - Nested replies displayed with indentation (ml-6)
+  - Replies use smaller styling and green avatar to distinguish
+  - Esc key cancels reply, Enter submits
+  - Bottom textarea disabled during reply mode
+- Full end-to-end testing verified:
+  - Clicked "Odpowiedz" on Jan Kowalski's comment
+  - Reply input appeared under the comment
+  - Typed reply and submitted
+  - Reply appeared nested under parent comment
+  - Comment count updated from 3 to 4
+
 #### Regression Test Passed:
 - User Profile Update (Feature #205): Settings page loads, profile edits save and persist
 
 ### Statistics:
 - Total features: 380
-- Passing features: 56 (14.7%)
+- Passing features: 57 (15.0%)
 - In progress: 0
 
 ### Git Commits This Session:
 - 88f52c3 - Add report restore previous version feature (Feature #240)
 - 4ae099b - Add collaboration comments feature (Feature #241)
+- f6b5533 - Add comment reply functionality (Feature #242)
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI)
