@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
 
@@ -34,10 +34,13 @@ const TYPE_ICONS: Record<string, string> = {
 
 export default function FeedbackPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [feedbackTypes, setFeedbackTypes] = useState<FeedbackType[]>([])
   const [myFeedback, setMyFeedback] = useState<FeedbackItem[]>([])
   const [selectedType, setSelectedType] = useState('')
   const [message, setMessage] = useState('')
+  const [errorContext, setErrorContext] = useState('')
+  const [errorPage, setErrorPage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -47,6 +50,21 @@ export default function FeedbackPage() {
   useEffect(() => {
     fetchFeedbackTypes()
     fetchMyFeedback()
+
+    // Check for error reporting context from URL params
+    const errorType = searchParams.get('type')
+    const errorMsg = searchParams.get('error')
+    const errorPageParam = searchParams.get('page')
+
+    if (errorType === 'bug' || errorMsg) {
+      setSelectedType('bug')
+      if (errorMsg) {
+        setErrorContext(decodeURIComponent(errorMsg))
+      }
+      if (errorPageParam) {
+        setErrorPage(decodeURIComponent(errorPageParam))
+      }
+    }
   }, [])
 
   const fetchFeedbackTypes = async () => {
@@ -128,8 +146,10 @@ export default function FeedbackPage() {
         },
         body: JSON.stringify({
           type: selectedType,
-          message: message.trim(),
-          page_context: window.location.pathname
+          message: errorContext
+            ? `[Błąd: ${errorContext}]\n\n${message.trim()}`
+            : message.trim(),
+          page_context: errorPage || window.location.pathname
         }),
       })
 
@@ -142,6 +162,11 @@ export default function FeedbackPage() {
       setSuccess(data.message)
       setSelectedType('')
       setMessage('')
+      setErrorContext('')
+      setErrorPage('')
+
+      // Clear URL params after successful submission
+      router.push('/feedback')
 
       // Refresh feedback list
       fetchMyFeedback()
@@ -224,20 +249,45 @@ export default function FeedbackPage() {
                   </div>
                 </div>
 
+                {/* Error Context - auto-populated when reporting an error */}
+                {errorContext && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <span className="text-xl">⚠️</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-800 mb-1">
+                          Kontekst błędu (automatycznie dodany)
+                        </p>
+                        <p className="text-sm text-red-700 font-mono bg-red-100 p-2 rounded">
+                          {errorContext}
+                        </p>
+                        {errorPage && (
+                          <p className="text-xs text-red-600 mt-2">
+                            Strona: {errorPage}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Message */}
                 <div>
                   <label
                     htmlFor="message"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    Twoja wiadomość *
+                    {errorContext ? 'Dodatkowy opis problemu *' : 'Twoja wiadomość *'}
                   </label>
                   <textarea
                     id="message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     rows={5}
-                    placeholder="Opisz swoją opinię, sugestię lub problem..."
+                    placeholder={errorContext
+                      ? "Opisz co robiłeś gdy wystąpił błąd..."
+                      : "Opisz swoją opinię, sugestię lub problem..."
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   />
                   <p className="mt-1 text-xs text-gray-500">

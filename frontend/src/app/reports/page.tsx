@@ -664,8 +664,16 @@ export default function ReportsPage() {
 
         {/* Error Display */}
         {error && (
-          <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-red-700">
-            {error}
+          <div className="mb-6 rounded-lg bg-red-50 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <span className="text-red-700">{error}</span>
+              <Link
+                href={`/feedback?type=bug&error=${encodeURIComponent(error)}&page=${encodeURIComponent('/reports')}`}
+                className="text-sm text-red-600 hover:text-red-800 underline"
+              >
+                Zgłoś problem
+              </Link>
+            </div>
           </div>
         )}
 
