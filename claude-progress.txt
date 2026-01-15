@@ -1,5 +1,53 @@
 # MI-Navigator Development Progress
 
+## Session 11 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #243: Comment resolution - PASSED
+- Implemented backend comment resolution:
+  - Added resolved, resolved_by, resolved_by_name, resolved_at fields to Comment model
+  - Added PATCH /reports/{id}/comments/{comment_id}/resolve endpoint (toggles resolution)
+  - Updated GET /reports/{id}/comments with optional resolved filter parameter
+  - Pre-populated mock data with one resolved comment (Anna Nowak's comment)
+- Implemented frontend resolution UI:
+  - Resolve/unresolve button (checkmark icon) on each comment
+  - Visual distinction for resolved comments:
+    - Green background and border
+    - Green checkmark icon instead of user initial
+    - "Rozwiązany" (Resolved) badge
+    - "Rozwiązał: [name]" attribution with timestamp
+  - Filter toggle "Pokaż rozwiązane" / "Ukryj rozwiązane" to show/hide resolved comments
+  - Counter showing number of resolved comments
+- Full end-to-end testing verified:
+  - Navigated to report_001, opened comments panel
+  - Clicked resolve button on Jan Kowalski's comment
+  - Comment marked as resolved with green styling
+  - Counter updated from (1 rozwiązanych) to (2 rozwiązanych)
+  - Clicked filter toggle - resolved comments hidden
+  - Clicked unresolve button - comment reverted to unresolved state
+
+### Statistics:
+- Total features: 380
+- Passing features: 58 (15.3%)
+- In progress: 0
+
+### Git Commits This Session:
+- 6f80d52 - Add comment resolution feature (Feature #243)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Continue with report-related features or move to other areas
+3. Consider implementing real database storage for comments (currently mock data)
+
+---
+
 ## Session 10 - Date: 2026-01-15
 
 ### Completed in This Session:
