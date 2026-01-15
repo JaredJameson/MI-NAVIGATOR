@@ -27,13 +27,32 @@
   - Clicked filter toggle - resolved comments hidden
   - Clicked unresolve button - comment reverted to unresolved state
 
+#### Feature #244: Dashboard customization - PASSED
+- Implemented dashboard widget system:
+  - Widget type definitions for 5 widgets (Active Research, Recent Activity, Usage Stats, Projects, Alerts)
+  - Default widget order configuration
+  - localStorage persistence with key 'mi-navigator-dashboard-layout'
+- Implemented customize mode UI:
+  - "Dostosuj układ" button to enter customize mode
+  - Blue banner "Tryb dostosowywania" with instructions
+  - Dashed blue borders around widgets in customize mode
+  - Up/down arrow buttons on each widget for reordering
+  - "Zapisz układ", "Resetuj", "Anuluj" control buttons
+  - Success message toast "Układ zapisany pomyślnie!"
+- Full end-to-end testing verified:
+  - Navigated to dashboard, clicked "Dostosuj układ"
+  - Moved "Recent Activity" widget up using arrow button
+  - Clicked "Zapisz układ" - success message shown
+  - Refreshed page - layout preserved (Recent Activity first)
+
 ### Statistics:
 - Total features: 380
-- Passing features: 58 (15.3%)
+- Passing features: 59 (15.5%)
 - In progress: 0
 
 ### Git Commits This Session:
 - 6f80d52 - Add comment resolution feature (Feature #243)
+- 6626d5f - Add dashboard customization feature (Feature #244)
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI)
