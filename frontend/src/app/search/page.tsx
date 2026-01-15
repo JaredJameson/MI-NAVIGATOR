@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
 
@@ -31,6 +31,16 @@ interface PKDSearchResult {
   total_count: number
 }
 
+interface SavedSearch {
+  id: string
+  name: string
+  search_type: string
+  query: string
+  filters?: Record<string, unknown>
+  created_at: string
+  result_count?: number
+}
+
 // Common PKD codes for quick selection
 const POPULAR_PKD_CODES = [
   { code: '22.21.Z', name: 'Produkcja tworzyw sztucznych', icon: '🏭' },
@@ -43,10 +53,54 @@ const POPULAR_PKD_CODES = [
 
 export default function SearchPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [pkdCode, setPkdCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<PKDSearchResult | null>(null)
+
+  // Saved searches state
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([])
+  const [showSavedSearches, setShowSavedSearches] = useState(false)
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [saveSearchName, setSaveSearchName] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [saveSuccess, setSaveSuccess] = useState('')
+
+  // Load saved searches on mount
+  useEffect(() => {
+    loadSavedSearches()
+  }, [])
+
+  // Handle URL parameter for loading saved search
+  useEffect(() => {
+    const pkdParam = searchParams.get('pkd')
+    if (pkdParam) {
+      setPkdCode(pkdParam)
+      handleSearch(pkdParam)
+    }
+  }, [searchParams])
+
+  const loadSavedSearches = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/search/saved`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSavedSearches(data.searches)
+      }
+    } catch (err) {
+      console.error('Failed to load saved searches:', err)
+    }
+  }
 
   const handleSearch = async (codeToSearch?: string) => {
     const searchCode = codeToSearch || pkdCode
@@ -98,6 +152,101 @@ export default function SearchPage() {
     }
   }
 
+  const handleSaveSearch = async () => {
+    if (!saveSearchName.trim()) {
+      setSaveError('Wprowadź nazwę wyszukiwania')
+      return
+    }
+
+    if (!result) {
+      setSaveError('Najpierw wykonaj wyszukiwanie')
+      return
+    }
+
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setIsSaving(true)
+    setSaveError('')
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/search/saved`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: saveSearchName,
+          search_type: 'pkd',
+          query: result.pkd_code,
+          filters: {
+            pkd_description: result.pkd_description,
+            pkd_category: result.pkd_category,
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Failed to save search')
+      }
+
+      const newSearch = await response.json()
+      setSavedSearches([newSearch, ...savedSearches])
+      setShowSaveModal(false)
+      setSaveSearchName('')
+      setSaveSuccess('Wyszukiwanie zapisane!')
+      setTimeout(() => setSaveSuccess(''), 3000)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Nie udało się zapisać wyszukiwania')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleLoadSearch = async (search: SavedSearch) => {
+    if (search.search_type === 'pkd') {
+      setPkdCode(search.query)
+      await handleSearch(search.query)
+      setShowSavedSearches(false)
+    }
+  }
+
+  const handleDeleteSearch = async (searchId: string) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/search/saved/${searchId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        setSavedSearches(savedSearches.filter(s => s.id !== searchId))
+      }
+    } catch (err) {
+      console.error('Failed to delete saved search:', err)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('pl-PL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -112,6 +261,15 @@ export default function SearchPage() {
             <h1 className="text-xl font-semibold text-gray-900">Wyszukiwanie PKD</h1>
           </div>
           <nav className="flex items-center gap-4">
+            <button
+              onClick={() => setShowSavedSearches(!showSavedSearches)}
+              className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              Zapisane ({savedSearches.length})
+            </button>
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
             <Link href="/analysis" className="text-gray-600 hover:text-gray-900">Analiza rynku</Link>
           </nav>
@@ -119,6 +277,83 @@ export default function SearchPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
+        {/* Success message */}
+        {saveSuccess && (
+          <div className="mb-6 rounded-lg bg-green-50 px-4 py-3 text-green-700 flex items-center gap-2">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {saveSuccess}
+          </div>
+        )}
+
+        {/* Saved Searches Panel */}
+        {showSavedSearches && (
+          <div className="mb-8 rounded-xl bg-white p-6 shadow-sm border-2 border-blue-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                Zapisane wyszukiwania
+              </h2>
+              <button
+                onClick={() => setShowSavedSearches(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {savedSearches.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">
+                Brak zapisanych wyszukiwań. Wykonaj wyszukiwanie i kliknij &quot;Zapisz&quot; aby dodać.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {savedSearches.map((search) => (
+                  <div
+                    key={search.id}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{search.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        Kod PKD: <span className="font-mono">{search.query}</span>
+                        {search.filters?.pkd_description && (
+                          <span className="ml-2 text-gray-400">- {String(search.filters.pkd_description).slice(0, 50)}...</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Zapisano: {formatDate(search.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleLoadSearch(search)}
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                      >
+                        Załaduj
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSearch(search.id)}
+                        className="rounded-lg border border-gray-200 p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                        title="Usuń"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Search Form */}
         <div className="mb-8 rounded-xl bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Wyszukaj firmy według kodu PKD</h2>
@@ -188,13 +423,24 @@ export default function SearchPage() {
           <div className="space-y-6">
             {/* PKD Info Header */}
             <div className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-              <div className="flex items-center gap-3">
-                <span className="rounded-lg bg-white/20 px-3 py-1 font-mono text-lg">
-                  {result.pkd_code}
-                </span>
-                <span className="rounded-full bg-white/20 px-3 py-1 text-sm">
-                  {result.pkd_category}
-                </span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="rounded-lg bg-white/20 px-3 py-1 font-mono text-lg">
+                    {result.pkd_code}
+                  </span>
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-sm">
+                    {result.pkd_category}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowSaveModal(true)}
+                  className="flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-white hover:bg-white/30 transition-colors"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                  Zapisz wyszukiwanie
+                </button>
               </div>
               <h3 className="mt-3 text-xl font-semibold">{result.pkd_description}</h3>
               <p className="mt-2 text-indigo-100">
@@ -271,6 +517,94 @@ export default function SearchPage() {
           </div>
         )}
       </main>
+
+      {/* Save Search Modal */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Zapisz wyszukiwanie</h3>
+              <button
+                onClick={() => {
+                  setShowSaveModal(false)
+                  setSaveSearchName('')
+                  setSaveError('')
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {result && (
+              <div className="mb-4 rounded-lg bg-gray-50 p-3">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Kod PKD:</span> {result.pkd_code}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Opis:</span> {result.pkd_description}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Wyniki:</span> {result.total_count} firm
+                </p>
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label htmlFor="searchName" className="block text-sm font-medium text-gray-700 mb-1">
+                Nazwa wyszukiwania
+              </label>
+              <input
+                id="searchName"
+                type="text"
+                value={saveSearchName}
+                onChange={(e) => setSaveSearchName(e.target.value)}
+                placeholder="np. Firmy plastikowe"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveSearch()
+                  }
+                  if (e.key === 'Escape') {
+                    setShowSaveModal(false)
+                    setSaveSearchName('')
+                    setSaveError('')
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+
+            {saveError && (
+              <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                {saveError}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSaveModal(false)
+                  setSaveSearchName('')
+                  setSaveError('')
+                }}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={handleSaveSearch}
+                disabled={isSaving}
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:bg-gray-300"
+              >
+                {isSaving ? 'Zapisuję...' : 'Zapisz'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

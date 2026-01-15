@@ -1,15 +1,43 @@
 """
-Search API Endpoints - Quick search with suggestions
+Search API Endpoints - Quick search with suggestions and saved searches
 """
 
-from fastapi import APIRouter, Query, Depends
-from typing import List, Optional
+from fastapi import APIRouter, Query, Depends, HTTPException
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
+from datetime import datetime
+import uuid
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
 
 router = APIRouter()
+
+
+# In-memory storage for saved searches (per user)
+SAVED_SEARCHES: Dict[int, List[Dict[str, Any]]] = {}
+
+
+class SavedSearchCreate(BaseModel):
+    name: str
+    search_type: str  # 'pkd', 'company', 'report', etc.
+    query: str  # The search query/value
+    filters: Optional[Dict[str, Any]] = None  # Additional filters
+
+
+class SavedSearch(BaseModel):
+    id: str
+    name: str
+    search_type: str
+    query: str
+    filters: Optional[Dict[str, Any]] = None
+    created_at: str
+    result_count: Optional[int] = None
+
+
+class SavedSearchesResponse(BaseModel):
+    searches: List[SavedSearch]
+    total: int
 
 
 class SearchSuggestion(BaseModel):
@@ -122,3 +150,123 @@ async def get_suggestions(
         suggestions=suggestions[:limit],
         query=q
     )
+
+
+# ============= Saved Searches Endpoints =============
+
+@router.get("/saved", response_model=SavedSearchesResponse)
+async def get_saved_searches(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get all saved searches for the current user.
+    """
+    user_searches = SAVED_SEARCHES.get(current_user.id, [])
+    return SavedSearchesResponse(
+        searches=[SavedSearch(**s) for s in user_searches],
+        total=len(user_searches)
+    )
+
+
+@router.post("/saved", response_model=SavedSearch)
+async def create_saved_search(
+    search_data: SavedSearchCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Save a search for later use.
+    """
+    if current_user.id not in SAVED_SEARCHES:
+        SAVED_SEARCHES[current_user.id] = []
+
+    # Check if a search with the same name already exists
+    for existing in SAVED_SEARCHES[current_user.id]:
+        if existing["name"].lower() == search_data.name.lower():
+            raise HTTPException(
+                status_code=400,
+                detail="Wyszukiwanie o tej nazwie już istnieje"
+            )
+
+    new_search = {
+        "id": str(uuid.uuid4()),
+        "name": search_data.name,
+        "search_type": search_data.search_type,
+        "query": search_data.query,
+        "filters": search_data.filters,
+        "created_at": datetime.now().isoformat(),
+        "result_count": None
+    }
+
+    SAVED_SEARCHES[current_user.id].append(new_search)
+
+    return SavedSearch(**new_search)
+
+
+@router.get("/saved/{search_id}", response_model=SavedSearch)
+async def get_saved_search(
+    search_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get a specific saved search by ID.
+    """
+    user_searches = SAVED_SEARCHES.get(current_user.id, [])
+
+    for search in user_searches:
+        if search["id"] == search_id:
+            return SavedSearch(**search)
+
+    raise HTTPException(status_code=404, detail="Zapisane wyszukiwanie nie znalezione")
+
+
+@router.delete("/saved/{search_id}")
+async def delete_saved_search(
+    search_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete a saved search.
+    """
+    user_searches = SAVED_SEARCHES.get(current_user.id, [])
+
+    for i, search in enumerate(user_searches):
+        if search["id"] == search_id:
+            SAVED_SEARCHES[current_user.id].pop(i)
+            return {"message": "Wyszukiwanie usunięte", "id": search_id}
+
+    raise HTTPException(status_code=404, detail="Zapisane wyszukiwanie nie znalezione")
+
+
+@router.put("/saved/{search_id}", response_model=SavedSearch)
+async def update_saved_search(
+    search_id: str,
+    search_data: SavedSearchCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update a saved search.
+    """
+    user_searches = SAVED_SEARCHES.get(current_user.id, [])
+
+    for i, search in enumerate(user_searches):
+        if search["id"] == search_id:
+            # Check if name is being changed to one that already exists
+            if search_data.name.lower() != search["name"].lower():
+                for existing in user_searches:
+                    if existing["id"] != search_id and existing["name"].lower() == search_data.name.lower():
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Wyszukiwanie o tej nazwie już istnieje"
+                        )
+
+            updated_search = {
+                **search,
+                "name": search_data.name,
+                "search_type": search_data.search_type,
+                "query": search_data.query,
+                "filters": search_data.filters,
+            }
+            SAVED_SEARCHES[current_user.id][i] = updated_search
+            return SavedSearch(**updated_search)
+
+    raise HTTPException(status_code=404, detail="Zapisane wyszukiwanie nie znalezione")
