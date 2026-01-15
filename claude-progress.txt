@@ -1,5 +1,65 @@
 # MI-Navigator Development Progress
 
+## Session 14 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Regression Test Passed:
+- Collaboration comments (Feature #241): Comments panel opens, existing comments display, reply functionality works
+
+#### Feature #252: Bulk delete with confirmation - PASSED
+- Implemented backend bulk delete endpoint:
+  - BulkDeleteRequest model for request validation
+  - POST /reports/bulk-delete endpoint with authentication
+  - Validates report IDs exist before deletion
+  - Cleans up related data (versions, comments)
+  - Returns count and IDs of deleted reports
+- Enhanced single report DELETE endpoint:
+  - Added authentication via get_current_user
+  - Proper 404 error if report not found
+  - Cleanup of related data on deletion
+- Implemented frontend bulk delete UI in reports/page.tsx:
+  - Red "Usuń (N)" button appears when reports selected
+  - Confirmation modal with:
+    - Trash icon
+    - "Potwierdź usunięcie" header
+    - Count of reports to delete (highlighted in red)
+    - "Ta operacja jest nieodwracalna" warning
+    - "Anuluj" and "Usuń N raportów" buttons
+  - Loading state during deletion
+  - Success toast message
+  - Auto-exit selection mode after deletion
+  - Immediate UI update (removed reports disappear)
+- Full end-to-end testing verified:
+  - Entered selection mode
+  - Selected 2 reports (Market Analysis, Due Diligence)
+  - Clicked "Usuń (2)" button
+  - Confirmation dialog appeared with correct count
+  - Confirmed deletion
+  - Reports removed from list (1 remaining)
+  - Persistence verified after page refresh
+
+### Statistics:
+- Total features: 380
+- Passing features: 67 (17.6%)
+- In progress: 0
+
+### Git Commits This Session:
+- 609472d - feat(reports): implement bulk delete with confirmation dialog
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. MOCK_REPORTS was modified (2 reports deleted during testing) - backend restart will restore them
+3. Consider implementing real database persistence for reports
+
+---
+
 ## Session 13 - Date: 2026-01-15
 
 ### Completed in This Session:
