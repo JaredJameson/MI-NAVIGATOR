@@ -60,14 +60,63 @@
   - Verified file is valid xlsx format (PK header)
   - Formulas included: SUM, AVERAGE, MIN, MAX, CAGR, IF conditions
 
+#### Feature #250: Bulk report export - PASSED
+- Implemented backend bulk export endpoint:
+  - BulkExportRequest model for report_ids and format
+  - POST /reports/bulk-export endpoint
+  - Generates single Excel file with:
+    - "Podsumowanie" (Summary) sheet with all reports overview
+    - One sheet per selected report with content
+- Implemented frontend bulk selection UI in reports/page.tsx:
+  - Selection mode toggle ("Wybierz" button)
+  - "Zaznacz wszystkie" (Select All) button
+  - Selection counter ("X z Y wybranych")
+  - Visual checkmarks on selected reports
+  - Export dropdown with format options:
+    - Excel (.xlsx) - "Wszystkie w jednym pliku"
+    - PDF (archiwum ZIP) - "Osobne pliki w ZIP"
+  - Auto-exit selection mode after export
+- Full end-to-end testing verified:
+  - Entered selection mode on reports page
+  - Selected 2 reports (FADO and Market Analysis)
+  - Clicked "Eksportuj (2)" button
+  - Selected Excel format
+  - File downloaded: reports_export_*.xlsx (9243 bytes)
+  - Verified valid xlsx format with multiple sheets
+
+#### Feature #251: Bulk project assignment - PASSED
+- Implemented full projects backend in projects.py:
+  - MOCK_PROJECTS with 3 sample projects (Due Diligence, Market Analysis, Competitive)
+  - Full CRUD endpoints: GET/POST/PUT/DELETE /projects
+  - POST /projects/bulk-assign for bulk report assignment
+  - GET /projects/{id}/reports to list project reports
+- Implemented frontend project assignment in reports/page.tsx:
+  - "Przypisz do projektu (N)" button in selection mode
+  - Project selection modal with list of available projects
+  - Project cards showing name, description, type, and report count
+  - Success toast "Przypisano X raportów do projektu"
+  - Auto-exit selection mode after successful assignment
+- Created /projects page listing all user projects
+- Created /projects/[id] page showing project details and assigned reports
+- Full end-to-end testing verified:
+  - Entered selection mode, selected 2 reports
+  - Clicked "Przypisz do projektu (2)"
+  - Modal showed 3 available projects
+  - Selected "Due Diligence - FADO" project
+  - Success message displayed, selection mode exited
+  - Navigated to /projects/project_001 - shows "Raporty w projekcie (2)"
+  - Both assigned reports visible in project detail
+
 ### Statistics:
 - Total features: 380
-- Passing features: 64 (16.8%)
+- Passing features: 66 (17.4%)
 - In progress: 0
 
 ### Git Commits This Session:
 - (commit hash) - Add saved search functionality (Feature #248)
 - 40b0913 - Add Excel export with formulas feature (Feature #249)
+- fbf43fc - Add bulk report export functionality (Feature #250)
+- f2ba060 - Add bulk project assignment feature (Feature #251)
 
 ### Running Services:
 - Backend: http://localhost:8000 (FastAPI)
