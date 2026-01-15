@@ -3,10 +3,13 @@ Activity Log API Endpoints
 """
 
 from fastapi import APIRouter, Query, Depends
+from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 import random
+import io
+import csv
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
@@ -324,3 +327,79 @@ async def get_activity(activity_id: str, current_user: User = Depends(get_curren
             }
 
     return {"error": "Activity not found"}
+
+
+@router.get("/export/csv")
+async def export_activities_csv(
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    type: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Export activities to CSV file with date range filtering."""
+    filtered_activities = MOCK_ACTIVITIES.copy()
+
+    # Filter by activity type
+    if type:
+        filtered_activities = [a for a in filtered_activities if a["type"] == type]
+
+    # Filter by date range
+    if date_from:
+        try:
+            from_date = datetime.fromisoformat(date_from.replace("Z", "+00:00"))
+            filtered_activities = [
+                a for a in filtered_activities
+                if datetime.fromisoformat(a["timestamp"].replace("Z", "+00:00")) >= from_date
+            ]
+        except ValueError:
+            pass
+
+    if date_to:
+        try:
+            to_date = datetime.fromisoformat(date_to.replace("Z", "+00:00"))
+            filtered_activities = [
+                a for a in filtered_activities
+                if datetime.fromisoformat(a["timestamp"].replace("Z", "+00:00")) <= to_date
+            ]
+        except ValueError:
+            pass
+
+    # Sort by timestamp (most recent first)
+    filtered_activities.sort(
+        key=lambda x: datetime.fromisoformat(x["timestamp"].replace("Z", "+00:00")),
+        reverse=True
+    )
+
+    # Create CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write header
+    writer.writerow(["ID", "Data i czas", "Typ", "Typ (etykieta)", "Tytul", "Opis"])
+
+    # Write data
+    for activity in filtered_activities:
+        type_info = ACTIVITY_TYPES.get(activity["type"], {})
+        timestamp = datetime.fromisoformat(activity["timestamp"].replace("Z", "+00:00"))
+        formatted_date = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+        writer.writerow([
+            activity["id"],
+            formatted_date,
+            activity["type"],
+            type_info.get("label", activity["type"]),
+            activity["title"],
+            activity["description"]
+        ])
+
+    output.seek(0)
+
+    # Generate filename with date range
+    now = datetime.now()
+    filename = f"activity-export-{now.strftime('%Y%m%d-%H%M%S')}.csv"
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

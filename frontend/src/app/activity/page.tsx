@@ -66,6 +66,12 @@ export default function ActivityPage() {
   const [error, setError] = useState('')
   const [filterType, setFilterType] = useState('')
 
+  // Export state
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [exportDateFrom, setExportDateFrom] = useState('')
+  const [exportDateTo, setExportDateTo] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -180,6 +186,68 @@ export default function ActivityPage() {
     setCurrentPage(1)
   }
 
+  const handleExport = async () => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setIsExporting(true)
+
+    try {
+      const params = new URLSearchParams()
+      if (exportDateFrom) {
+        params.append('date_from', new Date(exportDateFrom).toISOString())
+      }
+      if (exportDateTo) {
+        params.append('date_to', new Date(exportDateTo).toISOString())
+      }
+      if (filterType) {
+        params.append('type', filterType)
+      }
+
+      const response = await fetch(`${API_BASE_URL}/activity/export/csv?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to export activities')
+      }
+
+      // Get the filename from Content-Disposition header or use default
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let filename = 'activity-export.csv'
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename=(.+)/)
+        if (match) {
+          filename = match[1]
+        }
+      }
+
+      // Download the file
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      setShowExportModal(false)
+      setExportDateFrom('')
+      setExportDateTo('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export activities')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -192,15 +260,94 @@ export default function ActivityPage() {
                 Przegladaj swoja ostatnia aktywnosc w systemie
               </p>
             </div>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-            >
-              ← Powrot do dashboardu
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowExportModal(true)}
+                className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+              >
+                <span>⬇️</span>
+                Eksportuj
+              </button>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                ← Powrot do dashboardu
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Eksportuj aktywnosci</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Data od
+                </label>
+                <input
+                  type="date"
+                  value={exportDateFrom}
+                  onChange={(e) => setExportDateFrom(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Data do
+                </label>
+                <input
+                  type="date"
+                  value={exportDateTo}
+                  onChange={(e) => setExportDateTo(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              {filterType && (
+                <p className="text-sm text-gray-500">
+                  Eksport bedzie zawierac tylko aktywnosci typu: {activityTypes.find(t => t.type === filterType)?.label}
+                </p>
+              )}
+              <p className="text-sm text-gray-500">
+                Pozostaw puste, aby eksportowac wszystkie aktywnosci.
+              </p>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowExportModal(false)
+                  setExportDateFrom('')
+                  setExportDateTo('')
+                }}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isExporting ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    Eksportowanie...
+                  </>
+                ) : (
+                  <>
+                    <span>⬇️</span>
+                    Eksportuj CSV
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
