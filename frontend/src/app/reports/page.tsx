@@ -25,6 +25,17 @@ interface ReportsResponse {
   pages: number
 }
 
+interface Project {
+  id: string
+  name: string
+  description: string | null
+  type: string
+  created_at: string
+  updated_at: string
+  status: string
+  report_ids: string[]
+}
+
 const REPORT_TYPE_LABELS: Record<string, { label: string; color: string; icon: string }> = {
   company_profile: { label: 'Profil firmy', color: 'bg-blue-100 text-blue-800', icon: '🏢' },
   market_analysis: { label: 'Analiza rynku', color: 'bg-green-100 text-green-800', icon: '📊' },
@@ -45,6 +56,13 @@ export default function ReportsPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [showBulkExportMenu, setShowBulkExportMenu] = useState(false)
   const [isBulkExporting, setIsBulkExporting] = useState(false)
+
+  // Project assignment state
+  const [showProjectModal, setShowProjectModal] = useState(false)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+  const [isAssigning, setIsAssigning] = useState(false)
+  const [assignmentSuccess, setAssignmentSuccess] = useState('')
 
   useEffect(() => {
     fetchReports()
@@ -134,6 +152,76 @@ export default function ReportsPage() {
     setIsSelectionMode(false)
     setSelectedReports(new Set())
     setShowBulkExportMenu(false)
+    setShowProjectModal(false)
+  }
+
+  // Fetch projects for assignment modal
+  const fetchProjects = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsLoadingProjects(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setProjects(data.items || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch projects:', err)
+    } finally {
+      setIsLoadingProjects(false)
+    }
+  }
+
+  // Open project assignment modal
+  const openProjectAssignment = () => {
+    setShowProjectModal(true)
+    fetchProjects()
+  }
+
+  // Assign selected reports to a project
+  const handleAssignToProject = async (projectId: string) => {
+    const token = getStoredToken()
+    if (!token || selectedReports.size === 0) return
+
+    setIsAssigning(true)
+    setError('')
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects/bulk-assign`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          report_ids: Array.from(selectedReports),
+          project_id: projectId
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Assignment failed')
+      }
+
+      const data = await response.json()
+      setAssignmentSuccess(data.message || `Przypisano ${selectedReports.size} raportów do projektu`)
+
+      // Clear selection after successful assignment
+      setTimeout(() => {
+        exitSelectionMode()
+        setAssignmentSuccess('')
+      }, 2000)
+    } catch (err) {
+      setError('Nie udało się przypisać raportów do projektu')
+    } finally {
+      setIsAssigning(false)
+    }
   }
 
   // Bulk export function
@@ -233,14 +321,27 @@ export default function ReportsPage() {
               {isSelectionMode ? 'Anuluj zaznaczanie' : 'Wybierz'}
             </button>
 
-            {/* Bulk export button - only visible when reports are selected */}
+            {/* Bulk action buttons - only visible when reports are selected */}
             {selectedReports.size > 0 && (
-              <div className="relative">
+              <>
+                {/* Assign to project button */}
                 <button
-                  onClick={() => setShowBulkExportMenu(!showBulkExportMenu)}
-                  disabled={isBulkExporting}
-                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+                  onClick={openProjectAssignment}
+                  className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm text-white hover:bg-purple-700"
                 >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  Przypisz do projektu ({selectedReports.size})
+                </button>
+
+                {/* Bulk export button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowBulkExportMenu(!showBulkExportMenu)}
+                    disabled={isBulkExporting}
+                    className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+                  >
                   {isBulkExporting ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -294,7 +395,8 @@ export default function ReportsPage() {
                     </div>
                   </div>
                 )}
-              </div>
+                </div>
+              </>
             )}
 
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -459,6 +561,106 @@ export default function ReportsPage() {
           </div>
         )}
       </main>
+
+      {/* Success message toast */}
+      {assignmentSuccess && (
+        <div className="fixed bottom-4 right-4 rounded-lg bg-green-500 px-6 py-3 text-white shadow-lg z-50">
+          <div className="flex items-center gap-2">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {assignmentSuccess}
+          </div>
+        </div>
+      )}
+
+      {/* Project assignment modal */}
+      {showProjectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+            <div className="border-b px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Przypisz do projektu</h2>
+                <button
+                  onClick={() => setShowProjectModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                Wybierz projekt, do którego chcesz przypisać {selectedReports.size} raportów
+              </p>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto p-4">
+              {isLoadingProjects ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-purple-600 border-t-transparent"></div>
+                  <span className="ml-2 text-gray-600">Ładowanie projektów...</span>
+                </div>
+              ) : projects.length === 0 ? (
+                <div className="py-8 text-center text-gray-500">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  <p className="mt-2">Brak dostępnych projektów</p>
+                  <Link
+                    href="/projects"
+                    className="mt-4 inline-block text-purple-600 hover:text-purple-700"
+                  >
+                    Utwórz pierwszy projekt →
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {projects.map((project) => (
+                    <button
+                      key={project.id}
+                      onClick={() => handleAssignToProject(project.id)}
+                      disabled={isAssigning}
+                      className="w-full rounded-lg border border-gray-200 p-4 text-left hover:border-purple-300 hover:bg-purple-50 disabled:opacity-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{project.name}</h3>
+                          {project.description && (
+                            <p className="mt-1 text-sm text-gray-500 line-clamp-2">{project.description}</p>
+                          )}
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                              {project.type === 'due_diligence' ? 'Due Diligence' :
+                               project.type === 'market_analysis' ? 'Analiza rynku' :
+                               project.type === 'competitive' ? 'Konkurencja' : 'Badania'}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {project.report_ids?.length || 0} raportów
+                            </span>
+                          </div>
+                        </div>
+                        <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t px-6 py-4">
+              <button
+                onClick={() => setShowProjectModal(false)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              >
+                Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
