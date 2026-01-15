@@ -104,12 +104,20 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            <Link
-              href="/chat"
-              className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-            >
-              Start New Research
-            </Link>
+            <div className="mt-4 flex gap-2">
+              <Link
+                href="/chat"
+                className="inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+              >
+                Start New Research
+              </Link>
+              <Link
+                href="/analysis"
+                className="inline-block rounded-md border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+              >
+                Market Analysis
+              </Link>
+            </div>
           </div>
 
           {/* Recent Activity Card */}
