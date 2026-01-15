@@ -69,6 +69,10 @@ interface Comment {
   text: string
   created_at: string
   parent_id: string | null
+  resolved: boolean
+  resolved_by: string | null
+  resolved_by_name: string | null
+  resolved_at: string | null
 }
 
 export default function ReportViewerPage() {
@@ -118,6 +122,8 @@ export default function ReportViewerPage() {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [showCommentsPanel, setShowCommentsPanel] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [showResolvedComments, setShowResolvedComments] = useState(true)
+  const [isResolvingComment, setIsResolvingComment] = useState<string | null>(null)
 
   useEffect(() => {
     fetchReport()
@@ -428,6 +434,37 @@ export default function ReportViewerPage() {
     }
   }
 
+  const resolveComment = async (commentId: string) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsResolvingComment(commentId)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/comments/${commentId}/resolve`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        // Update the comment in local state
+        setComments(prev => prev.map(c =>
+          c.id === commentId ? data.comment : c
+        ))
+      }
+    } catch (err) {
+      console.error('Failed to resolve comment:', err)
+    } finally {
+      setIsResolvingComment(null)
+    }
+  }
+
   const saveAnnotation = async () => {
     if (!selectedText || !selectionInfo || !annotationComment.trim()) return
 
@@ -731,37 +768,80 @@ export default function ReportViewerPage() {
       {showCommentsPanel && (
         <div className="fixed inset-0 z-50 flex items-start justify-end bg-black/30">
           <div className="h-full w-full max-w-md bg-white shadow-xl overflow-y-auto flex flex-col">
-            <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Komentarze ({comments.length})</h2>
-              <button
-                onClick={() => setShowCommentsPanel(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+            <div className="sticky top-0 bg-white border-b px-4 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-semibold text-gray-900">Komentarze ({comments.length})</h2>
+                <button
+                  onClick={() => setShowCommentsPanel(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {/* Filter toggle for resolved comments */}
+              <div className="flex items-center gap-2 text-sm">
+                <button
+                  onClick={() => setShowResolvedComments(!showResolvedComments)}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1 transition-colors ${
+                    showResolvedComments
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {showResolvedComments ? 'Pokaż rozwiązane' : 'Ukryj rozwiązane'}
+                </button>
+                <span className="text-gray-500">
+                  ({comments.filter(c => c.resolved && !c.parent_id).length} rozwiązanych)
+                </span>
+              </div>
             </div>
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
               {comments.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">Brak komentarzy. Bądź pierwszą osobą, która doda komentarz!</p>
               ) : (
-                // Show only top-level comments (no parent_id)
-                comments.filter(c => !c.parent_id).map((comment) => {
+                // Show only top-level comments (no parent_id), filtered by resolved status
+                comments
+                  .filter(c => !c.parent_id)
+                  .filter(c => showResolvedComments || !c.resolved)
+                  .map((comment) => {
                   // Get replies for this comment
                   const replies = comments.filter(c => c.parent_id === comment.id)
                   return (
                     <div key={comment.id} className="space-y-2">
-                      <div className="rounded-lg border border-gray-200 p-4 bg-white">
+                      <div className={`rounded-lg border p-4 transition-colors ${
+                        comment.resolved
+                          ? 'border-green-200 bg-green-50'
+                          : 'border-gray-200 bg-white'
+                      }`}>
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                              <span className="text-blue-700 font-medium text-sm">
-                                {comment.user_name.charAt(0).toUpperCase()}
-                              </span>
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                              comment.resolved ? 'bg-green-200' : 'bg-blue-100'
+                            }`}>
+                              {comment.resolved ? (
+                                <svg className="h-5 w-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              ) : (
+                                <span className="text-blue-700 font-medium text-sm">
+                                  {comment.user_name.charAt(0).toUpperCase()}
+                                </span>
+                              )}
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900 text-sm">{comment.user_name}</div>
+                              <div className={`font-medium text-sm ${comment.resolved ? 'text-green-800' : 'text-gray-900'}`}>
+                                {comment.user_name}
+                                {comment.resolved && (
+                                  <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
+                                    Rozwiązany
+                                  </span>
+                                )}
+                              </div>
                               <div className="text-xs text-gray-500">
                                 {new Date(comment.created_at).toLocaleDateString('pl-PL', {
                                   day: 'numeric',
@@ -770,10 +850,34 @@ export default function ReportViewerPage() {
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}
+                                {comment.resolved && comment.resolved_by_name && (
+                                  <span className="ml-2 text-green-600">
+                                    • Rozwiązał: {comment.resolved_by_name}
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
+                            {/* Resolve/Unresolve button */}
+                            <button
+                              onClick={() => resolveComment(comment.id)}
+                              disabled={isResolvingComment === comment.id}
+                              className={`transition-colors ${
+                                comment.resolved
+                                  ? 'text-green-600 hover:text-amber-600'
+                                  : 'text-gray-400 hover:text-green-500'
+                              }`}
+                              title={comment.resolved ? 'Oznacz jako nierozwiązany' : 'Rozwiąż'}
+                            >
+                              {isResolvingComment === comment.id ? (
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                              ) : (
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
                             <button
                               onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
                               className="text-gray-400 hover:text-blue-500"
@@ -794,7 +898,7 @@ export default function ReportViewerPage() {
                             </button>
                           </div>
                         </div>
-                        <p className="text-gray-700 text-sm">{comment.text}</p>
+                        <p className={`text-sm ${comment.resolved ? 'text-green-700' : 'text-gray-700'}`}>{comment.text}</p>
 
                         {/* Reply input for this comment */}
                         {replyingTo === comment.id && (

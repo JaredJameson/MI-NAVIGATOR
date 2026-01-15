@@ -703,6 +703,10 @@ REPORT_COMMENTS: dict = {
             "text": "Świetna analiza finansowa! Warto zwrócić uwagę na wzrost marży r/r.",
             "created_at": "2026-01-14T10:45:00Z",
             "parent_id": None,
+            "resolved": False,
+            "resolved_by": None,
+            "resolved_by_name": None,
+            "resolved_at": None,
         },
         {
             "id": "comment_2",
@@ -713,6 +717,10 @@ REPORT_COMMENTS: dict = {
             "text": "Czy mamy dostęp do danych za Q4 2023? Byłoby dobrze je uwzględnić.",
             "created_at": "2026-01-14T11:30:00Z",
             "parent_id": None,
+            "resolved": True,
+            "resolved_by": "1",
+            "resolved_by_name": "Jan Kowalski",
+            "resolved_at": "2026-01-14T12:05:00Z",
         },
         {
             "id": "comment_3",
@@ -723,6 +731,10 @@ REPORT_COMMENTS: dict = {
             "text": "Tak, mam dane za Q4. Dodałem je w sekcji finansowej.",
             "created_at": "2026-01-14T12:00:00Z",
             "parent_id": "comment_2",
+            "resolved": False,
+            "resolved_by": None,
+            "resolved_by_name": None,
+            "resolved_at": None,
         }
     ]
 }
@@ -742,12 +754,31 @@ class Comment(BaseModel):
     text: str
     created_at: str
     parent_id: Optional[str] = None
+    resolved: bool = False
+    resolved_by: Optional[str] = None
+    resolved_by_name: Optional[str] = None
+    resolved_at: Optional[str] = None
 
 
 @router.get("/{report_id}/comments")
-async def get_comments(report_id: str, current_user: User = Depends(get_current_user)):
-    """Get all collaboration comments for a report. Comments are visible to all users."""
+async def get_comments(
+    report_id: str,
+    resolved: Optional[bool] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all collaboration comments for a report. Comments are visible to all users.
+
+    Optional filter by resolved status:
+    - resolved=true: only resolved comments
+    - resolved=false: only unresolved comments
+    - no filter: all comments
+    """
     comments = REPORT_COMMENTS.get(report_id, [])
+
+    # Filter by resolved status if specified
+    if resolved is not None:
+        comments = [c for c in comments if c.get("resolved", False) == resolved]
+
     return {"comments": comments}
 
 
@@ -778,7 +809,11 @@ async def create_comment(
         user_email=current_user.email,
         text=comment.text,
         created_at=datetime.now().isoformat() + "Z",
-        parent_id=comment.parent_id
+        parent_id=comment.parent_id,
+        resolved=False,
+        resolved_by=None,
+        resolved_by_name=None,
+        resolved_at=None
     )
 
     REPORT_COMMENTS[report_id].append(new_comment.model_dump())
@@ -814,3 +849,47 @@ async def delete_comment(
     REPORT_COMMENTS[report_id] = [c for c in comments if c["id"] != comment_id]
 
     return {"message": "Komentarz został usunięty"}
+
+
+@router.patch("/{report_id}/comments/{comment_id}/resolve")
+async def resolve_comment(
+    report_id: str,
+    comment_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Mark a comment as resolved. Any user can resolve any comment."""
+    if report_id not in REPORT_COMMENTS:
+        return {"error": "Comment not found"}
+
+    comments = REPORT_COMMENTS[report_id]
+    comment_to_resolve = None
+
+    for c in comments:
+        if c["id"] == comment_id:
+            comment_to_resolve = c
+            break
+
+    if not comment_to_resolve:
+        return {"error": "Comment not found"}
+
+    # Toggle resolved status
+    if comment_to_resolve.get("resolved", False):
+        # Unresolve
+        comment_to_resolve["resolved"] = False
+        comment_to_resolve["resolved_by"] = None
+        comment_to_resolve["resolved_by_name"] = None
+        comment_to_resolve["resolved_at"] = None
+        return {
+            "message": "Komentarz został odznaczony jako nierozwiązany",
+            "comment": comment_to_resolve
+        }
+    else:
+        # Resolve
+        comment_to_resolve["resolved"] = True
+        comment_to_resolve["resolved_by"] = str(current_user.id)
+        comment_to_resolve["resolved_by_name"] = current_user.name or current_user.email.split('@')[0]
+        comment_to_resolve["resolved_at"] = datetime.now().isoformat() + "Z"
+        return {
+            "message": "Komentarz został oznaczony jako rozwiązany",
+            "comment": comment_to_resolve
+        }
