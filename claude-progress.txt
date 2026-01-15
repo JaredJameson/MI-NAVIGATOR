@@ -1,5 +1,52 @@
 # MI-Navigator Development Progress
 
+## Session 10 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Feature #240: Report restore previous version - PASSED
+- Implemented backend restore endpoint:
+  - POST /reports/{id}/versions/restore - restores a report to a previous version
+  - Creates new version (N+1) with content from specified historical version
+  - Marks new version as current, previous versions as non-current
+  - RestoreVersionRequest model for input validation
+- Implemented frontend restore UI:
+  - "Przywróć" button on non-current versions in version history panel
+  - Confirmation dialog with Polish text ("Czy na pewno chcesz przywrócić wersję X?")
+  - Success message after restore ("Wersja przywrócona pomyślnie")
+  - Automatic refresh of version history after restore
+  - Loading state during restore operation
+- Full end-to-end testing verified:
+  - Navigated to report_001, opened version history
+  - Clicked "Przywróć" on version 2
+  - Confirmed restoration in dialog
+  - Version 4 created with "Przywrócono wersję 2" change description
+  - Version 4 marked as "Aktualna" (current)
+
+#### Regression Test Passed:
+- User Profile Update (Feature #205): Settings page loads, profile edits save and persist
+
+### Statistics:
+- Total features: 380
+- Passing features: 55 (14.5%)
+- In progress: 0
+
+### Git Commits This Session:
+- 88f52c3 - Add report restore previous version feature (Feature #240)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Continue with report-related features or move to other areas
+3. Consider implementing real database storage for versions (currently mock data)
+
+---
+
 ## Session 9 - Date: 2026-01-15
 
 ### Completed in This Session:
