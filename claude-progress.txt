@@ -1,5 +1,88 @@
 # MI-Navigator Development Progress
 
+## Session 13 - Date: 2026-01-15
+
+### Completed in This Session:
+
+#### Regression Test Passed:
+- User Profile Update (Feature #205): Settings page loads, profile edits save and persist
+
+#### Feature #248: Saved search functionality - PASSED
+- Verified existing implementation on backend and frontend
+- Backend endpoints in search.py:
+  - GET /search/saved - List user's saved searches
+  - POST /search/saved - Create new saved search
+  - GET /search/saved/{id} - Get specific saved search
+  - DELETE /search/saved/{id} - Delete saved search
+  - PUT /search/saved/{id} - Update saved search
+  - In-memory storage per user with SavedSearch model
+- Frontend features:
+  - "Zapisane" button showing saved searches count
+  - Saved searches panel with list of user's saved searches
+  - "Załaduj" button to load and execute saved search
+  - "Usuń" button to delete saved search
+  - Save modal with name input and search details preview
+  - Success message after saving
+  - Date formatting in Polish locale
+- Full end-to-end testing verified:
+  - Performed PKD search (22.21.Z - plastics)
+  - Saved search as "TEST_248_Firmy plastikowe"
+  - Navigated away to dashboard
+  - Returned to search page, clicked "Zapisane (1)"
+  - Clicked "Załaduj" - search restored with correct results
+  - Verified delete functionality works
+
+#### Feature #249: Export to Excel with formulas - PASSED
+- Implemented backend Excel export in reports.py:
+  - ExportRequest model for format selection (pdf, xlsx, docx)
+  - parse_financial_data_from_content() to extract financial data
+  - export_to_excel() function using openpyxl with:
+    - Sheet 1 "Przegląd": Report overview with title, type, dates
+    - Sheet 2 "Dane finansowe": Financial data with Excel formulas:
+      - Year-over-year growth formulas (IF/division)
+      - SUM/AVERAGE/MIN/MAX for revenue summary
+      - CAGR compound growth formula
+      - IF formulas for ratio ratings
+      - Projection formulas with 10% growth assumption
+    - Sheet 3 "Treść raportu": Full report content
+  - Styled headers with blue color themes
+- Implemented frontend export UI in reports/[id]/page.tsx:
+  - Export dropdown menu with three options:
+    - Excel (.xlsx) - "Z formułami finansowymi"
+    - PDF - "Do wydruku i udostępnienia"
+    - Word (.docx) - "Do edycji dokumentu"
+  - handleExport() function with blob download handling
+  - Loading state during export
+- Full end-to-end testing verified:
+  - Opened FADO company report
+  - Clicked Export button, selected Excel
+  - File downloaded successfully (8999 bytes)
+  - Verified file is valid xlsx format (PK header)
+  - Formulas included: SUM, AVERAGE, MIN, MAX, CAGR, IF conditions
+
+### Statistics:
+- Total features: 380
+- Passing features: 64 (16.8%)
+- In progress: 0
+
+### Git Commits This Session:
+- (commit hash) - Add saved search functionality (Feature #248)
+- 40b0913 - Add Excel export with formulas feature (Feature #249)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. PDF and DOCX export currently return placeholder messages
+3. Consider implementing real PDF generation with reportlab
+4. Consider implementing DOCX generation with python-docx
+
+---
+
 ## Session 12 - Date: 2026-01-15
 
 ### Completed in This Session:
