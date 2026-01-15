@@ -125,6 +125,11 @@ export default function ReportViewerPage() {
   const [showResolvedComments, setShowResolvedComments] = useState(true)
   const [isResolvingComment, setIsResolvingComment] = useState<string | null>(null)
 
+  // Export state
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
+
   useEffect(() => {
     fetchReport()
     fetchAnnotations()
@@ -682,6 +687,75 @@ export default function ReportViewerPage() {
     return annotations.filter(a => a.section_id === sectionId)
   }
 
+  // Export functionality
+  const handleExport = async (format: 'xlsx' | 'pdf' | 'docx') => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setIsExporting(true)
+    setExportError('')
+    setShowExportMenu(false)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/export`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ format }),
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Export failed')
+      }
+
+      // Check if response is a file download (xlsx) or JSON
+      const contentType = response.headers.get('content-type')
+
+      if (contentType?.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+        // Handle file download
+        const blob = await response.blob()
+        const contentDisposition = response.headers.get('content-disposition')
+        let filename = `report_${reportId}.xlsx`
+
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?([^";\n]+)"?/)
+          if (filenameMatch) {
+            filename = filenameMatch[1]
+          }
+        }
+
+        // Create download link
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } else {
+        // Handle JSON response (for PDF/DOCX placeholders)
+        const data = await response.json()
+        if (data.message) {
+          setExportError(data.message)
+        }
+      }
+    } catch (err) {
+      console.error('Export failed:', err)
+      setExportError('Nie udało się wyeksportować raportu')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -757,9 +831,80 @@ export default function ReportViewerPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
-            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
-              Eksportuj
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                disabled={isExporting}
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    Eksportowanie...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Eksportuj
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+
+              {/* Export dropdown menu */}
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="py-1">
+                    <button
+                      onClick={() => handleExport('xlsx')}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded bg-green-100">
+                        <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="font-medium">Excel (.xlsx)</div>
+                        <div className="text-xs text-gray-500">Z formułami finansowymi</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleExport('pdf')}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded bg-red-100">
+                        <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="font-medium">PDF</div>
+                        <div className="text-xs text-gray-500">Do wydruku i udostępnienia</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleExport('docx')}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
+                        <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="font-medium">Word (.docx)</div>
+                        <div className="text-xs text-gray-500">Do edycji dokumentu</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

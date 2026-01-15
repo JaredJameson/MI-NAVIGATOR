@@ -2,10 +2,13 @@
 Reports API Endpoints
 """
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime
+import io
+import re
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
@@ -366,11 +369,297 @@ async def delete_report(report_id: str):
     return {"message": "Report deleted successfully"}
 
 
+class ExportRequest(BaseModel):
+    format: str = "pdf"  # pdf, xlsx, docx
+
+
+def parse_financial_data_from_content(content: str) -> List[dict]:
+    """Parse financial data from report content for Excel export."""
+    financial_data = []
+
+    # Parse revenue and financial figures
+    revenue_pattern = r'Przychody.*?:\s*([\d,.]+)\s*mln\s*PLN'
+    growth_pattern = r'Wzrost\s*r/r:\s*\+?([\d,.]+)%'
+    margin_pattern = r'Marża\s*(?:brutto)?:\s*([\d,.]+)%'
+    profit_pattern = r'Zysk\s*netto:\s*([\d,.]+)\s*mln\s*PLN'
+    roe_pattern = r'ROE[^:]*:\s*([\d,.]+)%'
+    roa_pattern = r'ROA[^:]*:\s*([\d,.]+)%'
+
+    # Find all matches
+    revenue_matches = re.findall(revenue_pattern, content)
+    growth_matches = re.findall(growth_pattern, content)
+    margin_matches = re.findall(margin_pattern, content)
+    profit_matches = re.findall(profit_pattern, content)
+    roe_matches = re.findall(roe_pattern, content)
+    roa_matches = re.findall(roa_pattern, content)
+
+    # Parse trend data (yearly revenues)
+    trend_pattern = r'(\d{4}):\s*([\d,.]+)\s*mln\s*PLN'
+    trend_matches = re.findall(trend_pattern, content)
+
+    return {
+        'revenues': [float(r.replace(',', '.')) for r in revenue_matches] if revenue_matches else [],
+        'growth_rates': [float(g.replace(',', '.')) for g in growth_matches] if growth_matches else [],
+        'margins': [float(m.replace(',', '.')) for m in margin_matches] if margin_matches else [],
+        'profits': [float(p.replace(',', '.')) for p in profit_matches] if profit_matches else [],
+        'roe': [float(r.replace(',', '.')) for r in roe_matches] if roe_matches else [],
+        'roa': [float(r.replace(',', '.')) for r in roa_matches] if roa_matches else [],
+        'yearly_trends': [(year, float(val.replace(',', '.'))) for year, val in trend_matches],
+    }
+
+
 @router.post("/{report_id}/export")
-async def export_report(report_id: str, format: str = "pdf"):
-    """Export report to specified format."""
-    # TODO: Implement report export
-    return {"download_url": f"/exports/report_{report_id}.{format}"}
+async def export_report(
+    report_id: str,
+    request: ExportRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Export report to specified format (pdf, xlsx, docx)."""
+    # Find the report
+    report = None
+    for r in MOCK_REPORTS:
+        if r["id"] == report_id:
+            report = r
+            break
+
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    if request.format == "xlsx":
+        return await export_to_excel(report)
+    elif request.format == "pdf":
+        # For now return a placeholder - PDF generation would require additional setup
+        return {"message": "PDF export coming soon", "download_url": f"/exports/report_{report_id}.pdf"}
+    elif request.format == "docx":
+        return {"message": "DOCX export coming soon", "download_url": f"/exports/report_{report_id}.docx"}
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
+
+
+async def export_to_excel(report: dict) -> StreamingResponse:
+    """Generate Excel file with financial data and formulas."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    wb = Workbook()
+
+    # === Sheet 1: Report Overview ===
+    ws_overview = wb.active
+    ws_overview.title = "Przegląd"
+
+    # Title styling
+    title_font = Font(name='Calibri', size=16, bold=True, color='FFFFFF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+    subheader_fill = PatternFill(start_color='5B9BD5', end_color='5B9BD5', fill_type='solid')
+
+    # Report header
+    ws_overview['A1'] = report['title']
+    ws_overview['A1'].font = title_font
+    ws_overview['A1'].fill = header_fill
+    ws_overview.merge_cells('A1:E1')
+
+    ws_overview['A2'] = f"Typ raportu: {report['type']}"
+    ws_overview['A3'] = f"Data utworzenia: {report['created_at']}"
+    ws_overview['A4'] = f"Firma: {report.get('company', 'N/A')}"
+    ws_overview['A5'] = ""
+    ws_overview['A6'] = "Podsumowanie:"
+    ws_overview['A6'].font = Font(bold=True)
+    ws_overview['A7'] = report['summary']
+    ws_overview.merge_cells('A7:E7')
+
+    # Set column widths
+    ws_overview.column_dimensions['A'].width = 30
+    ws_overview.column_dimensions['B'].width = 20
+    ws_overview.column_dimensions['C'].width = 20
+    ws_overview.column_dimensions['D'].width = 20
+    ws_overview.column_dimensions['E'].width = 20
+
+    # === Sheet 2: Financial Data with Formulas ===
+    ws_financial = wb.create_sheet("Dane finansowe")
+
+    # Collect all financial data from sections
+    all_content = "\n".join([s['content'] for s in report.get('sections', [])])
+    financial_data = parse_financial_data_from_content(all_content)
+
+    # Header row
+    ws_financial['A1'] = "ANALIZA FINANSOWA"
+    ws_financial['A1'].font = title_font
+    ws_financial['A1'].fill = header_fill
+    ws_financial.merge_cells('A1:F1')
+
+    # Section: Yearly Revenue Trend
+    row = 3
+    ws_financial[f'A{row}'] = "Trend przychodów (mln PLN)"
+    ws_financial[f'A{row}'].font = header_font
+    ws_financial[f'A{row}'].fill = subheader_fill
+    ws_financial.merge_cells(f'A{row}:C{row}')
+
+    row += 1
+    ws_financial[f'A{row}'] = "Rok"
+    ws_financial[f'B{row}'] = "Przychody"
+    ws_financial[f'C{row}'] = "Wzrost r/r"
+    for col in ['A', 'B', 'C']:
+        ws_financial[f'{col}{row}'].font = Font(bold=True)
+        ws_financial[f'{col}{row}'].fill = PatternFill(start_color='D6DCE5', end_color='D6DCE5', fill_type='solid')
+
+    # Add yearly data with formulas
+    yearly_trends = financial_data.get('yearly_trends', [])
+    if not yearly_trends:
+        # Default data if no parsed data
+        yearly_trends = [('2021', 35.8), ('2022', 40.2), ('2023', 45.2)]
+
+    start_data_row = row + 1
+    for i, (year, revenue) in enumerate(yearly_trends):
+        current_row = start_data_row + i
+        ws_financial[f'A{current_row}'] = int(year)
+        ws_financial[f'B{current_row}'] = revenue
+
+        # Formula for year-over-year growth (starting from second year)
+        if i > 0:
+            prev_row = current_row - 1
+            ws_financial[f'C{current_row}'] = f'=IF(B{prev_row}>0,(B{current_row}-B{prev_row})/B{prev_row}*100,"N/A")'
+            ws_financial[f'C{current_row}'].number_format = '0.0"%"'
+        else:
+            ws_financial[f'C{current_row}'] = "—"
+
+    end_data_row = start_data_row + len(yearly_trends) - 1
+
+    # Summary calculations with formulas
+    row = end_data_row + 2
+    ws_financial[f'A{row}'] = "Podsumowanie:"
+    ws_financial[f'A{row}'].font = Font(bold=True)
+
+    row += 1
+    ws_financial[f'A{row}'] = "Suma przychodów:"
+    ws_financial[f'B{row}'] = f'=SUM(B{start_data_row}:B{end_data_row})'
+    ws_financial[f'B{row}'].number_format = '#,##0.0" mln PLN"'
+
+    row += 1
+    ws_financial[f'A{row}'] = "Średnie przychody:"
+    ws_financial[f'B{row}'] = f'=AVERAGE(B{start_data_row}:B{end_data_row})'
+    ws_financial[f'B{row}'].number_format = '#,##0.0" mln PLN"'
+
+    row += 1
+    ws_financial[f'A{row}'] = "Min. przychody:"
+    ws_financial[f'B{row}'] = f'=MIN(B{start_data_row}:B{end_data_row})'
+    ws_financial[f'B{row}'].number_format = '#,##0.0" mln PLN"'
+
+    row += 1
+    ws_financial[f'A{row}'] = "Max. przychody:"
+    ws_financial[f'B{row}'] = f'=MAX(B{start_data_row}:B{end_data_row})'
+    ws_financial[f'B{row}'].number_format = '#,##0.0" mln PLN"'
+
+    row += 1
+    ws_financial[f'A{row}'] = "CAGR (wzrost skumulowany):"
+    # CAGR formula: ((End Value / Start Value) ^ (1/n)) - 1
+    n_years = len(yearly_trends) - 1 if len(yearly_trends) > 1 else 1
+    ws_financial[f'B{row}'] = f'=IF(B{start_data_row}>0,((B{end_data_row}/B{start_data_row})^(1/{n_years})-1)*100,0)'
+    ws_financial[f'B{row}'].number_format = '0.0"%"'
+
+    # === Section: Financial Ratios ===
+    row += 3
+    ws_financial[f'A{row}'] = "Wskaźniki finansowe"
+    ws_financial[f'A{row}'].font = header_font
+    ws_financial[f'A{row}'].fill = subheader_fill
+    ws_financial.merge_cells(f'A{row}:C{row}')
+
+    row += 1
+    ws_financial[f'A{row}'] = "Wskaźnik"
+    ws_financial[f'B{row}'] = "Wartość"
+    ws_financial[f'C{row}'] = "Ocena"
+    for col in ['A', 'B', 'C']:
+        ws_financial[f'{col}{row}'].font = Font(bold=True)
+        ws_financial[f'{col}{row}'].fill = PatternFill(start_color='D6DCE5', end_color='D6DCE5', fill_type='solid')
+
+    # Add financial ratios
+    ratios_start = row + 1
+    ratios = [
+        ("ROE (Return on Equity)", financial_data.get('roe', [18.2])[0] if financial_data.get('roe') else 18.2),
+        ("ROA (Return on Assets)", financial_data.get('roa', [9.4])[0] if financial_data.get('roa') else 9.4),
+        ("Marża brutto", financial_data.get('margins', [28.5])[0] if financial_data.get('margins') else 28.5),
+    ]
+
+    for i, (name, value) in enumerate(ratios):
+        current_row = ratios_start + i
+        ws_financial[f'A{current_row}'] = name
+        ws_financial[f'B{current_row}'] = value / 100  # Convert to decimal for percentage format
+        ws_financial[f'B{current_row}'].number_format = '0.0%'
+        # Formula for rating based on value
+        ws_financial[f'C{current_row}'] = f'=IF(B{current_row}>=0.2,"Bardzo dobry",IF(B{current_row}>=0.1,"Dobry","Do poprawy"))'
+
+    # === Section: Projections with formulas ===
+    row = ratios_start + len(ratios) + 2
+    ws_financial[f'A{row}'] = "Prognoza przychodów (założenie: wzrost 10% r/r)"
+    ws_financial[f'A{row}'].font = header_font
+    ws_financial[f'A{row}'].fill = subheader_fill
+    ws_financial.merge_cells(f'A{row}:C{row}')
+
+    row += 1
+    ws_financial[f'A{row}'] = "Rok"
+    ws_financial[f'B{row}'] = "Prognoza"
+    for col in ['A', 'B']:
+        ws_financial[f'{col}{row}'].font = Font(bold=True)
+        ws_financial[f'{col}{row}'].fill = PatternFill(start_color='D6DCE5', end_color='D6DCE5', fill_type='solid')
+
+    # Get last year's revenue for projections
+    last_revenue_cell = f'B{end_data_row}'
+    last_year = int(yearly_trends[-1][0]) if yearly_trends else 2023
+
+    projection_start = row + 1
+    for i in range(3):
+        current_row = projection_start + i
+        ws_financial[f'A{current_row}'] = last_year + i + 1
+        if i == 0:
+            ws_financial[f'B{current_row}'] = f'={last_revenue_cell}*1.1'
+        else:
+            prev_row = current_row - 1
+            ws_financial[f'B{current_row}'] = f'=B{prev_row}*1.1'
+        ws_financial[f'B{current_row}'].number_format = '#,##0.0" mln PLN"'
+
+    # Set column widths for financial sheet
+    ws_financial.column_dimensions['A'].width = 35
+    ws_financial.column_dimensions['B'].width = 20
+    ws_financial.column_dimensions['C'].width = 15
+
+    # === Sheet 3: Report Sections Content ===
+    ws_content = wb.create_sheet("Treść raportu")
+
+    ws_content['A1'] = "TREŚĆ RAPORTU"
+    ws_content['A1'].font = title_font
+    ws_content['A1'].fill = header_fill
+    ws_content.merge_cells('A1:B1')
+
+    row = 3
+    for i, section in enumerate(report.get('sections', [])):
+        ws_content[f'A{row}'] = f"{i+1}. {section['title']}"
+        ws_content[f'A{row}'].font = Font(bold=True, size=12)
+        row += 1
+
+        # Add content (split into manageable chunks)
+        content_lines = section['content'].split('\n')
+        for line in content_lines:
+            if line.strip():
+                ws_content[f'A{row}'] = line.strip()
+                ws_content.row_dimensions[row].height = 20
+                row += 1
+        row += 1
+
+    ws_content.column_dimensions['A'].width = 100
+
+    # Save to buffer
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"{report['id']}_{report['title'].replace(' ', '_')[:30]}.xlsx"
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
 
 
 @router.post("/{report_id}/share")
