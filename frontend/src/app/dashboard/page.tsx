@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { authApi } from '@/services/api'
+import { authApi, searchApi, SearchSuggestion } from '@/services/api'
 
 // Widget type definition
 interface Widget {
@@ -31,6 +31,12 @@ export default function DashboardPage() {
   const [widgets, setWidgets] = useState<Widget[]>(DEFAULT_WIDGETS)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   // Load saved layout on mount
@@ -123,6 +129,106 @@ export default function DashboardPage() {
       setWidgets(DEFAULT_WIDGETS)
     }
     setIsCustomizeMode(false)
+  }
+
+  // Debounce function for search
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (query.length < 1) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    setIsLoadingSuggestions(true)
+    const result = await searchApi.getSuggestions(query)
+    setIsLoadingSuggestions(false)
+
+    if (result.data) {
+      setSuggestions(result.data.suggestions)
+      setShowSuggestions(true)
+      setSelectedSuggestionIndex(-1)
+    }
+  }, [])
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchQuery(value)
+
+    // Debounce API calls
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+    debounceRef.current = setTimeout(() => {
+      fetchSuggestions(value)
+    }, 200)
+  }
+
+  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    setShowSuggestions(false)
+    setSearchQuery(suggestion.name)
+    router.push(suggestion.url)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedSuggestionIndex(prev =>
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1)
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
+          handleSuggestionClick(suggestions[selectedSuggestionIndex])
+        }
+        break
+      case 'Escape':
+        setShowSuggestions(false)
+        setSelectedSuggestionIndex(-1)
+        break
+    }
+  }
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Get type icon for suggestion
+  const getSuggestionIcon = (type: string) => {
+    switch (type) {
+      case 'company':
+        return '🏢'
+      case 'report':
+        return '📄'
+      case 'person':
+        return '👤'
+      case 'pkd':
+        return '🏷️'
+      default:
+        return '🔍'
+    }
   }
 
   // Widget rendering components
@@ -341,9 +447,12 @@ export default function DashboardPage() {
           <h2 className="mb-4 text-xl font-semibold">Rozpocznij badanie</h2>
           <div className="relative">
             <input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={() => searchQuery.length > 0 && suggestions.length > 0 && setShowSuggestions(true)}
               placeholder="Szukaj firmy, osoby, wklej URL do analizy..."
               className="w-full rounded-lg bg-white px-4 py-3 pl-12 text-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
             />
@@ -360,13 +469,68 @@ export default function DashboardPage() {
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
+            {/* Loading indicator */}
+            {isLoadingSuggestions && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+              </div>
+            )}
+            {/* Suggestions dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-lg bg-white shadow-xl"
+              >
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={`${suggestion.type}-${suggestion.id}`}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                      index === selectedSuggestionIndex ? 'bg-blue-50' : ''
+                    } ${index !== suggestions.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  >
+                    <span className="text-xl">{getSuggestionIcon(suggestion.type)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 truncate">{suggestion.name}</div>
+                      {suggestion.subtitle && (
+                        <div className="text-sm text-gray-500 truncate">{suggestion.subtitle}</div>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-400 uppercase">{suggestion.type}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* No results message */}
+            {showSuggestions && suggestions.length === 0 && searchQuery.length > 0 && !isLoadingSuggestions && (
+              <div
+                ref={suggestionsRef}
+                className="absolute left-0 right-0 top-full z-50 mt-2 rounded-lg bg-white p-4 shadow-xl"
+              >
+                <div className="text-center text-gray-500">
+                  Brak wyników dla &quot;{searchQuery}&quot;
+                </div>
+              </div>
+            )}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="text-sm text-blue-200">Ostatnie:</span>
-            <button className="rounded bg-white/20 px-2 py-1 text-sm hover:bg-white/30">
+            <button
+              onClick={() => {
+                setSearchQuery('FADO')
+                fetchSuggestions('FADO')
+              }}
+              className="rounded bg-white/20 px-2 py-1 text-sm hover:bg-white/30"
+            >
               FADO Sp. z o.o.
             </button>
-            <button className="rounded bg-white/20 px-2 py-1 text-sm hover:bg-white/30">
+            <button
+              onClick={() => {
+                setSearchQuery('Splast')
+                fetchSuggestions('Splast')
+              }}
+              className="rounded bg-white/20 px-2 py-1 text-sm hover:bg-white/30"
+            >
               Splast S.A.
             </button>
           </div>

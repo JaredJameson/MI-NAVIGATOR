@@ -179,4 +179,24 @@ export const authApi = {
   },
 };
 
+// Search API
+export interface SearchSuggestion {
+  id: string;
+  name: string;
+  type: 'company' | 'report' | 'person' | 'pkd';
+  subtitle?: string;
+  url: string;
+}
+
+export interface SuggestionsResponse {
+  suggestions: SearchSuggestion[];
+  query: string;
+}
+
+export const searchApi = {
+  async getSuggestions(query: string, limit: number = 8): Promise<ApiResponse<SuggestionsResponse>> {
+    return fetchApi(`/search/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`);
+  },
+};
+
 export default fetchApi;
