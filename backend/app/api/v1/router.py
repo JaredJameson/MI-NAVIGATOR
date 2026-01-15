@@ -4,7 +4,7 @@ API v1 Router - Aggregates all API endpoints
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, chat, reports, projects, companies, analysis, search
+from app.api.v1.endpoints import auth, users, chat, reports, projects, companies, analysis, search, activity
 
 api_router = APIRouter()
 
@@ -31,3 +31,6 @@ api_router.include_router(analysis.router, prefix="/analysis", tags=["Analysis"]
 
 # Search endpoints
 api_router.include_router(search.router, prefix="/search", tags=["Search"])
+
+# Activity endpoints
+api_router.include_router(activity.router, prefix="/activity", tags=["Activity"])
