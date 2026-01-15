@@ -104,7 +104,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               <Link
                 href="/chat"
                 className="inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
@@ -116,6 +116,12 @@ export default function DashboardPage() {
                 className="inline-block rounded-md border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
               >
                 Market Analysis
+              </Link>
+              <Link
+                href="/search"
+                className="inline-block rounded-md border border-indigo-600 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50"
+              >
+                PKD Search
               </Link>
             </div>
           </div>
