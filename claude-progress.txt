@@ -1,5 +1,76 @@
 # MI-Navigator Development Progress
 
+## Session 35 - Date: 2026-01-16
+
+### Feature #287: Favorite marking - PASSED ✅
+
+**Implementation Completed:**
+
+1. **Backend Changes** (reports.py):
+   - Added `USER_FAVORITES` in-memory storage dictionary: `{ "user_id": ["report_id1", "report_id2", ...] }`
+   - Added `GET /reports/favorites` endpoint to get user's favorite report IDs
+   - Added `POST /reports/{report_id}/favorite` endpoint to add report to favorites
+   - Added `DELETE /reports/{report_id}/favorite` endpoint to remove from favorites
+   - Added `GET /reports/{report_id}/favorite` endpoint to check favorite status
+   - Added `favorites_only` boolean parameter to `GET /reports` endpoint
+   - Added `is_favorite` field to `ReportSummary` Pydantic model
+   - Added `is_favorite` field to `ReportDetail` Pydantic model
+   - Updated `list_reports()` to include is_favorite status for each report
+   - Updated `get_report()` to include is_favorite status and re-enabled auth
+
+2. **Frontend Changes** (reports list page - /reports/page.tsx):
+   - Added `is_favorite?: boolean` field to ReportSummary interface
+   - Added `showFavoritesOnly` state variable
+   - Added `toggleFavorite()` async function with API integration
+   - Added star icon button to each report card (next to status badge)
+   - Stars show filled yellow when favorited, outline gray when not favorited
+   - Added "Ulubione" (Favorites) filter button in toolbar with star icon
+   - Button highlights with yellow border when active
+   - Added `favorites_only` parameter to fetchReports() API call
+   - Added `favorites_only` parameter to fetchAllReportIds() API call
+   - Updated useEffect dependencies to include `showFavoritesOnly`
+
+3. **Frontend Changes** (report detail page - /reports/[id]/page.tsx):
+   - Added `is_favorite?: boolean` field to ReportDetail interface
+   - Added `toggleFavorite()` async function
+   - Added star button to header toolbar (after history button)
+   - Star shows filled yellow when favorited, outline gray when not
+   - Button title shows "Usuń z ulubionych" or "Dodaj do ulubionych"
+
+**End-to-End Testing with Browser Automation:**
+
+✅ **Step 1**: Navigated to /reports page
+✅ **Step 2**: Clicked star icon on first report (report_001)
+✅ **Step 3**: Star changed to filled yellow, button text changed to "Usuń z ulubionych"
+✅ **Step 4**: Clicked star icon on second report (report_002)
+✅ **Step 5**: Both reports marked as favorites with yellow stars
+✅ **Step 6**: Clicked "Ulubione" filter button
+✅ **Step 7**: Page filtered to show only 2 favorite reports
+✅ **Step 8**: Count updated to "Pokazano 1-2 z 2 raportów"
+✅ **Step 9**: Navigated to report detail page (report_001)
+✅ **Step 10**: Clicked star icon in header toolbar
+✅ **Step 11**: Star changed to filled yellow, button text updated
+✅ **Step 12**: Navigated back to reports list
+✅ **Step 13**: Favorites filter still active, showing only 1 report
+✅ **Zero console errors throughout entire test**
+
+**Visual Confirmation:**
+- Screenshots captured showing filled yellow stars
+- Favorites filter button with yellow border when active
+- Reports list correctly filtered
+- All UI elements responsive and working as expected
+
+**Files Modified:**
+- backend/app/api/v1/endpoints/reports.py (+92, -3)
+- frontend/src/app/reports/page.tsx (+93, -3)
+- frontend/src/app/reports/[id]/page.tsx (+39, -0)
+
+**Commit:** a40831e "Implement favorite marking for reports (Feature #287)"
+
+**Current Progress:** 95/380 features passing (25.0%)
+
+---
+
 ## Session 34 - Date: 2026-01-16
 
 ### Regression Tests Completed:
