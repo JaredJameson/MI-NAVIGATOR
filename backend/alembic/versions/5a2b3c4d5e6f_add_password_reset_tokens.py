@@ -20,8 +20,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.create_table('password_reset_tokens',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('user_id', sa.UUID(), nullable=False),
+    sa.Column('id', sa.String(36), nullable=False),
+    sa.Column('user_id', sa.String(36), nullable=False),
     sa.Column('token', sa.String(length=255), nullable=False),
     sa.Column('expires_at', sa.DateTime(), nullable=False),
     sa.Column('used', sa.Boolean(), nullable=True, default=False),

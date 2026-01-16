@@ -20,6 +20,19 @@ interface UserProfile {
   onboarding_completed: boolean
 }
 
+interface CustomFieldDefinition {
+  id: string
+  name: string
+  field_type: string
+  description: string | null
+  is_required: boolean
+  is_active: boolean
+  options: string[] | null
+  display_order: number
+  created_at: string
+  updated_at: string
+}
+
 const INDUSTRIES = [
   { value: 'manufacturing', label: 'Manufacturing' },
   { value: 'services', label: 'Services' },
@@ -57,6 +70,16 @@ const FORMATS = [
   { value: 'pptx', label: 'PowerPoint (PPTX)' },
 ]
 
+const FIELD_TYPES = [
+  { value: 'text', label: 'Text' },
+  { value: 'number', label: 'Number' },
+  { value: 'date', label: 'Date' },
+  { value: 'email', label: 'Email' },
+  { value: 'url', label: 'URL' },
+  { value: 'select', label: 'Select (dropdown)' },
+  { value: 'multiselect', label: 'Multi-select' },
+]
+
 export default function SettingsPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -78,9 +101,21 @@ export default function SettingsPage() {
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [inAppNotifications, setInAppNotifications] = useState(true)
 
+  // Custom Fields state
+  const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([])
+  const [isLoadingFields, setIsLoadingFields] = useState(false)
+  const [showAddFieldForm, setShowAddFieldForm] = useState(false)
+  const [newFieldName, setNewFieldName] = useState('')
+  const [newFieldType, setNewFieldType] = useState('text')
+  const [newFieldDescription, setNewFieldDescription] = useState('')
+  const [newFieldRequired, setNewFieldRequired] = useState(false)
+  const [newFieldOptions, setNewFieldOptions] = useState('')
+  const [fieldError, setFieldError] = useState('')
+
   useEffect(() => {
     fetchProfile()
     fetchNotificationPreferences()
+    fetchCustomFields()
   }, [])
 
   const fetchProfile = async () => {
@@ -138,6 +173,116 @@ export default function SettingsPage() {
       }
     } catch (err) {
       console.error('Failed to fetch notification preferences:', err)
+    }
+  }
+
+  const fetchCustomFields = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsLoadingFields(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/custom-fields/definitions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCustomFields(data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch custom fields:', err)
+    } finally {
+      setIsLoadingFields(false)
+    }
+  }
+
+  const handleAddCustomField = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    setFieldError('')
+
+    // Validation
+    if (!newFieldName.trim()) {
+      setFieldError('Field name is required')
+      return
+    }
+
+    if ((newFieldType === 'select' || newFieldType === 'multiselect') && !newFieldOptions.trim()) {
+      setFieldError('Options are required for select and multiselect fields')
+      return
+    }
+
+    try {
+      const options = (newFieldType === 'select' || newFieldType === 'multiselect')
+        ? newFieldOptions.split(',').map(o => o.trim()).filter(o => o.length > 0)
+        : null
+
+      const response = await fetch(`${API_BASE_URL}/custom-fields/definitions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newFieldName.trim(),
+          field_type: newFieldType,
+          description: newFieldDescription.trim() || null,
+          is_required: newFieldRequired,
+          options,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to create custom field')
+      }
+
+      // Reset form
+      setNewFieldName('')
+      setNewFieldType('text')
+      setNewFieldDescription('')
+      setNewFieldRequired(false)
+      setNewFieldOptions('')
+      setShowAddFieldForm(false)
+
+      // Refresh list
+      fetchCustomFields()
+      setSuccess('Custom field created successfully!')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      setFieldError(err instanceof Error ? err.message : 'Failed to create custom field')
+    }
+  }
+
+  const handleDeleteCustomField = async (fieldId: string) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    if (!confirm('Are you sure you want to delete this custom field? All associated data will be lost.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/custom-fields/definitions/${fieldId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete custom field')
+      }
+
+      fetchCustomFields()
+      setSuccess('Custom field deleted successfully!')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete custom field')
     }
   }
 
@@ -481,6 +626,176 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
+        </section>
+
+        {/* Custom Fields Section */}
+        <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Custom Fields</h2>
+            <button
+              onClick={() => setShowAddFieldForm(!showAddFieldForm)}
+              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            >
+              {showAddFieldForm ? 'Cancel' : '+ Add Field'}
+            </button>
+          </div>
+
+          {/* Add Field Form */}
+          {showAddFieldForm && (
+            <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+              <h3 className="text-sm font-medium text-gray-900 mb-4">New Custom Field</h3>
+
+              {fieldError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+                  {fieldError}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="newFieldName" className="block text-sm font-medium text-gray-700">
+                    Field Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="newFieldName"
+                    value={newFieldName}
+                    onChange={(e) => setNewFieldName(e.target.value)}
+                    placeholder="e.g., Industry Specialization"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="newFieldType" className="block text-sm font-medium text-gray-700">
+                    Field Type *
+                  </label>
+                  <select
+                    id="newFieldType"
+                    value={newFieldType}
+                    onChange={(e) => setNewFieldType(e.target.value)}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    {FIELD_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="newFieldDescription" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    id="newFieldDescription"
+                    value={newFieldDescription}
+                    onChange={(e) => setNewFieldDescription(e.target.value)}
+                    placeholder="Optional description"
+                    rows={2}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                {(newFieldType === 'select' || newFieldType === 'multiselect') && (
+                  <div>
+                    <label htmlFor="newFieldOptions" className="block text-sm font-medium text-gray-700">
+                      Options * (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      id="newFieldOptions"
+                      value={newFieldOptions}
+                      onChange={(e) => setNewFieldOptions(e.target.value)}
+                      placeholder="e.g., Option 1, Option 2, Option 3"
+                      className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="newFieldRequired"
+                    checked={newFieldRequired}
+                    onChange={(e) => setNewFieldRequired(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="newFieldRequired" className="ml-2 block text-sm text-gray-700">
+                    Required field
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowAddFieldForm(false)
+                      setFieldError('')
+                      setNewFieldName('')
+                      setNewFieldType('text')
+                      setNewFieldDescription('')
+                      setNewFieldRequired(false)
+                      setNewFieldOptions('')
+                    }}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddCustomField}
+                    className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                  >
+                    Create Field
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Custom Fields List */}
+          {isLoadingFields ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          ) : customFields.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No custom fields defined yet.</p>
+              <p className="text-sm mt-1">Click "Add Field" to create your first custom field.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {customFields.map((field) => (
+                <div key={field.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-gray-900">{field.name}</h3>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        {FIELD_TYPES.find(t => t.value === field.field_type)?.label || field.field_type}
+                      </span>
+                      {field.is_required && (
+                        <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Required</span>
+                      )}
+                    </div>
+                    {field.description && (
+                      <p className="text-sm text-gray-500 mt-1">{field.description}</p>
+                    )}
+                    {field.options && field.options.length > 0 && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        Options: {field.options.join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDeleteCustomField(field.id)}
+                    className="ml-4 text-red-600 hover:text-red-700 text-sm font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Save Button */}

@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.core.deps import get_db, get_current_user
+from app.db.session import get_db
+from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
 from app.models.custom_field import CustomFieldDefinition, CustomFieldValue, FieldType
 from app.schemas.custom_field import (
