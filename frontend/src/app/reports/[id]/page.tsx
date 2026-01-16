@@ -5002,6 +5002,73 @@ export default function ReportViewerPage() {
                       >
                         🔗 Link
                       </button>
+                      <button
+                        onClick={() => {
+                          // Trigger file input click
+                          const fileInput = document.getElementById(`image-upload-${section.id}`) as HTMLInputElement
+                          if (fileInput) {
+                            fileInput.click()
+                          }
+                        }}
+                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
+                        title="Insert image"
+                      >
+                        🖼️ Image
+                      </button>
+                      <input
+                        id={`image-upload-${section.id}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+
+                          const token = getStoredToken()
+                          if (!token) return
+
+                          // Upload image
+                          const formData = new FormData()
+                          formData.append('file', file)
+
+                          try {
+                            const response = await fetch(
+                              `${API_BASE_URL}/reports/upload-image`,
+                              {
+                                method: 'POST',
+                                headers: {
+                                  'Authorization': `Bearer ${token}`,
+                                },
+                                body: formData
+                              }
+                            )
+
+                            if (response.ok) {
+                              const data = await response.json()
+                              const imageUrl = `http://localhost:8000${data.url}`
+                              const altText = file.name.replace(/\.[^/.]+$/, '')
+
+                              // Insert markdown image syntax
+                              const textarea = document.querySelector(`textarea[value="${editedSections[section.id] || section.content}"]`) as HTMLTextAreaElement
+                              if (textarea) {
+                                const start = textarea.selectionStart || 0
+                                const currentContent = editedSections[section.id] || section.content
+                                const imageMarkdown = `\n![${altText}](${imageUrl})\n`
+                                const newContent = currentContent.substring(0, start) + imageMarkdown + currentContent.substring(start)
+                                setEditedSections({ ...editedSections, [section.id]: newContent })
+                              }
+                            } else {
+                              alert('Failed to upload image')
+                            }
+                          } catch (err) {
+                            console.error('Image upload error:', err)
+                            alert('Failed to upload image')
+                          }
+
+                          // Reset input
+                          e.target.value = ''
+                        }}
+                      />
                     </div>
                     <textarea
                       value={editedSections[section.id] || section.content}

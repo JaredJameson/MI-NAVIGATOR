@@ -2,13 +2,15 @@
 Reports API Endpoints
 """
 
-from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi import APIRouter, Query, Depends, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime
 import io
 import re
+import uuid
+from pathlib import Path
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
@@ -2399,4 +2401,43 @@ async def update_report(
     return {
         "message": "Report updated successfully",
         "report": report
+    }
+
+
+@router.post("/reports/upload-image")
+async def upload_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Upload an image for use in reports
+    """
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    # Generate unique filename
+    file_extension = Path(file.filename).suffix if file.filename else '.jpg'
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+
+    # Define upload path
+    upload_dir = Path(__file__).parent.parent.parent.parent.parent / "static" / "uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    file_path = upload_dir / unique_filename
+
+    # Save file
+    try:
+        contents = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(contents)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save image: {str(e)}")
+
+    # Return URL to access the image
+    image_url = f"/static/uploads/{unique_filename}"
+
+    return {
+        "url": image_url,
+        "filename": unique_filename,
+        "original_filename": file.filename
     }
