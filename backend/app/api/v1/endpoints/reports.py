@@ -2359,3 +2359,44 @@ async def create_report_from_template(
         "report_id": report_id,
         "report_title": report_title
     }
+
+
+class ReportUpdateRequest(BaseModel):
+    sections: Optional[List[dict]] = None
+    title: Optional[str] = None
+    summary: Optional[str] = None
+
+
+@router.patch("/reports/{report_id}")
+async def update_report(
+    report_id: str,
+    update_data: ReportUpdateRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update report sections or metadata
+    """
+    # Find the report
+    report = next((r for r in MOCK_REPORTS if r["id"] == report_id), None)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Update sections if provided
+    if update_data.sections is not None:
+        report["sections"] = update_data.sections
+
+    # Update title if provided
+    if update_data.title is not None:
+        report["title"] = update_data.title
+
+    # Update summary if provided
+    if update_data.summary is not None:
+        report["summary"] = update_data.summary
+
+    # Update timestamp
+    report["updated_at"] = datetime.utcnow().isoformat() + "Z"
+
+    return {
+        "message": "Report updated successfully",
+        "report": report
+    }

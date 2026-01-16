@@ -1,0 +1,113 @@
+### Page state
+- Page URL: http://localhost:3000/dashboard
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - generic [ref=e8]:
+        - heading "MI-Navigator" [level=1] [ref=e9]
+        - navigation [ref=e10]:
+          - link "Reports" [ref=e11] [cursor=pointer]:
+            - /url: /reports
+          - link "Projects" [ref=e12] [cursor=pointer]:
+            - /url: /projects
+          - link "Settings" [ref=e13] [cursor=pointer]:
+            - /url: /settings
+          - button "Logout" [ref=e14] [cursor=pointer]
+    - main [ref=e15]:
+      - button "Dostosuj układ" [ref=e17] [cursor=pointer]:
+        - img [ref=e18]
+        - text: Dostosuj układ
+      - generic [ref=e20]:
+        - heading "Rozpocznij badanie" [level=2] [ref=e21]
+        - generic [ref=e22]:
+          - textbox "Szukaj firmy, osoby, wklej URL do analizy..." [ref=e23]
+          - img [ref=e24]
+        - generic [ref=e26]:
+          - generic [ref=e27]: "Ostatnie:"
+          - button "FADO Sp. z o.o." [ref=e28] [cursor=pointer]
+          - button "Splast S.A." [ref=e29] [cursor=pointer]
+      - generic [ref=e30]:
+        - generic [ref=e32]:
+          - heading "Recent Activity" [level=3] [ref=e33]
+          - list [ref=e34]:
+            - listitem [ref=e35]: 14:32 - Raport FADO zakończony
+            - listitem [ref=e36]: "12:15 - Nowy alert: Konkurent X"
+            - listitem [ref=e37]: "11:45 - Upload: raport_q3.pdf"
+          - link "Zobacz wszystkie →" [ref=e38] [cursor=pointer]:
+            - /url: /activity
+        - generic [ref=e40]:
+          - heading "Active Research" [level=3] [ref=e41]
+          - generic [ref=e42]:
+            - generic [ref=e45]: Analiza FADO
+            - generic [ref=e47]: "Progress: 67%"
+          - generic [ref=e50]:
+            - link "Start New Research" [ref=e51] [cursor=pointer]:
+              - /url: /chat
+            - link "Market Analysis" [ref=e52] [cursor=pointer]:
+              - /url: /analysis
+            - link "PKD Search" [ref=e53] [cursor=pointer]:
+              - /url: /search
+        - generic [ref=e55]:
+          - heading "Usage Stats" [level=3] [ref=e56]
+          - generic [ref=e57]:
+            - generic [ref=e59]:
+              - generic [ref=e60]: Analyses this month
+              - generic [ref=e61]: 42/100
+            - generic [ref=e65]:
+              - generic [ref=e66]: Storage
+              - generic [ref=e67]: 2.4 GB / 10 GB
+            - generic [ref=e70]: "API calls: 8,432"
+      - generic [ref=e71]:
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - heading "My Projects" [level=2] [ref=e75]
+            - link "+ New" [ref=e76] [cursor=pointer]:
+              - /url: /projects/new
+          - generic [ref=e77]:
+            - generic [ref=e79] [cursor=pointer]:
+              - generic [ref=e80]: 📁
+              - generic [ref=e81]:
+                - heading "Due Diligence - ACME Corp" [level=3] [ref=e82]
+                - generic [ref=e83]:
+                  - generic [ref=e84]: 📄 5 reports
+                  - generic [ref=e85]: 🔔 3 alerts
+                - generic [ref=e86]: "Updated: 2 days ago"
+            - generic [ref=e88] [cursor=pointer]:
+              - generic [ref=e89]: 📁
+              - generic [ref=e90]:
+                - heading "Market Entry - Germany" [level=3] [ref=e91]
+                - generic [ref=e92]:
+                  - generic [ref=e93]: 📄 5 reports
+                  - generic [ref=e94]: 🔔 3 alerts
+                - generic [ref=e95]: "Updated: 2 days ago"
+            - generic [ref=e97] [cursor=pointer]:
+              - generic [ref=e98]: 📁
+              - generic [ref=e99]:
+                - heading "Competitive Watch" [level=3] [ref=e100]
+                - generic [ref=e101]:
+                  - generic [ref=e102]: 📄 5 reports
+                  - generic [ref=e103]: 🔔 3 alerts
+                - generic [ref=e104]: "Updated: 2 days ago"
+        - generic [ref=e106]:
+          - heading "Alerts & Monitoring" [level=2] [ref=e107]
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - generic [ref=e110]: 🔴
+              - generic [ref=e111]:
+                - paragraph [ref=e112]: "Konkurent X: nowy produkt"
+                - paragraph [ref=e113]: Wykryto ogłoszenie nowego produktu
+            - generic [ref=e114]:
+              - generic [ref=e115]: 🟡
+              - generic [ref=e116]:
+                - paragraph [ref=e117]: "FADO: zmiana w zarządzie"
+                - paragraph [ref=e118]: Nowy członek zarządu
+            - generic [ref=e119]:
+              - generic [ref=e120]: 🟢
+              - generic [ref=e121]:
+                - paragraph [ref=e122]: Rynek +5% vs prognoza
+                - paragraph [ref=e123]: Pozytywny trend rynkowy
+```

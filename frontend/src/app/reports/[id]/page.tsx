@@ -3167,6 +3167,60 @@ function CompetitorPositioningMap({ data, onCompetitorClick }: { data: Positioni
   )
 }
 
+// Helper functions for text formatting
+function applyMarkdownFormatting(text: string, textarea: HTMLTextAreaElement, format: string): string {
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selectedText = text.substring(start, end)
+
+  if (!selectedText) return text
+
+  let formattedText = ''
+  let newText = ''
+
+  switch (format) {
+    case 'bold':
+      formattedText = `**${selectedText}**`
+      break
+    case 'italic':
+      formattedText = `*${selectedText}*`
+      break
+    case 'link':
+      const url = prompt('Enter URL:')
+      if (url) {
+        formattedText = `[${selectedText}](${url})`
+      } else {
+        return text
+      }
+      break
+    default:
+      return text
+  }
+
+  newText = text.substring(0, start) + formattedText + text.substring(end)
+
+  // Set cursor position after formatted text
+  setTimeout(() => {
+    textarea.selectionStart = textarea.selectionEnd = start + formattedText.length
+    textarea.focus()
+  }, 0)
+
+  return newText
+}
+
+function insertBulletedList(text: string, textarea: HTMLTextAreaElement): string {
+  const start = textarea.selectionStart
+  const listItem = '\n- '
+  const newText = text.substring(0, start) + listItem + text.substring(start)
+
+  setTimeout(() => {
+    textarea.selectionStart = textarea.selectionEnd = start + listItem.length
+    textarea.focus()
+  }, 0)
+
+  return newText
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -3221,6 +3275,11 @@ export default function ReportViewerPage() {
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [exportError, setExportError] = useState('')
+
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedSections, setEditedSections] = useState<{[key: string]: string}>({})
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     fetchReport()
@@ -3346,6 +3405,64 @@ export default function ReportViewerPage() {
     } catch (err) {
       console.error('Failed to fetch annotations:', err)
     }
+  }
+
+  const saveReportChanges = async () => {
+    const token = getStoredToken()
+    if (!token || !report) return
+
+    setIsSaving(true)
+
+    try {
+      // Update sections with edited content
+      const updatedSections = report.sections.map(section => ({
+        ...section,
+        content: editedSections[section.id] || section.content
+      }))
+
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sections: updatedSections
+          })
+        }
+      )
+
+      if (response.ok) {
+        // Refresh report to get updated content
+        await fetchReport()
+        setIsEditing(false)
+        setEditedSections({})
+      } else {
+        alert('Failed to save changes')
+      }
+    } catch (err) {
+      console.error('Failed to save report:', err)
+      alert('Failed to save changes')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const toggleEditMode = () => {
+    if (isEditing) {
+      // Cancel editing - reset edited sections
+      setEditedSections({})
+    } else {
+      // Enter edit mode - initialize edited sections with current content
+      const initialEdited: {[key: string]: string} = {}
+      report?.sections.forEach(section => {
+        initialEdited[section.id] = section.content
+      })
+      setEditedSections(initialEdited)
+    }
+    setIsEditing(!isEditing)
   }
 
   const fetchVersions = async () => {
@@ -4072,6 +4189,37 @@ export default function ReportViewerPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
             </button>
+            {/* Edit/Save buttons */}
+            {!isEditing ? (
+              <button
+                onClick={toggleEditMode}
+                className="rounded-lg border border-blue-500 bg-blue-500 p-2 text-white hover:bg-blue-600"
+                title="Edit report"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={saveReportChanges}
+                  disabled={isSaving}
+                  className="rounded-lg border border-green-500 bg-green-500 px-3 py-2 text-white hover:bg-green-600 disabled:opacity-50"
+                  title="Save changes"
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  onClick={toggleEditMode}
+                  disabled={isSaving}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                  title="Cancel editing"
+                >
+                  Cancel
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 setIsSearchOpen(!isSearchOpen)
@@ -4797,7 +4945,106 @@ export default function ReportViewerPage() {
                 ) : financialRatiosData ? (
                   /* Financial Ratio Radar Chart Visualization */
                   <FinancialRatioRadarChart data={financialRatiosData} />
+                ) : isEditing ? (
+                  /* Edit mode - show textarea with formatting toolbar */
+                  <div>
+                    {/* Formatting toolbar */}
+                    <div className="mb-2 flex gap-2 rounded-t-lg border border-gray-300 bg-gray-50 p-2">
+                      <button
+                        onClick={(e) => {
+                          const textarea = (e.target as HTMLButtonElement).closest('div')?.parentElement?.querySelector('textarea')
+                          if (textarea && editedSections[section.id] !== undefined) {
+                            const newContent = applyMarkdownFormatting(editedSections[section.id], textarea as HTMLTextAreaElement, 'bold')
+                            setEditedSections({ ...editedSections, [section.id]: newContent })
+                          }
+                        }}
+                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm font-bold hover:bg-gray-100"
+                        title="Bold (Ctrl+B)"
+                      >
+                        <strong>B</strong>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          const textarea = (e.target as HTMLButtonElement).closest('div')?.parentElement?.querySelector('textarea')
+                          if (textarea && editedSections[section.id] !== undefined) {
+                            const newContent = applyMarkdownFormatting(editedSections[section.id], textarea as HTMLTextAreaElement, 'italic')
+                            setEditedSections({ ...editedSections, [section.id]: newContent })
+                          }
+                        }}
+                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm italic hover:bg-gray-100"
+                        title="Italic (Ctrl+I)"
+                      >
+                        <em>I</em>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          const textarea = (e.target as HTMLButtonElement).closest('div')?.parentElement?.querySelector('textarea')
+                          if (textarea && editedSections[section.id] !== undefined) {
+                            const newContent = insertBulletedList(editedSections[section.id], textarea as HTMLTextAreaElement)
+                            setEditedSections({ ...editedSections, [section.id]: newContent })
+                          }
+                        }}
+                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
+                        title="Bulleted list"
+                      >
+                        • List
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          const textarea = (e.target as HTMLButtonElement).closest('div')?.parentElement?.querySelector('textarea')
+                          if (textarea && editedSections[section.id] !== undefined) {
+                            const newContent = applyMarkdownFormatting(editedSections[section.id], textarea as HTMLTextAreaElement, 'link')
+                            setEditedSections({ ...editedSections, [section.id]: newContent })
+                          }
+                        }}
+                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
+                        title="Insert link"
+                      >
+                        🔗 Link
+                      </button>
+                    </div>
+                    <textarea
+                      value={editedSections[section.id] || section.content}
+                      onChange={(e) => {
+                        setEditedSections({ ...editedSections, [section.id]: e.target.value })
+                      }}
+                      className="w-full rounded-b-lg border border-gray-300 p-4 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={20}
+                    />
+                    {/* Preview */}
+                    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <div className="mb-2 text-xs font-semibold uppercase text-gray-500">Preview:</div>
+                      <div className="prose prose-gray max-w-none">
+                        <ReactMarkdown
+                          className="text-gray-700"
+                          components={{
+                            a: ({ node, ...props }) => (
+                              <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline" />
+                            ),
+                            p: ({ node, children, ...props }) => (
+                              <p {...props} className="mb-4">{children}</p>
+                            ),
+                            ul: ({ node, ...props }) => (
+                              <ul {...props} className="list-disc list-inside mb-4 space-y-1" />
+                            ),
+                            ol: ({ node, ...props }) => (
+                              <ol {...props} className="list-decimal list-inside mb-4 space-y-1" />
+                            ),
+                            strong: ({ node, ...props }) => (
+                              <strong {...props} className="font-bold" />
+                            ),
+                            em: ({ node, ...props }) => (
+                              <em {...props} className="italic" />
+                            ),
+                          }}
+                        >
+                          {editedSections[section.id] || section.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
+                  /* View mode - show ReactMarkdown */
                   <div className="prose prose-gray max-w-none">
                     <ReactMarkdown
                       className="text-gray-700"
