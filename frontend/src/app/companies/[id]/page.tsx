@@ -125,7 +125,7 @@ export default function CompanyProfilePage() {
         const values: Record<string, string> = {};
         result.data.forEach((field) => {
           if (field.value) {
-            values[field.field_definition.id] = field.value.value || '';
+            values[field.field_definition.id] = field.value;
           }
         });
         setFieldValues(values);
@@ -603,7 +603,7 @@ export default function CompanyProfilePage() {
 
                           {field.value && !editingFieldId && (
                             <div className="text-sm text-slate-600">
-                              Current: <span className="font-medium">{field.value.value}</span>
+                              Current: <span className="font-medium">{field.value}</span>
                             </div>
                           )}
                         </div>

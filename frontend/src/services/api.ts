@@ -395,7 +395,8 @@ export interface CustomFieldValue {
 
 export interface CompanyCustomField {
   field_definition: CustomFieldDefinition;
-  value: CustomFieldValue | null;
+  value: string | null;
+  value_json: any | null;
 }
 
 export interface SetCustomFieldValueRequest {
