@@ -1,5 +1,67 @@
 # MI-Navigator Development Progress
 
+## Session 23 - Date: 2026-01-16
+
+### Completed in This Session:
+
+#### Feature #274: News feed integration - PASSED
+- Created comprehensive company profile page at /companies/[id]
+- Implemented backend news API with mock data for 7 companies
+- Backend changes (companies.py):
+  - NewsArticle model with id, title, summary, source, source_url, published_at, sentiment, category
+  - CompanyNews model with company_id, company_name, news list, total_count
+  - CompanyProfile model with full company details
+  - MOCK_COMPANY_NEWS with 15+ news articles across companies
+  - GET /{identifier} - Full company profile endpoint
+  - GET /{identifier}/news - News feed with category filtering
+  - News categories: general, financial, product, hr, legal
+  - Sentiment values: positive, negative, neutral
+- Frontend company profile page:
+  - Company header with logo initial, name, status badge
+  - Company description, location, NIP, KRS, REGON, founding year, employees
+  - Tab navigation: Przegląd, Aktualności, Finanse, Osoby
+  - Overview tab: PKD codes with descriptions, location card, info card, action buttons
+  - News tab with category filter buttons
+  - News articles showing: category badge, sentiment badge, title, summary, source, date, read more link
+  - Relative date formatting in Polish ("2 dni temu", "wczoraj", "5 dni temu")
+  - Financials and People tabs as placeholders
+- API service (api.ts):
+  - Added CompanyProfile, NewsArticle, CompanyNews interfaces
+  - companyApi.getCompany() and companyApi.getCompanyNews() methods
+- Full end-to-end testing verified:
+  - Navigated to /companies/1 (FADO Sp. z o.o.)
+  - Company profile displayed with all details
+  - Clicked "Aktualności" tab - 5 news articles loaded
+  - Category filter tested - "Finanse" filter showed only 1 article
+  - "Czytaj więcej" link opened external URL in new tab
+  - No console errors
+
+### Regression Tests Passed:
+- Login flow works correctly
+- User registration works
+
+### Statistics:
+- Total features: 380
+- Passing features: 84 (22.1%)
+- In progress: 0
+
+### Git Commits This Session:
+- 7771c26 - Implement news feed integration for company profiles (Feature #274)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Company profile page now exists at /companies/[id]
+3. Consider adding links from dashboard "FADO Sp. z o.o." button to /companies/1
+4. Consider implementing Financials and People tabs on company profile
+
+---
+
 ## Session 22 - Date: 2026-01-16
 
 ### Completed in This Session:
