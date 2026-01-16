@@ -3318,6 +3318,14 @@ export default function ReportViewerPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [exportError, setExportError] = useState('')
 
+  // Share via email state
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [shareEmail, setShareEmail] = useState('')
+  const [shareMessage, setShareMessage] = useState('')
+  const [isSharing, setIsSharing] = useState(false)
+  const [shareSuccess, setShareSuccess] = useState(false)
+  const [shareError, setShareError] = useState('')
+
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false)
   const [editedSections, setEditedSections] = useState<{[key: string]: string}>({})
@@ -4219,6 +4227,62 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Share via email functionality
+  const handleShareEmail = async () => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    // Validate email
+    if (!shareEmail || !shareEmail.includes('@')) {
+      setShareError('Proszę podać prawidłowy adres email')
+      return
+    }
+
+    setIsSharing(true)
+    setShareError('')
+    setShareSuccess(false)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/share/email`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipient_email: shareEmail,
+            message: shareMessage,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to share report')
+      }
+
+      const data = await response.json()
+      setShareSuccess(true)
+
+      // Reset form after 2 seconds
+      setTimeout(() => {
+        setShowShareModal(false)
+        setShareEmail('')
+        setShareMessage('')
+        setShareSuccess(false)
+      }, 2000)
+    } catch (err) {
+      console.error('Share failed:', err)
+      setShareError('Nie udało się udostępnić raportu')
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -4380,6 +4444,17 @@ export default function ReportViewerPage() {
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
+            </button>
+            {/* Share button */}
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+              title="Udostępnij raport przez email"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Udostępnij
             </button>
             <div className="relative">
               <button
@@ -5435,6 +5510,112 @@ export default function ReportViewerPage() {
           <p>Zaznacz dowolny tekst w raporcie, a pojawi sie opcja dodania komentarza. Twoje adnotacje zostana zapisane i beda widoczne przy kolejnych wizytach.</p>
         </div>
       </main>
+
+      {/* Share via Email Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="border-b border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Udostępnij raport przez email</h3>
+                <button
+                  onClick={() => {
+                    setShowShareModal(false)
+                    setShareEmail('')
+                    setShareMessage('')
+                    setShareError('')
+                    setShareSuccess(false)
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {shareSuccess ? (
+                <div className="rounded-md bg-green-50 p-4">
+                  <div className="flex items-center">
+                    <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p className="text-sm text-green-700">Raport został pomyślnie udostępniony!</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {shareError && (
+                    <div className="rounded-md bg-red-50 p-4">
+                      <p className="text-sm text-red-700">{shareError}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="share-email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Adres email odbiorcy *
+                    </label>
+                    <input
+                      id="share-email"
+                      type="email"
+                      value={shareEmail}
+                      onChange={(e) => setShareEmail(e.target.value)}
+                      placeholder="email@example.com"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="share-message" className="block text-sm font-medium text-gray-700 mb-1">
+                      Wiadomość (opcjonalnie)
+                    </label>
+                    <textarea
+                      id="share-message"
+                      value={shareMessage}
+                      onChange={(e) => setShareMessage(e.target.value)}
+                      placeholder="Dodaj krótką wiadomość..."
+                      rows={4}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setShowShareModal(false)
+                        setShareEmail('')
+                        setShareMessage('')
+                        setShareError('')
+                      }}
+                      className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      disabled={isSharing}
+                    >
+                      Anuluj
+                    </button>
+                    <button
+                      onClick={handleShareEmail}
+                      disabled={isSharing || !shareEmail}
+                      className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSharing ? (
+                        <span className="flex items-center justify-center">
+                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          Wysyłanie...
+                        </span>
+                      ) : (
+                        'Wyślij'
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

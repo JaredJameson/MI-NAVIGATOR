@@ -1627,6 +1627,75 @@ async def share_report(report_id: str):
     }
 
 
+class EmailShareRequest(BaseModel):
+    recipient_email: str
+    message: Optional[str] = ""
+    sender_name: Optional[str] = None
+
+
+@router.post("/{report_id}/share/email")
+async def share_report_via_email(
+    report_id: str,
+    request: EmailShareRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Share report via email (dev mode - logs to console)."""
+    # Find the report
+    report = None
+    for r in MOCK_REPORTS:
+        if r["id"] == report_id:
+            report = r
+            break
+
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # In development mode, log email to console instead of sending
+    sender_name = request.sender_name or current_user.name or current_user.email
+    report_url = f"http://localhost:3000/reports/{report_id}"
+
+    email_content = f"""
+===========================================
+📧 EMAIL NOTIFICATION (DEV MODE)
+===========================================
+From: {sender_name} <{current_user.email}>
+To: {request.recipient_email}
+Subject: [MI-Navigator] {sender_name} udostępnił Ci raport: {report['title']}
+
+-------------------------------------------
+MESSAGE:
+-------------------------------------------
+Cześć!
+
+{sender_name} udostępnił Ci raport z MI-Navigator:
+
+📊 Raport: {report['title']}
+📁 Typ: {report.get('type', 'N/A')}
+🏢 Firma: {report.get('company', 'N/A')}
+
+{f'Wiadomość od {sender_name}:' if request.message else ''}
+{request.message if request.message else ''}
+
+Kliknij poniższy link aby zobaczyć raport:
+{report_url}
+
+---
+Ten email został wygenerowany przez MI-Navigator - Market Intelligence Platform
+===========================================
+"""
+
+    # Log to console (development mode)
+    print(email_content)
+
+    return {
+        "success": True,
+        "message": f"Raport został udostępniony przez email do {request.recipient_email}",
+        "recipient": request.recipient_email,
+        "report_id": report_id,
+        "report_title": report['title']
+    }
+
+
 # In-memory annotation storage (per user, per report)
 REPORT_ANNOTATIONS: dict = {}
 
