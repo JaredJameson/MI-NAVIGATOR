@@ -177,6 +177,39 @@ Rynek tworzyw sztucznych w Polsce rośnie średnio o 4-6% rocznie. Głównym mot
 5. **FADO Sp. z o.o.** - 3,5% rynku
    - Profile i rury
    - Przychody: ~450 mln PLN"""
+            },
+            {
+                "id": "section_3",
+                "title": "Analiza Porter Five Forces",
+                "content": """**Siła przetargowa dostawców (Supplier Power): ŚREDNIA**
+- Ograniczona liczba dostawców surowców petrochemicznych
+- Wysokie koszty zmiany dostawcy
+- Możliwość integracji wstecznej przez dużych producentów
+- Zależność od globalnych cen ropy naftowej
+
+**Siła przetargowa nabywców (Buyer Power): WYSOKA**
+- Duża liczba alternatywnych dostawców
+- Niskie koszty zmiany dla odbiorców
+- Rosnące wymagania dotyczące jakości i certyfikacji
+- Presja cenowa ze strony dużych sieci handlowych
+
+**Zagrożenie ze strony substytutów (Threat of Substitutes): WYSOKA**
+- Rosnąca popularność opakowań biodegradowalnych
+- Papier i karton jako alternatywa
+- Szkło i aluminium w segmencie premium
+- Regulacje ograniczające plastik jednorazowy
+
+**Zagrożenie ze strony nowych wchodzących (Threat of New Entrants): NISKA**
+- Wysokie bariery wejścia (kapitał, technologia)
+- Efekty skali u obecnych graczy
+- Wymogi certyfikacji i norm jakościowych
+- Ugruntowane relacje z odbiorcami
+
+**Rywalizacja wewnątrz branży (Industry Rivalry): WYSOKA**
+- Wielu konkurentów o podobnej wielkości
+- Niska dynamika wzrostu rynku (4-6% rocznie)
+- Wysokie koszty stałe wymuszające walkę o wolumen
+- Ograniczone możliwości różnicowania produktów"""
             }
         ],
         "sources": [

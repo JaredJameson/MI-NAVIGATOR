@@ -455,6 +455,369 @@ function isSWOTSection(title: string): boolean {
           (title.toLowerCase().includes('mocne') || title.toLowerCase().includes('słabe')))
 }
 
+// ===== PORTER FIVE FORCES TYPES AND COMPONENT =====
+
+interface PorterForce {
+  name: string
+  englishName: string
+  strength: 'NISKA' | 'ŚREDNIA' | 'WYSOKA'
+  strengthValue: number // 1-3 for visualization
+  points: string[]
+}
+
+interface PorterData {
+  supplierPower: PorterForce
+  buyerPower: PorterForce
+  substitutes: PorterForce
+  newEntrants: PorterForce
+  industryRivalry: PorterForce
+}
+
+// Parse Porter Five Forces content
+function parsePorterContent(content: string): PorterData | null {
+  const forces: Partial<PorterData> = {}
+
+  // Define patterns for each force
+  const forcePatterns = [
+    { key: 'supplierPower', patterns: ['siła przetargowa dostawców', 'supplier power'] },
+    { key: 'buyerPower', patterns: ['siła przetargowa nabywców', 'buyer power'] },
+    { key: 'substitutes', patterns: ['zagrożenie ze strony substytutów', 'threat of substitutes'] },
+    { key: 'newEntrants', patterns: ['zagrożenie ze strony nowych', 'threat of new entrants'] },
+    { key: 'industryRivalry', patterns: ['rywalizacja wewnątrz', 'industry rivalry', 'rivalry'] }
+  ]
+
+  const forceNames: Record<string, { name: string; englishName: string }> = {
+    supplierPower: { name: 'Siła dostawców', englishName: 'Supplier Power' },
+    buyerPower: { name: 'Siła nabywców', englishName: 'Buyer Power' },
+    substitutes: { name: 'Zagrożenie substytutów', englishName: 'Threat of Substitutes' },
+    newEntrants: { name: 'Nowi wchodzący', englishName: 'Threat of New Entrants' },
+    industryRivalry: { name: 'Rywalizacja', englishName: 'Industry Rivalry' }
+  }
+
+  const strengthMap: Record<string, { strength: 'NISKA' | 'ŚREDNIA' | 'WYSOKA'; value: number }> = {
+    'niska': { strength: 'NISKA', value: 1 },
+    'low': { strength: 'NISKA', value: 1 },
+    'średnia': { strength: 'ŚREDNIA', value: 2 },
+    'medium': { strength: 'ŚREDNIA', value: 2 },
+    'moderate': { strength: 'ŚREDNIA', value: 2 },
+    'wysoka': { strength: 'WYSOKA', value: 3 },
+    'high': { strength: 'WYSOKA', value: 3 }
+  }
+
+  const lines = content.split('\n')
+  let currentForce: string | null = null
+  let currentPoints: string[] = []
+
+  for (const line of lines) {
+    const trimmedLine = line.trim()
+    const lowerLine = trimmedLine.toLowerCase()
+
+    // Check if this line starts a new force section
+    let foundForce: { key: string; patterns: string[] } | null = null
+    for (const force of forcePatterns) {
+      if (force.patterns.some(p => lowerLine.includes(p))) {
+        foundForce = force
+        break
+      }
+    }
+
+    if (foundForce) {
+      // Save previous force if exists
+      if (currentForce && currentPoints.length > 0) {
+        const forceData = forces[currentForce as keyof PorterData]
+        if (forceData) {
+          forceData.points = currentPoints
+        }
+      }
+
+      // Parse strength from the line (e.g., "WYSOKA", "ŚREDNIA", "NISKA")
+      let strength: 'NISKA' | 'ŚREDNIA' | 'WYSOKA' = 'ŚREDNIA'
+      let strengthValue = 2
+
+      for (const [key, val] of Object.entries(strengthMap)) {
+        if (lowerLine.includes(key)) {
+          strength = val.strength
+          strengthValue = val.value
+          break
+        }
+      }
+
+      forces[foundForce.key as keyof PorterData] = {
+        name: forceNames[foundForce.key].name,
+        englishName: forceNames[foundForce.key].englishName,
+        strength,
+        strengthValue,
+        points: []
+      }
+
+      currentForce = foundForce.key
+      currentPoints = []
+      continue
+    }
+
+    // Parse bullet points for current force
+    if (currentForce && trimmedLine.startsWith('-')) {
+      const point = trimmedLine.substring(1).trim()
+      if (point) {
+        currentPoints.push(point)
+      }
+    }
+  }
+
+  // Save last force
+  if (currentForce && currentPoints.length > 0) {
+    const forceData = forces[currentForce as keyof PorterData]
+    if (forceData) {
+      forceData.points = currentPoints
+    }
+  }
+
+  // Check if we have at least 3 forces parsed
+  const parsedForces = Object.keys(forces).length
+  if (parsedForces < 3) {
+    return null
+  }
+
+  // Fill in missing forces with defaults
+  const defaultForce = (name: string, englishName: string): PorterForce => ({
+    name,
+    englishName,
+    strength: 'ŚREDNIA',
+    strengthValue: 2,
+    points: ['Dane niedostępne']
+  })
+
+  return {
+    supplierPower: forces.supplierPower || defaultForce('Siła dostawców', 'Supplier Power'),
+    buyerPower: forces.buyerPower || defaultForce('Siła nabywców', 'Buyer Power'),
+    substitutes: forces.substitutes || defaultForce('Zagrożenie substytutów', 'Threat of Substitutes'),
+    newEntrants: forces.newEntrants || defaultForce('Nowi wchodzący', 'Threat of New Entrants'),
+    industryRivalry: forces.industryRivalry || defaultForce('Rywalizacja', 'Industry Rivalry')
+  }
+}
+
+// Helper function to check if section is Porter Five Forces
+function isPorterSection(title: string): boolean {
+  const lowerTitle = title.toLowerCase()
+  return lowerTitle.includes('porter') ||
+         lowerTitle.includes('five forces') ||
+         lowerTitle.includes('pięć sił') ||
+         (lowerTitle.includes('analiza') && lowerTitle.includes('sił'))
+}
+
+// Porter Five Forces Diagram Component
+function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?: (force: string) => void }) {
+  const [selectedForce, setSelectedForce] = useState<string | null>(null)
+  const [hoveredForce, setHoveredForce] = useState<string | null>(null)
+
+  const forces = [
+    { key: 'supplierPower', data: data.supplierPower, position: 'top', icon: '🏭', color: 'purple' },
+    { key: 'newEntrants', data: data.newEntrants, position: 'top-right', icon: '🚪', color: 'orange' },
+    { key: 'buyerPower', data: data.buyerPower, position: 'bottom-right', icon: '🛒', color: 'blue' },
+    { key: 'substitutes', data: data.substitutes, position: 'bottom-left', icon: '🔄', color: 'green' },
+    { key: 'industryRivalry', data: data.industryRivalry, position: 'center', icon: '⚔️', color: 'red' }
+  ]
+
+  const getStrengthColor = (strength: string) => {
+    switch (strength) {
+      case 'WYSOKA': return { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-700', fill: 'bg-red-500' }
+      case 'ŚREDNIA': return { bg: 'bg-yellow-100', border: 'border-yellow-400', text: 'text-yellow-700', fill: 'bg-yellow-500' }
+      case 'NISKA': return { bg: 'bg-green-100', border: 'border-green-400', text: 'text-green-700', fill: 'bg-green-500' }
+      default: return { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-700', fill: 'bg-gray-500' }
+    }
+  }
+
+  const handleForceClick = (forceKey: string) => {
+    setSelectedForce(selectedForce === forceKey ? null : forceKey)
+    onForceClick?.(forceKey)
+  }
+
+  return (
+    <div className="w-full">
+      {/* Pentagon Layout */}
+      <div className="relative mx-auto" style={{ width: '100%', maxWidth: '700px', height: '500px' }}>
+        {/* Center - Industry Rivalry */}
+        <div
+          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 cursor-pointer transition-all duration-300 ${
+            selectedForce === 'industryRivalry' ? 'z-20 scale-110' : hoveredForce === 'industryRivalry' ? 'z-10 scale-105' : ''
+          }`}
+          onClick={() => handleForceClick('industryRivalry')}
+          onMouseEnter={() => setHoveredForce('industryRivalry')}
+          onMouseLeave={() => setHoveredForce(null)}
+        >
+          <div className={`rounded-xl border-2 p-4 shadow-lg ${getStrengthColor(data.industryRivalry.strength).bg} ${getStrengthColor(data.industryRivalry.strength).border}`}>
+            <div className="text-center">
+              <span className="text-3xl">⚔️</span>
+              <div className="font-bold text-gray-800 mt-2">{data.industryRivalry.name}</div>
+              <div className="text-xs text-gray-500">{data.industryRivalry.englishName}</div>
+              <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold ${getStrengthColor(data.industryRivalry.strength).fill} text-white`}>
+                {data.industryRivalry.strength}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top - Supplier Power */}
+        <div
+          className={`absolute left-1/2 top-4 -translate-x-1/2 w-44 cursor-pointer transition-all duration-300 ${
+            selectedForce === 'supplierPower' ? 'z-20 scale-110' : hoveredForce === 'supplierPower' ? 'z-10 scale-105' : ''
+          }`}
+          onClick={() => handleForceClick('supplierPower')}
+          onMouseEnter={() => setHoveredForce('supplierPower')}
+          onMouseLeave={() => setHoveredForce(null)}
+        >
+          <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.supplierPower.strength).bg} ${getStrengthColor(data.supplierPower.strength).border}`}>
+            <div className="text-center">
+              <span className="text-2xl">🏭</span>
+              <div className="font-semibold text-gray-800 text-sm mt-1">{data.supplierPower.name}</div>
+              <div className="text-xs text-gray-500">{data.supplierPower.englishName}</div>
+              <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.supplierPower.strength).fill} text-white`}>
+                {data.supplierPower.strength}
+              </div>
+            </div>
+          </div>
+          {/* Arrow to center */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-full h-12 w-0.5 bg-gray-300">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 rotate-45 w-2 h-2 border-b-2 border-r-2 border-gray-400"></div>
+          </div>
+        </div>
+
+        {/* Top Right - New Entrants */}
+        <div
+          className={`absolute right-8 top-20 w-44 cursor-pointer transition-all duration-300 ${
+            selectedForce === 'newEntrants' ? 'z-20 scale-110' : hoveredForce === 'newEntrants' ? 'z-10 scale-105' : ''
+          }`}
+          onClick={() => handleForceClick('newEntrants')}
+          onMouseEnter={() => setHoveredForce('newEntrants')}
+          onMouseLeave={() => setHoveredForce(null)}
+        >
+          <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.newEntrants.strength).bg} ${getStrengthColor(data.newEntrants.strength).border}`}>
+            <div className="text-center">
+              <span className="text-2xl">🚪</span>
+              <div className="font-semibold text-gray-800 text-sm mt-1">{data.newEntrants.name}</div>
+              <div className="text-xs text-gray-500">{data.newEntrants.englishName}</div>
+              <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.newEntrants.strength).fill} text-white`}>
+                {data.newEntrants.strength}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Right - Buyer Power */}
+        <div
+          className={`absolute right-8 bottom-24 w-44 cursor-pointer transition-all duration-300 ${
+            selectedForce === 'buyerPower' ? 'z-20 scale-110' : hoveredForce === 'buyerPower' ? 'z-10 scale-105' : ''
+          }`}
+          onClick={() => handleForceClick('buyerPower')}
+          onMouseEnter={() => setHoveredForce('buyerPower')}
+          onMouseLeave={() => setHoveredForce(null)}
+        >
+          <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.buyerPower.strength).bg} ${getStrengthColor(data.buyerPower.strength).border}`}>
+            <div className="text-center">
+              <span className="text-2xl">🛒</span>
+              <div className="font-semibold text-gray-800 text-sm mt-1">{data.buyerPower.name}</div>
+              <div className="text-xs text-gray-500">{data.buyerPower.englishName}</div>
+              <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.buyerPower.strength).fill} text-white`}>
+                {data.buyerPower.strength}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Left - Substitutes */}
+        <div
+          className={`absolute left-8 bottom-24 w-44 cursor-pointer transition-all duration-300 ${
+            selectedForce === 'substitutes' ? 'z-20 scale-110' : hoveredForce === 'substitutes' ? 'z-10 scale-105' : ''
+          }`}
+          onClick={() => handleForceClick('substitutes')}
+          onMouseEnter={() => setHoveredForce('substitutes')}
+          onMouseLeave={() => setHoveredForce(null)}
+        >
+          <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.substitutes.strength).bg} ${getStrengthColor(data.substitutes.strength).border}`}>
+            <div className="text-center">
+              <span className="text-2xl">🔄</span>
+              <div className="font-semibold text-gray-800 text-sm mt-1">{data.substitutes.name}</div>
+              <div className="text-xs text-gray-500">{data.substitutes.englishName}</div>
+              <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.substitutes.strength).fill} text-white`}>
+                {data.substitutes.strength}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Connecting lines to center (visual only) */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: -1 }}>
+          {/* Lines from each force to center */}
+          <line x1="50%" y1="20%" x2="50%" y2="40%" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4" />
+          <line x1="80%" y1="30%" x2="60%" y2="45%" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4" />
+          <line x1="80%" y1="70%" x2="60%" y2="55%" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4" />
+          <line x1="20%" y1="70%" x2="40%" y2="55%" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4" />
+          <line x1="20%" y1="30%" x2="40%" y2="45%" stroke="#d1d5db" strokeWidth="2" strokeDasharray="4" />
+        </svg>
+      </div>
+
+      {/* Selected Force Details */}
+      {selectedForce && (
+        <div className="mt-6 rounded-xl bg-white border-2 border-gray-200 p-6 shadow-md">
+          {forces.filter(f => f.key === selectedForce).map(force => (
+            <div key={force.key}>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-3xl">{force.icon}</span>
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800">{force.data.name}</h3>
+                  <span className="text-sm text-gray-500">{force.data.englishName}</span>
+                </div>
+                <span className={`ml-auto px-3 py-1 rounded-full text-sm font-bold ${getStrengthColor(force.data.strength).fill} text-white`}>
+                  {force.data.strength}
+                </span>
+              </div>
+              <div className="space-y-2">
+                <h4 className="font-semibold text-gray-700 text-sm">Kluczowe czynniki:</h4>
+                <ul className="space-y-2">
+                  {force.data.points.map((point, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${getStrengthColor(force.data.strength).fill}`}></span>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-green-500"></span>
+          <span className="text-gray-600">Niska - korzystne dla firmy</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-yellow-500"></span>
+          <span className="text-gray-600">Średnia - neutralne</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-red-500"></span>
+          <span className="text-gray-600">Wysoka - wyzwanie</span>
+        </div>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="mt-4 text-center text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1">
+          📊 Model Portera - 5 sił wpływających na atrakcyjność branży
+        </span>
+      </div>
+
+      {/* Tip */}
+      <div className="mt-3 text-center text-xs text-gray-400">
+        💡 Kliknij siłę, aby zobaczyć szczegóły
+      </div>
+    </div>
+  )
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -1873,6 +2236,8 @@ export default function ReportViewerPage() {
           {report.sections.map((section, index) => {
             // Check if this is a SWOT section
             const swotData = isSWOTSection(section.title) ? parseSWOTContent(section.content) : null
+            // Check if this is a Porter Five Forces section
+            const porterData = isPorterSection(section.title) ? parsePorterContent(section.content) : null
 
             return (
               <section
@@ -1882,7 +2247,7 @@ export default function ReportViewerPage() {
               >
                 <h2 className="mb-4 text-xl font-semibold text-gray-900">
                   {index + 1}. {section.title}
-                  {swotData && (
+                  {(swotData || porterData) && (
                     <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                       📊 Diagram interaktywny
                     </span>
@@ -1892,6 +2257,9 @@ export default function ReportViewerPage() {
                 {/* SWOT Diagram Visualization */}
                 {swotData ? (
                   <SWOTDiagram data={swotData} />
+                ) : porterData ? (
+                  /* Porter Five Forces Visualization */
+                  <PorterDiagram data={porterData} />
                 ) : (
                   <div className="prose prose-gray max-w-none">
                     {section.content.split('\n').map((paragraph, pIdx) => (
