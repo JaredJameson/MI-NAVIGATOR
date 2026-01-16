@@ -199,4 +199,65 @@ export const searchApi = {
   },
 };
 
+// Company API
+export interface CompanyAddress {
+  city: string;
+  street: string;
+  postal_code: string;
+}
+
+export interface PKDDescription {
+  code: string;
+  name: string;
+  category: string;
+}
+
+export interface CompanyProfile {
+  id: string;
+  name: string;
+  nip: string;
+  krs: string;
+  regon: string;
+  address: CompanyAddress;
+  pkd_codes: string[];
+  pkd_descriptions: PKDDescription[];
+  status: string;
+  founded: string;
+  description?: string;
+  website?: string;
+  employees_range?: string;
+}
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  source_url: string;
+  published_at: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  category: 'general' | 'financial' | 'product' | 'hr' | 'legal';
+}
+
+export interface CompanyNews {
+  company_id: string;
+  company_name: string;
+  news: NewsArticle[];
+  total_count: number;
+}
+
+export const companyApi = {
+  async getCompany(identifier: string): Promise<ApiResponse<CompanyProfile>> {
+    return fetchApi(`/companies/${encodeURIComponent(identifier)}`);
+  },
+
+  async getCompanyNews(identifier: string, limit: number = 10, category?: string): Promise<ApiResponse<CompanyNews>> {
+    let url = `/companies/${encodeURIComponent(identifier)}/news?limit=${limit}`;
+    if (category) {
+      url += `&category=${encodeURIComponent(category)}`;
+    }
+    return fetchApi(url);
+  },
+};
+
 export default fetchApi;
