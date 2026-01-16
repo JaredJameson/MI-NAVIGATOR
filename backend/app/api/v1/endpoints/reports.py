@@ -116,6 +116,63 @@ FADO zajmuje pozycję wśród Top 10 producentów tworzyw sztucznych w Polsce, z
 - Wahania cen ropy naftowej
 - Konkurencja z krajów o niższych kosztach pracy
 - Spowolnienie gospodarcze"""
+            },
+            {
+                "id": "section_5",
+                "title": "Struktura własnościowa",
+                "content": """**Drzewo struktury własnościowej:**
+
+[ROOT] FADO Sp. z o.o. (100%)
+├── [SHAREHOLDER] Plastics Holding S.A. (60%)
+│   ├── [SHAREHOLDER] Euro Polymers GmbH (45%)
+│   │   └── [UBO] Heinrich Schmidt (100%) - Beneficjent rzeczywisty
+│   └── [SHAREHOLDER] Polish Investment Fund S.A. (55%)
+│       └── [UBO] Skarb Państwa (100%) - Beneficjent rzeczywisty
+├── [SHAREHOLDER] Jan Kowalski (25%) - Założyciel
+│   └── [UBO] Jan Kowalski (100%) - Beneficjent rzeczywisty
+└── [SHAREHOLDER] Anna Nowak (15%) - Współzałożyciel
+    └── [UBO] Anna Nowak (100%) - Beneficjent rzeczywisty
+
+**Szczegóły udziałowców:**
+
+Plastics Holding S.A. - 60%
+Typ: Spółka akcyjna
+KRS: 0000234567
+Rola: Większościowy udziałowiec strategiczny
+Opis: Holding inwestycyjny specjalizujący się w branży tworzyw sztucznych
+
+Euro Polymers GmbH - 45% (w Plastics Holding)
+Typ: Spółka zagraniczna
+Kraj: Niemcy
+Rola: Inwestor branżowy
+Opis: Niemiecki producent polimerów, część grupy kapitałowej
+
+Polish Investment Fund S.A. - 55% (w Plastics Holding)
+Typ: Fundusz inwestycyjny
+KRS: 0000345678
+Rola: Inwestor finansowy
+Opis: Państwowy fundusz wspierający rozwój przemysłu
+
+Jan Kowalski - 25%
+Typ: Osoba fizyczna
+Rola: Założyciel i Prezes Zarządu
+Opis: Założyciel firmy, pełni funkcję Prezesa od 1998 roku
+
+Anna Nowak - 15%
+Typ: Osoba fizyczna
+Rola: Współzałożyciel i Członek Zarządu
+Opis: Współzałożycielka, odpowiedzialna za rozwój biznesu
+
+**Beneficjenci rzeczywiści (UBO):**
+- Heinrich Schmidt (poprzez Euro Polymers GmbH → Plastics Holding S.A.)
+- Skarb Państwa (poprzez Polish Investment Fund S.A. → Plastics Holding S.A.)
+- Jan Kowalski (bezpośrednio)
+- Anna Nowak (bezpośrednio)
+
+**Historia zmian własnościowych:**
+- 1998: Założenie przez Jana Kowalskiego (70%) i Annę Nowak (30%)
+- 2010: Wejście Plastics Holding S.A. (40%), rozwodnienie do: Kowalski 42%, Nowak 18%
+- 2018: Zwiększenie udziału Plastics Holding do 60%, obecna struktura"""
             }
         ],
         "sources": [

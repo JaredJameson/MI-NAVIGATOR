@@ -1526,6 +1526,563 @@ function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData;
   )
 }
 
+// ===== OWNERSHIP TREE TYPES AND COMPONENT =====
+
+interface OwnershipNode {
+  id: string
+  name: string
+  type: 'ROOT' | 'SHAREHOLDER' | 'UBO'
+  percentage: number
+  details?: {
+    entityType?: string
+    krs?: string
+    country?: string
+    role?: string
+    description?: string
+  }
+  children: OwnershipNode[]
+}
+
+interface OwnershipData {
+  rootCompany: string
+  tree: OwnershipNode
+  shareholders: {
+    name: string
+    percentage: number
+    type: string
+    krs?: string
+    country?: string
+    role?: string
+    description?: string
+  }[]
+  ubos: {
+    name: string
+    path: string
+    isDirect: boolean
+  }[]
+}
+
+// Parse ownership content
+function parseOwnershipContent(content: string): OwnershipData | null {
+  const lines = content.split('\n')
+
+  // Find the tree structure
+  const treeLines: string[] = []
+  let inTree = false
+  let rootCompanyName = ''
+
+  for (const line of lines) {
+    if (line.includes('[ROOT]')) {
+      inTree = true
+      // Extract root company name and percentage
+      const rootMatch = line.match(/\[ROOT\]\s*(.+?)\s*\((\d+)%\)/)
+      if (rootMatch) {
+        rootCompanyName = rootMatch[1].trim()
+      }
+    }
+
+    if (inTree) {
+      if (line.includes('[ROOT]') || line.includes('[SHAREHOLDER]') || line.includes('[UBO]')) {
+        treeLines.push(line)
+      } else if (line.trim() === '' || line.includes('**Szczegóły')) {
+        inTree = false
+      }
+    }
+  }
+
+  if (!rootCompanyName || treeLines.length === 0) {
+    return null
+  }
+
+  // Parse tree structure
+  function parseTreeLevel(lines: string[], startIdx: number, currentIndent: number): { node: OwnershipNode | null; nextIdx: number } {
+    if (startIdx >= lines.length) {
+      return { node: null, nextIdx: startIdx }
+    }
+
+    const line = lines[startIdx]
+    const indentMatch = line.match(/^[\s│├└─]*/)
+    const indent = indentMatch ? indentMatch[0].length : 0
+
+    // Parse node info
+    const nodeMatch = line.match(/\[(ROOT|SHAREHOLDER|UBO)\]\s*(.+?)\s*\((\d+)%\)(?:\s*-\s*(.+))?/)
+    if (!nodeMatch) {
+      return { node: null, nextIdx: startIdx + 1 }
+    }
+
+    const type = nodeMatch[1] as 'ROOT' | 'SHAREHOLDER' | 'UBO'
+    const name = nodeMatch[2].trim()
+    const percentage = parseInt(nodeMatch[3])
+    const role = nodeMatch[4]?.trim()
+
+    const node: OwnershipNode = {
+      id: `node_${startIdx}`,
+      name,
+      type,
+      percentage,
+      details: role ? { role } : undefined,
+      children: []
+    }
+
+    // Parse children
+    let nextIdx = startIdx + 1
+    while (nextIdx < lines.length) {
+      const nextLine = lines[nextIdx]
+      const nextIndentMatch = nextLine.match(/^[\s│├└─]*/)
+      const nextIndent = nextIndentMatch ? nextIndentMatch[0].length : 0
+
+      if (nextIndent > indent) {
+        const childResult = parseTreeLevel(lines, nextIdx, nextIndent)
+        if (childResult.node) {
+          node.children.push(childResult.node)
+        }
+        nextIdx = childResult.nextIdx
+      } else {
+        break
+      }
+    }
+
+    return { node, nextIdx }
+  }
+
+  const treeResult = parseTreeLevel(treeLines, 0, 0)
+
+  // Parse shareholders details
+  const shareholders: OwnershipData['shareholders'] = []
+  let inShareholders = false
+  let currentShareholder: OwnershipData['shareholders'][0] | null = null
+
+  for (const line of lines) {
+    if (line.includes('**Szczegóły udziałowców:**')) {
+      inShareholders = true
+      continue
+    }
+    if (line.includes('**Beneficjenci rzeczywiści')) {
+      inShareholders = false
+      if (currentShareholder) {
+        shareholders.push(currentShareholder)
+        currentShareholder = null
+      }
+      continue
+    }
+
+    if (inShareholders) {
+      // New shareholder entry
+      const shareholderMatch = line.match(/^(.+?)\s*-\s*(\d+)%(?:\s*\((.+)\))?$/)
+      if (shareholderMatch) {
+        if (currentShareholder) {
+          shareholders.push(currentShareholder)
+        }
+        currentShareholder = {
+          name: shareholderMatch[1].trim(),
+          percentage: parseInt(shareholderMatch[2]),
+          type: '',
+          description: ''
+        }
+        continue
+      }
+
+      // Shareholder details
+      if (currentShareholder && line.startsWith('Typ:')) {
+        currentShareholder.type = line.replace('Typ:', '').trim()
+      } else if (currentShareholder && line.startsWith('KRS:')) {
+        currentShareholder.krs = line.replace('KRS:', '').trim()
+      } else if (currentShareholder && line.startsWith('Kraj:')) {
+        currentShareholder.country = line.replace('Kraj:', '').trim()
+      } else if (currentShareholder && line.startsWith('Rola:')) {
+        currentShareholder.role = line.replace('Rola:', '').trim()
+      } else if (currentShareholder && line.startsWith('Opis:')) {
+        currentShareholder.description = line.replace('Opis:', '').trim()
+      }
+    }
+  }
+
+  // Parse UBOs
+  const ubos: OwnershipData['ubos'] = []
+  let inUbos = false
+
+  for (const line of lines) {
+    if (line.includes('**Beneficjenci rzeczywiści (UBO):**')) {
+      inUbos = true
+      continue
+    }
+    if (line.includes('**Historia zmian')) {
+      inUbos = false
+      continue
+    }
+
+    if (inUbos && line.trim().startsWith('-')) {
+      const uboLine = line.replace('-', '').trim()
+      const uboMatch = uboLine.match(/^(.+?)\s*\((.+)\)$/)
+      if (uboMatch) {
+        const isDirect = uboMatch[2].toLowerCase().includes('bezpośrednio')
+        ubos.push({
+          name: uboMatch[1].trim(),
+          path: uboMatch[2].trim(),
+          isDirect
+        })
+      }
+    }
+  }
+
+  if (!treeResult.node) {
+    return null
+  }
+
+  return {
+    rootCompany: rootCompanyName,
+    tree: treeResult.node,
+    shareholders,
+    ubos
+  }
+}
+
+// Helper function to check if section is Ownership
+function isOwnershipSection(title: string): boolean {
+  const lowerTitle = title.toLowerCase()
+  return lowerTitle.includes('struktura własno') ||
+         lowerTitle.includes('struktura własnośc') ||
+         lowerTitle.includes('ownership') ||
+         (lowerTitle.includes('udziałowc') && lowerTitle.includes('struktur')) ||
+         lowerTitle.includes('beneficjent')
+}
+
+// Ownership Tree Diagram Component
+function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNodeClick?: (node: OwnershipNode) => void }) {
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['node_0']))
+  const [selectedNode, setSelectedNode] = useState<OwnershipNode | null>(null)
+  const [showShareholderDetails, setShowShareholderDetails] = useState(false)
+
+  const toggleNode = (nodeId: string) => {
+    const newExpanded = new Set(expandedNodes)
+    if (newExpanded.has(nodeId)) {
+      newExpanded.delete(nodeId)
+    } else {
+      newExpanded.add(nodeId)
+    }
+    setExpandedNodes(newExpanded)
+  }
+
+  const handleNodeClick = (node: OwnershipNode) => {
+    setSelectedNode(selectedNode?.id === node.id ? null : node)
+    onNodeClick?.(node)
+  }
+
+  const getNodeStyle = (type: 'ROOT' | 'SHAREHOLDER' | 'UBO') => {
+    switch (type) {
+      case 'ROOT':
+        return {
+          bg: 'bg-indigo-500',
+          border: 'border-indigo-600',
+          light: 'bg-indigo-50',
+          text: 'text-indigo-800',
+          icon: '🏢'
+        }
+      case 'SHAREHOLDER':
+        return {
+          bg: 'bg-blue-500',
+          border: 'border-blue-600',
+          light: 'bg-blue-50',
+          text: 'text-blue-800',
+          icon: '📊'
+        }
+      case 'UBO':
+        return {
+          bg: 'bg-green-500',
+          border: 'border-green-600',
+          light: 'bg-green-50',
+          text: 'text-green-800',
+          icon: '👤'
+        }
+    }
+  }
+
+  const renderTreeNode = (node: OwnershipNode, depth: number = 0, isLast: boolean = true): JSX.Element => {
+    const style = getNodeStyle(node.type)
+    const isExpanded = expandedNodes.has(node.id)
+    const hasChildren = node.children.length > 0
+    const isSelected = selectedNode?.id === node.id
+
+    return (
+      <div key={node.id} className="relative">
+        {/* Connection line from parent */}
+        {depth > 0 && (
+          <div className="absolute left-0 top-0 w-8 h-8">
+            <div className="absolute left-0 top-0 bottom-1/2 w-px bg-gray-300"></div>
+            <div className="absolute left-0 top-1/2 right-0 h-px bg-gray-300"></div>
+          </div>
+        )}
+
+        {/* Node */}
+        <div
+          className={`ml-${depth > 0 ? '8' : '0'} mb-2 relative`}
+          style={{ marginLeft: depth > 0 ? '2rem' : '0' }}
+        >
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
+              isSelected
+                ? `${style.light} border-2 ${style.border} shadow-md`
+                : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm'
+            }`}
+            onClick={() => handleNodeClick(node)}
+          >
+            {/* Expand/collapse button */}
+            {hasChildren && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleNode(node.id)
+                }}
+                className="w-5 h-5 flex items-center justify-center rounded bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <svg
+                  className={`h-3 w-3 text-gray-600 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+
+            {/* Node icon */}
+            <span className={`w-8 h-8 flex items-center justify-center rounded-full ${style.bg} text-white text-sm`}>
+              {style.icon}
+            </span>
+
+            {/* Node info */}
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-800">{node.name}</span>
+              <div className="flex items-center gap-2 text-xs">
+                <span className={`px-1.5 py-0.5 rounded ${style.light} ${style.text} font-medium`}>
+                  {node.percentage}%
+                </span>
+                <span className="text-gray-500">
+                  {node.type === 'ROOT' ? 'Spółka' : node.type === 'SHAREHOLDER' ? 'Udziałowiec' : 'Beneficjent rzeczywisty'}
+                </span>
+              </div>
+            </div>
+
+            {/* Role badge */}
+            {node.details?.role && (
+              <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                {node.details.role}
+              </span>
+            )}
+          </div>
+
+          {/* Children */}
+          {hasChildren && isExpanded && (
+            <div className="mt-2 relative">
+              {/* Vertical connector line */}
+              {node.children.length > 1 && (
+                <div
+                  className="absolute left-4 top-0 w-px bg-gray-300"
+                  style={{ height: 'calc(100% - 1rem)' }}
+                ></div>
+              )}
+
+              {node.children.map((child, idx) => (
+                <div key={child.id} className="relative">
+                  {renderTreeNode(child, depth + 1, idx === node.children.length - 1)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full">
+      {/* Legend */}
+      <div className="mb-6 flex flex-wrap items-center justify-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-indigo-500 text-white text-xs">🏢</span>
+          <span className="text-gray-600">Spółka główna</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-500 text-white text-xs">📊</span>
+          <span className="text-gray-600">Udziałowiec</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white text-xs">👤</span>
+          <span className="text-gray-600">Beneficjent rzeczywisty (UBO)</span>
+        </div>
+      </div>
+
+      {/* Tree Visualization */}
+      <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 overflow-x-auto">
+        {renderTreeNode(data.tree)}
+      </div>
+
+      {/* Selected Node Details */}
+      {selectedNode && (
+        <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+              {getNodeStyle(selectedNode.type).icon}
+              {selectedNode.name}
+            </h4>
+            <button
+              onClick={() => setSelectedNode(null)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <span className="text-gray-500">Typ:</span>
+              <span className="ml-2 font-medium">
+                {selectedNode.type === 'ROOT' ? 'Spółka główna' :
+                 selectedNode.type === 'SHAREHOLDER' ? 'Udziałowiec' :
+                 'Beneficjent rzeczywisty'}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500">Udział:</span>
+              <span className="ml-2 font-medium">{selectedNode.percentage}%</span>
+            </div>
+            {selectedNode.details?.role && (
+              <div className="col-span-2">
+                <span className="text-gray-500">Rola:</span>
+                <span className="ml-2 font-medium">{selectedNode.details.role}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Find shareholder details */}
+          {data.shareholders.map((sh, idx) => {
+            if (sh.name === selectedNode.name) {
+              return (
+                <div key={idx} className="mt-3 pt-3 border-t border-gray-100">
+                  {sh.type && (
+                    <div className="text-sm">
+                      <span className="text-gray-500">Typ podmiotu:</span>
+                      <span className="ml-2">{sh.type}</span>
+                    </div>
+                  )}
+                  {sh.krs && (
+                    <div className="text-sm">
+                      <span className="text-gray-500">KRS:</span>
+                      <span className="ml-2 font-mono">{sh.krs}</span>
+                    </div>
+                  )}
+                  {sh.country && (
+                    <div className="text-sm">
+                      <span className="text-gray-500">Kraj:</span>
+                      <span className="ml-2">{sh.country}</span>
+                    </div>
+                  )}
+                  {sh.description && (
+                    <div className="text-sm mt-2">
+                      <span className="text-gray-500">Opis:</span>
+                      <p className="mt-1 text-gray-700">{sh.description}</p>
+                    </div>
+                  )}
+                </div>
+              )
+            }
+            return null
+          })}
+        </div>
+      )}
+
+      {/* UBO Summary */}
+      {data.ubos.length > 0 && (
+        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+            👤 Beneficjenci rzeczywiści (UBO)
+          </h4>
+          <div className="space-y-2">
+            {data.ubos.map((ubo, idx) => (
+              <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-2 border border-green-100">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white text-xs">
+                    {ubo.isDirect ? '✓' : '↗'}
+                  </span>
+                  <span className="font-medium text-gray-800">{ubo.name}</span>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded ${ubo.isDirect ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {ubo.isDirect ? 'Bezpośrednio' : ubo.path}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Shareholders Summary Table */}
+      <div className="mt-4">
+        <button
+          onClick={() => setShowShareholderDetails(!showShareholderDetails)}
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <svg
+            className={`h-4 w-4 transition-transform duration-200 ${showShareholderDetails ? 'rotate-90' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          {showShareholderDetails ? 'Ukryj tabelę udziałowców' : 'Pokaż tabelę udziałowców'}
+        </button>
+
+        {showShareholderDetails && data.shareholders.length > 0 && (
+          <div className="mt-3 overflow-hidden rounded-lg border border-gray-200">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nazwa</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Udział</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typ</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rola</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data.shareholders.map((sh, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900">{sh.name}</td>
+                    <td className="px-4 py-2 text-sm text-gray-600">
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-medium">{sh.percentage}%</span>
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-600">{sh.type || '-'}</td>
+                    <td className="px-4 py-2 text-sm text-gray-600">{sh.role || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Summary Stats */}
+      <div className="mt-4 flex items-center justify-center gap-6 text-xs text-gray-500">
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded bg-blue-500"></span>
+          <span>Udziałowcy: {data.shareholders.length}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded bg-green-500"></span>
+          <span>Beneficjenci: {data.ubos.length}</span>
+        </div>
+      </div>
+
+      {/* Tip */}
+      <div className="mt-3 text-center text-xs text-gray-400">
+        💡 Kliknij węzeł drzewa, aby zobaczyć szczegóły. Użyj strzałek, aby rozwinąć/zwinąć gałęzie.
+      </div>
+    </div>
+  )
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -2950,6 +3507,8 @@ export default function ReportViewerPage() {
             const tamSamSomData = isTAMSAMSOMSection(section.title) ? parseTAMSAMSOMContent(section.content) : null
             // Check if this is a Trend Timeline section
             const trendTimelineData = isTrendTimelineSection(section.title) ? parseTrendTimelineContent(section.content) : null
+            // Check if this is an Ownership section
+            const ownershipData = isOwnershipSection(section.title) ? parseOwnershipContent(section.content) : null
 
             return (
               <section
@@ -2959,7 +3518,7 @@ export default function ReportViewerPage() {
               >
                 <h2 className="mb-4 text-xl font-semibold text-gray-900">
                   {index + 1}. {section.title}
-                  {(swotData || porterData || tamSamSomData || trendTimelineData) && (
+                  {(swotData || porterData || tamSamSomData || trendTimelineData || ownershipData) && (
                     <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                       📊 Diagram interaktywny
                     </span>
@@ -2978,6 +3537,9 @@ export default function ReportViewerPage() {
                 ) : trendTimelineData ? (
                   /* Trend Timeline Visualization */
                   <TrendTimelineDiagram data={trendTimelineData} />
+                ) : ownershipData ? (
+                  /* Ownership Tree Visualization */
+                  <OwnershipTreeDiagram data={ownershipData} />
                 ) : (
                   <div className="prose prose-gray max-w-none">
                     {section.content.split('\n').map((paragraph, pIdx) => (
