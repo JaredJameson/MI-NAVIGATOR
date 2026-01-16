@@ -2083,6 +2083,1087 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
   )
 }
 
+// ===== FINANCIAL RATIO RADAR CHART TYPES AND COMPONENT =====
+
+interface FinancialRatio {
+  name: string
+  shortName: string
+  value: number
+  benchmark: number
+  unit: string
+  description: string
+  category: string
+  isInverted?: boolean // true if lower is better (e.g., debt ratio)
+}
+
+interface FinancialRatiosData {
+  ratios: FinancialRatio[]
+  summary?: string
+}
+
+// Parse financial ratios content
+function parseFinancialRatiosContent(content: string): FinancialRatiosData | null {
+  if (!content.includes('[FINANCIAL_RATIOS_RADAR]') && !content.includes('[RATIO]')) {
+    return null
+  }
+
+  const ratios: FinancialRatio[] = []
+  const lines = content.split('\n')
+
+  let currentCategory = ''
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i].trim()
+
+    // Detect category headers
+    if (line.startsWith('**Wskaźniki rentowności')) {
+      currentCategory = 'Rentowność'
+    } else if (line.startsWith('**Wskaźniki płynności')) {
+      currentCategory = 'Płynność'
+    } else if (line.startsWith('**Wskaźniki zadłużenia')) {
+      currentCategory = 'Zadłużenie'
+    } else if (line.startsWith('**Wskaźniki efektywności')) {
+      currentCategory = 'Efektywność'
+    }
+
+    // Parse ratio entries
+    if (line.startsWith('[RATIO]')) {
+      const nameMatch = line.match(/\[RATIO\]\s*(.+)/)
+      if (nameMatch) {
+        const fullName = nameMatch[1].trim()
+        // Extract short name (first part or abbreviation in parentheses)
+        const shortNameMatch = fullName.match(/\(([^)]+)\)/)
+        const shortName = shortNameMatch ? shortNameMatch[1] : fullName.split(' ')[0]
+
+        // Parse the following lines for value, benchmark, description
+        let value = 0
+        let benchmark = 0
+        let unit = '%'
+        let description = ''
+
+        // Look at next lines for value/benchmark/description
+        for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+          const nextLine = lines[j].trim()
+
+          if (nextLine.startsWith('Wartość:')) {
+            const valueMatch = nextLine.match(/Wartość:\s*([\d.,]+)\s*(%|dni)?/)
+            if (valueMatch) {
+              value = parseFloat(valueMatch[1].replace(',', '.'))
+              if (valueMatch[2]) {
+                unit = valueMatch[2]
+              }
+            }
+          } else if (nextLine.startsWith('Benchmark')) {
+            const benchmarkMatch = nextLine.match(/Benchmark.*?:\s*([\d.,]+)/)
+            if (benchmarkMatch) {
+              benchmark = parseFloat(benchmarkMatch[1].replace(',', '.'))
+            }
+          } else if (nextLine.startsWith('Opis:')) {
+            description = nextLine.replace('Opis:', '').trim()
+          }
+        }
+
+        // Determine if this is an inverted metric (lower is better)
+        const isInverted = fullName.toLowerCase().includes('zadłużeni') ||
+                          fullName.toLowerCase().includes('debt') ||
+                          fullName.toLowerCase().includes('dso')
+
+        ratios.push({
+          name: fullName,
+          shortName,
+          value,
+          benchmark,
+          unit,
+          description,
+          category: currentCategory,
+          isInverted
+        })
+      }
+    }
+
+    i++
+  }
+
+  // Parse summary
+  let summary = ''
+  const summaryMatch = content.match(/\*\*Podsumowanie:\*\*\s*([\s\S]*?)(?:\*\*|$)/)
+  if (summaryMatch) {
+    summary = summaryMatch[1].trim()
+  }
+
+  if (ratios.length === 0) {
+    return null
+  }
+
+  return { ratios, summary }
+}
+
+// Helper function to check if section is Financial Ratios
+function isFinancialRatiosSection(title: string): boolean {
+  const lowerTitle = title.toLowerCase()
+  return (lowerTitle.includes('wskaźnik') && lowerTitle.includes('finans')) ||
+         (lowerTitle.includes('wskaźnik') && lowerTitle.includes('radar')) ||
+         lowerTitle.includes('financial ratio') ||
+         lowerTitle.includes('radar chart')
+}
+
+// Financial Ratio Radar Chart Component
+function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatiosData; onRatioClick?: (ratio: FinancialRatio) => void }) {
+  const [selectedRatio, setSelectedRatio] = useState<FinancialRatio | null>(null)
+  const [hoveredRatio, setHoveredRatio] = useState<string | null>(null)
+  const [showBenchmark, setShowBenchmark] = useState(true)
+
+  // Calculate normalized values (0-100 scale) for radar chart
+  const normalizeValue = (ratio: FinancialRatio): number => {
+    // For percentage values, use them directly (capped at 100)
+    if (ratio.unit === '%') {
+      if (ratio.isInverted) {
+        // For inverted metrics (lower is better), inverse the scale
+        return Math.max(0, Math.min(100, 100 - ratio.value))
+      }
+      return Math.min(100, ratio.value * 3) // Scale up smaller percentages
+    }
+    // For ratio values (like 2.1), multiply by a factor
+    if (ratio.unit === 'dni') {
+      // Days - inverse scale (fewer days is better)
+      return Math.max(0, Math.min(100, 100 - ratio.value))
+    }
+    // Generic ratio normalization
+    if (ratio.isInverted) {
+      return Math.max(0, Math.min(100, 100 - ratio.value * 20))
+    }
+    return Math.min(100, ratio.value * 20)
+  }
+
+  const normalizeBenchmark = (ratio: FinancialRatio): number => {
+    if (ratio.unit === '%') {
+      if (ratio.isInverted) {
+        return Math.max(0, Math.min(100, 100 - ratio.benchmark))
+      }
+      return Math.min(100, ratio.benchmark * 3)
+    }
+    if (ratio.unit === 'dni') {
+      return Math.max(0, Math.min(100, 100 - ratio.benchmark))
+    }
+    if (ratio.isInverted) {
+      return Math.max(0, Math.min(100, 100 - ratio.benchmark * 20))
+    }
+    return Math.min(100, ratio.benchmark * 20)
+  }
+
+  // SVG radar chart parameters
+  const centerX = 200
+  const centerY = 200
+  const maxRadius = 150
+  const numAxes = data.ratios.length
+  const angleStep = (2 * Math.PI) / numAxes
+
+  // Generate polygon points for values
+  const getPolygonPoints = (getValue: (ratio: FinancialRatio) => number): string => {
+    return data.ratios.map((ratio, index) => {
+      const angle = index * angleStep - Math.PI / 2 // Start from top
+      const normalizedValue = getValue(ratio)
+      const radius = (normalizedValue / 100) * maxRadius
+      const x = centerX + radius * Math.cos(angle)
+      const y = centerY + radius * Math.sin(angle)
+      return `${x},${y}`
+    }).join(' ')
+  }
+
+  // Generate axis lines
+  const getAxisEndpoint = (index: number): { x: number; y: number } => {
+    const angle = index * angleStep - Math.PI / 2
+    return {
+      x: centerX + maxRadius * Math.cos(angle),
+      y: centerY + maxRadius * Math.sin(angle)
+    }
+  }
+
+  // Get label position (slightly outside the chart)
+  const getLabelPosition = (index: number): { x: number; y: number; anchor: string } => {
+    const angle = index * angleStep - Math.PI / 2
+    const labelRadius = maxRadius + 35
+    const x = centerX + labelRadius * Math.cos(angle)
+    const y = centerY + labelRadius * Math.sin(angle)
+
+    let anchor = 'middle'
+    if (x < centerX - 20) anchor = 'end'
+    else if (x > centerX + 20) anchor = 'start'
+
+    return { x, y, anchor }
+  }
+
+  const getCategoryColor = (category: string): string => {
+    switch (category) {
+      case 'Rentowność': return '#22c55e' // green
+      case 'Płynność': return '#3b82f6' // blue
+      case 'Zadłużenie': return '#ef4444' // red
+      case 'Efektywność': return '#f59e0b' // amber
+      default: return '#6b7280' // gray
+    }
+  }
+
+  const handleRatioClick = (ratio: FinancialRatio) => {
+    setSelectedRatio(selectedRatio?.name === ratio.name ? null : ratio)
+    onRatioClick?.(ratio)
+  }
+
+  // Calculate comparison status
+  const getComparisonStatus = (ratio: FinancialRatio): { label: string; color: string; icon: string } => {
+    const diff = ratio.isInverted
+      ? ratio.benchmark - ratio.value  // For inverted, lower value is better
+      : ratio.value - ratio.benchmark
+
+    if (diff > 0) {
+      return { label: 'Powyżej benchmarku', color: 'text-green-600', icon: '▲' }
+    } else if (diff < 0) {
+      return { label: 'Poniżej benchmarku', color: 'text-red-600', icon: '▼' }
+    }
+    return { label: 'Na poziomie benchmarku', color: 'text-gray-600', icon: '●' }
+  }
+
+  return (
+    <div className="w-full">
+      {/* Toggle benchmark overlay */}
+      <div className="flex justify-end mb-4">
+        <label className="inline-flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showBenchmark}
+            onChange={(e) => setShowBenchmark(e.target.checked)}
+            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+          />
+          <span className="text-sm text-gray-600">Pokaż benchmark branżowy</span>
+        </label>
+      </div>
+
+      {/* Radar Chart SVG */}
+      <div className="flex justify-center">
+        <svg viewBox="0 0 400 400" className="w-full max-w-lg">
+          {/* Background circles (grid) */}
+          {[0.25, 0.5, 0.75, 1].map((scale) => (
+            <circle
+              key={scale}
+              cx={centerX}
+              cy={centerY}
+              r={maxRadius * scale}
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth="1"
+              strokeDasharray={scale === 1 ? "0" : "4"}
+            />
+          ))}
+
+          {/* Axis lines */}
+          {data.ratios.map((ratio, index) => {
+            const endpoint = getAxisEndpoint(index)
+            return (
+              <line
+                key={`axis-${index}`}
+                x1={centerX}
+                y1={centerY}
+                x2={endpoint.x}
+                y2={endpoint.y}
+                stroke="#d1d5db"
+                strokeWidth="1"
+              />
+            )
+          })}
+
+          {/* Benchmark polygon (if enabled) */}
+          {showBenchmark && (
+            <polygon
+              points={getPolygonPoints(normalizeBenchmark)}
+              fill="rgba(156, 163, 175, 0.2)"
+              stroke="#9ca3af"
+              strokeWidth="2"
+              strokeDasharray="5,5"
+            />
+          )}
+
+          {/* Value polygon */}
+          <polygon
+            points={getPolygonPoints(normalizeValue)}
+            fill="rgba(59, 130, 246, 0.3)"
+            stroke="#3b82f6"
+            strokeWidth="2"
+          />
+
+          {/* Data points */}
+          {data.ratios.map((ratio, index) => {
+            const angle = index * angleStep - Math.PI / 2
+            const normalizedValue = normalizeValue(ratio)
+            const radius = (normalizedValue / 100) * maxRadius
+            const x = centerX + radius * Math.cos(angle)
+            const y = centerY + radius * Math.sin(angle)
+            const isHovered = hoveredRatio === ratio.name
+            const isSelected = selectedRatio?.name === ratio.name
+
+            return (
+              <g key={`point-${index}`}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={isHovered || isSelected ? 8 : 6}
+                  fill={getCategoryColor(ratio.category)}
+                  stroke="white"
+                  strokeWidth="2"
+                  className="cursor-pointer transition-all duration-200"
+                  onMouseEnter={() => setHoveredRatio(ratio.name)}
+                  onMouseLeave={() => setHoveredRatio(null)}
+                  onClick={() => handleRatioClick(ratio)}
+                />
+                {/* Benchmark point */}
+                {showBenchmark && (
+                  <circle
+                    cx={centerX + ((normalizeBenchmark(ratio) / 100) * maxRadius) * Math.cos(angle)}
+                    cy={centerY + ((normalizeBenchmark(ratio) / 100) * maxRadius) * Math.sin(angle)}
+                    r={4}
+                    fill="none"
+                    stroke="#9ca3af"
+                    strokeWidth="2"
+                  />
+                )}
+              </g>
+            )
+          })}
+
+          {/* Labels */}
+          {data.ratios.map((ratio, index) => {
+            const { x, y, anchor } = getLabelPosition(index)
+            const isHovered = hoveredRatio === ratio.name
+            const isSelected = selectedRatio?.name === ratio.name
+
+            return (
+              <text
+                key={`label-${index}`}
+                x={x}
+                y={y}
+                textAnchor={anchor}
+                className={`text-xs cursor-pointer transition-all duration-200 ${
+                  isHovered || isSelected ? 'font-bold' : ''
+                }`}
+                fill={isHovered || isSelected ? getCategoryColor(ratio.category) : '#4b5563'}
+                onMouseEnter={() => setHoveredRatio(ratio.name)}
+                onMouseLeave={() => setHoveredRatio(null)}
+                onClick={() => handleRatioClick(ratio)}
+              >
+                {ratio.shortName}
+              </text>
+            )
+          })}
+
+          {/* Center label */}
+          <text
+            x={centerX}
+            y={centerY}
+            textAnchor="middle"
+            className="text-xs"
+            fill="#9ca3af"
+          >
+            Wskaźniki
+          </text>
+        </svg>
+      </div>
+
+      {/* Legend */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-green-500"></span>
+          <span className="text-gray-600">Rentowność</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-blue-500"></span>
+          <span className="text-gray-600">Płynność</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-red-500"></span>
+          <span className="text-gray-600">Zadłużenie</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-amber-500"></span>
+          <span className="text-gray-600">Efektywność</span>
+        </div>
+        {showBenchmark && (
+          <>
+            <span className="text-gray-300">|</span>
+            <div className="flex items-center gap-2">
+              <span className="h-0.5 w-4 bg-gray-400" style={{ borderStyle: 'dashed', borderWidth: '2px' }}></span>
+              <span className="text-gray-600">Benchmark branżowy</span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Ratio Values Table */}
+      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        {data.ratios.map((ratio) => {
+          const comparison = getComparisonStatus(ratio)
+          const isSelected = selectedRatio?.name === ratio.name
+
+          return (
+            <div
+              key={ratio.name}
+              className={`p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                isSelected
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+              onClick={() => handleRatioClick(ratio)}
+            >
+              <div className="text-xs text-gray-500 mb-1">{ratio.shortName}</div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-bold text-gray-800">
+                  {ratio.value}
+                </span>
+                <span className="text-sm text-gray-500">{ratio.unit}</span>
+              </div>
+              <div className={`text-xs ${comparison.color} flex items-center gap-1`}>
+                <span>{comparison.icon}</span>
+                <span>vs {ratio.benchmark}{ratio.unit}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Selected Ratio Details */}
+      {selectedRatio && (
+        <div className="mt-6 rounded-xl bg-white border-2 border-blue-200 p-6 shadow-md">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="font-bold text-lg text-gray-800">{selectedRatio.name}</h3>
+              <span className="text-sm text-gray-500">{selectedRatio.category}</span>
+            </div>
+            <span
+              className="h-4 w-4 rounded"
+              style={{ backgroundColor: getCategoryColor(selectedRatio.category) }}
+            ></span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500">Wartość firmy</div>
+              <div className="text-2xl font-bold text-gray-800">
+                {selectedRatio.value}{selectedRatio.unit}
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="text-sm text-gray-500">Benchmark branżowy</div>
+              <div className="text-2xl font-bold text-gray-500">
+                {selectedRatio.benchmark}{selectedRatio.unit}
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <div className="text-sm font-semibold text-gray-700 mb-2">Porównanie z benchmarkiem:</div>
+            <div className={`flex items-center gap-2 ${getComparisonStatus(selectedRatio).color}`}>
+              <span className="text-xl">{getComparisonStatus(selectedRatio).icon}</span>
+              <span className="font-medium">{getComparisonStatus(selectedRatio).label}</span>
+              {!selectedRatio.isInverted ? (
+                <span className="text-sm">
+                  ({selectedRatio.value > selectedRatio.benchmark ? '+' : ''}
+                  {(selectedRatio.value - selectedRatio.benchmark).toFixed(1)}{selectedRatio.unit})
+                </span>
+              ) : (
+                <span className="text-sm">
+                  ({selectedRatio.value < selectedRatio.benchmark ? '+' : ''}
+                  {(selectedRatio.benchmark - selectedRatio.value).toFixed(1)}{selectedRatio.unit} lepiej)
+                </span>
+              )}
+            </div>
+          </div>
+
+          {selectedRatio.description && (
+            <div className="text-sm text-gray-600 bg-blue-50 rounded-lg p-3">
+              <strong>Opis:</strong> {selectedRatio.description}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Summary */}
+      {data.summary && (
+        <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">📊</span>
+            <div>
+              <div className="font-semibold text-gray-800 mb-1">Podsumowanie analizy</div>
+              <div className="text-sm text-gray-600">{data.summary}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats summary */}
+      <div className="mt-6 text-center text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1">
+          📊 Wykres radarowy - {data.ratios.length} wskaźników finansowych
+          {showBenchmark && ' z benchmarkiem branżowym'}
+        </span>
+      </div>
+
+      {/* Tip */}
+      <div className="mt-3 text-center text-xs text-gray-400">
+        💡 Kliknij punkt lub kafelek, aby zobaczyć szczegóły wskaźnika
+      </div>
+    </div>
+  )
+}
+
+// ===== COMPETITOR POSITIONING MAP TYPES AND COMPONENT =====
+
+interface Competitor {
+  name: string
+  x: number
+  y: number
+  revenue: string
+  segment: string
+  description: string
+}
+
+interface PositioningMapData {
+  xAxisLabel: string
+  yAxisLabel: string
+  xMin: number
+  xMax: number
+  yMin: number
+  yMax: number
+  competitors: Competitor[]
+  legend: { segment: string; color: string; description: string }[]
+  quadrantAnalysis: string[]
+  conclusions: string[]
+}
+
+// Parse Competitor Positioning Map content
+function parsePositioningMapContent(content: string): PositioningMapData | null {
+  const lines = content.split('\n')
+
+  let xAxisLabel = 'Udział w rynku (%)'
+  let yAxisLabel = 'Innowacyjność'
+  let xMin = 0, xMax = 15, yMin = 0, yMax = 10
+  const competitors: Competitor[] = []
+  const legend: { segment: string; color: string; description: string }[] = []
+  const quadrantAnalysis: string[] = []
+  const conclusions: string[] = []
+
+  let currentCompetitor: Partial<Competitor> | null = null
+  let inLegend = false
+  let inAnalysis = false
+  let inConclusions = false
+
+  for (const line of lines) {
+    const trimmedLine = line.trim()
+
+    // Parse axis definitions
+    if (trimmedLine.startsWith('Oś X:')) {
+      const match = trimmedLine.match(/Oś X:\s*([^|]+)\|\s*min:\s*([\d.]+)\s*\|\s*max:\s*([\d.]+)/)
+      if (match) {
+        xAxisLabel = match[1].trim()
+        xMin = parseFloat(match[2])
+        xMax = parseFloat(match[3])
+      }
+    } else if (trimmedLine.startsWith('Oś Y:')) {
+      const match = trimmedLine.match(/Oś Y:\s*([^|]+)\|\s*min:\s*([\d.]+)\s*\|\s*max:\s*([\d.]+)/)
+      if (match) {
+        yAxisLabel = match[1].trim()
+        yMin = parseFloat(match[2])
+        yMax = parseFloat(match[3])
+      }
+    }
+    // Parse competitor entry
+    else if (trimmedLine.startsWith('[COMPETITOR]')) {
+      // Save previous competitor if exists
+      if (currentCompetitor && currentCompetitor.name) {
+        competitors.push(currentCompetitor as Competitor)
+      }
+      currentCompetitor = {
+        name: trimmedLine.replace('[COMPETITOR]', '').trim(),
+        x: 0,
+        y: 0,
+        revenue: '',
+        segment: '',
+        description: ''
+      }
+    }
+    else if (currentCompetitor) {
+      if (trimmedLine.startsWith('Pozycja:')) {
+        const match = trimmedLine.match(/Pozycja:\s*([\d.]+),\s*([\d.]+)/)
+        if (match) {
+          currentCompetitor.x = parseFloat(match[1])
+          currentCompetitor.y = parseFloat(match[2])
+        }
+      } else if (trimmedLine.startsWith('Przychody:')) {
+        currentCompetitor.revenue = trimmedLine.replace('Przychody:', '').trim()
+      } else if (trimmedLine.startsWith('Segment:')) {
+        currentCompetitor.segment = trimmedLine.replace('Segment:', '').trim()
+      } else if (trimmedLine.startsWith('Opis:')) {
+        currentCompetitor.description = trimmedLine.replace('Opis:', '').trim()
+      }
+    }
+
+    // Parse legend
+    if (trimmedLine.includes('Legenda segmentów') || trimmedLine.includes('**Legenda')) {
+      inLegend = true
+      inAnalysis = false
+      inConclusions = false
+      // Save last competitor before legend
+      if (currentCompetitor && currentCompetitor.name) {
+        competitors.push(currentCompetitor as Competitor)
+        currentCompetitor = null
+      }
+      continue
+    }
+
+    if (inLegend && trimmedLine.match(/^[🟦🟩🟨🟪🟧🟥⬜]/)) {
+      const parts = trimmedLine.split(' - ')
+      if (parts.length >= 2) {
+        const segment = parts[0].replace(/[🟦🟩🟨🟪🟧🟥⬜]\s*/, '').trim()
+        const description = parts.slice(1).join(' - ').trim()
+        const colorMap: { [key: string]: string } = {
+          '🟦': '#3B82F6',
+          '🟩': '#22C55E',
+          '🟨': '#EAB308',
+          '🟪': '#A855F7',
+          '🟧': '#F97316',
+          '🟥': '#EF4444',
+          '⬜': '#6B7280'
+        }
+        const emoji = trimmedLine.match(/^[🟦🟩🟨🟪🟧🟥⬜]/)?.[0] || '⬜'
+        legend.push({ segment, color: colorMap[emoji] || '#6B7280', description })
+      }
+    }
+
+    // Parse quadrant analysis
+    if (trimmedLine.includes('Analiza pozycjonowania') || trimmedLine.includes('**Analiza')) {
+      inLegend = false
+      inAnalysis = true
+      inConclusions = false
+      continue
+    }
+
+    if (inAnalysis && trimmedLine.startsWith('- Kwadrant')) {
+      quadrantAnalysis.push(trimmedLine.substring(2))
+    }
+
+    // Parse conclusions
+    if (trimmedLine.includes('**Wnioski') || trimmedLine.includes('Wnioski:')) {
+      inLegend = false
+      inAnalysis = false
+      inConclusions = true
+      continue
+    }
+
+    if (inConclusions && /^\d+\./.test(trimmedLine)) {
+      conclusions.push(trimmedLine.replace(/^\d+\.\s*/, ''))
+    }
+  }
+
+  // Save last competitor if not yet saved
+  if (currentCompetitor && currentCompetitor.name) {
+    competitors.push(currentCompetitor as Competitor)
+  }
+
+  if (competitors.length === 0) {
+    return null
+  }
+
+  return {
+    xAxisLabel,
+    yAxisLabel,
+    xMin,
+    xMax,
+    yMin,
+    yMax,
+    competitors,
+    legend,
+    quadrantAnalysis,
+    conclusions
+  }
+}
+
+// Helper function to check if section is Competitor Positioning Map
+function isPositioningMapSection(title: string): boolean {
+  const lowerTitle = title.toLowerCase()
+  return (lowerTitle.includes('pozycjonowanie') && lowerTitle.includes('konkurent')) ||
+         (lowerTitle.includes('mapa') && lowerTitle.includes('konkurent')) ||
+         (lowerTitle.includes('positioning') && lowerTitle.includes('map')) ||
+         (lowerTitle.includes('competitor') && lowerTitle.includes('position'))
+}
+
+// Competitor Positioning Map Component
+function CompetitorPositioningMap({ data, onCompetitorClick }: { data: PositioningMapData; onCompetitorClick?: (competitor: Competitor) => void }) {
+  const [selectedCompetitor, setSelectedCompetitor] = useState<Competitor | null>(null)
+  const [hoveredCompetitor, setHoveredCompetitor] = useState<Competitor | null>(null)
+
+  // Plot dimensions
+  const plotWidth = 600
+  const plotHeight = 400
+  const padding = { top: 30, right: 30, bottom: 60, left: 60 }
+  const innerWidth = plotWidth - padding.left - padding.right
+  const innerHeight = plotHeight - padding.top - padding.bottom
+
+  // Scale functions
+  const scaleX = (value: number): number => {
+    return padding.left + ((value - data.xMin) / (data.xMax - data.xMin)) * innerWidth
+  }
+
+  const scaleY = (value: number): number => {
+    return plotHeight - padding.bottom - ((value - data.yMin) / (data.yMax - data.yMin)) * innerHeight
+  }
+
+  // Get segment color
+  const getSegmentColor = (segment: string): string => {
+    const found = data.legend.find(l => l.segment.toLowerCase() === segment.toLowerCase())
+    if (found) return found.color
+
+    // Default colors based on keywords
+    if (segment.toLowerCase().includes('enterprise') || segment.toLowerCase().includes('software')) return '#3B82F6'
+    if (segment.toLowerCase().includes('saas')) return '#22C55E'
+    if (segment.toLowerCase().includes('gaming') || segment.toLowerCase().includes('gier')) return '#EAB308'
+    if (segment.toLowerCase().includes('e-commerce') || segment.toLowerCase().includes('commerce')) return '#A855F7'
+    if (segment.toLowerCase().includes('hr')) return '#F97316'
+    if (segment.toLowerCase().includes('health')) return '#EF4444'
+    return '#6B7280'
+  }
+
+  // Calculate bubble size based on revenue
+  const getBubbleSize = (revenue: string): number => {
+    const match = revenue.match(/([\d,]+)/)?.[1]
+    if (!match) return 20
+    const value = parseFloat(match.replace(/,/g, ''))
+    // Scale: 100 -> 15px, 15000 -> 50px
+    const minSize = 15
+    const maxSize = 50
+    const size = minSize + (Math.log10(value + 1) / Math.log10(20000)) * (maxSize - minSize)
+    return Math.max(minSize, Math.min(maxSize, size))
+  }
+
+  const handleCompetitorClick = (competitor: Competitor) => {
+    setSelectedCompetitor(selectedCompetitor?.name === competitor.name ? null : competitor)
+    onCompetitorClick?.(competitor)
+  }
+
+  // Grid lines for X axis
+  const xGridLines = []
+  const xStep = (data.xMax - data.xMin) / 5
+  for (let i = 0; i <= 5; i++) {
+    const value = data.xMin + i * xStep
+    xGridLines.push(value)
+  }
+
+  // Grid lines for Y axis
+  const yGridLines = []
+  const yStep = (data.yMax - data.yMin) / 5
+  for (let i = 0; i <= 5; i++) {
+    const value = data.yMin + i * yStep
+    yGridLines.push(value)
+  }
+
+  // Quadrant dividers (middle)
+  const midX = (data.xMax + data.xMin) / 2
+  const midY = (data.yMax + data.yMin) / 2
+
+  return (
+    <div className="w-full">
+      {/* Legend */}
+      <div className="mb-4 flex flex-wrap items-center justify-center gap-3 text-sm">
+        {data.legend.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: item.color }}
+            ></span>
+            <span className="text-gray-600">{item.segment}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Scatter Plot SVG */}
+      <div className="flex justify-center">
+        <svg
+          viewBox={`0 0 ${plotWidth} ${plotHeight}`}
+          className="w-full max-w-2xl"
+          style={{ maxHeight: '450px' }}
+        >
+          {/* Background */}
+          <rect
+            x={padding.left}
+            y={padding.top}
+            width={innerWidth}
+            height={innerHeight}
+            fill="#F8FAFC"
+            stroke="#E2E8F0"
+          />
+
+          {/* Grid lines */}
+          {xGridLines.map((value, idx) => (
+            <line
+              key={`x-grid-${idx}`}
+              x1={scaleX(value)}
+              y1={padding.top}
+              x2={scaleX(value)}
+              y2={plotHeight - padding.bottom}
+              stroke="#E2E8F0"
+              strokeDasharray="4,4"
+            />
+          ))}
+          {yGridLines.map((value, idx) => (
+            <line
+              key={`y-grid-${idx}`}
+              x1={padding.left}
+              y1={scaleY(value)}
+              x2={plotWidth - padding.right}
+              y2={scaleY(value)}
+              stroke="#E2E8F0"
+              strokeDasharray="4,4"
+            />
+          ))}
+
+          {/* Quadrant dividers */}
+          <line
+            x1={scaleX(midX)}
+            y1={padding.top}
+            x2={scaleX(midX)}
+            y2={plotHeight - padding.bottom}
+            stroke="#94A3B8"
+            strokeWidth="1.5"
+            strokeDasharray="8,4"
+          />
+          <line
+            x1={padding.left}
+            y1={scaleY(midY)}
+            x2={plotWidth - padding.right}
+            y2={scaleY(midY)}
+            stroke="#94A3B8"
+            strokeWidth="1.5"
+            strokeDasharray="8,4"
+          />
+
+          {/* Quadrant labels */}
+          <text x={padding.left + 10} y={padding.top + 20} fill="#64748B" fontSize="10" fontWeight="500">
+            Innowatorzy
+          </text>
+          <text x={plotWidth - padding.right - 60} y={padding.top + 20} fill="#64748B" fontSize="10" fontWeight="500">
+            Liderzy
+          </text>
+          <text x={padding.left + 10} y={plotHeight - padding.bottom - 10} fill="#64748B" fontSize="10" fontWeight="500">
+            Nisza
+          </text>
+          <text x={plotWidth - padding.right - 80} y={plotHeight - padding.bottom - 10} fill="#64748B" fontSize="10" fontWeight="500">
+            Konsolidatorzy
+          </text>
+
+          {/* X Axis */}
+          <line
+            x1={padding.left}
+            y1={plotHeight - padding.bottom}
+            x2={plotWidth - padding.right}
+            y2={plotHeight - padding.bottom}
+            stroke="#334155"
+            strokeWidth="2"
+          />
+          {/* X Axis Label */}
+          <text
+            x={plotWidth / 2}
+            y={plotHeight - 15}
+            textAnchor="middle"
+            fill="#334155"
+            fontSize="12"
+            fontWeight="500"
+          >
+            {data.xAxisLabel}
+          </text>
+          {/* X Axis Ticks */}
+          {xGridLines.map((value, idx) => (
+            <g key={`x-tick-${idx}`}>
+              <line
+                x1={scaleX(value)}
+                y1={plotHeight - padding.bottom}
+                x2={scaleX(value)}
+                y2={plotHeight - padding.bottom + 5}
+                stroke="#334155"
+              />
+              <text
+                x={scaleX(value)}
+                y={plotHeight - padding.bottom + 18}
+                textAnchor="middle"
+                fill="#64748B"
+                fontSize="10"
+              >
+                {value.toFixed(1)}
+              </text>
+            </g>
+          ))}
+
+          {/* Y Axis */}
+          <line
+            x1={padding.left}
+            y1={padding.top}
+            x2={padding.left}
+            y2={plotHeight - padding.bottom}
+            stroke="#334155"
+            strokeWidth="2"
+          />
+          {/* Y Axis Label */}
+          <text
+            x={15}
+            y={plotHeight / 2}
+            textAnchor="middle"
+            fill="#334155"
+            fontSize="12"
+            fontWeight="500"
+            transform={`rotate(-90, 15, ${plotHeight / 2})`}
+          >
+            {data.yAxisLabel}
+          </text>
+          {/* Y Axis Ticks */}
+          {yGridLines.map((value, idx) => (
+            <g key={`y-tick-${idx}`}>
+              <line
+                x1={padding.left - 5}
+                y1={scaleY(value)}
+                x2={padding.left}
+                y2={scaleY(value)}
+                stroke="#334155"
+              />
+              <text
+                x={padding.left - 10}
+                y={scaleY(value) + 4}
+                textAnchor="end"
+                fill="#64748B"
+                fontSize="10"
+              >
+                {value.toFixed(1)}
+              </text>
+            </g>
+          ))}
+
+          {/* Competitor bubbles */}
+          {data.competitors.map((competitor, idx) => {
+            const cx = scaleX(competitor.x)
+            const cy = scaleY(competitor.y)
+            const r = getBubbleSize(competitor.revenue)
+            const color = getSegmentColor(competitor.segment)
+            const isSelected = selectedCompetitor?.name === competitor.name
+            const isHovered = hoveredCompetitor?.name === competitor.name
+
+            return (
+              <g
+                key={idx}
+                onClick={() => handleCompetitorClick(competitor)}
+                onMouseEnter={() => setHoveredCompetitor(competitor)}
+                onMouseLeave={() => setHoveredCompetitor(null)}
+                style={{ cursor: 'pointer' }}
+              >
+                {/* Bubble */}
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={r}
+                  fill={color}
+                  fillOpacity={isSelected || isHovered ? 0.9 : 0.7}
+                  stroke={isSelected ? '#1E293B' : isHovered ? '#475569' : 'white'}
+                  strokeWidth={isSelected ? 3 : isHovered ? 2 : 1.5}
+                  className="transition-all duration-200"
+                />
+                {/* Company name label */}
+                <text
+                  x={cx}
+                  y={cy - r - 5}
+                  textAnchor="middle"
+                  fill="#1E293B"
+                  fontSize="9"
+                  fontWeight="500"
+                >
+                  {competitor.name.split(' ')[0]}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+
+      {/* Tooltip / Details panel */}
+      {(selectedCompetitor || hoveredCompetitor) && (
+        <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3 mb-2">
+            <span
+              className="h-4 w-4 rounded-full"
+              style={{ backgroundColor: getSegmentColor((selectedCompetitor || hoveredCompetitor)!.segment) }}
+            ></span>
+            <span className="font-semibold text-gray-900">
+              {(selectedCompetitor || hoveredCompetitor)!.name}
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+              {(selectedCompetitor || hoveredCompetitor)!.segment}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-gray-500">Przychody:</span>{' '}
+              <span className="font-medium text-gray-900">{(selectedCompetitor || hoveredCompetitor)!.revenue}</span>
+            </div>
+            <div>
+              <span className="text-gray-500">Pozycja:</span>{' '}
+              <span className="font-medium text-gray-900">
+                X: {(selectedCompetitor || hoveredCompetitor)!.x.toFixed(1)}, Y: {(selectedCompetitor || hoveredCompetitor)!.y.toFixed(1)}
+              </span>
+            </div>
+          </div>
+          <p className="mt-2 text-sm text-gray-600">
+            {(selectedCompetitor || hoveredCompetitor)!.description}
+          </p>
+        </div>
+      )}
+
+      {/* Quadrant Analysis */}
+      {data.quadrantAnalysis.length > 0 && (
+        <div className="mt-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
+          <h4 className="font-semibold text-gray-800 mb-2">📊 Analiza kwadrantów</h4>
+          <ul className="text-sm text-gray-600 space-y-1">
+            {data.quadrantAnalysis.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="text-indigo-500 mt-1">•</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Conclusions */}
+      {data.conclusions.length > 0 && (
+        <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+          <h4 className="font-semibold text-blue-800 mb-2">💡 Wnioski</h4>
+          <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+            {data.conclusions.map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="mt-4 flex justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700">
+          <span className="font-medium">Konkurenci: {data.competitors.length}</span>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700">
+          <span className="font-medium">Segmenty: {data.legend.length}</span>
+        </div>
+      </div>
+
+      {/* Tip */}
+      <div className="mt-3 text-center text-xs text-gray-400">
+        💡 Kliknij na bąbelek, aby zobaczyć szczegóły firmy. Rozmiar bąbelka odzwierciedla przychody.
+      </div>
+    </div>
+  )
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -3509,6 +4590,10 @@ export default function ReportViewerPage() {
             const trendTimelineData = isTrendTimelineSection(section.title) ? parseTrendTimelineContent(section.content) : null
             // Check if this is an Ownership section
             const ownershipData = isOwnershipSection(section.title) ? parseOwnershipContent(section.content) : null
+            // Check if this is a Competitor Positioning Map section
+            const positioningMapData = isPositioningMapSection(section.title) ? parsePositioningMapContent(section.content) : null
+            // Check if this is a Financial Ratios Radar section
+            const financialRatiosData = isFinancialRatiosSection(section.title) ? parseFinancialRatiosContent(section.content) : null
 
             return (
               <section
@@ -3518,7 +4603,7 @@ export default function ReportViewerPage() {
               >
                 <h2 className="mb-4 text-xl font-semibold text-gray-900">
                   {index + 1}. {section.title}
-                  {(swotData || porterData || tamSamSomData || trendTimelineData || ownershipData) && (
+                  {(swotData || porterData || tamSamSomData || trendTimelineData || ownershipData || positioningMapData || financialRatiosData) && (
                     <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                       📊 Diagram interaktywny
                     </span>
@@ -3540,6 +4625,12 @@ export default function ReportViewerPage() {
                 ) : ownershipData ? (
                   /* Ownership Tree Visualization */
                   <OwnershipTreeDiagram data={ownershipData} />
+                ) : positioningMapData ? (
+                  /* Competitor Positioning Map Visualization */
+                  <CompetitorPositioningMap data={positioningMapData} />
+                ) : financialRatiosData ? (
+                  /* Financial Ratio Radar Chart Visualization */
+                  <FinancialRatioRadarChart data={financialRatiosData} />
                 ) : (
                   <div className="prose prose-gray max-w-none">
                     {section.content.split('\n').map((paragraph, pIdx) => (

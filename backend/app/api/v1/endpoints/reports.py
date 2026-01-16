@@ -118,6 +118,63 @@ FADO zajmuje pozycję wśród Top 10 producentów tworzyw sztucznych w Polsce, z
 - Spowolnienie gospodarcze"""
             },
             {
+                "id": "section_6",
+                "title": "Wskaźniki finansowe - Radar",
+                "content": """[FINANCIAL_RATIOS_RADAR]
+
+**Wskaźniki rentowności:**
+[RATIO] ROE (Return on Equity)
+Wartość: 18.2%
+Benchmark branżowy: 15.0%
+Opis: Zwrot z kapitału własnego - mierzy efektywność wykorzystania kapitału właścicieli
+
+[RATIO] ROA (Return on Assets)
+Wartość: 9.4%
+Benchmark branżowy: 7.5%
+Opis: Zwrot z aktywów - pokazuje jak efektywnie firma wykorzystuje swoje aktywa
+
+[RATIO] ROS (Return on Sales)
+Wartość: 10.6%
+Benchmark branżowy: 8.0%
+Opis: Marża zysku netto - procent zysku z każdej złotówki przychodu
+
+**Wskaźniki płynności:**
+[RATIO] Wskaźnik płynności bieżącej (Current Ratio)
+Wartość: 2.1
+Benchmark branżowy: 1.5
+Opis: Zdolność do pokrycia zobowiązań krótkoterminowych aktywami obrotowymi
+
+[RATIO] Wskaźnik płynności szybkiej (Quick Ratio)
+Wartość: 1.4
+Benchmark branżowy: 1.0
+Opis: Płynność bez uwzględnienia zapasów
+
+**Wskaźniki zadłużenia:**
+[RATIO] Wskaźnik zadłużenia ogólnego (Debt Ratio)
+Wartość: 32%
+Benchmark branżowy: 45%
+Opis: Udział zobowiązań w finansowaniu aktywów (niższy = lepszy)
+
+[RATIO] Wskaźnik zadłużenia kapitału własnego (D/E)
+Wartość: 0.47
+Benchmark branżowy: 0.80
+Opis: Stosunek długu do kapitału własnego
+
+**Wskaźniki efektywności:**
+[RATIO] Rotacja zapasów (Inventory Turnover)
+Wartość: 6.2
+Benchmark branżowy: 5.0
+Opis: Ile razy w roku firma odnawia zapasy
+
+[RATIO] Rotacja należności (DSO - Days Sales Outstanding)
+Wartość: 45 dni
+Benchmark branżowy: 60 dni
+Opis: Średni czas oczekiwania na płatność od klientów
+
+**Podsumowanie:**
+FADO Sp. z o.o. wykazuje wskaźniki finansowe powyżej średniej branżowej w większości kategorii. Szczególnie silna pozycja w zakresie rentowności (ROE, ROA) oraz płynności. Niski poziom zadłużenia daje możliwość dalszej ekspansji poprzez finansowanie dłużne."""
+            },
+            {
                 "id": "section_5",
                 "title": "Struktura własnościowa",
                 "content": """**Drzewo struktury własnościowej:**
@@ -422,11 +479,122 @@ Firma wykazuje zdrową strukturę finansową z rosnącymi przychodami i dodatnim
             {
                 "id": "section_1",
                 "title": "Główni gracze",
-                "content": "Analiza Top 5 firm IT w Polsce pod względem przychodów i zatrudnienia."
+                "content": """**Przegląd rynku IT w Polsce:**
+
+Sektor IT w Polsce jest jednym z najszybciej rozwijających się segmentów gospodarki. Analizujemy Top 10 firm IT pod względem przychodów, innowacyjności i pozycji rynkowej.
+
+**Kluczowe metryki analizy:**
+- Przychody roczne (mln PLN)
+- Zatrudnienie (liczba pracowników)
+- Udział w rynku (%)
+- Dynamika wzrostu (% r/r)
+- Poziom innowacyjności (skala 1-10)
+
+**Metodologia:**
+Analiza oparta na danych z raportów finansowych, badań rynkowych oraz wywiadów branżowych."""
+            },
+            {
+                "id": "section_2",
+                "title": "Mapa pozycjonowania konkurentów",
+                "content": """**Mapa pozycjonowania konkurentów:**
+
+[POSITIONING_MAP]
+Oś X: Udział w rynku (%) | min: 0 | max: 15
+Oś Y: Innowacyjność (1-10) | min: 0 | max: 10
+
+[COMPETITOR] Asseco Poland
+Pozycja: 12.5, 7.5
+Przychody: 15,200 mln PLN
+Segment: Enterprise Software
+Opis: Lider rynku oprogramowania dla przedsiębiorstw
+
+[COMPETITOR] Comarch
+Pozycja: 8.2, 8.0
+Przychody: 1,850 mln PLN
+Segment: ERP & E-commerce
+Opis: Silna pozycja w systemach ERP i rozwiązaniach e-commerce
+
+[COMPETITOR] CD Projekt
+Pozycja: 5.5, 9.5
+Przychody: 780 mln PLN
+Segment: Gaming
+Opis: Globalny lider w produkcji gier AAA, wysoka innowacyjność
+
+[COMPETITOR] Grupa Pracuj
+Pozycja: 4.8, 6.5
+Przychody: 520 mln PLN
+Segment: HR Tech
+Opis: Dominująca pozycja w rekrutacji online
+
+[COMPETITOR] LiveChat Software
+Pozycja: 2.5, 8.5
+Przychody: 280 mln PLN
+Segment: SaaS
+Opis: Globalny gracz SaaS, wysoka innowacyjność produktowa
+
+[COMPETITOR] DocPlanner
+Pozycja: 3.2, 8.8
+Przychody: 450 mln PLN
+Segment: HealthTech
+Opis: Unicorn w sektorze zdrowia, ekspansja międzynarodowa
+
+[COMPETITOR] Allegro Tech
+Pozycja: 14.0, 7.0
+Przychody: 8,500 mln PLN
+Segment: E-commerce Platform
+Opis: Największa platforma e-commerce w CEE
+
+[COMPETITOR] STX Next
+Pozycja: 1.8, 7.2
+Przychody: 180 mln PLN
+Segment: Software House
+Opis: Wiodący software house Python/JavaScript
+
+**Legenda segmentów:**
+🟦 Enterprise Software - Oprogramowanie dla przedsiębiorstw
+🟩 SaaS - Software as a Service
+🟨 Gaming - Produkcja gier
+🟪 E-commerce - Platformy handlowe
+🟧 HR Tech - Technologie HR
+🟥 HealthTech - Technologie medyczne
+⬜ Software House - Usługi programistyczne
+
+**Analiza pozycjonowania:**
+- Kwadrant I (wysoki udział, wysoka innowacyjność): Liderzy rynku - Allegro Tech, Asseco
+- Kwadrant II (niski udział, wysoka innowacyjność): Innowatorzy - CD Projekt, LiveChat, DocPlanner
+- Kwadrant III (niski udział, niska innowacyjność): Gracze niszowi - mniejsze software house'y
+- Kwadrant IV (wysoki udział, niska innowacyjność): Konsolidatorzy - duże firmy usługowe
+
+**Wnioski:**
+1. Rynek jest silnie skonsolidowany wokół kilku dużych graczy
+2. Segment SaaS wykazuje najwyższą innowacyjność
+3. Gaming i HealthTech to najszybciej rosnące segmenty
+4. Potencjał dla nowych graczy w niszach wymagających specjalizacji"""
+            },
+            {
+                "id": "section_3",
+                "title": "Analiza szczegółowa",
+                "content": """**Porównanie kluczowych graczy:**
+
+| Firma | Przychody (mln) | Wzrost r/r | Zatrudnienie | Specjalizacja |
+|-------|-----------------|------------|--------------|---------------|
+| Asseco Poland | 15,200 | +8% | 12,500 | Enterprise Software |
+| Allegro Tech | 8,500 | +15% | 3,200 | E-commerce |
+| Comarch | 1,850 | +12% | 7,800 | ERP, E-commerce |
+| CD Projekt | 780 | -5% | 1,200 | Gaming |
+| Grupa Pracuj | 520 | +18% | 950 | HR Tech |
+
+**Trendy strategiczne:**
+- Konsolidacja poprzez M&A (Asseco, Comarch)
+- Ekspansja międzynarodowa (CD Projekt, DocPlanner)
+- Rozwój własnych produktów SaaS (LiveChat)
+- Inwestycje w AI i automatyzację (wszyscy liderzy)"""
             }
         ],
         "sources": [
-            {"name": "Computerworld", "confidence": 0.85, "url": "https://computerworld.pl"}
+            {"name": "Computerworld Ranking", "confidence": 0.90, "url": "https://computerworld.pl/ranking"},
+            {"name": "Raport ITwiz Top 200", "confidence": 0.85, "url": "https://itwiz.pl/top200"},
+            {"name": "Dane KRS", "confidence": 0.95, "url": "https://api.krs.pl"}
         ]
     },
     {
