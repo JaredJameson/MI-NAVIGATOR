@@ -246,15 +246,29 @@ export interface CompanyNews {
   total_count: number;
 }
 
+export interface NewsFilterOptions {
+  limit?: number;
+  category?: string;
+  dateFrom?: string;  // ISO format YYYY-MM-DD
+  dateTo?: string;    // ISO format YYYY-MM-DD
+}
+
 export const companyApi = {
   async getCompany(identifier: string): Promise<ApiResponse<CompanyProfile>> {
     return fetchApi(`/companies/${encodeURIComponent(identifier)}`);
   },
 
-  async getCompanyNews(identifier: string, limit: number = 10, category?: string): Promise<ApiResponse<CompanyNews>> {
+  async getCompanyNews(identifier: string, options: NewsFilterOptions = {}): Promise<ApiResponse<CompanyNews>> {
+    const { limit = 10, category, dateFrom, dateTo } = options;
     let url = `/companies/${encodeURIComponent(identifier)}/news?limit=${limit}`;
     if (category) {
       url += `&category=${encodeURIComponent(category)}`;
+    }
+    if (dateFrom) {
+      url += `&date_from=${encodeURIComponent(dateFrom)}`;
+    }
+    if (dateTo) {
+      url += `&date_to=${encodeURIComponent(dateTo)}`;
     }
     return fetchApi(url);
   },

@@ -19,6 +19,9 @@ export default function CompanyProfilePage() {
   const [newsLoading, setNewsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newsCategory, setNewsCategory] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [showDateFilter, setShowDateFilter] = useState(false);
 
   // Load company profile
   useEffect(() => {
@@ -38,17 +41,18 @@ export default function CompanyProfilePage() {
     loadCompany();
   }, [companyId]);
 
-  // Load news when switching to news tab
+  // Load news when switching to news tab or filters change
   useEffect(() => {
     async function loadNews() {
       if (activeTab !== 'news' || !company) return;
 
       setNewsLoading(true);
-      const result = await companyApi.getCompanyNews(
-        companyId,
-        10,
-        newsCategory || undefined
-      );
+      const result = await companyApi.getCompanyNews(companyId, {
+        limit: 10,
+        category: newsCategory || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      });
       if (result.data) {
         setNews(result.data.news);
       }
@@ -56,7 +60,14 @@ export default function CompanyProfilePage() {
     }
 
     loadNews();
-  }, [activeTab, companyId, company, newsCategory]);
+  }, [activeTab, companyId, company, newsCategory, dateFrom, dateTo]);
+
+  // Clear date filters
+  const clearDateFilters = () => {
+    setDateFrom('');
+    setDateTo('');
+    setShowDateFilter(false);
+  };
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -352,10 +363,11 @@ export default function CompanyProfilePage() {
         {/* News Tab */}
         {activeTab === 'news' && (
           <div className="space-y-6">
-            {/* Category Filter */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
+            {/* Filters */}
+            <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+              {/* Category Filter */}
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-slate-600 mr-2">Filtruj:</span>
+                <span className="text-sm text-slate-600 mr-2">Kategoria:</span>
                 {[
                   { value: '', label: 'Wszystkie' },
                   { value: 'general', label: '📰 Ogólne' },
@@ -376,7 +388,76 @@ export default function CompanyProfilePage() {
                     {cat.label}
                   </button>
                 ))}
+
+                {/* Date filter toggle */}
+                <div className="ml-auto">
+                  <button
+                    onClick={() => setShowDateFilter(!showDateFilter)}
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${
+                      showDateFilter || dateFrom || dateTo
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    📅 Zakres dat
+                    {(dateFrom || dateTo) && (
+                      <span className="bg-white bg-opacity-30 px-1.5 rounded text-xs">
+                        Aktywny
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
+
+              {/* Date Range Filter */}
+              {showDateFilter && (
+                <div className="flex items-center gap-4 pt-3 border-t border-slate-200">
+                  <span className="text-sm text-slate-600">Zakres dat:</span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-slate-500">Od:</label>
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-slate-500">Do:</label>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  {(dateFrom || dateTo) && (
+                    <button
+                      onClick={clearDateFilters}
+                      className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    >
+                      ✕ Wyczyść
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Active filters summary */}
+              {(dateFrom || dateTo) && (
+                <div className="flex items-center gap-2 text-sm text-slate-600 pt-2 border-t border-slate-100">
+                  <span>📅 Filtr dat:</span>
+                  {dateFrom && (
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
+                      Od: {new Date(dateFrom).toLocaleDateString('pl-PL')}
+                    </span>
+                  )}
+                  {dateTo && (
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
+                      Do: {new Date(dateTo).toLocaleDateString('pl-PL')}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* News List */}

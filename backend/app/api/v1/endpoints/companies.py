@@ -597,6 +597,8 @@ async def get_company_news(
     identifier: str,
     limit: int = Query(10, ge=1, le=50),
     category: Optional[str] = Query(None, description="Filter by category: general, financial, product, hr, legal"),
+    date_from: Optional[str] = Query(None, description="Filter news from this date (ISO format YYYY-MM-DD)"),
+    date_to: Optional[str] = Query(None, description="Filter news until this date (ISO format YYYY-MM-DD)"),
     current_user: User = Depends(get_current_user)
 ):
     """Get news about company."""
@@ -620,6 +622,23 @@ async def get_company_news(
     # Filter by category if specified
     if category:
         news_items = [n for n in news_items if n["category"] == category]
+
+    # Filter by date range if specified
+    if date_from:
+        try:
+            from_date = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+            news_items = [n for n in news_items if datetime.fromisoformat(n["published_at"].replace('Z', '+00:00')) >= from_date]
+        except ValueError:
+            pass  # Invalid date format, skip filter
+
+    if date_to:
+        try:
+            to_date = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+            # Add one day to include the end date fully
+            to_date = to_date + timedelta(days=1)
+            news_items = [n for n in news_items if datetime.fromisoformat(n["published_at"].replace('Z', '+00:00')) < to_date]
+        except ValueError:
+            pass  # Invalid date format, skip filter
 
     # Limit results
     news_items = news_items[:limit]
