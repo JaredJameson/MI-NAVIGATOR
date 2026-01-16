@@ -1,5 +1,125 @@
 # MI-Navigator Development Progress
 
+## Session 36 - Date: 2026-01-16
+
+### Regression Tests Completed:
+
+#### Feature #267: SWOT diagram visualization - PASSED ✅
+- Navigated to report_001 (FADO company profile)
+- SWOT diagram displayed correctly in 4-quadrant layout:
+  - 💪 Mocne strony (Strengths) - green quadrant with 5 items
+  - ⚠️ Słabe strony (Weaknesses) - red quadrant with 3 items
+  - 🚀 Szanse (Opportunities) - blue quadrant with 4 items
+  - ⚡ Zagrożenia (Threats) - orange quadrant with 4 items
+- All quadrants properly labeled and color-coded
+- Interactive expand/collapse functionality verified - clicking header toggles visibility
+- Arrow changes direction (down/up) when expanding/collapsing
+- Zero console errors
+- Screenshots: regression_267_swot_full.png, regression_267_swot_collapsed.png
+
+#### Feature #239: Report version history - PASSED ✅
+- Navigated to report_001
+- Clicked "Historia wersji" button - panel opened showing 3 versions:
+  - Wersja 3 (Aktualna) - Dodano sekcję Analiza SWOT - 14 sty 2026, 15:22
+  - Wersja 2 - Zaktualizowano dane finansowe - 14 sty 2026, 13:15
+  - Wersja 1 - Utworzono raport - 13 sty 2026, 10:30
+- Clicked on Wersja 2 - loaded old version successfully
+- Title changed to "(wersja 2)" indicator
+- Content differences verified:
+  - Different financial data (2022 vs 2023)
+  - Different employee count (120 vs 150)
+  - Missing sections (no SWOT in version 2)
+- Zero console errors
+- Screenshots: regression_239_version_history.png, regression_239_old_version_content.png
+
+### Feature #288: Quick filters by status - PASSED ✅
+
+**Implementation Completed:**
+
+1. **Backend Changes** (reports.py):
+   - Added 3 new reports with different statuses:
+     - report_013: "Due Diligence - FinTech Sp. z o.o." (status: draft)
+     - report_014: "Analiza rynku e-commerce w Polsce" (status: in_progress)
+     - report_015: "Profil firmy - StartupXYZ Sp. z o.o." (status: draft)
+   - Added `status` parameter to GET /reports endpoint
+   - Added status filtering logic: `if status: filtered_reports = [r for r in filtered_reports if r["status"] == status]`
+   - Total reports increased from 12 to 15
+
+2. **Frontend Changes** (reports/page.tsx):
+   - Added `filterStatus` state variable
+   - Added 4 quick filter buttons with icons and colors:
+     - 📊 Wszystkie (blue when active) - shows all reports
+     - 📝 Szkice (yellow when active) - shows draft reports
+     - ⏳ W trakcie (blue when active) - shows in_progress reports
+     - ✅ Zakończone (green when active) - shows completed reports
+   - Added status parameter to fetchReports() API call
+   - Updated useEffect dependencies to include filterStatus
+   - Auto-resets to page 1 when filter changes
+   - Updated status display in report cards to support 3 statuses:
+     - Draft: yellow badge "Szkic"
+     - In Progress: blue badge "W trakcie"
+     - Completed: green badge "Zakończony"
+
+**End-to-End Testing with Browser Automation:**
+
+✅ **Step 1**: Navigate to reports list
+- Page loaded with quick filter buttons visible
+- All 4 buttons displayed: Wszystkie, Szkice, W trakcie, Zakończone
+- "Wszystkie" button active (blue) by default
+- Showing 5 reports (page 1 of 3), total: 15 raportów
+- Screenshot: feature_288_step1_all_reports.png
+
+✅ **Step 2**: Click 'Draft' quick filter
+- Clicked "📝 Szkice" button
+- Button changed to yellow (active state)
+- Other buttons returned to white/gray (inactive)
+
+✅ **Step 3**: Verify only drafts shown
+- Displayed exactly 2 reports with "Szkic" status (yellow badges):
+  1. Due Diligence - FinTech Sp. z o.o.
+  2. Profil firmy - StartupXYZ Sp. z o.o.
+- Count: "Pokazano 1-2 z 2 raportów"
+- No pagination (only 1 page)
+- Screenshot: feature_288_step2_drafts_only.png
+
+✅ **Step 3b**: Click 'In Progress' filter (additional verification)
+- Clicked "⏳ W trakcie" button
+- Button changed to blue (active state)
+- Displayed exactly 1 report with "W trakcie" status (blue badge):
+  - Analiza rynku e-commerce w Polsce
+- Count: "Pokazano 1-1 z 1 raportów"
+- Screenshot: feature_288_step3_in_progress.png
+
+✅ **Step 4**: Click 'Complete' filter
+- Clicked "✅ Zakończone" button
+- Button changed to green (active state)
+
+✅ **Step 5**: Verify only complete shown
+- Displayed 12 completed reports with "Zakończony" status (green badges)
+- First page shows 5 reports: FADO, Analiza rynku tworzyw, TechSoft, Konkurencja IT, Splast
+- All have green "Zakończony" badges
+- Count: "Pokazano 1-5 z 12 raportów"
+- Pagination: 3 pages (5 per page)
+- Screenshot: feature_288_step4_completed.png
+
+✅ **Zero console errors** throughout entire test
+
+**Visual Verification:**
+- Filter buttons have clear active/inactive states with color changes
+- Status badges color-coded consistently across all reports
+- Smooth filtering without page reload
+- Correct report counts after each filter
+
+**Files Modified:**
+- backend/app/api/v1/endpoints/reports.py (+103, -1)
+- frontend/src/app/reports/page.tsx (+59, -5)
+
+**Commit:** 4fa23e4 "Implement quick status filters for reports (Feature #288)"
+
+**Current Progress:** 96/380 features passing (25.3%)
+
+---
+
 ## Session 35 - Date: 2026-01-16
 
 ### Feature #287: Favorite marking - PASSED ✅
