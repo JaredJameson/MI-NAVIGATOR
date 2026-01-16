@@ -3682,7 +3682,7 @@ export default function ReportViewerPage() {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/reports/${reportId}/versions/restore`,
+        `${API_BASE_URL}/reports/${reportId}/versions/restore/`,
         {
           method: 'POST',
           headers: {

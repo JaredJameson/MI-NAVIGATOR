@@ -176,6 +176,44 @@ export default function WorkspaceSettingsPage() {
     }
   }
 
+  const transferOwnership = async (newOwnerUserId: string, newOwnerEmail: string) => {
+    if (!selectedWorkspace) return
+
+    if (!confirm(`Are you sure you want to transfer ownership of this workspace to ${newOwnerEmail}? You will become an Admin.`)) {
+      return
+    }
+
+    try {
+      const token = getStoredToken()
+      if (!token) return
+
+      const response = await fetch(`${API_BASE_URL}/workspaces/${selectedWorkspace.id}/transfer-ownership`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          new_owner_user_id: newOwnerUserId
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to transfer ownership')
+      }
+
+      showMessage('success', `Ownership transferred to ${newOwnerEmail}`)
+      await loadWorkspaces()
+      if (selectedWorkspace) {
+        await loadMembers(selectedWorkspace.id)
+      }
+    } catch (error: any) {
+      console.error('Error transferring ownership:', error)
+      showMessage('error', error.message || 'Failed to transfer ownership')
+    }
+  }
+
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text })
     setTimeout(() => setMessage(null), 5000)
@@ -329,14 +367,26 @@ export default function WorkspaceSettingsPage() {
                               )}
                             </div>
                           </div>
-                          {canManageMembers && member.role.toLowerCase() !== 'owner' && (
-                            <button
-                              onClick={() => removeMember(member.id, member.user_email)}
-                              className="text-red-600 hover:text-red-800 text-sm font-medium"
-                            >
-                              Remove
-                            </button>
-                          )}
+                          <div className="flex gap-2">
+                            {/* Transfer Ownership - only owner can transfer */}
+                            {selectedWorkspace && selectedWorkspace.current_user_role.toLowerCase() === 'owner' && member.role.toLowerCase() !== 'owner' && member.invitation_accepted && (
+                              <button
+                                onClick={() => transferOwnership(member.user_id, member.user_email)}
+                                className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                              >
+                                Transfer Ownership
+                              </button>
+                            )}
+                            {/* Remove - owner/admin can remove non-owners */}
+                            {canManageMembers && member.role.toLowerCase() !== 'owner' && (
+                              <button
+                                onClick={() => removeMember(member.id, member.user_email)}
+                                className="text-red-600 hover:text-red-800 text-sm font-medium"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

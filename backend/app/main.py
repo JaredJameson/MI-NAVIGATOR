@@ -97,7 +97,8 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan,
+    lifespan=lifespan
+    # redirect_slashes defaults to True
 )
 
 # CORS middleware
@@ -107,6 +108,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],  # Allow browser to access all response headers
+    max_age=600  # Cache preflight requests for 10 minutes
 )
 
 # Include API router

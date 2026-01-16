@@ -131,7 +131,7 @@ export default function ReportsPage() {
       if (showArchived) params.append('archived', 'true')
 
       const response = await fetch(
-        `${API_BASE_URL}/reports?${params.toString()}`,
+        `${API_BASE_URL}/reports/?${params.toString()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -346,7 +346,7 @@ export default function ReportsPage() {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/reports/bulk-delete`, {
+      const response = await fetch(`${API_BASE_URL}/reports/bulk-delete/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
