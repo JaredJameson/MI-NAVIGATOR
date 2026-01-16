@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
+import ReactMarkdown from 'react-markdown'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -4798,11 +4799,45 @@ export default function ReportViewerPage() {
                   <FinancialRatioRadarChart data={financialRatiosData} />
                 ) : (
                   <div className="prose prose-gray max-w-none">
-                    {section.content.split('\n').map((paragraph, pIdx) => (
-                      <p key={pIdx} className="mb-4 text-gray-700 whitespace-pre-wrap">
-                        {highlightText(paragraph, section.id)}
-                      </p>
-                    ))}
+                    <ReactMarkdown
+                      className="text-gray-700"
+                      components={{
+                        // Custom link component to open in new tab
+                        a: ({ node, ...props }) => (
+                          <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline" />
+                        ),
+                        // Custom paragraph to apply highlighting
+                        p: ({ node, children, ...props }) => (
+                          <p {...props} className="mb-4">
+                            {children}
+                          </p>
+                        ),
+                        // Style lists
+                        ul: ({ node, ...props }) => (
+                          <ul {...props} className="list-disc list-inside mb-4 space-y-1" />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol {...props} className="list-decimal list-inside mb-4 space-y-1" />
+                        ),
+                        // Style code blocks
+                        code: ({ node, inline, ...props }: any) =>
+                          inline ? (
+                            <code {...props} className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" />
+                          ) : (
+                            <code {...props} className="block bg-gray-100 p-3 rounded text-sm font-mono overflow-x-auto" />
+                          ),
+                        // Style blockquotes
+                        blockquote: ({ node, ...props }) => (
+                          <blockquote {...props} className="border-l-4 border-gray-300 pl-4 italic my-4" />
+                        ),
+                        // Style headings
+                        h1: ({ node, ...props }) => <h1 {...props} className="text-2xl font-bold mt-6 mb-4" />,
+                        h2: ({ node, ...props }) => <h2 {...props} className="text-xl font-bold mt-5 mb-3" />,
+                        h3: ({ node, ...props }) => <h3 {...props} className="text-lg font-bold mt-4 mb-2" />,
+                      }}
+                    >
+                      {section.content}
+                    </ReactMarkdown>
                   </div>
                 )}
 
