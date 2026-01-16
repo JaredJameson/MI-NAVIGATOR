@@ -4,7 +4,8 @@ Custom Fields API Endpoints
 
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from uuid import UUID
 
 from app.db.session import get_db
@@ -24,27 +25,29 @@ router = APIRouter()
 
 
 @router.get("/definitions", response_model=List[CustomFieldDefinitionResponse])
-def get_custom_field_definitions(
-    db: Session = Depends(get_db),
+async def get_custom_field_definitions(
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     include_inactive: bool = False,
 ):
     """Get all custom field definitions for the current user."""
-    query = db.query(CustomFieldDefinition).filter(
+    query = select(CustomFieldDefinition).where(
         CustomFieldDefinition.user_id == current_user.id
     )
 
     if not include_inactive:
-        query = query.filter(CustomFieldDefinition.is_active == True)
+        query = query.where(CustomFieldDefinition.is_active == True)
 
-    definitions = query.order_by(CustomFieldDefinition.display_order).all()
+    query = query.order_by(CustomFieldDefinition.display_order)
+    result = await db.execute(query)
+    definitions = result.scalars().all()
     return definitions
 
 
 @router.post("/definitions", response_model=CustomFieldDefinitionResponse, status_code=status.HTTP_201_CREATED)
-def create_custom_field_definition(
+async def create_custom_field_definition(
     field_data: CustomFieldDefinitionCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Create a new custom field definition."""
@@ -66,9 +69,11 @@ def create_custom_field_definition(
             )
 
     # Get max display_order
-    max_order = db.query(CustomFieldDefinition).filter(
+    count_query = select(func.count()).select_from(CustomFieldDefinition).where(
         CustomFieldDefinition.user_id == current_user.id
-    ).count()
+    )
+    result = await db.execute(count_query)
+    max_order = result.scalar() or 0
 
     # Create definition
     definition = CustomFieldDefinition(
@@ -82,23 +87,25 @@ def create_custom_field_definition(
     )
 
     db.add(definition)
-    db.commit()
-    db.refresh(definition)
+    await db.commit()
+    await db.refresh(definition)
 
     return definition
 
 
 @router.get("/definitions/{field_id}", response_model=CustomFieldDefinitionResponse)
-def get_custom_field_definition(
+async def get_custom_field_definition(
     field_id: UUID,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Get a specific custom field definition."""
-    definition = db.query(CustomFieldDefinition).filter(
+    query = select(CustomFieldDefinition).where(
         CustomFieldDefinition.id == field_id,
         CustomFieldDefinition.user_id == current_user.id,
-    ).first()
+    )
+    result = await db.execute(query)
+    definition = result.scalar_one_or_none()
 
     if not definition:
         raise HTTPException(
@@ -110,17 +117,19 @@ def get_custom_field_definition(
 
 
 @router.put("/definitions/{field_id}", response_model=CustomFieldDefinitionResponse)
-def update_custom_field_definition(
+async def update_custom_field_definition(
     field_id: UUID,
     field_data: CustomFieldDefinitionUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Update a custom field definition."""
-    definition = db.query(CustomFieldDefinition).filter(
+    query = select(CustomFieldDefinition).where(
         CustomFieldDefinition.id == field_id,
         CustomFieldDefinition.user_id == current_user.id,
-    ).first()
+    )
+    result = await db.execute(query)
+    definition = result.scalar_one_or_none()
 
     if not definition:
         raise HTTPException(
@@ -143,23 +152,25 @@ def update_custom_field_definition(
     for key, value in update_data.items():
         setattr(definition, key, value)
 
-    db.commit()
-    db.refresh(definition)
+    await db.commit()
+    await db.refresh(definition)
 
     return definition
 
 
 @router.delete("/definitions/{field_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_custom_field_definition(
+async def delete_custom_field_definition(
     field_id: UUID,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Delete a custom field definition (and all its values)."""
-    definition = db.query(CustomFieldDefinition).filter(
+    query = select(CustomFieldDefinition).where(
         CustomFieldDefinition.id == field_id,
         CustomFieldDefinition.user_id == current_user.id,
-    ).first()
+    )
+    result = await db.execute(query)
+    definition = result.scalar_one_or_none()
 
     if not definition:
         raise HTTPException(
@@ -167,26 +178,28 @@ def delete_custom_field_definition(
             detail="Custom field definition not found"
         )
 
-    db.delete(definition)
-    db.commit()
+    await db.delete(definition)
+    await db.commit()
 
     return None
 
 
 @router.post("/values/{company_id}", response_model=CustomFieldValueResponse, status_code=status.HTTP_201_CREATED)
-def set_custom_field_value(
+async def set_custom_field_value(
     company_id: str,
     value_data: CustomFieldValueSet,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Set a custom field value for a company."""
 
     # Verify field definition belongs to user
-    definition = db.query(CustomFieldDefinition).filter(
+    def_query = select(CustomFieldDefinition).where(
         CustomFieldDefinition.id == value_data.field_definition_id,
         CustomFieldDefinition.user_id == current_user.id,
-    ).first()
+    )
+    def_result = await db.execute(def_query)
+    definition = def_result.scalar_one_or_none()
 
     if not definition:
         raise HTTPException(
@@ -195,17 +208,19 @@ def set_custom_field_value(
         )
 
     # Check if value already exists
-    existing_value = db.query(CustomFieldValue).filter(
+    val_query = select(CustomFieldValue).where(
         CustomFieldValue.field_definition_id == value_data.field_definition_id,
         CustomFieldValue.company_id == company_id,
-    ).first()
+    )
+    val_result = await db.execute(val_query)
+    existing_value = val_result.scalar_one_or_none()
 
     if existing_value:
         # Update existing value
         existing_value.value = value_data.value
         existing_value.value_json = value_data.value_json
-        db.commit()
-        db.refresh(existing_value)
+        await db.commit()
+        await db.refresh(existing_value)
         return existing_value
     else:
         # Create new value
@@ -216,32 +231,37 @@ def set_custom_field_value(
             value_json=value_data.value_json,
         )
         db.add(new_value)
-        db.commit()
-        db.refresh(new_value)
+        await db.commit()
+        await db.refresh(new_value)
         return new_value
 
 
 @router.get("/values/{company_id}", response_model=List[CompanyCustomFieldsResponse])
-def get_company_custom_fields(
+async def get_company_custom_fields(
     company_id: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Get all custom fields for a company with their values."""
 
     # Get all active field definitions for user
-    definitions = db.query(CustomFieldDefinition).filter(
+    def_query = select(CustomFieldDefinition).where(
         CustomFieldDefinition.user_id == current_user.id,
         CustomFieldDefinition.is_active == True,
-    ).order_by(CustomFieldDefinition.display_order).all()
+    ).order_by(CustomFieldDefinition.display_order)
+
+    def_result = await db.execute(def_query)
+    definitions = def_result.scalars().all()
 
     result = []
     for definition in definitions:
         # Get value for this field if it exists
-        value = db.query(CustomFieldValue).filter(
+        val_query = select(CustomFieldValue).where(
             CustomFieldValue.field_definition_id == definition.id,
             CustomFieldValue.company_id == company_id,
-        ).first()
+        )
+        val_result = await db.execute(val_query)
+        value = val_result.scalar_one_or_none()
 
         result.append(CompanyCustomFieldsResponse(
             field_definition=definition,
