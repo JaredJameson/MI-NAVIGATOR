@@ -369,4 +369,59 @@ export const companyApi = {
   },
 };
 
+// Custom Fields API Types
+export interface CustomFieldDefinition {
+  id: string;
+  name: string;
+  field_type: string;
+  description: string | null;
+  is_required: boolean;
+  is_active: boolean;
+  options: string[] | null;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomFieldValue {
+  id: string;
+  field_definition_id: string;
+  company_id: string;
+  value: string | null;
+  value_json: any | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyCustomField {
+  field_definition: CustomFieldDefinition;
+  value: CustomFieldValue | null;
+}
+
+export interface SetCustomFieldValueRequest {
+  field_definition_id: string;
+  value: string | null;
+  value_json: any | null;
+}
+
+export const customFieldsApi = {
+  async getDefinitions(): Promise<ApiResponse<CustomFieldDefinition[]>> {
+    return fetchApi('/custom-fields/definitions');
+  },
+
+  async getCompanyFieldValues(companyId: string): Promise<ApiResponse<CompanyCustomField[]>> {
+    return fetchApi(`/custom-fields/values/${encodeURIComponent(companyId)}`);
+  },
+
+  async setFieldValue(
+    companyId: string,
+    data: SetCustomFieldValueRequest
+  ): Promise<ApiResponse<CustomFieldValue>> {
+    return fetchApi(`/custom-fields/values/${encodeURIComponent(companyId)}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export default fetchApi;

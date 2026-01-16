@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard } from '@/services/api';
+import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard, customFieldsApi, CompanyCustomField } from '@/services/api';
 
 type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people' | 'data-quality';
 
@@ -32,6 +32,10 @@ export default function CompanyProfilePage() {
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
   const [dataQuality, setDataQuality] = useState<DataQualityDashboard | null>(null);
   const [dataQualityLoading, setDataQualityLoading] = useState(false);
+  const [customFields, setCustomFields] = useState<CompanyCustomField[]>([]);
+  const [customFieldsLoading, setCustomFieldsLoading] = useState(false);
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
 
   // Load company profile
   useEffect(() => {
@@ -108,6 +112,30 @@ export default function CompanyProfilePage() {
     loadDataQuality();
   }, [activeTab, companyId, company]);
 
+  // Load custom fields when company profile loads
+  useEffect(() => {
+    async function loadCustomFields() {
+      if (!company) return;
+
+      setCustomFieldsLoading(true);
+      const result = await customFieldsApi.getCompanyFieldValues(companyId);
+      if (result.data) {
+        setCustomFields(result.data);
+        // Initialize field values from existing data
+        const values: Record<string, string> = {};
+        result.data.forEach((field) => {
+          if (field.value) {
+            values[field.field_definition.id] = field.value.value || '';
+          }
+        });
+        setFieldValues(values);
+      }
+      setCustomFieldsLoading(false);
+    }
+
+    loadCustomFields();
+  }, [company, companyId]);
+
   // Clear date filters
   const clearDateFilters = () => {
     setDateFrom('');
@@ -138,6 +166,26 @@ export default function CompanyProfilePage() {
     }
 
     setRefreshing(false);
+  };
+
+  // Handle custom field value save
+  const handleSaveFieldValue = async (fieldId: string) => {
+    const value = fieldValues[fieldId] || '';
+
+    const result = await customFieldsApi.setFieldValue(companyId, {
+      field_definition_id: fieldId,
+      value: value,
+      value_json: null,
+    });
+
+    if (result.data) {
+      // Reload custom fields to get updated values
+      const fieldsResult = await customFieldsApi.getCompanyFieldValues(companyId);
+      if (fieldsResult.data) {
+        setCustomFields(fieldsResult.data);
+      }
+      setEditingFieldId(null);
+    }
   };
 
   // Format date
@@ -447,6 +495,123 @@ export default function CompanyProfilePage() {
                   )}
                 </dl>
               </div>
+
+              {/* Custom Fields */}
+              {customFields.length > 0 && (
+                <div className="bg-white rounded-xl border border-slate-200 p-6">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                    Custom Fields
+                  </h2>
+                  {customFieldsLoading ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {customFields.map((field) => (
+                        <div key={field.field_definition.id} className="space-y-2">
+                          <label className="text-sm font-medium text-slate-700">
+                            {field.field_definition.name}
+                            {field.field_definition.is_required && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </label>
+                          {field.field_definition.description && (
+                            <p className="text-xs text-slate-500">
+                              {field.field_definition.description}
+                            </p>
+                          )}
+
+                          {field.field_definition.field_type === 'select' ? (
+                            <div className="flex gap-2">
+                              <select
+                                value={fieldValues[field.field_definition.id] || ''}
+                                onChange={(e) => {
+                                  setFieldValues({
+                                    ...fieldValues,
+                                    [field.field_definition.id]: e.target.value,
+                                  });
+                                  setEditingFieldId(field.field_definition.id);
+                                }}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="">Select...</option>
+                                {field.field_definition.options?.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                              {editingFieldId === field.field_definition.id && (
+                                <button
+                                  onClick={() => handleSaveFieldValue(field.field_definition.id)}
+                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                >
+                                  Save
+                                </button>
+                              )}
+                            </div>
+                          ) : field.field_definition.field_type === 'number' ? (
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                value={fieldValues[field.field_definition.id] || ''}
+                                onChange={(e) => {
+                                  setFieldValues({
+                                    ...fieldValues,
+                                    [field.field_definition.id]: e.target.value,
+                                  });
+                                  setEditingFieldId(field.field_definition.id);
+                                }}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter value..."
+                              />
+                              {editingFieldId === field.field_definition.id && (
+                                <button
+                                  onClick={() => handleSaveFieldValue(field.field_definition.id)}
+                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                >
+                                  Save
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={fieldValues[field.field_definition.id] || ''}
+                                onChange={(e) => {
+                                  setFieldValues({
+                                    ...fieldValues,
+                                    [field.field_definition.id]: e.target.value,
+                                  });
+                                  setEditingFieldId(field.field_definition.id);
+                                }}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter value..."
+                              />
+                              {editingFieldId === field.field_definition.id && (
+                                <button
+                                  onClick={() => handleSaveFieldValue(field.field_definition.id)}
+                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                >
+                                  Save
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {field.value && !editingFieldId && (
+                            <div className="text-sm text-slate-600">
+                              Current: <span className="font-medium">{field.value.value}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Actions */}
               <div className="bg-white rounded-xl border border-slate-200 p-6">
