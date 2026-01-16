@@ -1768,9 +1768,12 @@ class Annotation(BaseModel):
 
 
 @router.get("/{report_id}/annotations")
-async def get_annotations(report_id: str):
+async def get_annotations(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
     """Get all annotations for a report."""
-    user_key = f"test_user:{report_id}"
+    user_key = f"{current_user.id}:{report_id}"
     annotations = REPORT_ANNOTATIONS.get(user_key, [])
     return {"annotations": annotations}
 
