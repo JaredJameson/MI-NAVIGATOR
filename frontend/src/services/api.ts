@@ -287,6 +287,42 @@ export interface RefreshResponse {
   company_id: string;
 }
 
+export interface DataQualityMetric {
+  score: number;  // 0-100
+  status: 'excellent' | 'good' | 'fair' | 'poor';
+  details: Array<{
+    section?: string;
+    filled?: number;
+    total?: number;
+    percentage?: number;
+    fields?: Record<string, boolean>;
+    source?: string;
+    last_updated?: string;
+    days_ago?: number;
+    reliability?: string;
+    confidence?: number;
+    last_verification?: string;
+  }>;
+}
+
+export interface DataQualityDashboard {
+  company_id: string;
+  company_name: string;
+  overall_score: number;  // 0-100
+  overall_status: 'excellent' | 'good' | 'fair' | 'poor';
+  completeness: DataQualityMetric;
+  freshness: DataQualityMetric;
+  source_reliability: DataQualityMetric;
+  improvement_suggestions: Array<{
+    priority: 'high' | 'medium' | 'low';
+    category: string;
+    title: string;
+    description: string;
+    impact: string;
+  }>;
+  last_assessment: string;  // ISO timestamp
+}
+
 export const companyApi = {
   async getCompany(identifier: string): Promise<ApiResponse<CompanyProfile>> {
     return fetchApi(`/companies/${encodeURIComponent(identifier)}`);
@@ -326,6 +362,10 @@ export const companyApi = {
     return fetchApi(`/companies/${encodeURIComponent(identifier)}/refresh`, {
       method: 'POST',
     });
+  },
+
+  async getDataQuality(identifier: string): Promise<ApiResponse<DataQualityDashboard>> {
+    return fetchApi(`/companies/${encodeURIComponent(identifier)}/data-quality`);
   },
 };
 

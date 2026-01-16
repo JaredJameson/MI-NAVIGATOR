@@ -67,6 +67,25 @@ class CompanyProfile(BaseModel):
     last_updated: Optional[str] = None  # ISO timestamp of last data refresh
 
 
+# Data Quality Models
+class DataQualityMetric(BaseModel):
+    score: float  # 0-100
+    status: str  # excellent, good, fair, poor
+    details: List[dict]  # detailed breakdown
+
+
+class DataQualityDashboard(BaseModel):
+    company_id: str
+    company_name: str
+    overall_score: float  # 0-100
+    overall_status: str  # excellent, good, fair, poor
+    completeness: DataQualityMetric
+    freshness: DataQualityMetric
+    source_reliability: DataQualityMetric
+    improvement_suggestions: List[dict]
+    last_assessment: str  # ISO timestamp
+
+
 # Mock news data for companies
 MOCK_COMPANY_NEWS = {
     "1": [  # FADO Sp. z o.o.
@@ -1242,3 +1261,259 @@ async def mark_notification_read(
             return {"success": True, "message": "Notification marked as read"}
 
     raise HTTPException(status_code=404, detail="Notification not found")
+
+
+# Data Quality Assessment Helper
+def calculate_quality_score(filled_fields: int, total_fields: int) -> dict:
+    """Calculate quality score and status"""
+    score = (filled_fields / total_fields * 100) if total_fields > 0 else 0
+
+    if score >= 90:
+        status = "excellent"
+    elif score >= 70:
+        status = "good"
+    elif score >= 50:
+        status = "fair"
+    else:
+        status = "poor"
+
+    return {"score": round(score, 1), "status": status}
+
+
+@router.get("/{identifier}/data-quality", response_model=DataQualityDashboard)
+async def get_company_data_quality(
+    identifier: str
+    # TODO: Re-enable auth after testing
+    # current_user: User = Depends(get_current_user)
+):
+    """Get data quality metrics for a company"""
+    # Find company
+    company = None
+    company_id = None
+    for c in MOCK_COMPANIES:
+        if (c["id"] == identifier or
+            c["nip"] == identifier or
+            c.get("krs", "") == identifier):
+            company = c
+            company_id = c["id"]
+            break
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Assess Completeness (check which fields are filled)
+    completeness_fields = {
+        "Podstawowe dane": {
+            "NIP": bool(company.get("nip")),
+            "KRS": bool(company.get("krs")),
+            "REGON": bool(company.get("regon")),
+            "Adres": bool(company.get("address")),
+            "Data założenia": bool(company.get("founded"))
+        },
+        "Informacje biznesowe": {
+            "Opis działalności": bool(company.get("description")),
+            "Strona WWW": bool(company.get("website")),
+            "Kody PKD": bool(company.get("pkd_codes")),
+            "Zatrudnienie": bool(company.get("employees_range"))
+        },
+        "Dane finansowe": {
+            "Kapitał zakładowy": False,  # Not in basic profile
+            "Sprawozdania finansowe": False
+        },
+        "Zarząd i struktura": {
+            "Zarząd": False,
+            "Wspólnicy": False,
+            "Rada nadzorcza": False
+        }
+    }
+
+    # Count filled fields
+    total_fields = 0
+    filled_fields = 0
+    completeness_details = []
+
+    for section, fields in completeness_fields.items():
+        section_total = len(fields)
+        section_filled = sum(1 for v in fields.values() if v)
+        total_fields += section_total
+        filled_fields += section_filled
+
+        completeness_details.append({
+            "section": section,
+            "filled": section_filled,
+            "total": section_total,
+            "percentage": round(section_filled / section_total * 100, 1) if section_total > 0 else 0,
+            "fields": fields
+        })
+
+    completeness_score = calculate_quality_score(filled_fields, total_fields)
+
+    # Assess Freshness (how recent is the data)
+    last_update_str = COMPANY_LAST_UPDATED.get(company_id, datetime.now().isoformat())
+    last_update = datetime.fromisoformat(last_update_str)
+    days_since_update = (datetime.now() - last_update).days
+
+    freshness_details = [
+        {
+            "source": "KRS/CEIDG",
+            "last_updated": last_update_str,
+            "days_ago": days_since_update,
+            "status": "fresh" if days_since_update < 30 else "stale" if days_since_update < 90 else "outdated"
+        },
+        {
+            "source": "Sprawozdania finansowe",
+            "last_updated": (datetime.now() - timedelta(days=180)).isoformat(),
+            "days_ago": 180,
+            "status": "stale"
+        },
+        {
+            "source": "Aktualności",
+            "last_updated": (datetime.now() - timedelta(days=2)).isoformat(),
+            "days_ago": 2,
+            "status": "fresh"
+        },
+        {
+            "source": "Struktura własnościowa",
+            "last_updated": (datetime.now() - timedelta(days=365)).isoformat(),
+            "days_ago": 365,
+            "status": "outdated"
+        }
+    ]
+
+    # Calculate freshness score based on average days
+    avg_days = sum(d["days_ago"] for d in freshness_details) / len(freshness_details)
+    if avg_days < 30:
+        freshness_score = {"score": 95.0, "status": "excellent"}
+    elif avg_days < 90:
+        freshness_score = {"score": 75.0, "status": "good"}
+    elif avg_days < 180:
+        freshness_score = {"score": 55.0, "status": "fair"}
+    else:
+        freshness_score = {"score": 30.0, "status": "poor"}
+
+    # Assess Source Reliability
+    source_reliability_details = [
+        {
+            "source": "KRS (rządowe)",
+            "reliability": "verified",
+            "confidence": 100,
+            "last_verification": (datetime.now() - timedelta(days=1)).isoformat()
+        },
+        {
+            "source": "CEIDG (rządowe)",
+            "reliability": "verified",
+            "confidence": 100,
+            "last_verification": (datetime.now() - timedelta(days=1)).isoformat()
+        },
+        {
+            "source": "Strona WWW (web scraping)",
+            "reliability": "unverified",
+            "confidence": 70,
+            "last_verification": (datetime.now() - timedelta(days=7)).isoformat()
+        },
+        {
+            "source": "Aktualności (media)",
+            "reliability": "semi-verified",
+            "confidence": 85,
+            "last_verification": (datetime.now() - timedelta(days=2)).isoformat()
+        },
+        {
+            "source": "Dane finansowe (e-KRS)",
+            "reliability": "verified",
+            "confidence": 95,
+            "last_verification": (datetime.now() - timedelta(days=180)).isoformat()
+        }
+    ]
+
+    # Calculate reliability score as weighted average
+    total_weight = len(source_reliability_details)
+    weighted_confidence = sum(d["confidence"] for d in source_reliability_details) / total_weight
+
+    if weighted_confidence >= 90:
+        reliability_score = {"score": weighted_confidence, "status": "excellent"}
+    elif weighted_confidence >= 75:
+        reliability_score = {"score": weighted_confidence, "status": "good"}
+    elif weighted_confidence >= 60:
+        reliability_score = {"score": weighted_confidence, "status": "fair"}
+    else:
+        reliability_score = {"score": weighted_confidence, "status": "poor"}
+
+    # Generate improvement suggestions
+    improvement_suggestions = []
+
+    if completeness_score["score"] < 80:
+        improvement_suggestions.append({
+            "priority": "high",
+            "category": "completeness",
+            "title": "Uzupełnij brakujące dane podstawowe",
+            "description": f"Profil firmy jest kompletny w {completeness_score['score']:.1f}%. Uzupełnij brakujące pola: zarząd, wspólnicy, dane finansowe.",
+            "impact": "Zwiększy wiarygodność profilu o ~25%"
+        })
+
+    if freshness_score["score"] < 70:
+        improvement_suggestions.append({
+            "priority": "medium",
+            "category": "freshness",
+            "title": "Odśwież dane z zewnętrznych źródeł",
+            "description": "Niektóre dane nie były aktualizowane od ponad 90 dni. Zalecane odświeżenie danych ze struktur własnościowych i finansów.",
+            "impact": "Zwiększy aktualność o ~30%"
+        })
+
+    if reliability_score["score"] < 80:
+        improvement_suggestions.append({
+            "priority": "medium",
+            "category": "reliability",
+            "title": "Zweryfikuj dane z niezaufanych źródeł",
+            "description": "Część danych pochodzi ze źródeł o niższej wiarygodności (web scraping). Zalecana weryfikacja z oficjalnymi źródłami.",
+            "impact": "Zwiększy pewność danych o ~15%"
+        })
+
+    # No suggestions? Add generic one
+    if not improvement_suggestions:
+        improvement_suggestions.append({
+            "priority": "low",
+            "category": "monitoring",
+            "title": "Włącz automatyczne aktualizacje",
+            "description": "Profil jest kompletny i aktualny. Rozważ włączenie automatycznych aktualizacji aby utrzymać wysoką jakość.",
+            "impact": "Utrzyma jakość danych na poziomie 90%+"
+        })
+
+    # Calculate overall score (weighted average)
+    overall_score = (
+        completeness_score["score"] * 0.4 +  # 40% weight
+        freshness_score["score"] * 0.3 +      # 30% weight
+        reliability_score["score"] * 0.3       # 30% weight
+    )
+
+    if overall_score >= 85:
+        overall_status = "excellent"
+    elif overall_score >= 70:
+        overall_status = "good"
+    elif overall_score >= 50:
+        overall_status = "fair"
+    else:
+        overall_status = "poor"
+
+    return DataQualityDashboard(
+        company_id=company_id,
+        company_name=company["name"],
+        overall_score=round(overall_score, 1),
+        overall_status=overall_status,
+        completeness=DataQualityMetric(
+            score=completeness_score["score"],
+            status=completeness_score["status"],
+            details=completeness_details
+        ),
+        freshness=DataQualityMetric(
+            score=freshness_score["score"],
+            status=freshness_score["status"],
+            details=freshness_details
+        ),
+        source_reliability=DataQualityMetric(
+            score=reliability_score["score"],
+            status=reliability_score["status"],
+            details=source_reliability_details
+        ),
+        improvement_suggestions=improvement_suggestions,
+        last_assessment=datetime.now().isoformat()
+    )

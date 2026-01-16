@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse } from '@/services/api';
+import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard } from '@/services/api';
 
-type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people';
+type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people' | 'data-quality';
 
 export default function CompanyProfilePage() {
   const params = useParams();
@@ -30,6 +30,8 @@ export default function CompanyProfilePage() {
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
+  const [dataQuality, setDataQuality] = useState<DataQualityDashboard | null>(null);
+  const [dataQualityLoading, setDataQualityLoading] = useState(false);
 
   // Load company profile
   useEffect(() => {
@@ -89,6 +91,22 @@ export default function CompanyProfilePage() {
 
     loadTimeline();
   }, [activeTab, companyId, company, timelineEventType, timelineImpact]);
+
+  // Load data quality when switching to data-quality tab
+  useEffect(() => {
+    async function loadDataQuality() {
+      if (activeTab !== 'data-quality' || !company) return;
+
+      setDataQualityLoading(true);
+      const result = await companyApi.getDataQuality(companyId);
+      if (result.data) {
+        setDataQuality(result.data);
+      }
+      setDataQualityLoading(false);
+    }
+
+    loadDataQuality();
+  }, [activeTab, companyId, company]);
 
   // Clear date filters
   const clearDateFilters = () => {
@@ -332,6 +350,7 @@ export default function CompanyProfilePage() {
               { id: 'news' as Tab, label: 'Aktualności', icon: '📰' },
               { id: 'financials' as Tab, label: 'Finanse', icon: '💰' },
               { id: 'people' as Tab, label: 'Osoby', icon: '👥' },
+              { id: 'data-quality' as Tab, label: 'Jakość Danych', icon: '✓' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -843,6 +862,218 @@ export default function CompanyProfilePage() {
               Ta sekcja jest w przygotowaniu. Wkrótce będą tutaj informacje o
               zarządzie i kluczowych osobach w firmie.
             </p>
+          </div>
+        )}
+
+        {/* Data Quality Tab */}
+        {activeTab === 'data-quality' && (
+          <div className="space-y-6">
+            {dataQualityLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="mt-2 text-slate-600">Ładowanie metryk jakości...</p>
+                </div>
+              </div>
+            ) : dataQuality ? (
+              <>
+                {/* Overall Score Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900">Jakość Danych</h2>
+                      <p className="text-slate-600 mt-1">{dataQuality.company_name}</p>
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-5xl font-bold ${
+                        dataQuality.overall_status === 'excellent' ? 'text-green-600' :
+                        dataQuality.overall_status === 'good' ? 'text-blue-600' :
+                        dataQuality.overall_status === 'fair' ? 'text-amber-600' :
+                        'text-red-600'
+                      }`}>
+                        {Math.round(dataQuality.overall_score)}%
+                      </div>
+                      <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium mt-2 ${
+                        dataQuality.overall_status === 'excellent' ? 'bg-green-100 text-green-800' :
+                        dataQuality.overall_status === 'good' ? 'bg-blue-100 text-blue-800' :
+                        dataQuality.overall_status === 'fair' ? 'bg-amber-100 text-amber-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {dataQuality.overall_status === 'excellent' ? '✓ Doskonała' :
+                         dataQuality.overall_status === 'good' ? '✓ Dobra' :
+                         dataQuality.overall_status === 'fair' ? '⚠ Wystarczająca' :
+                         '✗ Słaba'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metric Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Completeness */}
+                  <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-slate-900">📊 Kompletność</h3>
+                      <span className={`text-2xl font-bold ${
+                        dataQuality.completeness.status === 'excellent' ? 'text-green-600' :
+                        dataQuality.completeness.status === 'good' ? 'text-blue-600' :
+                        dataQuality.completeness.status === 'fair' ? 'text-amber-600' :
+                        'text-red-600'
+                      }`}>
+                        {Math.round(dataQuality.completeness.score)}%
+                      </span>
+                    </div>
+
+                    {dataQuality.completeness.details.map((detail, idx) => (
+                      detail.section && (
+                        <div key={idx} className="mb-3 pb-3 border-b border-slate-100 last:border-0">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-medium text-slate-700">{detail.section}</span>
+                            <span className="text-xs text-slate-500">{detail.filled}/{detail.total}</span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${
+                                (detail.percentage || 0) >= 80 ? 'bg-green-500' :
+                                (detail.percentage || 0) >= 50 ? 'bg-amber-500' :
+                                'bg-red-500'
+                              }`}
+                              style={{ width: `${detail.percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+
+                  {/* Freshness */}
+                  <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-slate-900">🕐 Świeżość</h3>
+                      <span className={`text-2xl font-bold ${
+                        dataQuality.freshness.status === 'excellent' ? 'text-green-600' :
+                        dataQuality.freshness.status === 'good' ? 'text-blue-600' :
+                        dataQuality.freshness.status === 'fair' ? 'text-amber-600' :
+                        'text-red-600'
+                      }`}>
+                        {Math.round(dataQuality.freshness.score)}%
+                      </span>
+                    </div>
+
+                    {dataQuality.freshness.details.map((detail, idx) => (
+                      detail.source && (
+                        <div key={idx} className="mb-3 pb-3 border-b border-slate-100 last:border-0">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-medium text-slate-700">{detail.source}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              detail.status === 'fresh' ? 'bg-green-100 text-green-700' :
+                              detail.status === 'stale' ? 'bg-amber-100 text-amber-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {detail.days_ago} dni temu
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+
+                  {/* Source Reliability */}
+                  <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-slate-900">🛡️ Wiarygodność</h3>
+                      <span className={`text-2xl font-bold ${
+                        dataQuality.source_reliability.status === 'excellent' ? 'text-green-600' :
+                        dataQuality.source_reliability.status === 'good' ? 'text-blue-600' :
+                        dataQuality.source_reliability.status === 'fair' ? 'text-amber-600' :
+                        'text-red-600'
+                      }`}>
+                        {Math.round(dataQuality.source_reliability.score)}%
+                      </span>
+                    </div>
+
+                    {dataQuality.source_reliability.details.map((detail, idx) => (
+                      detail.source && (
+                        <div key={idx} className="mb-3 pb-3 border-b border-slate-100 last:border-0">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-medium text-slate-700">{detail.source}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              (detail.confidence || 0) >= 90 ? 'bg-green-100 text-green-700' :
+                              (detail.confidence || 0) >= 75 ? 'bg-blue-100 text-blue-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {detail.reliability}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+
+                {/* Improvement Suggestions */}
+                {dataQuality.improvement_suggestions.length > 0 && (
+                  <div className="bg-white rounded-xl border border-slate-200 p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                      💡 Sugestie poprawy
+                    </h3>
+                    <div className="space-y-4">
+                      {dataQuality.improvement_suggestions.map((suggestion, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-4 rounded-lg border-l-4 ${
+                            suggestion.priority === 'high' ? 'bg-red-50 border-red-500' :
+                            suggestion.priority === 'medium' ? 'bg-amber-50 border-amber-500' :
+                            'bg-blue-50 border-blue-500'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                  suggestion.priority === 'high' ? 'bg-red-200 text-red-800' :
+                                  suggestion.priority === 'medium' ? 'bg-amber-200 text-amber-800' :
+                                  'bg-blue-200 text-blue-800'
+                                }`}>
+                                  {suggestion.priority === 'high' ? '🔴 Wysoki' :
+                                   suggestion.priority === 'medium' ? '🟡 Średni' :
+                                   '🟢 Niski'} priorytet
+                                </span>
+                                <span className="text-xs text-slate-500">
+                                  {suggestion.category}
+                                </span>
+                              </div>
+                              <h4 className="font-semibold text-slate-900 mb-1">
+                                {suggestion.title}
+                              </h4>
+                              <p className="text-sm text-slate-600 mb-2">
+                                {suggestion.description}
+                              </p>
+                              <p className="text-xs text-slate-500 italic">
+                                📈 {suggestion.impact}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Last Assessment */}
+                <div className="text-center text-sm text-slate-500">
+                  Ostatnia ocena: {new Date(dataQuality.last_assessment).toLocaleString('pl-PL')}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+                <div className="text-4xl mb-4">✓</div>
+                <h3 className="text-lg font-semibold text-slate-900">Brak danych</h3>
+                <p className="text-slate-600 mt-1">
+                  Nie można załadować metryk jakości danych.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </main>
