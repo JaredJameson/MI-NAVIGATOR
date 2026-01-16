@@ -1,5 +1,82 @@
 # MI-Navigator Development Progress
 
+## Session 34 - Date: 2026-01-16
+
+### Regression Tests Completed:
+
+#### Feature #115: Enter key form submission - PASSED ✅
+- Navigated to /auth/login page
+- Filled in email and password fields
+- Pressed Enter key in password field
+- Form submitted correctly (received 401 error as expected for invalid credentials)
+- Error message displayed: "Incorrect email or password"
+- Screenshots: regression_115_login_form.png, regression_115_enter_submitted.png
+
+#### Feature #236: PKD code search - PASSED ✅
+- Navigated to /search (PKD Search page)
+- Clicked on popular PKD code "22.21.Z - Produkcja tworzyw sztucznych"
+- Search executed successfully
+- Results displayed: 2 companies (FADO Sp. z o.o. and Splast S.A.)
+- PKD description shown: "Produkcja płyt, arkuszy, rur i kształtowników z tworzyw sztucznych"
+- Both companies show PKD 22.21.Z in their code lists
+- Screenshots: regression_236_pkd_search_page.png, regression_236_pkd_results.png
+
+### Feature #286: Tag filtering - PASSED ✅
+
+**Implementation Completed:**
+
+1. **Backend Changes** (reports.py):
+   - Added `tag_id` parameter to `GET /reports` endpoint
+   - Added `tag_id` parameter to `GET /reports/ids` endpoint
+   - Implemented filtering logic using REPORT_TAGS dictionary
+   - Filters reports to show only those with the selected tag assigned
+
+2. **Frontend Changes** (reports/page.tsx):
+   - Added `filterTag` state variable
+   - Added tag filter dropdown after type filter
+   - Dropdown populated with user's tags from `allTags`
+   - Options: "Wszystkie tagi" (clear filter) + all user-created tags
+   - Updated `fetchReports()` to include `tag_id` in query params
+   - Updated `fetchAllReportIds()` to include `tag_id` in query params
+   - Added `filterTag` to useEffect dependencies for auto-refresh
+   - Auto-resets page to 1 when tag filter changes
+
+3. **End-to-End Testing:**
+   - Created 2 test tags:
+     - "Priorytet wysoki" (red color)
+     - "Do przeglądu" (green color)
+   - Applied tag "Priorytet wysoki" to report_001 (FADO)
+   - Applied tag "Do przeglądu" to report_002 (Analiza rynku)
+   - **Test Step 2:** Selected tag "Priorytet wysoki" from dropdown
+   - **Test Step 3:** Verified only report_001 shown (1 of 1 reports)
+   - **Test Step 2b:** Selected tag "Do przeglądu" from dropdown
+   - **Test Step 3b:** Verified only report_002 shown (1 of 1 reports)
+   - **Test Step 4:** Cleared filter by selecting "Wszystkie tagi"
+   - **Test Step 5:** Verified all 5 reports returned to list
+   - Zero console errors
+   - Screenshots: feature_286_step1 through feature_286_step5
+
+### Statistics:
+- Total features: 380
+- Passing features: 94 (24.7%)
+- In progress: 0
+
+### Git Commits This Session:
+- cdc2ecb - Implement tag filtering for reports (Feature #286)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI with auto-reload)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- Database: SQLite at backend/mi_navigator.db
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Tag filtering is now fully functional - users can filter reports by any tag
+3. Feature works in combination with type and search filters
+4. Consider implementing multi-tag filtering (show reports with ANY of selected tags)
+
+---
+
 ## Session 33 - Date: 2026-01-16
 
 ### Regression Tests Completed:

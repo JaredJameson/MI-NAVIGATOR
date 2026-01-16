@@ -768,6 +768,7 @@ class ReportSummary(BaseModel):
     created_at: str
     status: str
     summary: str
+    is_favorite: bool = False
 
 
 class ReportSection(BaseModel):
@@ -807,14 +808,20 @@ async def list_reports(
     search: Optional[str] = None,
     project_id: Optional[str] = None,
     tag_id: Optional[str] = None,
-    # TODO: Re-enable auth after testing - temporarily disabled for development
-    # current_user: User = Depends(get_current_user)
+    favorites_only: bool = False,
+    current_user: User = Depends(get_current_user)
 ):
     """List user's reports with filtering and pagination."""
     # Import REPORT_TAGS from tags module
     from app.api.v1.endpoints.tags import REPORT_TAGS
 
     filtered_reports = MOCK_REPORTS
+
+    # Filter by favorites
+    if favorites_only:
+        user_id = str(current_user.id)
+        user_favorites = USER_FAVORITES.get(user_id, [])
+        filtered_reports = [r for r in filtered_reports if r["id"] in user_favorites]
 
     # Filter by type
     if type:
@@ -847,6 +854,10 @@ async def list_reports(
     end = start + limit
     items = filtered_reports[start:end]
 
+    # Get user's favorites
+    user_id = str(current_user.id)
+    user_favorites = USER_FAVORITES.get(user_id, [])
+
     return {
         "items": [
             ReportSummary(
@@ -856,7 +867,8 @@ async def list_reports(
                 company=r["company"],
                 created_at=r["created_at"],
                 status=r["status"],
-                summary=r["summary"]
+                summary=r["summary"],
+                is_favorite=r["id"] in user_favorites
             ) for r in items
         ],
         "total": total,
@@ -921,12 +933,15 @@ async def create_report(current_user: User = Depends(get_current_user)):
 @router.get("/{report_id}")
 async def get_report(
     report_id: str,
-    # TODO: Re-enable auth after testing - temporarily disabled for development
-    # current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get report details."""
     for report in MOCK_REPORTS:
         if report["id"] == report_id:
+            # Check if report is in user's favorites
+            user_id = str(current_user.id)
+            is_favorite = user_id in USER_FAVORITES and report_id in USER_FAVORITES[user_id]
+
             return ReportDetail(
                 id=report["id"],
                 title=report["title"],
@@ -937,7 +952,8 @@ async def get_report(
                 status=report["status"],
                 summary=report["summary"],
                 sections=[ReportSection(**s) for s in report["sections"]],
-                sources=[ReportSource(**s) for s in report["sources"]]
+                sources=[ReportSource(**s) for s in report["sources"]],
+                is_favorite=is_favorite
             )
 
     return {"error": "Report not found"}
@@ -1442,6 +1458,10 @@ async def share_report(report_id: str):
 REPORT_ANNOTATIONS: dict = {}
 
 
+# In-memory favorites storage: { "user_id": ["report_id1", "report_id2", ...] }
+USER_FAVORITES: dict = {}
+
+
 class AnnotationCreate(BaseModel):
     section_id: str
     selected_text: str
@@ -1518,6 +1538,66 @@ async def delete_annotation(
     REPORT_ANNOTATIONS[user_key] = [a for a in annotations if a["id"] != annotation_id]
 
     return {"message": "Annotation deleted successfully"}
+
+
+# ============================================================================
+# FAVORITES ENDPOINTS
+# ============================================================================
+
+@router.get("/favorites")
+async def get_favorite_reports(
+    current_user: User = Depends(get_current_user)
+):
+    """Get list of user's favorite report IDs."""
+    user_id = str(current_user.id)
+    favorites = USER_FAVORITES.get(user_id, [])
+    return {"favorites": favorites}
+
+
+@router.post("/{report_id}/favorite")
+async def add_to_favorites(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Add a report to user's favorites."""
+    user_id = str(current_user.id)
+
+    # Initialize user's favorites list if it doesn't exist
+    if user_id not in USER_FAVORITES:
+        USER_FAVORITES[user_id] = []
+
+    # Add to favorites if not already there
+    if report_id not in USER_FAVORITES[user_id]:
+        USER_FAVORITES[user_id].append(report_id)
+        return {"message": "Report added to favorites", "is_favorite": True}
+
+    return {"message": "Report already in favorites", "is_favorite": True}
+
+
+@router.delete("/{report_id}/favorite")
+async def remove_from_favorites(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Remove a report from user's favorites."""
+    user_id = str(current_user.id)
+
+    if user_id in USER_FAVORITES and report_id in USER_FAVORITES[user_id]:
+        USER_FAVORITES[user_id].remove(report_id)
+        return {"message": "Report removed from favorites", "is_favorite": False}
+
+    return {"message": "Report not in favorites", "is_favorite": False}
+
+
+@router.get("/{report_id}/favorite")
+async def check_favorite_status(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Check if a report is in user's favorites."""
+    user_id = str(current_user.id)
+    is_favorite = user_id in USER_FAVORITES and report_id in USER_FAVORITES[user_id]
+    return {"is_favorite": is_favorite}
 
 
 # Version history mock data
