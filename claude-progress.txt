@@ -1,5 +1,106 @@
 # MI-Navigator Development Progress
 
+## Session 33 - Date: 2026-01-16
+
+### Regression Tests Completed:
+
+#### Feature #182: Primary vs secondary button distinction - PASSED ✅
+- Navigated to dashboard
+- Verified button hierarchy:
+  - **Primary buttons**: Blue filled background ("Start New Research", "+ New", "Dostosuj układ")
+  - **Secondary buttons**: White background with blue border ("Market Analysis", "PKD Search")
+  - **Destructive button**: Red filled background ("Logout")
+- Clear visual distinction between button types
+- Screenshots: regression_182_dashboard_buttons.png
+
+#### Feature #114: Tab navigation keyboard accessibility - PASSED ✅
+- Tested keyboard navigation with Tab key
+- Sequence verified: Reports → Projects → Settings → Logout
+- Focus indicators clearly visible (black borders on each element)
+- Logical tab order maintained
+- All interactive elements focusable
+- Screenshots: regression_114_tab_focus_1.png through regression_114_tab_focus_4.png
+
+### Feature #284: Custom field value entry - PASSED ✅
+
+**Implementation Completed:**
+
+1. **Created custom field in Settings**:
+   - Field name: "Website Status"
+   - Field type: Select (dropdown)
+   - Options: Active, Under Construction, Inactive, Unknown
+   - Description: "Current status of company website"
+   - Screenshot: feature_284_field_created.png
+
+2. **Added Custom Fields UI to company profile**:
+   - New section "Custom Fields" in overview tab sidebar
+   - Displays all 3 custom fields: Annual Revenue (number), TEST_FIELD_JAN16_2026 (text), Website Status (select)
+   - Support for different field types (text, number, select)
+   - Save button appears when value changes
+   - Current value displayed below input
+   - Screenshot: feature_284_custom_fields_empty.png
+
+3. **API Integration**:
+   - Added interfaces to frontend/src/services/api.ts:
+     - CustomFieldDefinition
+     - CustomFieldValue
+     - CompanyCustomField
+     - SetCustomFieldValueRequest
+   - Added customFieldsApi with methods:
+     - getDefinitions()
+     - getCompanyFieldValues(companyId)
+     - setFieldValue(companyId, data)
+
+4. **Value Entry & Persistence**:
+   - Selected "Active" from Website Status dropdown
+   - Clicked Save button - API returned 200 OK
+   - Entered "Test value for verification" in text field
+   - Clicked Save - API returned 200 OK
+   - Screenshots: feature_284_save_button_appears.png, feature_284_text_field_saved.png
+
+5. **Bug Fix - Value initialization**:
+   - **Issue**: Values saved but not loading after page refresh
+   - **Root cause**: Interface mismatch between frontend and backend
+     - Backend returns `value: string` directly in CompanyCustomFieldsResponse
+     - Frontend expected `value: CustomFieldValue` object
+   - **Fix**: Updated CompanyCustomField interface to match backend schema
+   - **Result**: Values now load correctly:
+     - Text field: Shows "Test value for verification" in input
+     - Select field: Shows "Active" as selected option
+     - Current values display: "Current: Test value for verification", "Current: Active"
+   - Screenshot: feature_284_after_fix.png
+
+6. **Full verification**:
+   - ✅ Navigate to Settings and create custom field
+   - ✅ Navigate to company profile with custom fields
+   - ✅ Enter values in custom fields (text and select types)
+   - ✅ Click Save button - values persist to database
+   - ✅ Refresh page - values load correctly in inputs
+   - ✅ Current values display below inputs
+   - ✅ Zero console errors
+
+### Statistics:
+- Total features: 380
+- Passing features: 92 (24.2%)
+- In progress: 0
+
+### Git Commits This Session:
+- 01d1e4f - Feature #284: Add custom field value entry UI to company profiles
+- c991ac2 - Fix custom field value initialization bug (Feature #284)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI with auto-reload)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- Database: SQLite at backend/mi_navigator.db
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Custom fields are now fully functional on company profiles
+3. Users can define fields in Settings and set values on company pages
+4. Values persist across page refreshes
+
+---
+
 ## Session 30 - Date: 2026-01-16
 
 ### Regression Tests Completed:
