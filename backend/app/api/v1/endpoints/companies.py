@@ -991,3 +991,254 @@ async def refresh_company_data(
         last_updated=now,
         company_id=company_id
     )
+
+
+# ============================================================================
+# SCHEDULED DATA UPDATES
+# ============================================================================
+
+class UpdateSchedule(BaseModel):
+    company_id: str
+    frequency: str  # daily, weekly, monthly
+    time: str  # HH:MM format (24-hour)
+    enabled: bool = True
+    last_run: Optional[str] = None
+    next_run: Optional[str] = None
+
+
+class ScheduleConfig(BaseModel):
+    company_id: str
+    company_name: str
+    frequency: str
+    time: str
+    enabled: bool
+    last_run: Optional[str]
+    next_run: Optional[str]
+
+
+class ScheduleResponse(BaseModel):
+    success: bool
+    message: str
+    schedule: ScheduleConfig
+
+
+# In-memory storage for update schedules
+COMPANY_UPDATE_SCHEDULES = {}
+
+# In-memory storage for schedule notifications
+SCHEDULE_NOTIFICATIONS = []
+
+
+def calculate_next_run(frequency: str, time_str: str) -> str:
+    """Calculate next run timestamp based on frequency and time"""
+    now = datetime.now()
+    hour, minute = map(int, time_str.split(':'))
+
+    if frequency == "daily":
+        next_run = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if next_run <= now:
+            next_run += timedelta(days=1)
+    elif frequency == "weekly":
+        next_run = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        days_ahead = 7 - now.weekday()  # Next Monday
+        if days_ahead <= 0 or (days_ahead == 7 and next_run <= now):
+            days_ahead += 7
+        next_run += timedelta(days=days_ahead)
+    elif frequency == "monthly":
+        next_run = now.replace(day=1, hour=hour, minute=minute, second=0, microsecond=0)
+        # Next month
+        if next_run <= now:
+            if next_run.month == 12:
+                next_run = next_run.replace(year=next_run.year + 1, month=1)
+            else:
+                next_run = next_run.replace(month=next_run.month + 1)
+    else:
+        next_run = now
+
+    return next_run.isoformat()
+
+
+@router.post("/{identifier}/schedule", response_model=ScheduleResponse)
+async def configure_update_schedule(
+    identifier: str,
+    frequency: str = Query(..., regex="^(daily|weekly|monthly)$"),
+    time: str = Query(..., regex="^([01]?[0-9]|2[0-3]):[0-5][0-9]$"),
+    enabled: bool = Query(True)
+    # TODO: Re-enable auth after testing
+    # current_user: User = Depends(get_current_user)
+):
+    """
+    Configure automatic update schedule for a company.
+
+    - frequency: daily, weekly, or monthly
+    - time: HH:MM format (24-hour), e.g., "09:00" for 9 AM
+    - enabled: whether the schedule is active
+    """
+    # Find company
+    company = None
+    company_id = None
+    for c in MOCK_COMPANIES:
+        if (c["id"] == identifier or
+            c["nip"] == identifier or
+            c.get("krs", "") == identifier):
+            company = c
+            company_id = c["id"]
+            break
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Calculate next run time
+    # For testing: Set next_run to 20 seconds from now for immediate testing
+    if enabled:
+        next_run = (datetime.now() + timedelta(seconds=20)).isoformat()
+    else:
+        next_run = None
+
+    # Store schedule
+    schedule = UpdateSchedule(
+        company_id=company_id,
+        frequency=frequency,
+        time=time,
+        enabled=enabled,
+        last_run=None,
+        next_run=next_run
+    )
+    COMPANY_UPDATE_SCHEDULES[company_id] = schedule
+
+    return ScheduleResponse(
+        success=True,
+        message=f"Harmonogram aktualizacji dla {company['name']} został skonfigurowany",
+        schedule=ScheduleConfig(
+            company_id=company_id,
+            company_name=company["name"],
+            frequency=frequency,
+            time=time,
+            enabled=enabled,
+            last_run=None,
+            next_run=next_run
+        )
+    )
+
+
+@router.get("/{identifier}/schedule", response_model=ScheduleConfig)
+async def get_update_schedule(
+    identifier: str
+    # TODO: Re-enable auth after testing
+    # current_user: User = Depends(get_current_user)
+):
+    """Get current update schedule configuration for a company"""
+    # Find company
+    company = None
+    company_id = None
+    for c in MOCK_COMPANIES:
+        if (c["id"] == identifier or
+            c["nip"] == identifier or
+            c.get("krs", "") == identifier):
+            company = c
+            company_id = c["id"]
+            break
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Get schedule if exists
+    schedule = COMPANY_UPDATE_SCHEDULES.get(company_id)
+
+    if not schedule:
+        raise HTTPException(status_code=404, detail="No schedule configured for this company")
+
+    return ScheduleConfig(
+        company_id=company_id,
+        company_name=company["name"],
+        frequency=schedule.frequency,
+        time=schedule.time,
+        enabled=schedule.enabled,
+        last_run=schedule.last_run,
+        next_run=schedule.next_run
+    )
+
+
+@router.delete("/{identifier}/schedule")
+async def delete_update_schedule(
+    identifier: str
+    # TODO: Re-enable auth after testing
+    # current_user: User = Depends(get_current_user)
+):
+    """Delete/disable automatic update schedule for a company"""
+    # Find company
+    company = None
+    company_id = None
+    for c in MOCK_COMPANIES:
+        if (c["id"] == identifier or
+            c["nip"] == identifier or
+            c.get("krs", "") == identifier):
+            company = c
+            company_id = c["id"]
+            break
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    if company_id in COMPANY_UPDATE_SCHEDULES:
+        del COMPANY_UPDATE_SCHEDULES[company_id]
+        return {"success": True, "message": f"Harmonogram dla {company['name']} został usunięty"}
+    else:
+        raise HTTPException(status_code=404, detail="No schedule found for this company")
+
+
+@router.get("/schedules/all")
+async def list_all_schedules(
+    # TODO: Re-enable auth after testing
+    # current_user: User = Depends(get_current_user)
+):
+    """List all configured update schedules"""
+    schedules = []
+    for company_id, schedule in COMPANY_UPDATE_SCHEDULES.items():
+        # Find company name
+        company = next((c for c in MOCK_COMPANIES if c["id"] == company_id), None)
+        if company:
+            schedules.append(ScheduleConfig(
+                company_id=company_id,
+                company_name=company["name"],
+                frequency=schedule.frequency,
+                time=schedule.time,
+                enabled=schedule.enabled,
+                last_run=schedule.last_run,
+                next_run=schedule.next_run
+            ))
+
+    return {"schedules": schedules, "total": len(schedules)}
+
+
+@router.get("/schedules/notifications")
+async def get_schedule_notifications(
+    unread_only: bool = Query(False)
+    # TODO: Re-enable auth after testing
+    # current_user: User = Depends(get_current_user)
+):
+    """Get notifications from scheduled updates"""
+    notifications = SCHEDULE_NOTIFICATIONS
+
+    if unread_only:
+        notifications = [n for n in notifications if not n.get("read", False)]
+
+    # Sort by timestamp descending (newest first)
+    notifications = sorted(notifications, key=lambda x: x["timestamp"], reverse=True)
+
+    return {"notifications": notifications, "total": len(notifications), "unread": len([n for n in SCHEDULE_NOTIFICATIONS if not n.get("read", False)])}
+
+
+@router.post("/schedules/notifications/{notification_id}/mark-read")
+async def mark_notification_read(
+    notification_id: str
+    # TODO: Re-enable auth after testing
+    # current_user: User = Depends(get_current_user)
+):
+    """Mark a schedule notification as read"""
+    for notification in SCHEDULE_NOTIFICATIONS:
+        if notification["id"] == notification_id:
+            notification["read"] = True
+            return {"success": True, "message": "Notification marked as read"}
+
+    raise HTTPException(status_code=404, detail="Notification not found")

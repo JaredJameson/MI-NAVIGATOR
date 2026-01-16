@@ -6,18 +6,87 @@ Market Intelligence Platform
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import asyncio
+from datetime import datetime
 
 from app.core.config import settings
 from app.api.v1.router import api_router
+
+async def run_scheduler():
+    """Background task to check and run scheduled data updates"""
+    from app.api.v1.endpoints.companies import (
+        COMPANY_UPDATE_SCHEDULES,
+        COMPANY_LAST_UPDATED,
+        MOCK_COMPANIES,
+        SCHEDULE_NOTIFICATIONS,
+        calculate_next_run
+    )
+
+    while True:
+        await asyncio.sleep(10)  # Check every 10 seconds (for fast testing)
+
+        now = datetime.now()
+        print(f"[Scheduler] Checking schedules... ({len(COMPANY_UPDATE_SCHEDULES)} configured)")
+        for company_id, schedule in list(COMPANY_UPDATE_SCHEDULES.items()):
+            if not schedule.enabled:
+                continue
+
+            if not schedule.next_run:
+                continue
+
+            next_run_dt = datetime.fromisoformat(schedule.next_run)
+
+            # Check if it's time to run (within 15 seconds window for testing)
+            if now >= next_run_dt:
+                print(f"[Scheduler] Running scheduled update for company {company_id}")
+
+                # Update last_run timestamp
+                schedule.last_run = now.isoformat()
+
+                # Simulate data refresh
+                COMPANY_LAST_UPDATED[company_id] = now.isoformat()
+
+                # Calculate next run
+                schedule.next_run = calculate_next_run(schedule.frequency, schedule.time)
+
+                # Find company name
+                company = next((c for c in MOCK_COMPANIES if c["id"] == company_id), None)
+                company_name = company["name"] if company else company_id
+
+                # Create notification
+                notification = {
+                    "id": f"sched_{company_id}_{now.timestamp()}",
+                    "type": "scheduled_update",
+                    "company_id": company_id,
+                    "company_name": company_name,
+                    "message": f"Automatyczna aktualizacja danych dla {company_name} została zakończona",
+                    "timestamp": now.isoformat(),
+                    "read": False
+                }
+                SCHEDULE_NOTIFICATIONS.append(notification)
+
+                print(f"[Scheduler] Update completed for {company_name}. Next run: {schedule.next_run}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler for startup/shutdown events."""
     # Startup
     print(f"Starting {settings.APP_NAME}...")
+
+    # Start background scheduler
+    scheduler_task = asyncio.create_task(run_scheduler())
+    print("[Scheduler] Background scheduler started")
+
     yield
+
     # Shutdown
     print(f"Shutting down {settings.APP_NAME}...")
+    scheduler_task.cancel()
+    try:
+        await scheduler_task
+    except asyncio.CancelledError:
+        print("[Scheduler] Background scheduler stopped")
 
 app = FastAPI(
     title=settings.APP_NAME,
