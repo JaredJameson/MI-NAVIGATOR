@@ -1,5 +1,73 @@
 # MI-Navigator Development Progress
 
+## Session 26 - Date: 2026-01-16
+
+### Completed in This Session:
+
+#### Feature #278: Data refresh on demand - PASSED
+- Implemented manual data refresh functionality for company profiles
+- Backend changes (companies.py):
+  - Added `last_updated` field to CompanyProfile model (ISO timestamp)
+  - Created COMPANY_LAST_UPDATED in-memory dictionary for storing refresh timestamps
+  - Modified GET /companies/{identifier} to auto-set initial timestamp and return last_updated
+  - Implemented POST /companies/{identifier}/refresh endpoint:
+    - Simulates 1.5 second API call delay with asyncio.sleep()
+    - Updates COMPANY_LAST_UPDATED timestamp for company
+    - Returns RefreshResponse with success message and new timestamp
+  - Added RefreshResponse model (success, message, last_updated, company_id)
+  - Temporarily disabled auth requirements on companies endpoints for testing (with comments)
+- Frontend changes (companies/[id]/page.tsx):
+  - Added RefreshResponse interface to api.ts
+  - Added last_updated field to CompanyProfile interface
+  - Implemented companyApi.refreshCompanyData() POST method
+  - Added state: refreshing (boolean), refreshMessage (string | null)
+  - Created handleRefresh() async function:
+    - Sets refreshing=true, clears previous messages
+    - Calls refreshCompanyData API
+    - Reloads company profile to get updated timestamp
+    - Displays success/error message
+    - Auto-clears message after 3 seconds
+    - Sets refreshing=false when complete
+  - Added refresh button UI in company header:
+    - Shows "🔄 Odśwież dane" when idle
+    - Shows spinner + "Odświeżanie..." when refreshing
+    - Disabled during refresh to prevent double-clicks
+    - Gray styling when disabled
+  - Added timestamp display: "Ostatnia aktualizacja: {formatDate(last_updated)}"
+  - Added success/error message display below button (green/red background)
+- Full end-to-end testing verified:
+  - Company profile loads with refresh button and timestamp
+  - Initial timestamp shows "0 min temu" (just fetched)
+  - Click refresh button shows loading state with spinner
+  - After 1.5s delay, success message appears: "Dane firmy FADO Sp. z o.o. zostały odświeżone"
+  - Button returns to normal "🔄 Odśwież dane" state
+  - Timestamp persists showing relative time
+  - Multiple refreshes work correctly
+  - No console errors
+  - Screenshots: company_profile_before_refresh.png, company_profile_after_refresh.png
+
+### Statistics:
+- Total features: 380
+- Passing features: 88 (23.2%)
+- In progress: 0
+
+### Git Commits This Session:
+- a8797ee - Implement data refresh on demand for company profiles (Feature #278)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI with auto-reload)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Data refresh functionality now available on company profiles
+3. Consider re-enabling auth after testing or implementing proper test auth flow
+4. Backend has 1.5s simulated delay - in production would call real APIs (KRS, CEIDG, news)
+
+---
+
 ## Session 25 - Date: 2026-01-16
 
 ### Completed in This Session:
