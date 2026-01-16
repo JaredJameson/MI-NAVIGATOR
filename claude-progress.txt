@@ -1,5 +1,105 @@
 # Session 48 - Date: 2026-01-17
 
+## Feature #310: Billing page displays usage - PASSED ✅
+
+**Implementation Overview:**
+
+Created comprehensive billing and usage page from scratch. This page displays the user's current subscription plan, usage statistics with progress bars, billing period details, and plan features.
+
+**Page Sections Implemented:**
+
+1. **Current Plan Section:**
+   - Plan name displayed prominently: "Professional" (blue, large text)
+   - Billing period dates: "Jan 1, 2026 - Jan 31, 2026"
+   - "Upgrade Plan" button (blue CTA)
+
+2. **Usage Statistics Section:**
+   - **Analyses:** 42/100 (42% used)
+     - Description: "Company profiles, market reports, etc."
+     - Blue progress bar showing usage
+   - **Storage:** 2.4 GB / 10 GB (24% used)
+     - Description: "Reports, exports, uploaded files"
+     - Green progress bar showing usage
+   - **API Calls:** 8,432 (formatted with commas)
+     - Description: "External data sources usage"
+     - Large number in gray box
+   - Color-coded progress bars: blue (normal), yellow (75%+), red (90%+)
+
+3. **Billing Period Section:**
+   - Period Start: Jan 1, 2026
+   - Period End: Jan 31, 2026
+   - Days Remaining: 15 days (dynamically calculated from current date)
+   - Next Billing Date: Jan 31, 2026
+   - Clean 2-column grid layout
+
+4. **Plan Features Section:**
+   - 5 features with green checkmark icons:
+     - 100 analyses per month
+     - 10 GB storage
+     - Unlimited API calls
+     - PDF, DOCX, PPTX exports
+     - Priority support
+
+**End-to-End Testing:**
+
+✅ **Step 1: Navigate to billing**
+- Navigated to /settings/billing
+- Page loaded successfully with all sections
+
+✅ **Step 2: Verify current plan shown**
+- Plan name "Professional" displayed in large blue text
+- Billing period "Jan 1, 2026 - Jan 31, 2026" shown correctly
+- Upgrade button visible and styled
+
+✅ **Step 3: Verify usage statistics accurate**
+- Analyses: 42/100 (42% used) - matches dashboard data
+- Storage: 2.4 GB / 10 GB (24% used) - matches dashboard data
+- API Calls: 8,432 - matches dashboard data
+- All progress bars render with correct widths and colors
+- Percentages calculated and displayed correctly
+
+✅ **Step 4: Verify billing period correct**
+- Period Start: Jan 1, 2026 (formatted correctly)
+- Period End: Jan 31, 2026 (formatted correctly)
+- Days Remaining: 15 days (correct calculation from Jan 17)
+- Next Billing Date: Jan 31, 2026 (matches period end)
+
+**Technical Implementation:**
+
+- Full TypeScript with proper interface definitions
+- UsageData interface with all required fields
+- Responsive design using Tailwind CSS
+- Date formatting: `toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })`
+- Number formatting: `toLocaleString()` for API calls
+- Dynamic calculations:
+  - Progress bar percentages: `Math.round((used / limit) * 100)`
+  - Days remaining: `Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))`
+- Conditional styling for progress bars based on usage percentage
+- Clean component structure with proper semantic HTML
+
+**Visual Design:**
+- Professional white cards on gray background
+- Consistent spacing and typography
+- Blue primary color for plan name and main CTA
+- Color-coded progress bars (blue, green, yellow, red)
+- Green checkmarks for feature list
+- Grid layouts for organized information display
+- Shadow-sm for subtle card elevation
+
+**Files Created:**
+- frontend/src/app/settings/billing/page.tsx (243 lines)
+
+**Screenshots:**
+- feature_310_step1_billing_page.png (current plan + usage statistics)
+- feature_310_step4_billing_period.png (billing period grid)
+- feature_310_final_verification.png (plan features list)
+
+**Commit:** 6c239fd "Implement Feature #310: Billing page displays usage - PASSED ✅"
+
+**Current Progress:** 114/380 features passing (30.0%)
+
+---
+
 ## Feature #309: Transfer ownership of resource - PASSED ✅
 
 **Implementation Overview:**
