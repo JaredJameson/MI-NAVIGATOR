@@ -7,6 +7,15 @@ import { getStoredToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
+interface Tag {
+  id: string
+  name: string
+  color: string
+  description: string | null
+  created_at: string
+  user_id: string
+}
+
 interface ReportSummary {
   id: string
   title: string
@@ -15,6 +24,7 @@ interface ReportSummary {
   created_at: string
   status: string
   summary: string
+  tags?: Tag[]
 }
 
 interface ReportsResponse {
@@ -82,8 +92,16 @@ export default function ReportsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteSuccess, setDeleteSuccess] = useState('')
 
+  // Tag management state
+  const [allTags, setAllTags] = useState<Tag[]>([])
+  const [reportTags, setReportTags] = useState<Record<string, Tag[]>>({})
+  const [showTagModal, setShowTagModal] = useState(false)
+  const [selectedReportForTags, setSelectedReportForTags] = useState<string | null>(null)
+  const [isLoadingTags, setIsLoadingTags] = useState(false)
+
   useEffect(() => {
     fetchReports()
+    fetchAllTags()
   }, [filterType, currentPage])
 
   const fetchReports = async () => {
@@ -422,6 +440,113 @@ export default function ReportsPage() {
     }
   }
 
+  // Fetch all available tags
+  const fetchAllTags = async () => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/tags/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      if (response.ok) {
+        const tags = await response.json()
+        setAllTags(tags)
+      }
+    } catch (err) {
+      console.error('Failed to fetch tags:', err)
+    }
+  }
+
+  // Fetch tags for a specific report
+  const fetchReportTags = async (reportId: string) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/tags/reports/${reportId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      if (response.ok) {
+        const tags = await response.json()
+        setReportTags(prev => ({ ...prev, [reportId]: tags }))
+      }
+    } catch (err) {
+      console.error('Failed to fetch report tags:', err)
+    }
+  }
+
+  // Load tags for all visible reports
+  useEffect(() => {
+    reports.forEach(report => {
+      if (!reportTags[report.id]) {
+        fetchReportTags(report.id)
+      }
+    })
+  }, [reports])
+
+  // Open tag assignment modal
+  const openTagModal = (reportId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setSelectedReportForTags(reportId)
+    setShowTagModal(true)
+  }
+
+  // Toggle tag assignment for a report
+  const toggleTagForReport = async (reportId: string, tagId: string) => {
+    const token = getStoredToken()
+    if (!token) return
+
+    setIsLoadingTags(true)
+    const currentTags = reportTags[reportId] || []
+    const hasTag = currentTags.some(t => t.id === tagId)
+
+    try {
+      if (hasTag) {
+        // Remove tag
+        const response = await fetch(`${API_BASE_URL}/tags/reports/${reportId}/tags/${tagId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+        if (response.ok) {
+          setReportTags(prev => ({
+            ...prev,
+            [reportId]: currentTags.filter(t => t.id !== tagId)
+          }))
+        }
+      } else {
+        // Add tag
+        const response = await fetch(`${API_BASE_URL}/tags/reports/${reportId}/add?tag_id=${tagId}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+        if (response.ok) {
+          const newTag = allTags.find(t => t.id === tagId)
+          if (newTag) {
+            setReportTags(prev => ({
+              ...prev,
+              [reportId]: [...currentTags, newTag]
+            }))
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to toggle tag:', err)
+      setError('Nie udało się zaktualizować tagów')
+    } finally {
+      setIsLoadingTags(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -751,6 +876,33 @@ export default function ReportsPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900">{report.title}</h3>
                         <p className="mt-2 text-sm text-gray-600 line-clamp-2">{report.summary}</p>
+
+                        {/* Tags Display */}
+                        <div className="mt-3 flex items-center gap-2 flex-wrap">
+                          {reportTags[report.id]?.map(tag => (
+                            <span
+                              key={tag.id}
+                              className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
+                              style={{ backgroundColor: tag.color }}
+                            >
+                              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                              </svg>
+                              {tag.name}
+                            </span>
+                          ))}
+                          {!isSelectionMode && (
+                            <button
+                              onClick={(e) => openTagModal(report.id, e)}
+                              className="inline-flex items-center gap-1 rounded-full border-2 border-dashed border-gray-300 px-2.5 py-0.5 text-xs font-medium text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-colors"
+                            >
+                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Dodaj tag
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right ml-4">
                         <span className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
@@ -974,6 +1126,88 @@ export default function ReportsPage() {
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
               >
                 Anuluj
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tag Assignment Modal */}
+      {showTagModal && selectedReportForTags && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+            <div className="border-b px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Zarządzaj tagami</h2>
+                <button
+                  onClick={() => setShowTagModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 max-h-96 overflow-y-auto">
+              {allTags.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">Nie masz jeszcze żadnych tagów</p>
+                  <Link
+                    href="/settings/tags"
+                    className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+                  >
+                    Utwórz pierwszy tag
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {allTags.map(tag => {
+                    const isAssigned = reportTags[selectedReportForTags]?.some(t => t.id === tag.id)
+                    return (
+                      <button
+                        key={tag.id}
+                        onClick={() => toggleTagForReport(selectedReportForTags, tag.id)}
+                        disabled={isLoadingTags}
+                        className={`w-full flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
+                          isAssigned
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        } ${isLoadingTags ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <div
+                          className="h-6 w-6 rounded border-2 flex items-center justify-center flex-shrink-0"
+                          style={{
+                            backgroundColor: isAssigned ? tag.color : 'transparent',
+                            borderColor: tag.color
+                          }}
+                        >
+                          {isAssigned && (
+                            <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{tag.name}</div>
+                          {tag.description && (
+                            <div className="text-sm text-gray-500 line-clamp-1">{tag.description}</div>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t px-6 py-4">
+              <button
+                onClick={() => setShowTagModal(false)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              >
+                Zamknij
               </button>
             </div>
           </div>

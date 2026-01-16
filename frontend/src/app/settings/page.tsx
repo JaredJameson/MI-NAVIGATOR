@@ -628,6 +628,25 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Tags Section */}
+        <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Tags</h2>
+              <p className="text-sm text-gray-500 mt-1">Organize your reports with custom tags</p>
+            </div>
+            <Link
+              href="/settings/tags"
+              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Manage Tags
+            </Link>
+          </div>
+        </section>
+
         {/* Custom Fields Section */}
         <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
