@@ -1,5 +1,90 @@
 # MI-Navigator Development Progress
 
+## Session 25 - Date: 2026-01-16
+
+### Completed in This Session:
+
+#### Feature #277: Company timeline events - PASSED
+- Implemented interactive timeline visualization for company history
+- Backend changes (companies.py):
+  - Added TimelineEvent model (id, date, title, description, event_type, impact, source, source_url)
+  - Added CompanyTimeline model (company_id, company_name, events, total_count)
+  - Created MOCK_COMPANY_TIMELINE with 15 historical events for FADO (1998-2026):
+    - 1998: Założenie firmy (founding, high impact)
+    - 2000: Uruchomienie pierwszej linii produkcyjnej (milestone, high)
+    - 2003: Pierwsza duża umowa z branżą motoryzacyjną (partnership, high)
+    - 2006: Inwestycja w automatyzację produkcji (investment, medium)
+    - 2008: Kryzys finansowy - restrukturyzacja (legal, medium)
+    - 2011: Certyfikat ISO 9001 (milestone, medium)
+    - 2014: Wejście inwestora strategicznego (investment, high)
+    - 2016: Rozbudowa zakładu - Hala C (investment, high)
+    - 2018: Certyfikat IATF 16949 dla automotive (milestone, high)
+    - 2020: Pandemia COVID-19 - przestój produkcji (legal, medium)
+    - 2021: Nowa linia recyklingu plastiku (product, medium)
+    - 2023: Jan Nowak obejmuje stanowisko COO (hr, medium)
+    - 2024: Partnerstwo strategiczne z German Plastics GmbH (partnership, high)
+    - 2025: Mandat WIOŚ za przekroczenie norm emisji (legal, medium)
+    - 2026: Ogłoszenie inwestycji w rozbudowę zakładu o 30% (investment, high)
+  - Implemented GET /companies/{identifier}/timeline endpoint with filters:
+    - event_type: founding, investment, partnership, product, legal, hr, milestone
+    - impact: high, medium, low
+    - year_from and year_to for date range filtering
+  - Events sorted chronologically (oldest first)
+- Frontend changes (companies/[id]/page.tsx):
+  - Added 'timeline' tab to company profile navigation (📅 Oś czasu)
+  - Created interactive timeline visualization:
+    - Vertical timeline line with circular date markers
+    - Event type icons: 🏛️ (founding), 💰 (investment), 🤝 (partnership), 📦 (product), ⚖️ (legal), 👥 (hr), 🎯 (milestone)
+    - Date display: day, month (in Polish), year
+    - Impact badges: 🔴 Wysoki wpływ (high), 🟡 Średni wpływ (medium), 🟢 Niski wpływ (low)
+    - Click-to-expand event cards with colored borders based on impact
+    - Source information displayed when event expanded (source name + link)
+    - Filter buttons for event type (8 options) and impact (4 options)
+    - Timeline summary card showing total events and date range
+  - Added state management for timeline data, filters, and selected event
+  - Implemented useEffect for loading timeline data when tab activated
+- API changes (api.ts):
+  - Added TimelineEvent interface
+  - Added CompanyTimeline interface
+  - Added TimelineFilterOptions interface
+  - Implemented companyApi.getCompanyTimeline() method with query string building
+- Full end-to-end testing verified:
+  - All 15 events displayed chronologically from 1998 to 2026
+  - All event types rendered with correct icons
+  - Impact levels color-coded correctly (red/amber/green)
+  - Click on "Założenie firmy FADO" event shows source: KRS with link to ems.ms.gov.pl
+  - Event card border changes to red when selected (high impact event)
+  - Filter by "💰 Inwestycja" shows only 4 investment events (2006, 2014, 2016, 2026)
+  - Timeline summary updates to "4 wydarzenia od 2006 do 2026"
+  - Zero console errors
+  - Screenshots captured: timeline_view_full.png, timeline_event_details.png, timeline_filter_investment.png
+
+### Regression Tests Passed:
+- Feature #11: Dashboard loads with user data - all widgets display correctly
+- Feature #254: Deselect all functionality - selection/deselection works correctly
+
+### Statistics:
+- Total features: 380
+- Passing features: 87 (22.9%)
+- In progress: 0
+
+### Git Commits This Session:
+- 0774ed8 - Implement company timeline events feature (Feature #277)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. Company profile page now has 5 tabs: Przegląd, Oś czasu, Aktualności, Finanse, Osoby
+3. Timeline visualization is fully interactive with filtering by type and impact
+4. Consider adding more timeline events for other companies in MOCK_COMPANY_TIMELINE
+
+---
+
 ## Session 24 - Date: 2026-01-16
 
 ### Completed in This Session:
