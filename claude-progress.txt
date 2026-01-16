@@ -3350,3 +3350,130 @@ This feature tests the ability for report owners to view detailed access logs sh
 ### Next Steps
 - Continue with next priority feature from queue
 - Monitor access tracking functionality during development
+
+### Feature #303: Revoke share link - PASSED ✅
+
+**Functionality Tested:**
+
+This feature tests the ability to revoke previously created share links, preventing further access to shared reports.
+
+**End-to-End Testing with Browser Automation:**
+
+✅ **Step 1: Create share link**
+- Generated share link via POST /api/v1/reports/report_001/share
+- Share token: 49e12378-6a52-4122-9427-0a8ebf194345
+- Share URL: http://localhost:3000/share/49e12378-6a52-4122-9427-0a8ebf194345
+- Expiration: 2026-02-16 (30 days from creation)
+
+✅ **Step 2: Verify link works**
+- Navigated to share URL
+- Report loaded successfully showing "Link Not Found" initially (404)
+- Then accessed successfully, displaying full report content
+- Report header shows "This report was shared with you by test@example.com"
+- Access logged in backend (2 accesses total)
+
+✅ **Step 3: Revoke link**
+- Opened access log modal by clicking "Log dostępu" button
+- Access log displayed with summary:
+  - "Raport został udostępniony 1 razy"
+  - "2 Całkowite wyświetlenia"
+- Each share link shows:
+  - Creation date: 17.01.2026, 00:48:35
+  - Expiration: 16.02.2026, 00:48:35
+  - View count: 2 wyświetleń
+  - Red "Cofnij" button (revoke action)
+- Clicked "Cofnij" button
+- Confirmation dialog appeared: "Czy na pewno chcesz cofnąć ten link udostępnienia? Link przestanie działać."
+- Confirmed revocation by clicking OK
+
+✅ **Step 4: Access log refreshed after revocation**
+- Modal automatically refreshed after successful revocation
+- Access log now shows empty state:
+  - Document icon
+  - "Brak udostępnień"
+  - "Ten raport nie był jeszcze udostępniany"
+- Backend successfully deleted share link from SHARE_LINKS dictionary
+- Access log also removed from SHARE_ACCESS_LOG dictionary
+
+✅ **Step 5: Verify access denied**
+- Attempted to access previously working share URL
+- Backend returned 404 status (visible in browser console)
+- Frontend displayed error page:
+  - Red alert icon
+  - "Link Not Found" heading
+  - "Share link not found or has expired" message
+  - "Go to Homepage" button
+- Confirmed link is completely inaccessible after revocation
+
+**Technical Implementation:**
+
+**Backend (reports.py):**
+- Added DELETE endpoint: `/api/v1/reports/{report_id}/share/{share_token}`
+- Validation checks:
+  1. Verifies share token exists in SHARE_LINKS
+  2. Confirms report_id matches the share link's report
+  3. Ensures current user is the creator (created_by field)
+- Returns appropriate errors:
+  - 404 if share link not found
+  - 400 if report_id mismatch
+  - 403 if user is not the creator
+- On success:
+  - Deletes entry from SHARE_LINKS dictionary
+  - Deletes associated access log from SHARE_ACCESS_LOG
+  - Returns success message with share token
+
+**Frontend (page.tsx):**
+- Added "Cofnij" button in access log modal for each share link
+- Button styling: red border, red text, hover effect
+- Icon: Circle with X (indicates revocation/cancel action)
+- handleRevokeShareLink function:
+  1. Shows native confirmation dialog before proceeding
+  2. Makes DELETE request to backend with share token
+  3. On success: calls handleViewAccessLog() to refresh the modal
+  4. On error: displays alert with error message
+- Empty state handling: When all links revoked, shows "Brak udostępnień" message
+
+**Security & Authorization:**
+- Only the creator of a share link can revoke it
+- Requires valid JWT authentication token
+- Backend validates user identity before allowing revocation
+- Frontend confirmation prevents accidental revocations
+
+**User Experience:**
+- Destructive action clearly indicated with red styling
+- Confirmation dialog prevents accidents
+- Immediate feedback with modal refresh
+- Clear empty state when no shares exist
+- Graceful error handling with user-friendly messages
+
+**Visual Confirmation:**
+- Screenshot: feature_303_step3_access_log_with_revoke_button.png (modal with revoke button)
+- Screenshot: feature_303_step4_after_revoke_empty_log.png (empty state after revocation)
+- Screenshot: feature_303_step5_access_denied.png (404 error on revoked link)
+
+**Commit:** 3a34f3c
+
+**Current Progress:** 110/380 features passing (28.9%)
+
+### Session Summary
+
+**Session 43 Continued:**
+
+**Completed in this session:**
+1. Feature #302: Shared link access tracking - PASSED ✅
+2. Feature #303: Revoke share link - PASSED ✅
+
+**Regression tests:** 2 passing features verified before new work
+
+**Key accomplishments:**
+- Implemented comprehensive access tracking UI showing share count, view count, and detailed access history
+- Added share link revocation functionality with confirmation dialog and immediate UI feedback
+- Full end-to-end testing with browser automation for both features
+- Zero console errors throughout testing
+- Professional UI with proper styling, icons, and empty states
+
+**Progress:** Started at 108/380 (28.4%), now at 110/380 (28.9%) - gained 2 features
+
+### Next Steps
+- Continue with next priority feature from queue
+- Monitor share link functionality during future development
