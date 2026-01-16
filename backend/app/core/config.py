@@ -17,11 +17,11 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
 
     # Database
-    DATABASE_URL: str = "postgresql://minavigator:minavigator@localhost:5432/minavigator"
-    ASYNC_DATABASE_URL: str = "postgresql+asyncpg://minavigator:minavigator@localhost:5432/minavigator"
+    DATABASE_URL: str = "postgresql://minavigator:minavigator@localhost:5460/minavigator"
+    ASYNC_DATABASE_URL: str = "postgresql+asyncpg://minavigator:minavigator@localhost:5460/minavigator"
 
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://localhost:6395/0"
 
     # Claude AI
     ANTHROPIC_API_KEY: str = ""

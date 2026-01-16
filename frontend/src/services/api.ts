@@ -226,6 +226,7 @@ export interface CompanyProfile {
   description?: string;
   website?: string;
   employees_range?: string;
+  last_updated?: string;  // ISO timestamp of last data refresh
 }
 
 export interface NewsArticle {
@@ -279,6 +280,13 @@ export interface TimelineFilterOptions {
   year_to?: number;
 }
 
+export interface RefreshResponse {
+  success: boolean;
+  message: string;
+  last_updated: string;
+  company_id: string;
+}
+
 export const companyApi = {
   async getCompany(identifier: string): Promise<ApiResponse<CompanyProfile>> {
     return fetchApi(`/companies/${encodeURIComponent(identifier)}`);
@@ -312,6 +320,12 @@ export const companyApi = {
     if (year_to) params.push(`year_to=${year_to}`);
     url += params.join('&');
     return fetchApi(url);
+  },
+
+  async refreshCompanyData(identifier: string): Promise<ApiResponse<RefreshResponse>> {
+    return fetchApi(`/companies/${encodeURIComponent(identifier)}/refresh`, {
+      method: 'POST',
+    });
   },
 };
 

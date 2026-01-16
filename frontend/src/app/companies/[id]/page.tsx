@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { companyApi, CompanyProfile, NewsArticle, TimelineEvent } from '@/services/api';
+import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse } from '@/services/api';
 
 type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people';
 
@@ -28,6 +28,8 @@ export default function CompanyProfilePage() {
   const [timelineEventType, setTimelineEventType] = useState<string>('');
   const [timelineImpact, setTimelineImpact] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
 
   // Load company profile
   useEffect(() => {
@@ -93,6 +95,31 @@ export default function CompanyProfilePage() {
     setDateFrom('');
     setDateTo('');
     setShowDateFilter(false);
+  };
+
+  // Handle data refresh
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setRefreshMessage(null);
+
+    const result = await companyApi.refreshCompanyData(companyId);
+
+    if (result.error) {
+      setRefreshMessage(`Błąd: ${result.error}`);
+    } else if (result.data) {
+      setRefreshMessage(result.data.message);
+
+      // Reload company data to get updated timestamp
+      const companyResult = await companyApi.getCompany(companyId);
+      if (companyResult.data) {
+        setCompany(companyResult.data);
+      }
+
+      // Clear message after 3 seconds
+      setTimeout(() => setRefreshMessage(null), 3000);
+    }
+
+    setRefreshing(false);
   };
 
   // Format date
@@ -245,16 +272,52 @@ export default function CompanyProfilePage() {
                 )}
               </div>
             </div>
-            {company.website && (
-              <a
-                href={company.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            <div className="flex flex-col gap-2 items-end">
+              {company.website && (
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                >
+                  🌐 Strona www
+                </a>
+              )}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
+                  refreshing
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
               >
-                🌐 Strona www
-              </a>
-            )}
+                {refreshing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-700"></div>
+                    Odświeżanie...
+                  </>
+                ) : (
+                  <>
+                    🔄 Odśwież dane
+                  </>
+                )}
+              </button>
+              {company.last_updated && (
+                <p className="text-xs text-slate-500">
+                  Ostatnia aktualizacja: {formatDate(company.last_updated)}
+                </p>
+              )}
+              {refreshMessage && (
+                <div className={`text-xs px-3 py-1 rounded ${
+                  refreshMessage.includes('Błąd')
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-green-100 text-green-700'
+                }`}>
+                  {refreshMessage}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
