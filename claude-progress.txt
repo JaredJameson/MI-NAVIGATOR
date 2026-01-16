@@ -1,5 +1,101 @@
 # MI-Navigator Development Progress
 
+## Session 37 - Date: 2026-01-16
+
+### Regression Tests Completed:
+
+#### Feature #193: Dashboard widget consistent styling - PASSED ✅
+- Navigated to dashboard
+- Verified widget card consistency:
+  - Recent Activity, Active Research, Usage Stats - all have identical styling
+  - My Projects cards - all 3 have the same style (white, rounded, shadow)
+  - Alerts & Monitoring cards - all 3 have consistent colored backgrounds
+- Header styles consistent across all widgets
+- Spacing uniform between all widgets
+- Border/shadow consistent on all cards
+- Zero console errors
+- Screenshot: regression_193_dashboard_widgets.png
+
+#### Feature #127: Rapid navigation doesn't cause issues - PASSED ✅
+- Rapid navigation sequence: Dashboard → Reports → Dashboard → Settings
+- Each page loaded correct data:
+  - Dashboard: widgets with correct statistics (Recent Activity, Projects)
+  - Reports: list of 15 reports with pagination
+  - Settings: form with correct values (test@example.com, Test User)
+- No mixed or stale data across pages
+- Zero console errors (only favicon 404 - not relevant)
+- Screenshots: regression_127_settings_page.png
+
+### Feature #290: Archive view filtering - PASSED ✅
+
+**Bug Found and Fixed:**
+
+Discovered critical bug: "📊 Wszystkie" button was not resetting `showArchived` state, causing archived reports to appear in main view after clicking "Archiwum" then "Wszystkie".
+
+**Implementation:**
+
+1. **Bug Fix** (frontend/src/app/reports/page.tsx):
+   - Modified "📊 Wszystkie" button onClick to call `setShowArchived(false)` in addition to `setFilterStatus('')`
+   - Modified "📝 Szkice" button onClick to call `setShowArchived(false)`
+   - Modified "⏳ W trakcie" button onClick to call `setShowArchived(false)`
+   - Modified "✅ Zakończone" button onClick to call `setShowArchived(false)`
+   - Updated all button className conditions to check `filterStatus === 'X' && !showArchived` for proper active state
+   - Ensures clean separation between archive view and non-archive filters
+
+**End-to-End Testing with Browser Automation:**
+
+✅ **Step 1: Archive multiple items**
+- Archived 3 reports through UI:
+  1. report_001 - Analiza profilu FADO Sp. z o.o.
+  2. report_002 - Analiza rynku tworzyw sztucznych w Polsce
+  3. report_003 - Due Diligence - TechSoft Sp. z o.o.
+- Each archival redirected to reports list
+- Main view count decreased from 15 → 14 → 13 → 12
+- Screenshots: feature_290_step1_reports_list.png
+
+✅ **Step 2: Navigate to archive view**
+- Clicked "📦 Archiwum" button
+- Archive view loaded successfully
+- Screenshot: feature_290_step2_archive_view.png
+
+✅ **Step 3: Verify only archived shown**
+- Archive view displayed exactly 3 reports:
+  1. 🏢 Analiza profilu FADO Sp. z o.o.
+  2. 📊 Analiza rynku tworzyw sztucznych w Polsce
+  3. 🔍 Due Diligence - TechSoft Sp. z o.o.
+- Count: "Pokazano 1-3 z 3 raportów"
+- "📦 Archiwum" button active (dark background)
+- All 3 are the same reports that were archived
+
+✅ **Step 4: Navigate to main view**
+- Clicked "📊 Wszystkie" button
+- Returned to main view
+
+✅ **Step 5: Verify archived not in main view**
+- Main view displayed 12 non-archived reports (report_004 through report_015)
+- No archived reports visible (report_001, report_002, report_003 excluded)
+- Count: "Pokazano 1-5 z 12 raportów"
+- "📊 Wszystkie" button active (blue background)
+- Verified multiple times - switching between views works correctly
+- Screenshots: feature_290_step4_main_view_fixed.png, feature_290_final_archive_view.png, feature_290_final_main_view.png
+
+✅ **Zero console errors** throughout entire test
+
+**Visual Verification:**
+- Archive button has distinct active state (dark gray background)
+- Main view buttons properly indicate active state
+- Report counts match expected values (12 non-archived, 3 archived)
+- Clean separation between archive and main views
+
+**Files Modified:**
+- frontend/src/app/reports/page.tsx (+4 lines: added setShowArchived(false) to 4 button handlers, updated 4 className conditions)
+
+**Commit:** da82178 "Fix archive view filtering - Feature #290"
+
+**Current Progress:** 98/380 features passing (25.8%)
+
+---
+
 ## Session 36 - Date: 2026-01-16
 
 ### Regression Tests Completed:
