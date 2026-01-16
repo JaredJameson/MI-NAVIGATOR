@@ -605,6 +605,391 @@ function isPorterSection(title: string): boolean {
          (lowerTitle.includes('analiza') && lowerTitle.includes('sił'))
 }
 
+// ===== TAM SAM SOM TYPES AND COMPONENT =====
+
+interface MarketSizeData {
+  name: string
+  englishName: string
+  value: number
+  valueFormatted: string
+  description: string
+  color: string
+}
+
+interface TAMSAMSOMData {
+  tam: MarketSizeData
+  sam: MarketSizeData
+  som: MarketSizeData
+  methodology?: string[]
+  growth?: { label: string; value: string }[]
+}
+
+// Parse TAM SAM SOM content
+function parseTAMSAMSOMContent(content: string): TAMSAMSOMData | null {
+  const data: Partial<TAMSAMSOMData> = {}
+
+  // Patterns to detect TAM, SAM, SOM sections
+  const patterns = {
+    tam: ['tam', 'total addressable market', 'całkowity rynek'],
+    sam: ['sam', 'serviceable addressable market', 'rynek docelowy'],
+    som: ['som', 'serviceable obtainable market', 'rynek osiągalny']
+  }
+
+  const lines = content.split('\n')
+  let currentSection: 'tam' | 'sam' | 'som' | 'methodology' | 'growth' | null = null
+  let currentValue = 0
+  let currentValueFormatted = ''
+  let currentDescription = ''
+  const methodologyPoints: string[] = []
+  const growthPoints: { label: string; value: string }[] = []
+
+  for (const line of lines) {
+    const trimmedLine = line.trim()
+    const lowerLine = trimmedLine.toLowerCase()
+
+    // Check for TAM section
+    if (patterns.tam.some(p => lowerLine.includes(p)) && !data.tam) {
+      currentSection = 'tam'
+      continue
+    }
+
+    // Check for SAM section
+    if (patterns.sam.some(p => lowerLine.includes(p)) && !data.sam) {
+      // Save previous TAM if we have data
+      if (currentSection === 'tam' && currentValue > 0) {
+        data.tam = {
+          name: 'TAM',
+          englishName: 'Total Addressable Market',
+          value: currentValue,
+          valueFormatted: currentValueFormatted,
+          description: currentDescription,
+          color: 'blue'
+        }
+        currentValue = 0
+        currentValueFormatted = ''
+        currentDescription = ''
+      }
+      currentSection = 'sam'
+      continue
+    }
+
+    // Check for SOM section
+    if (patterns.som.some(p => lowerLine.includes(p)) && !data.som) {
+      // Save previous SAM if we have data
+      if (currentSection === 'sam' && currentValue > 0) {
+        data.sam = {
+          name: 'SAM',
+          englishName: 'Serviceable Addressable Market',
+          value: currentValue,
+          valueFormatted: currentValueFormatted,
+          description: currentDescription,
+          color: 'green'
+        }
+        currentValue = 0
+        currentValueFormatted = ''
+        currentDescription = ''
+      }
+      currentSection = 'som'
+      continue
+    }
+
+    // Check for methodology section
+    if (lowerLine.includes('metodolog')) {
+      // Save previous SOM if we have data
+      if (currentSection === 'som' && currentValue > 0) {
+        data.som = {
+          name: 'SOM',
+          englishName: 'Serviceable Obtainable Market',
+          value: currentValue,
+          valueFormatted: currentValueFormatted,
+          description: currentDescription,
+          color: 'purple'
+        }
+        currentValue = 0
+        currentValueFormatted = ''
+        currentDescription = ''
+      }
+      currentSection = 'methodology'
+      continue
+    }
+
+    // Check for growth/prognoza section
+    if (lowerLine.includes('prognoz') || lowerLine.includes('wzrost') || lowerLine.includes('cagr')) {
+      currentSection = 'growth'
+      continue
+    }
+
+    // Parse value lines (e.g., "Wartość: 85 mld PLN")
+    if (currentSection && ['tam', 'sam', 'som'].includes(currentSection)) {
+      const valueMatch = trimmedLine.match(/wartość[:\s]*([0-9,\.]+)\s*(mld|mln|tys\.?)\s*(PLN|EUR|USD)?/i)
+      if (valueMatch) {
+        const numStr = valueMatch[1].replace(',', '.')
+        let num = parseFloat(numStr)
+        const unit = valueMatch[2].toLowerCase()
+
+        // Convert to millions for consistent comparison
+        if (unit === 'mld') {
+          num = num * 1000 // Convert to millions
+        } else if (unit.includes('tys')) {
+          num = num / 1000 // Convert to millions
+        }
+
+        currentValue = num
+        currentValueFormatted = `${valueMatch[1]} ${valueMatch[2]} ${valueMatch[3] || 'PLN'}`.trim()
+        continue
+      }
+
+      // Parse description lines
+      if (lowerLine.startsWith('opis:')) {
+        currentDescription = trimmedLine.substring(5).trim()
+        continue
+      }
+    }
+
+    // Parse methodology bullet points
+    if (currentSection === 'methodology' && trimmedLine.startsWith('-')) {
+      methodologyPoints.push(trimmedLine.substring(1).trim())
+      continue
+    }
+
+    // Parse growth bullet points (e.g., "- TAM: 3,2% rocznie")
+    if (currentSection === 'growth' && trimmedLine.startsWith('-')) {
+      const growthMatch = trimmedLine.match(/^-\s*(\w+):\s*(.+)$/)
+      if (growthMatch) {
+        growthPoints.push({ label: growthMatch[1], value: growthMatch[2] })
+      }
+      continue
+    }
+  }
+
+  // Save last section (SOM) if not already saved
+  if (currentSection === 'som' && currentValue > 0 && !data.som) {
+    data.som = {
+      name: 'SOM',
+      englishName: 'Serviceable Obtainable Market',
+      value: currentValue,
+      valueFormatted: currentValueFormatted,
+      description: currentDescription,
+      color: 'purple'
+    }
+  }
+
+  // Only return if we have at least TAM and SOM
+  if (!data.tam || !data.som) {
+    return null
+  }
+
+  // Fill in SAM if missing (estimate as average)
+  if (!data.sam) {
+    data.sam = {
+      name: 'SAM',
+      englishName: 'Serviceable Addressable Market',
+      value: (data.tam.value + data.som.value) / 2,
+      valueFormatted: 'Szacunkowa',
+      description: 'Wartość szacunkowa',
+      color: 'green'
+    }
+  }
+
+  return {
+    tam: data.tam,
+    sam: data.sam,
+    som: data.som,
+    methodology: methodologyPoints.length > 0 ? methodologyPoints : undefined,
+    growth: growthPoints.length > 0 ? growthPoints : undefined
+  }
+}
+
+// Helper function to check if section is TAM SAM SOM
+function isTAMSAMSOMSection(title: string): boolean {
+  const lowerTitle = title.toLowerCase()
+  return (lowerTitle.includes('tam') && lowerTitle.includes('sam')) ||
+         lowerTitle.includes('tam sam som') ||
+         (lowerTitle.includes('wielkość') && lowerTitle.includes('rynku') &&
+          (lowerTitle.includes('tam') || lowerTitle.includes('som')))
+}
+
+// TAM SAM SOM Diagram Component - Concentric Circles
+function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSegmentClick?: (segment: string) => void }) {
+  const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
+  const [hoveredSegment, setHoveredSegment] = useState<string | null>(null)
+
+  const handleClick = (segment: string) => {
+    setSelectedSegment(selectedSegment === segment ? null : segment)
+    onSegmentClick?.(segment)
+  }
+
+  // Calculate relative sizes for circles (TAM is largest, SOM is smallest)
+  const maxValue = data.tam.value
+  const tamSize = 100
+  const samSize = (data.sam.value / maxValue) * 100
+  const somSize = (data.som.value / maxValue) * 100
+
+  // Minimum size to keep circles visible
+  const minSize = 15
+  const tamRadius = 45 // percentage
+  const samRadius = Math.max(tamRadius * (samSize / 100), minSize)
+  const somRadius = Math.max(tamRadius * (somSize / 100), minSize / 2)
+
+  const segments = [
+    { key: 'tam', data: data.tam, radius: tamRadius, color: 'bg-blue-500', borderColor: 'border-blue-600', textColor: 'text-blue-700', lightBg: 'bg-blue-100' },
+    { key: 'sam', data: data.sam, radius: samRadius, color: 'bg-green-500', borderColor: 'border-green-600', textColor: 'text-green-700', lightBg: 'bg-green-100' },
+    { key: 'som', data: data.som, radius: somRadius, color: 'bg-purple-500', borderColor: 'border-purple-600', textColor: 'text-purple-700', lightBg: 'bg-purple-100' }
+  ]
+
+  return (
+    <div className="w-full">
+      {/* Concentric Circles Visualization */}
+      <div className="relative mx-auto" style={{ width: '100%', maxWidth: '500px', height: '400px' }}>
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* TAM - Outer circle (z-index: 1) */}
+          <div
+            className={`absolute rounded-full border-4 transition-all duration-300 cursor-pointer flex items-center justify-center z-[1] ${
+              selectedSegment === 'tam' || hoveredSegment === 'tam'
+                ? 'border-blue-600 bg-blue-100 shadow-lg scale-105'
+                : 'border-blue-400 bg-blue-50'
+            }`}
+            style={{ width: `${tamRadius * 2}%`, height: `${tamRadius * 2}%` }}
+            onClick={() => handleClick('tam')}
+            onMouseEnter={() => setHoveredSegment('tam')}
+            onMouseLeave={() => setHoveredSegment(null)}
+          >
+            {/* TAM Label - top */}
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
+              <div className="font-bold text-blue-700">TAM</div>
+              <div className="text-sm text-blue-600">{data.tam.valueFormatted}</div>
+            </div>
+          </div>
+
+          {/* SAM - Middle circle (z-index: 2) */}
+          <div
+            className={`absolute rounded-full border-4 transition-all duration-300 cursor-pointer flex items-center justify-center z-[2] ${
+              selectedSegment === 'sam' || hoveredSegment === 'sam'
+                ? 'border-green-600 bg-green-100 shadow-lg scale-105'
+                : 'border-green-400 bg-green-50'
+            }`}
+            style={{ width: `${samRadius * 2}%`, height: `${samRadius * 2}%` }}
+            onClick={() => handleClick('sam')}
+            onMouseEnter={() => setHoveredSegment('sam')}
+            onMouseLeave={() => setHoveredSegment(null)}
+          >
+            {/* SAM Label - right side */}
+            <div className="absolute -right-20 top-1/2 -translate-y-1/2 text-center whitespace-nowrap">
+              <div className="font-bold text-green-700">SAM</div>
+              <div className="text-sm text-green-600">{data.sam.valueFormatted}</div>
+            </div>
+          </div>
+
+          {/* SOM - Inner circle (z-index: 3 - highest to be always clickable) */}
+          <div
+            className={`absolute rounded-full border-4 transition-all duration-300 cursor-pointer flex items-center justify-center z-[3] ${
+              selectedSegment === 'som' || hoveredSegment === 'som'
+                ? 'border-purple-600 bg-purple-200 shadow-lg scale-110'
+                : 'border-purple-400 bg-purple-100'
+            }`}
+            style={{ width: `${somRadius * 2}%`, height: `${somRadius * 2}%`, minWidth: '80px', minHeight: '80px' }}
+            onClick={() => handleClick('som')}
+            onMouseEnter={() => setHoveredSegment('som')}
+            onMouseLeave={() => setHoveredSegment(null)}
+          >
+            <div className="text-center">
+              <div className="font-bold text-purple-700 text-sm">SOM</div>
+              <div className="text-xs text-purple-600">{data.som.valueFormatted}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Selected Segment Details */}
+      {selectedSegment && (
+        <div className="mt-6 rounded-xl bg-white border-2 border-gray-200 p-6 shadow-md">
+          {segments.filter(s => s.key === selectedSegment).map(segment => (
+            <div key={segment.key}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-12 h-12 rounded-full ${segment.color} flex items-center justify-center`}>
+                  <span className="text-white font-bold text-lg">{segment.data.name}</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800">{segment.data.englishName}</h3>
+                  <span className={`text-2xl font-bold ${segment.textColor}`}>{segment.data.valueFormatted}</span>
+                </div>
+              </div>
+              {segment.data.description && (
+                <p className="text-gray-600">{segment.data.description}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-4 rounded-full bg-blue-500"></span>
+          <span className="text-gray-700 font-medium">TAM</span>
+          <span className="text-gray-500">- Całkowity Rynek</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-4 rounded-full bg-green-500"></span>
+          <span className="text-gray-700 font-medium">SAM</span>
+          <span className="text-gray-500">- Rynek Docelowy</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-4 rounded-full bg-purple-500"></span>
+          <span className="text-gray-700 font-medium">SOM</span>
+          <span className="text-gray-500">- Rynek Osiągalny</span>
+        </div>
+      </div>
+
+      {/* Methodology if available */}
+      {data.methodology && data.methodology.length > 0 && (
+        <div className="mt-6 rounded-lg bg-gray-50 p-4">
+          <h4 className="font-semibold text-gray-700 mb-2">📐 Metodologia kalkulacji:</h4>
+          <ul className="space-y-1">
+            {data.methodology.map((point, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="text-gray-400">•</span>
+                {point}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Growth Projections if available */}
+      {data.growth && data.growth.length > 0 && (
+        <div className="mt-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 p-4">
+          <h4 className="font-semibold text-gray-700 mb-2">📈 Prognoza wzrostu:</h4>
+          <div className="flex flex-wrap gap-4">
+            {data.growth.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-sm">
+                <span className={`font-bold ${
+                  item.label.toUpperCase() === 'TAM' ? 'text-blue-600' :
+                  item.label.toUpperCase() === 'SAM' ? 'text-green-600' :
+                  'text-purple-600'
+                }`}>{item.label}:</span>
+                <span className="text-gray-700">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Summary Stats */}
+      <div className="mt-4 text-center text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1">
+          📊 Model TAM SAM SOM - Analiza wielkości rynku
+        </span>
+      </div>
+
+      {/* Tip */}
+      <div className="mt-3 text-center text-xs text-gray-400">
+        💡 Kliknij okrąg, aby zobaczyć szczegóły
+      </div>
+    </div>
+  )
+}
+
 // Porter Five Forces Diagram Component
 function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?: (force: string) => void }) {
   const [selectedForce, setSelectedForce] = useState<string | null>(null)
@@ -2238,6 +2623,8 @@ export default function ReportViewerPage() {
             const swotData = isSWOTSection(section.title) ? parseSWOTContent(section.content) : null
             // Check if this is a Porter Five Forces section
             const porterData = isPorterSection(section.title) ? parsePorterContent(section.content) : null
+            // Check if this is a TAM SAM SOM section
+            const tamSamSomData = isTAMSAMSOMSection(section.title) ? parseTAMSAMSOMContent(section.content) : null
 
             return (
               <section
@@ -2247,7 +2634,7 @@ export default function ReportViewerPage() {
               >
                 <h2 className="mb-4 text-xl font-semibold text-gray-900">
                   {index + 1}. {section.title}
-                  {(swotData || porterData) && (
+                  {(swotData || porterData || tamSamSomData) && (
                     <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                       📊 Diagram interaktywny
                     </span>
@@ -2260,6 +2647,9 @@ export default function ReportViewerPage() {
                 ) : porterData ? (
                   /* Porter Five Forces Visualization */
                   <PorterDiagram data={porterData} />
+                ) : tamSamSomData ? (
+                  /* TAM SAM SOM Visualization */
+                  <TAMSAMSOMDiagram data={tamSamSomData} />
                 ) : (
                   <div className="prose prose-gray max-w-none">
                     {section.content.split('\n').map((paragraph, pIdx) => (

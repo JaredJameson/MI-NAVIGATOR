@@ -210,6 +210,31 @@ Rynek tworzyw sztucznych w Polsce rośnie średnio o 4-6% rocznie. Głównym mot
 - Niska dynamika wzrostu rynku (4-6% rocznie)
 - Wysokie koszty stałe wymuszające walkę o wolumen
 - Ograniczone możliwości różnicowania produktów"""
+            },
+            {
+                "id": "section_4",
+                "title": "Wielkość rynku TAM SAM SOM",
+                "content": """**TAM (Total Addressable Market) - Całkowity Rynek:**
+Wartość: 85 mld PLN
+Opis: Globalny rynek tworzyw sztucznych dostępny dla polskich firm, obejmujący kraje UE i eksport
+
+**SAM (Serviceable Addressable Market) - Rynek Docelowy:**
+Wartość: 28 mld PLN
+Opis: Rynek tworzyw sztucznych w Polsce i najbliższych krajach CEE (Czechy, Słowacja, Węgry)
+
+**SOM (Serviceable Obtainable Market) - Rynek Osiągalny:**
+Wartość: 4,5 mld PLN
+Opis: Realistyczny udział rynkowy możliwy do osiągnięcia dla średniej wielkości producenta w ciągu 3-5 lat
+
+**Metodologia kalkulacji:**
+- TAM: Suma wartości rynku UE * dostępność dla polskich eksporterów
+- SAM: Rynek krajowy + penetracja regionalna (CEE)
+- SOM: Bazując na benchmarkach konkurencji i zdolności produkcyjnych
+
+**Prognoza wzrostu (CAGR 2024-2028):**
+- TAM: 3,2% rocznie
+- SAM: 4,8% rocznie
+- SOM: 8,5% rocznie (przy agresywnej strategii ekspansji)"""
             }
         ],
         "sources": [
