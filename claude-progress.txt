@@ -3277,3 +3277,76 @@ This feature tests the ability to share a report via email to multiple recipient
 
 **Current Progress:** 108/380 features passing (28.4%)
 
+
+### Feature #302: Shared link access tracking - PASSED ✅
+
+**Functionality Tested:**
+
+This feature tests the ability for report owners to view detailed access logs showing who has accessed their shared reports, including timestamps, IP addresses, and user agent information.
+
+**End-to-End Testing with Browser Automation:**
+
+✅ **Step 1: Generate share link**
+- Authenticated as test@example.com
+- Called POST /api/v1/reports/report_001/share
+- Generated share token: cdb96959-b94b-438f-a094-0344dc4b7e4d
+- Share URL: http://localhost:3000/reports/share/cdb96959-b94b-438f-a094-0344dc4b7e4d
+- Expiration: 2026-02-16 (30 days)
+
+✅ **Step 2: Access shared link**
+- Opened share URL in browser
+- Report loaded successfully with "UDOSTĘPNIONY RAPORT" badge
+- Access automatically logged by backend endpoint
+- Captured: timestamp (2026-01-17T00:43:27Z), IP (127.0.0.1), user agent (Chrome/139.0.0.0)
+
+✅ **Step 3: View access log**
+- Navigated to /reports/report_001 (owner view)
+- Clicked "Log dostępu" button in toolbar (next to "Udostępnij" button)
+- Access log modal opened successfully
+
+✅ **Step 4: Verify access tracking UI**
+- **Summary section displayed:**
+  - "Raport został udostępniony 1 razy" (share count)
+  - "2 Całkowite wyświetlenia" (total views badge)
+- **Per-link breakdown:**
+  - Share token displayed with truncation: "cdb96...4d" (link button to copy)
+  - Creation date: "17.01.2026, 00:43:13"
+  - Expiration: "16.02.2026, 00:43:13"
+  - View count: "2 wyświetlenia"
+- **Detailed access history:**
+  - 2 access entries listed chronologically (newest first)
+  - Each entry shows:
+    - Timestamp: "17.01.2026, 00:43:27"
+    - IP address: "127.0.0.1"
+    - User agent: Full browser string (Chrome 139.0.0.0, macOS 10_15_7)
+    - Location: "Unknown, Unknown" (geolocation not implemented yet)
+
+✅ **Step 5: Verify data accuracy**
+- Access timestamps match actual visit times
+- IP address correctly captured (localhost during testing)
+- User agent string complete and accurate
+- All data persists in SHARE_ACCESS_LOG dictionary
+
+**Technical Implementation:**
+- **Backend:** Already implemented in reports.py
+  - SHARE_LINKS dictionary stores share metadata
+  - SHARE_ACCESS_LOG dictionary stores access entries per token
+  - GET /api/v1/reports/{report_id}/share/access-log endpoint returns aggregated data
+- **Frontend:** Added UI in page.tsx
+  - "Log dostępu" button with bar chart icon in toolbar
+  - Comprehensive modal with summary cards and detailed table
+  - Professional styling with color-coded badges
+  - Loading/error/empty states handled
+
+**Visual Confirmation:**
+- Screenshot: feature_302_step1_report_view.png (report with "Log dostępu" button)
+- Screenshot: feature_302_step2_shared_report_accessed.png (shared report view)
+- Screenshot: feature_302_step3_access_log_displayed.png (access log modal with 2 entries)
+
+**Commit:** 669c9c9
+
+**Current Progress:** 109/380 features passing (28.7%)
+
+### Next Steps
+- Continue with next priority feature from queue
+- Monitor access tracking functionality during development

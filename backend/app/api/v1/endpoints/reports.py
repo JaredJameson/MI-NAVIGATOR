@@ -2,7 +2,7 @@
 Reports API Endpoints
 """
 
-from fastapi import APIRouter, Query, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Query, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from pydantic import BaseModel
@@ -1617,13 +1617,56 @@ async def bulk_export_reports(
         raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
 
 
+# In-memory storage for share links: { "share_token": {"report_id", "created_at", "expires_at", "created_by"} }
+SHARE_LINKS: dict = {}
+
+# In-memory storage for access log: { "share_token": [{"timestamp", "ip", "user_agent", "location"}, ...] }
+SHARE_ACCESS_LOG: dict = {}
+
+
 @router.post("/{report_id}/share")
-async def share_report(report_id: str):
-    """Generate share link for report."""
-    # TODO: Implement report sharing
+async def share_report(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate share link for report with tracking."""
+    # Verify report exists
+    report = None
+    for r in MOCK_REPORTS:
+        if r["id"] == report_id:
+            report = r
+            break
+
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Generate unique share token
+    share_token = str(uuid.uuid4())
+
+    # Calculate expiration (30 days from now)
+    from datetime import timedelta
+    expires_at = datetime.now() + timedelta(days=30)
+
+    # Store share link
+    SHARE_LINKS[share_token] = {
+        "report_id": report_id,
+        "created_at": datetime.now().isoformat() + "Z",
+        "expires_at": expires_at.isoformat() + "Z",
+        "created_by": str(current_user.id),
+        "created_by_email": current_user.email
+    }
+
+    # Initialize access log for this token
+    SHARE_ACCESS_LOG[share_token] = []
+
+    share_url = f"http://localhost:3000/share/{share_token}"
+
     return {
-        "share_url": f"https://app.minavigator.com/share/{report_id}",
-        "expires_at": "2024-02-01T00:00:00Z"
+        "share_token": share_token,
+        "share_url": share_url,
+        "expires_at": expires_at.isoformat() + "Z",
+        "report_id": report_id,
+        "report_title": report["title"]
     }
 
 
@@ -2514,4 +2557,158 @@ async def upload_image(
         "url": image_url,
         "filename": unique_filename,
         "original_filename": file.filename
+    }
+
+
+# ============================================================================
+# PUBLIC SHARE LINK ACCESS (with tracking)
+# ============================================================================
+
+@router.get("/public/share/{share_token}")
+async def access_shared_report(
+    share_token: str,
+    request: Request
+):
+    """
+    Public endpoint to access shared report (no authentication required).
+    Logs access details for tracking.
+    """
+    # Check if share link exists
+    if share_token not in SHARE_LINKS:
+        raise HTTPException(status_code=404, detail="Share link not found or expired")
+
+    share_link = SHARE_LINKS[share_token]
+
+    # Check if link has expired
+    from datetime import datetime
+    expires_at = datetime.fromisoformat(share_link["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(expires_at.tzinfo) > expires_at:
+        raise HTTPException(status_code=410, detail="Share link has expired")
+
+    report_id = share_link["report_id"]
+
+    # Find the report
+    report = None
+    for r in MOCK_REPORTS:
+        if r["id"] == report_id:
+            report = r
+            break
+
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Log access details
+    client_ip = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+
+    access_entry = {
+        "timestamp": datetime.now().isoformat() + "Z",
+        "ip_address": client_ip,
+        "user_agent": user_agent,
+        "country": "Unknown",  # Could integrate with GeoIP service
+        "city": "Unknown"
+    }
+
+    # Add to access log
+    if share_token not in SHARE_ACCESS_LOG:
+        SHARE_ACCESS_LOG[share_token] = []
+
+    SHARE_ACCESS_LOG[share_token].append(access_entry)
+
+    # Log to console for debugging
+    print(f"📊 SHARE ACCESS: Token={share_token[:8]}..., IP={client_ip}, Report={report['title']}")
+
+    # Return report data
+    return {
+        "report": report,
+        "shared_by": share_link.get("created_by_email", "Unknown"),
+        "share_token": share_token
+    }
+
+
+@router.get("/{report_id}/share/access-log")
+async def get_share_access_log(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get access log for all share links of this report.
+    Only available to the report owner.
+    """
+    # Find all share tokens for this report
+    relevant_tokens = []
+    for token, link_data in SHARE_LINKS.items():
+        if link_data["report_id"] == report_id:
+            # Check if user is the creator
+            if link_data.get("created_by") == str(current_user.id):
+                relevant_tokens.append(token)
+
+    if not relevant_tokens:
+        return {
+            "report_id": report_id,
+            "share_links": [],
+            "total_accesses": 0,
+            "message": "No share links found for this report"
+        }
+
+    # Collect access logs for all relevant tokens
+    share_links_with_logs = []
+    total_accesses = 0
+
+    for token in relevant_tokens:
+        access_log = SHARE_ACCESS_LOG.get(token, [])
+        total_accesses += len(access_log)
+
+        share_links_with_logs.append({
+            "share_token": token,
+            "share_url": f"http://localhost:3000/share/{token}",
+            "created_at": SHARE_LINKS[token]["created_at"],
+            "expires_at": SHARE_LINKS[token]["expires_at"],
+            "access_count": len(access_log),
+            "accesses": access_log
+        })
+
+    # Sort by creation date (newest first)
+    share_links_with_logs.sort(key=lambda x: x["created_at"], reverse=True)
+
+    return {
+        "report_id": report_id,
+        "share_links": share_links_with_logs,
+        "total_accesses": total_accesses
+    }
+
+
+@router.delete("/{report_id}/share/{share_token}")
+async def revoke_share_link(
+    report_id: str,
+    share_token: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Revoke a share link, preventing further access.
+    Only the creator can revoke their share links.
+    """
+    # Check if share link exists
+    if share_token not in SHARE_LINKS:
+        raise HTTPException(status_code=404, detail="Share link not found")
+
+    share_link = SHARE_LINKS[share_token]
+
+    # Verify report_id matches
+    if share_link["report_id"] != report_id:
+        raise HTTPException(status_code=400, detail="Share token does not belong to this report")
+
+    # Verify user is the creator
+    if share_link.get("created_by") != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Only the creator can revoke this share link")
+
+    # Remove the share link and its access log
+    del SHARE_LINKS[share_token]
+    if share_token in SHARE_ACCESS_LOG:
+        del SHARE_ACCESS_LOG[share_token]
+
+    return {
+        "success": True,
+        "message": "Share link revoked successfully",
+        "share_token": share_token
     }

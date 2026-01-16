@@ -4375,6 +4375,42 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Revoke share link
+  const handleRevokeShareLink = async (shareToken: string) => {
+    if (!confirm('Czy na pewno chcesz cofnąć ten link udostępnienia? Link przestanie działać.')) {
+      return
+    }
+
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/share/${shareToken}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.ok) {
+        // Refresh the access log to show updated list
+        await handleViewAccessLog()
+      } else {
+        const errorData = await response.json()
+        alert(`Nie udało się cofnąć linku: ${errorData.detail || 'Nieznany błąd'}`)
+      }
+    } catch (error) {
+      console.error('Error revoking share link:', error)
+      alert('Wystąpił błąd podczas cofania linku')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -5774,7 +5810,7 @@ export default function ReportViewerPage() {
                   {accessLogData?.share_links?.map((shareLink: any, idx: number) => (
                     <div key={idx} className="rounded-lg border border-gray-200 p-4">
                       <div className="flex items-start justify-between mb-3">
-                        <div>
+                        <div className="flex-1">
                           <h5 className="font-medium text-gray-900">Link udostępnienia #{idx + 1}</h5>
                           <p className="text-sm text-gray-500 mt-1">
                             Utworzono: {new Date(shareLink.created_at).toLocaleString('pl-PL')}
@@ -5783,9 +5819,21 @@ export default function ReportViewerPage() {
                             Wygasa: {new Date(shareLink.expires_at).toLocaleString('pl-PL')}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-gray-900">{shareLink.access_count}</div>
-                          <div className="text-xs text-gray-500">wyświetleń</div>
+                        <div className="flex items-start gap-3">
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-gray-900">{shareLink.access_count}</div>
+                            <div className="text-xs text-gray-500">wyświetleń</div>
+                          </div>
+                          <button
+                            onClick={() => handleRevokeShareLink(shareLink.share_token)}
+                            className="flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                            title="Cofnij udostępnienie - link przestanie działać"
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                            Cofnij
+                          </button>
                         </div>
                       </div>
 
