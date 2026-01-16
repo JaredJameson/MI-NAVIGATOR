@@ -37,7 +37,7 @@ export default function WorkspaceSettingsPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('MEMBER')
+  const [inviteRole, setInviteRole] = useState('member')
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   useEffect(() => {
@@ -290,9 +290,9 @@ export default function WorkspaceSettingsPage() {
                             onChange={(e) => setInviteRole(e.target.value)}
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
-                            <option value="VIEWER">Viewer</option>
-                            <option value="MEMBER">Member</option>
-                            <option value="ADMIN">Admin</option>
+                            <option value="viewer">Viewer</option>
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
                           </select>
                           <button
                             type="submit"
