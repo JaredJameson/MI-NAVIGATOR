@@ -806,10 +806,14 @@ async def list_reports(
     type: Optional[str] = None,
     search: Optional[str] = None,
     project_id: Optional[str] = None,
+    tag_id: Optional[str] = None,
     # TODO: Re-enable auth after testing - temporarily disabled for development
     # current_user: User = Depends(get_current_user)
 ):
     """List user's reports with filtering and pagination."""
+    # Import REPORT_TAGS from tags module
+    from app.api.v1.endpoints.tags import REPORT_TAGS
+
     filtered_reports = MOCK_REPORTS
 
     # Filter by type
@@ -824,6 +828,18 @@ async def list_reports(
             if search_lower in r["title"].lower()
             or search_lower in r["summary"].lower()
             or (r["company"] and search_lower in r["company"].lower())
+        ]
+
+    # Filter by tag
+    if tag_id:
+        # Only include reports that have this tag assigned
+        report_ids_with_tag = [
+            report_id for report_id, tag_ids in REPORT_TAGS.items()
+            if tag_id in tag_ids
+        ]
+        filtered_reports = [
+            r for r in filtered_reports
+            if r["id"] in report_ids_with_tag
         ]
 
     total = len(filtered_reports)
@@ -854,10 +870,14 @@ async def list_reports(
 async def get_all_report_ids(
     type: Optional[str] = None,
     search: Optional[str] = None,
+    tag_id: Optional[str] = None,
     # TODO: Re-enable auth after testing - temporarily disabled for development
     # current_user: User = Depends(get_current_user)
 ):
     """Get all report IDs (for select all across pages functionality)."""
+    # Import REPORT_TAGS from tags module
+    from app.api.v1.endpoints.tags import REPORT_TAGS
+
     filtered_reports = MOCK_REPORTS
 
     # Filter by type
@@ -872,6 +892,18 @@ async def get_all_report_ids(
             if search_lower in r["title"].lower()
             or search_lower in r["summary"].lower()
             or (r["company"] and search_lower in r["company"].lower())
+        ]
+
+    # Filter by tag
+    if tag_id:
+        # Only include reports that have this tag assigned
+        report_ids_with_tag = [
+            report_id for report_id, tag_ids in REPORT_TAGS.items()
+            if tag_id in tag_ids
+        ]
+        filtered_reports = [
+            r for r in filtered_reports
+            if r["id"] in report_ids_with_tag
         ]
 
     return {

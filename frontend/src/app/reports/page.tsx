@@ -65,6 +65,7 @@ export default function ReportsPage() {
   const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [filterTag, setFilterTag] = useState('')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -102,7 +103,7 @@ export default function ReportsPage() {
   useEffect(() => {
     fetchReports()
     fetchAllTags()
-  }, [filterType, currentPage])
+  }, [filterType, filterTag, currentPage])
 
   const fetchReports = async () => {
     const token = getStoredToken()
@@ -120,6 +121,7 @@ export default function ReportsPage() {
       params.append('limit', pageSize.toString())
       if (filterType) params.append('type', filterType)
       if (searchQuery) params.append('search', searchQuery)
+      if (filterTag) params.append('tag_id', filterTag)
 
       const response = await fetch(
         `${API_BASE_URL}/reports?${params.toString()}`,
@@ -154,6 +156,7 @@ export default function ReportsPage() {
       const params = new URLSearchParams()
       if (filterType) params.append('type', filterType)
       if (searchQuery) params.append('search', searchQuery)
+      if (filterTag) params.append('tag_id', filterTag)
 
       const response = await fetch(
         `${API_BASE_URL}/reports/ids?${params.toString()}`,
@@ -777,6 +780,21 @@ export default function ReportsPage() {
               <option value="market_analysis">Analiza rynku</option>
               <option value="due_diligence">Due Diligence</option>
               <option value="competitive">Konkurencja</option>
+            </select>
+            <select
+              value={filterTag}
+              onChange={(e) => {
+                setFilterTag(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">Wszystkie tagi</option>
+              {allTags.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
             </select>
             <button
               type="submit"
