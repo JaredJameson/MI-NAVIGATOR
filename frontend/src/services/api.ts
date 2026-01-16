@@ -41,10 +41,15 @@ export function clearTokens(): void {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
-// Generic fetch wrapper
+// Flag to prevent infinite refresh loops
+let isRefreshing = false;
+let refreshPromise: Promise<ApiResponse<TokenResponse>> | null = null;
+
+// Generic fetch wrapper with automatic token refresh on 401
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retryCount = 0
 ): Promise<ApiResponse<T>> {
   const url = `${API_BASE_URL}${endpoint}`;
 
@@ -64,6 +69,40 @@ async function fetchApi<T>(
       ...options,
       headers,
     });
+
+    // Handle 401 Unauthorized - token expired
+    if (response.status === 401 && retryCount === 0) {
+      // Don't try to refresh if we're already on the auth endpoints
+      if (endpoint.includes('/auth/')) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          error: errorData.detail || 'Authentication failed',
+        };
+      }
+
+      // Wait for ongoing refresh or start new one
+      if (isRefreshing && refreshPromise) {
+        await refreshPromise;
+      } else {
+        isRefreshing = true;
+        refreshPromise = authApi.refreshToken();
+        const refreshResult = await refreshPromise;
+        isRefreshing = false;
+        refreshPromise = null;
+
+        if (refreshResult.error) {
+          // Refresh failed - clear tokens and redirect to login
+          clearTokens();
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+          return { error: 'Session expired. Please login again.' };
+        }
+      }
+
+      // Retry the original request with new token
+      return fetchApi<T>(endpoint, options, retryCount + 1);
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
