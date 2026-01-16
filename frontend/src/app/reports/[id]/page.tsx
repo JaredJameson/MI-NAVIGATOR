@@ -3655,6 +3655,35 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Save as template
+  const saveAsTemplate = async () => {
+    const token = getStoredToken()
+    if (!token || !reportId) return
+
+    const templateName = prompt('Wprowadź nazwę szablonu:')
+    if (!templateName || templateName.trim() === '') return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/reports/${reportId}/save-as-template?template_name=${encodeURIComponent(templateName.trim())}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        alert(`Szablon "${templateName}" został utworzony pomyślnie!`)
+      } else {
+        console.error('Failed to save template:', await response.text())
+        alert('Nie udało się zapisać szablonu')
+      }
+    } catch (err) {
+      console.error('Failed to save template:', err)
+      alert('Wystąpił błąd podczas zapisywania szablonu')
+    }
+  }
+
   // Toggle favorite status
   const toggleFavorite = async () => {
     const token = getStoredToken()
@@ -4031,6 +4060,15 @@ export default function ReportViewerPage() {
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+            <button
+              onClick={saveAsTemplate}
+              className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+              title="Zapisz jako szablon"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
             </button>
             <button
