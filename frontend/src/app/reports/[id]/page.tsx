@@ -3326,6 +3326,16 @@ export default function ReportViewerPage() {
   const [shareSuccess, setShareSuccess] = useState(false)
   const [shareError, setShareError] = useState('')
 
+  // Share link state
+  const [shareLink, setShareLink] = useState('')
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  // Access log state
+  const [showAccessLogModal, setShowAccessLogModal] = useState(false)
+  const [accessLogData, setAccessLogData] = useState<any>(null)
+  const [isLoadingAccessLog, setIsLoadingAccessLog] = useState(false)
+
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false)
   const [editedSections, setEditedSections] = useState<{[key: string]: string}>({})
@@ -4283,6 +4293,88 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Generate share link functionality
+  const handleGenerateShareLink = async () => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setIsGeneratingLink(true)
+    setShareError('')
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/share`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to generate share link')
+      }
+
+      const data = await response.json()
+      setShareLink(data.share_url)
+    } catch (err) {
+      console.error('Generate link failed:', err)
+      setShareError('Nie udało się wygenerować linku')
+    } finally {
+      setIsGeneratingLink(false)
+    }
+  }
+
+  // Copy share link to clipboard
+  const handleCopyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  // Fetch access log
+  const handleViewAccessLog = async () => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setShowAccessLogModal(true)
+    setIsLoadingAccessLog(true)
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/${reportId}/share/access-log`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch access log')
+      }
+
+      const data = await response.json()
+      setAccessLogData(data)
+    } catch (err) {
+      console.error('Fetch access log failed:', err)
+      setAccessLogData({ error: 'Nie udało się pobrać logu dostępu' })
+    } finally {
+      setIsLoadingAccessLog(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -4456,6 +4548,19 @@ export default function ReportViewerPage() {
               </svg>
               Udostępnij
             </button>
+
+            {/* View Access Log button */}
+            <button
+              onClick={handleViewAccessLog}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              title="Zobacz kto otworzył udostępniony raport"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Log dostępu
+            </button>
+
             <div className="relative">
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
@@ -5611,6 +5716,125 @@ export default function ReportViewerPage() {
                     </button>
                   </div>
                 </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Access Log Modal */}
+      {showAccessLogModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="w-full max-w-4xl rounded-lg bg-white shadow-xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between border-b p-4">
+              <h3 className="text-lg font-semibold text-gray-900">Log dostępu do raportu</h3>
+              <button
+                onClick={() => setShowAccessLogModal(false)}
+                className="rounded-lg p-1 hover:bg-gray-100"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4">
+              {isLoadingAccessLog ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                </div>
+              ) : accessLogData?.error ? (
+                <div className="text-center py-12 text-red-600">
+                  {accessLogData.error}
+                </div>
+              ) : accessLogData?.share_links?.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <svg className="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="font-medium">Brak udostępnień</p>
+                  <p className="text-sm mt-1">Ten raport nie był jeszcze udostępniany</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="rounded-lg bg-blue-50 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Podsumowanie</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Raport został udostępniony {accessLogData?.share_links?.length || 0} razy
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-bold text-blue-600">{accessLogData?.total_accesses || 0}</div>
+                        <div className="text-sm text-gray-600">Całkowite wyświetlenia</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {accessLogData?.share_links?.map((shareLink: any, idx: number) => (
+                    <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h5 className="font-medium text-gray-900">Link udostępnienia #{idx + 1}</h5>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Utworzono: {new Date(shareLink.created_at).toLocaleString('pl-PL')}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Wygasa: {new Date(shareLink.expires_at).toLocaleString('pl-PL')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-gray-900">{shareLink.access_count}</div>
+                          <div className="text-xs text-gray-500">wyświetleń</div>
+                        </div>
+                      </div>
+
+                      {shareLink.accesses && shareLink.accesses.length > 0 ? (
+                        <div className="mt-4">
+                          <h6 className="text-sm font-medium text-gray-700 mb-2">Historia dostępu:</h6>
+                          <div className="space-y-2 max-h-60 overflow-y-auto">
+                            {shareLink.accesses.map((access: any, accessIdx: number) => (
+                              <div key={accessIdx} className="flex items-start gap-3 text-sm bg-gray-50 rounded p-3">
+                                <svg className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-gray-900">
+                                      {new Date(access.timestamp).toLocaleString('pl-PL')}
+                                    </span>
+                                    <span className="text-gray-400">•</span>
+                                    <span className="text-gray-600">{access.ip_address}</span>
+                                    {access.country !== 'Unknown' && (
+                                      <>
+                                        <span className="text-gray-400">•</span>
+                                        <span className="text-gray-600">{access.country}</span>
+                                      </>
+                                    )}
+                                    {access.city !== 'Unknown' && (
+                                      <>
+                                        <span className="text-gray-400">•</span>
+                                        <span className="text-gray-600">{access.city}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1 truncate" title={access.user_agent}>
+                                    {access.user_agent}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 mt-3 text-center py-4">
+                          Ten link nie został jeszcze otwarty
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
