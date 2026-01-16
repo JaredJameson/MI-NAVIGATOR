@@ -17,7 +17,24 @@ router = APIRouter()
 
 
 # Mock templates database
-MOCK_TEMPLATES = []
+MOCK_TEMPLATES = [
+    {
+        "id": "template_test001",
+        "name": "Szablon profilu firmy produkcyjnej",
+        "type": "company_profile",
+        "created_at": "2026-01-16T22:00:00Z",
+        "created_by": "user_001",
+        "use_count": 0,
+        "last_used": None,
+        "original_report_title": "Analiza profilu FADO Sp. z o.o.",
+        "sections": [
+            {"id": "section_1", "title": "Informacje podstawowe", "content": "[Do uzupełnienia: dane rejestrowe, NIP, REGON, KRS]"},
+            {"id": "section_2", "title": "Analiza finansowa", "content": "[Do uzupełnienia: przychody, wskaźniki finansowe, trendy]"},
+            {"id": "section_3", "title": "Pozycja rynkowa", "content": "[Do uzupełnienia: udział w rynku, konkurenci, przewagi]"},
+            {"id": "section_4", "title": "Analiza SWOT", "content": "[Do uzupełnienia: mocne/słabe strony, szanse/zagrożenia]"}
+        ]
+    }
+]
 
 # Mock reports database
 MOCK_REPORTS = [
@@ -2259,9 +2276,7 @@ async def save_report_as_template(
 
 
 @router.get("/templates")
-async def get_templates(
-    current_user: User = Depends(get_current_user)
-):
+async def get_templates():
     """Get all report templates."""
     return {
         "templates": MOCK_TEMPLATES,
@@ -2271,8 +2286,7 @@ async def get_templates(
 
 @router.get("/templates/{template_id}")
 async def get_template(
-    template_id: str,
-    current_user: User = Depends(get_current_user)
+    template_id: str
 ):
     """Get a specific template."""
     for template in MOCK_TEMPLATES:
@@ -2299,8 +2313,7 @@ async def delete_template(
 @router.post("/templates/{template_id}/use")
 async def create_report_from_template(
     template_id: str,
-    report_title: str = Query(..., description="Title for the new report"),
-    current_user: User = Depends(get_current_user)
+    report_title: str = Query(..., description="Title for the new report")
 ):
     """Create a new report from a template."""
     from uuid import uuid4
