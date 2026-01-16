@@ -873,10 +873,11 @@ export default function ReportsPage() {
           <button
             onClick={() => {
               setFilterStatus('')
+              setShowArchived(false)
               setCurrentPage(1)
             }}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === ''
+              filterStatus === '' && !showArchived
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
@@ -886,10 +887,11 @@ export default function ReportsPage() {
           <button
             onClick={() => {
               setFilterStatus('draft')
+              setShowArchived(false)
               setCurrentPage(1)
             }}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'draft'
+              filterStatus === 'draft' && !showArchived
                 ? 'bg-yellow-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
@@ -899,10 +901,11 @@ export default function ReportsPage() {
           <button
             onClick={() => {
               setFilterStatus('in_progress')
+              setShowArchived(false)
               setCurrentPage(1)
             }}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'in_progress'
+              filterStatus === 'in_progress' && !showArchived
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
@@ -912,10 +915,11 @@ export default function ReportsPage() {
           <button
             onClick={() => {
               setFilterStatus('completed')
+              setShowArchived(false)
               setCurrentPage(1)
             }}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'completed'
+              filterStatus === 'completed' && !showArchived
                 ? 'bg-green-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
