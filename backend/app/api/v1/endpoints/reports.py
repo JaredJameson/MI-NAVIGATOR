@@ -756,6 +756,72 @@ Opis: Wiodący software house Python/JavaScript
         "sources": [
             {"name": "Nielsen", "confidence": 0.90, "url": "https://nielsen.com"}
         ]
+    },
+    {
+        "id": "report_013",
+        "title": "Due Diligence - FinTech Sp. z o.o.",
+        "type": "due_diligence",
+        "company": "FinTech Sp. z o.o.",
+        "created_at": "2026-01-16T08:00:00Z",
+        "updated_at": "2026-01-16T10:30:00Z",
+        "status": "draft",
+        "summary": "Wstępna analiza FinTech Sp. z o.o. - startup w branży płatności elektronicznych. Trwa zbieranie danych.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Informacje podstawowe",
+                "content": "FinTech Sp. z o.o. - założona w 2022 roku. NIP: 1234567890. Trwa weryfikacja danych w KRS."
+            }
+        ],
+        "sources": [
+            {"name": "KRS", "confidence": 0.70, "url": "https://api.krs.pl"}
+        ]
+    },
+    {
+        "id": "report_014",
+        "title": "Analiza rynku e-commerce w Polsce",
+        "type": "market_analysis",
+        "company": None,
+        "created_at": "2026-01-16T09:15:00Z",
+        "updated_at": "2026-01-16T11:45:00Z",
+        "status": "in_progress",
+        "summary": "Kompleksowa analiza rynku e-commerce w Polsce. Zebrano dane o głównych graczach, trwa analiza trendów.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Wielkość rynku",
+                "content": "Rynek e-commerce w Polsce wart 120 mld PLN w 2025 roku. Wzrost 15% r/r."
+            },
+            {
+                "id": "section_2",
+                "title": "Główni gracze",
+                "content": "Allegro, Amazon.pl, Empik, Morele.net - łącznie 60% udziału w rynku. Trwa zbieranie danych o pozostałych graczy..."
+            }
+        ],
+        "sources": [
+            {"name": "GUS", "confidence": 0.95, "url": "https://stat.gov.pl"},
+            {"name": "PMR Research", "confidence": 0.85, "url": "https://pmrresearch.pl"}
+        ]
+    },
+    {
+        "id": "report_015",
+        "title": "Profil firmy - StartupXYZ Sp. z o.o.",
+        "type": "company_profile",
+        "company": "StartupXYZ Sp. z o.o.",
+        "created_at": "2026-01-16T12:00:00Z",
+        "updated_at": "2026-01-16T12:15:00Z",
+        "status": "draft",
+        "summary": "Wstępny profil StartupXYZ Sp. z o.o. - firma IT specjalizująca się w AI. Czeka na dane finansowe.",
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Informacje podstawowe",
+                "content": "StartupXYZ Sp. z o.o. - NIP: 9876543210. Założona w 2023. Siedziba: Kraków."
+            }
+        ],
+        "sources": [
+            {"name": "CEIDG", "confidence": 0.75, "url": "https://dane.biznes.gov.pl"}
+        ]
     }
 ]
 
@@ -809,6 +875,7 @@ async def list_reports(
     project_id: Optional[str] = None,
     tag_id: Optional[str] = None,
     favorites_only: bool = False,
+    status: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
     """List user's reports with filtering and pagination."""
@@ -826,6 +893,10 @@ async def list_reports(
     # Filter by type
     if type:
         filtered_reports = [r for r in filtered_reports if r["type"] == type]
+
+    # Filter by status
+    if status:
+        filtered_reports = [r for r in filtered_reports if r["status"] == status]
 
     # Filter by search query
     if search:

@@ -68,6 +68,7 @@ export default function ReportsPage() {
   const [filterType, setFilterType] = useState('')
   const [filterTag, setFilterTag] = useState('')
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const [filterStatus, setFilterStatus] = useState('')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -105,7 +106,7 @@ export default function ReportsPage() {
   useEffect(() => {
     fetchReports()
     fetchAllTags()
-  }, [filterType, filterTag, currentPage, showFavoritesOnly])
+  }, [filterType, filterTag, filterStatus, currentPage, showFavoritesOnly])
 
   const fetchReports = async () => {
     const token = getStoredToken()
@@ -124,6 +125,7 @@ export default function ReportsPage() {
       if (filterType) params.append('type', filterType)
       if (searchQuery) params.append('search', searchQuery)
       if (filterTag) params.append('tag_id', filterTag)
+      if (filterStatus) params.append('status', filterStatus)
       if (showFavoritesOnly) params.append('favorites_only', 'true')
 
       const response = await fetch(
@@ -864,6 +866,62 @@ export default function ReportsPage() {
           </form>
         </div>
 
+        {/* Quick Status Filters */}
+        <div className="mb-6 flex gap-3">
+          <button
+            onClick={() => {
+              setFilterStatus('')
+              setCurrentPage(1)
+            }}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              filterStatus === ''
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            📊 Wszystkie
+          </button>
+          <button
+            onClick={() => {
+              setFilterStatus('draft')
+              setCurrentPage(1)
+            }}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              filterStatus === 'draft'
+                ? 'bg-yellow-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            📝 Szkice
+          </button>
+          <button
+            onClick={() => {
+              setFilterStatus('in_progress')
+              setCurrentPage(1)
+            }}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              filterStatus === 'in_progress'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            ⏳ W trakcie
+          </button>
+          <button
+            onClick={() => {
+              setFilterStatus('completed')
+              setCurrentPage(1)
+            }}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              filterStatus === 'completed'
+                ? 'bg-green-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            ✅ Zakończone
+          </button>
+        </div>
+
         {/* Error Display */}
         {error && (
           <div className="mb-6 rounded-lg bg-red-50 px-4 py-3">
@@ -1000,9 +1058,13 @@ export default function ReportsPage() {
                             </button>
                           )}
                           <span className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
-                            report.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            report.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            report.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {report.status === 'completed' ? 'Zakończony' : 'W toku'}
+                            {report.status === 'completed' ? 'Zakończony' :
+                             report.status === 'in_progress' ? 'W trakcie' :
+                             'Szkic'}
                           </span>
                         </div>
                         <p className="text-xs text-gray-400">{formatDate(report.created_at)}</p>
