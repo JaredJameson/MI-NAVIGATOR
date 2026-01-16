@@ -1,0 +1,16 @@
+ID,Data i czas,Typ,Typ (etykieta),Tytul,Opis
+act_001,2026-01-15 21:12:48,report_created,Raport utworzony,Utworzono raport,Analiza profilu FADO Sp. z o.o.
+act_002,2026-01-15 20:12:48,search_performed,Wyszukiwanie,Wyszukiwanie PKD,Wyszukano firmy z kodem PKD 22.21.Z
+act_003,2026-01-15 19:12:48,report_exported,Raport wyeksportowany,Wyeksportowano raport,Raport FADO wyeksportowany do Excel
+act_004,2026-01-15 18:12:48,comment_added,Komentarz dodany,Dodano komentarz,Komentarz do raportu Due Diligence TechSoft
+act_005,2026-01-15 17:12:48,project_created,Projekt utworzony,Utworzono projekt,Due Diligence - FADO
+act_006,2026-01-15 15:12:48,login,Logowanie,Zalogowano,Logowanie z przegladarki Chrome
+act_007,2026-01-15 13:12:48,alert_triggered,Alert wyzwolony,Alert wyzwolony,Konkurent X: nowy produkt wykryty
+act_008,2026-01-15 11:12:48,report_viewed,Raport wyswietlony,Wyswietlono raport,Analiza rynku tworzyw sztucznych w Polsce
+act_009,2026-01-14 23:12:48,settings_updated,Ustawienia zmienione,Zaktualizowano ustawienia,Zmieniono preferencje jezyka na Polski
+act_010,2026-01-14 21:12:48,search_performed,Wyszukiwanie,Wyszukiwanie firmy,Wyszukano 'Splast S.A.'
+act_011,2026-01-14 18:12:48,report_created,Raport utworzony,Utworzono raport,Due Diligence - TechSoft Sp. z o.o.
+act_012,2026-01-13 23:12:48,project_updated,Projekt zaktualizowany,Zaktualizowano projekt,Dodano 2 raporty do projektu Market Analysis
+act_013,2026-01-13 20:12:48,report_deleted,Raport usuniety,Usunieto raport,Stary raport testowy
+act_014,2026-01-12 23:12:48,login,Logowanie,Zalogowano,Logowanie z urzadzenia mobilnego
+act_015,2026-01-12 18:12:48,alert_triggered,Alert wyzwolony,Alert wyzwolony,FADO: zmiana w zarzadzie

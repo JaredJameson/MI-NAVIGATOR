@@ -1203,6 +1203,329 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
   )
 }
 
+// ===== TREND TIMELINE TYPES AND COMPONENT =====
+
+interface TrendTimepoint {
+  year: number
+  description: string
+}
+
+interface TrendData {
+  name: string
+  category: string
+  status: string
+  period: string
+  impact: string
+  timepoints: TrendTimepoint[]
+}
+
+interface TrendTimelineData {
+  trends: TrendData[]
+}
+
+// Parse Trend Timeline content
+function parseTrendTimelineContent(content: string): TrendTimelineData | null {
+  const trends: TrendData[] = []
+
+  // Split by trend sections (each starting with **Trend:)
+  const trendBlocks = content.split(/\*\*Trend:/).filter(block => block.trim())
+
+  for (const block of trendBlocks) {
+    const lines = block.split('\n')
+    let name = ''
+    let category = ''
+    let status = ''
+    let period = ''
+    let impact = ''
+    const timepoints: TrendTimepoint[] = []
+    let inTimepointSection = false
+
+    for (const line of lines) {
+      const trimmedLine = line.trim()
+
+      // First line is the trend name
+      if (!name && trimmedLine && !trimmedLine.startsWith('Kategoria') && !trimmedLine.startsWith('Status') && !trimmedLine.startsWith('Okres') && !trimmedLine.startsWith('Wpływ') && !trimmedLine.startsWith('Punkty') && !trimmedLine.startsWith('-')) {
+        name = trimmedLine.replace(/\*\*/g, '').trim()
+        continue
+      }
+
+      // Parse metadata
+      if (trimmedLine.startsWith('Kategoria:')) {
+        category = trimmedLine.replace('Kategoria:', '').trim()
+        continue
+      }
+      if (trimmedLine.startsWith('Status:')) {
+        status = trimmedLine.replace('Status:', '').trim()
+        continue
+      }
+      if (trimmedLine.startsWith('Okres:')) {
+        period = trimmedLine.replace('Okres:', '').trim()
+        continue
+      }
+      if (trimmedLine.startsWith('Wpływ:')) {
+        impact = trimmedLine.replace('Wpływ:', '').trim()
+        continue
+      }
+      if (trimmedLine.startsWith('Punkty czasowe:')) {
+        inTimepointSection = true
+        continue
+      }
+
+      // Parse timepoints
+      if (inTimepointSection && trimmedLine.startsWith('-')) {
+        const timepointMatch = trimmedLine.match(/^-\s*(\d{4}):\s*(.+)$/)
+        if (timepointMatch) {
+          timepoints.push({
+            year: parseInt(timepointMatch[1]),
+            description: timepointMatch[2].trim()
+          })
+        }
+      }
+    }
+
+    if (name && timepoints.length > 0) {
+      trends.push({ name, category, status, period, impact, timepoints })
+    }
+  }
+
+  if (trends.length === 0) {
+    return null
+  }
+
+  return { trends }
+}
+
+// Helper function to check if section is Trend Timeline
+function isTrendTimelineSection(title: string): boolean {
+  const lowerTitle = title.toLowerCase()
+  return (lowerTitle.includes('trend') && lowerTitle.includes('timeline')) ||
+         (lowerTitle.includes('trendy') && lowerTitle.includes('rynkow')) ||
+         (lowerTitle.includes('trend') && (lowerTitle.includes('analiza') || lowerTitle.includes('czasow')))
+}
+
+// Trend Timeline Diagram Component
+function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData; onTrendClick?: (trend: string) => void }) {
+  const [selectedTrend, setSelectedTrend] = useState<string | null>(null)
+  const [hoveredTimepoint, setHoveredTimepoint] = useState<{ trendIdx: number; pointIdx: number } | null>(null)
+
+  // Calculate year range across all trends
+  const allYears = data.trends.flatMap(t => t.timepoints.map(tp => tp.year))
+  const minYear = Math.min(...allYears)
+  const maxYear = Math.max(...allYears)
+  const yearRange = maxYear - minYear
+
+  // Generate year labels
+  const yearLabels: number[] = []
+  for (let y = minYear; y <= maxYear; y++) {
+    yearLabels.push(y)
+  }
+
+  const getCategoryStyle = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'technologia':
+        return { bg: 'bg-blue-500', light: 'bg-blue-100', border: 'border-blue-300', text: 'text-blue-700', icon: '🔬' }
+      case 'regulacje':
+        return { bg: 'bg-purple-500', light: 'bg-purple-100', border: 'border-purple-300', text: 'text-purple-700', icon: '📜' }
+      case 'rynek':
+        return { bg: 'bg-green-500', light: 'bg-green-100', border: 'border-green-300', text: 'text-green-700', icon: '📈' }
+      case 'społeczne':
+        return { bg: 'bg-orange-500', light: 'bg-orange-100', border: 'border-orange-300', text: 'text-orange-700', icon: '👥' }
+      default:
+        return { bg: 'bg-gray-500', light: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-700', icon: '📌' }
+    }
+  }
+
+  const getStatusStyle = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'rosnący':
+        return { color: 'text-green-600', badge: 'bg-green-100 text-green-800', icon: '📈' }
+      case 'dojrzały':
+        return { color: 'text-blue-600', badge: 'bg-blue-100 text-blue-800', icon: '✓' }
+      case 'stabilny':
+        return { color: 'text-gray-600', badge: 'bg-gray-100 text-gray-800', icon: '➡️' }
+      case 'malejący':
+        return { color: 'text-red-600', badge: 'bg-red-100 text-red-800', icon: '📉' }
+      default:
+        return { color: 'text-gray-600', badge: 'bg-gray-100 text-gray-800', icon: '•' }
+    }
+  }
+
+  const getImpactStyle = (impact: string) => {
+    switch (impact.toLowerCase()) {
+      case 'wysoki':
+        return { badge: 'bg-red-100 text-red-800 border-red-300' }
+      case 'średni':
+        return { badge: 'bg-yellow-100 text-yellow-800 border-yellow-300' }
+      case 'niski':
+        return { badge: 'bg-green-100 text-green-800 border-green-300' }
+      default:
+        return { badge: 'bg-gray-100 text-gray-800 border-gray-300' }
+    }
+  }
+
+  const handleTrendClick = (trendName: string) => {
+    setSelectedTrend(selectedTrend === trendName ? null : trendName)
+    onTrendClick?.(trendName)
+  }
+
+  const getTimelinePosition = (year: number): string => {
+    const position = ((year - minYear) / yearRange) * 100
+    return `${position}%`
+  }
+
+  return (
+    <div className="w-full">
+      {/* Category Legend */}
+      <div className="mb-6 flex flex-wrap items-center justify-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-blue-500"></span>
+          <span className="text-gray-600">Technologia</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-purple-500"></span>
+          <span className="text-gray-600">Regulacje</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-green-500"></span>
+          <span className="text-gray-600">Rynek</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-orange-500"></span>
+          <span className="text-gray-600">Społeczne</span>
+        </div>
+      </div>
+
+      {/* Timeline Container */}
+      <div className="relative">
+        {/* Year axis */}
+        <div className="relative h-10 border-b-2 border-gray-300 mb-4">
+          <div className="absolute inset-x-8 flex justify-between">
+            {yearLabels.map((year) => (
+              <div key={year} className="flex flex-col items-center">
+                <div className="h-3 w-0.5 bg-gray-400"></div>
+                <span className="text-xs text-gray-500 mt-1 font-medium">{year}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Trends */}
+        <div className="space-y-6 mt-8">
+          {data.trends.map((trend, trendIdx) => {
+            const categoryStyle = getCategoryStyle(trend.category)
+            const statusStyle = getStatusStyle(trend.status)
+            const impactStyle = getImpactStyle(trend.impact)
+            const isSelected = selectedTrend === trend.name
+
+            return (
+              <div key={trendIdx} className="relative">
+                {/* Trend Header */}
+                <div
+                  className={`mb-3 p-3 rounded-lg cursor-pointer transition-all duration-300 ${
+                    isSelected
+                      ? `${categoryStyle.light} ${categoryStyle.border} border-2 shadow-md`
+                      : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                  }`}
+                  onClick={() => handleTrendClick(trend.name)}
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{categoryStyle.icon}</span>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">{trend.name}</h4>
+                        <span className="text-xs text-gray-500">{trend.period}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${categoryStyle.bg} text-white`}>
+                        {trend.category}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyle.badge}`}>
+                        {statusStyle.icon} {trend.status}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${impactStyle.badge}`}>
+                        Wpływ: {trend.impact}
+                      </span>
+                      <svg
+                        className={`h-5 w-5 transition-transform duration-300 text-gray-400 ${isSelected ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline Track */}
+                <div className={`relative mx-8 transition-all duration-300 ${isSelected ? 'h-auto opacity-100 mb-4' : 'h-0 opacity-0 overflow-hidden'}`}>
+                  {/* Horizontal line */}
+                  <div className={`absolute left-0 right-0 top-4 h-1 rounded ${categoryStyle.bg} opacity-30`}></div>
+
+                  {/* Timepoints */}
+                  <div className="relative h-32">
+                    {trend.timepoints.map((tp, pointIdx) => {
+                      const position = getTimelinePosition(tp.year)
+                      const isHovered = hoveredTimepoint?.trendIdx === trendIdx && hoveredTimepoint?.pointIdx === pointIdx
+                      const isFuture = tp.year > new Date().getFullYear()
+
+                      return (
+                        <div
+                          key={pointIdx}
+                          className="absolute flex flex-col items-center"
+                          style={{ left: position, transform: 'translateX(-50%)' }}
+                          onMouseEnter={() => setHoveredTimepoint({ trendIdx, pointIdx })}
+                          onMouseLeave={() => setHoveredTimepoint(null)}
+                        >
+                          {/* Point marker */}
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 ${categoryStyle.bg} border-white shadow-md transition-transform duration-200 ${
+                              isHovered ? 'scale-150 z-10' : ''
+                            } ${isFuture ? 'opacity-50' : ''}`}
+                          />
+
+                          {/* Year label */}
+                          <span className={`text-xs font-bold mt-1 ${categoryStyle.text} ${isFuture ? 'opacity-50' : ''}`}>
+                            {tp.year}
+                          </span>
+
+                          {/* Tooltip on hover */}
+                          {isHovered && (
+                            <div className={`absolute top-10 z-20 w-56 p-3 rounded-lg shadow-lg ${categoryStyle.light} ${categoryStyle.border} border text-sm`}>
+                              <div className="font-semibold text-gray-800 mb-1">{tp.year}</div>
+                              <div className={`${categoryStyle.text}`}>{tp.description}</div>
+                              {isFuture && (
+                                <div className="mt-2 text-xs text-gray-500 italic">📅 Prognoza</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="mt-6 text-center text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1">
+          📊 Oś czasu trendów - {data.trends.length} trendów z {allYears.length} punktami czasowymi
+        </span>
+      </div>
+
+      {/* Tip */}
+      <div className="mt-3 text-center text-xs text-gray-400">
+        💡 Kliknij trend, aby rozwinąć szczegółową oś czasu. Najedź na punkt, aby zobaczyć opis.
+      </div>
+    </div>
+  )
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -2625,6 +2948,8 @@ export default function ReportViewerPage() {
             const porterData = isPorterSection(section.title) ? parsePorterContent(section.content) : null
             // Check if this is a TAM SAM SOM section
             const tamSamSomData = isTAMSAMSOMSection(section.title) ? parseTAMSAMSOMContent(section.content) : null
+            // Check if this is a Trend Timeline section
+            const trendTimelineData = isTrendTimelineSection(section.title) ? parseTrendTimelineContent(section.content) : null
 
             return (
               <section
@@ -2634,7 +2959,7 @@ export default function ReportViewerPage() {
               >
                 <h2 className="mb-4 text-xl font-semibold text-gray-900">
                   {index + 1}. {section.title}
-                  {(swotData || porterData || tamSamSomData) && (
+                  {(swotData || porterData || tamSamSomData || trendTimelineData) && (
                     <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                       📊 Diagram interaktywny
                     </span>
@@ -2650,6 +2975,9 @@ export default function ReportViewerPage() {
                 ) : tamSamSomData ? (
                   /* TAM SAM SOM Visualization */
                   <TAMSAMSOMDiagram data={tamSamSomData} />
+                ) : trendTimelineData ? (
+                  /* Trend Timeline Visualization */
+                  <TrendTimelineDiagram data={trendTimelineData} />
                 ) : (
                   <div className="prose prose-gray max-w-none">
                     {section.content.split('\n').map((paragraph, pIdx) => (

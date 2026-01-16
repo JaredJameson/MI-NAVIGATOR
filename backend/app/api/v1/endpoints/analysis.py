@@ -214,6 +214,91 @@ async def apply_framework(framework_type: str, company_id: str):
     }
 
 
+# Mock SWOT data for different companies
+SWOT_DATA = {
+    "fado": {
+        "company_name": "FADO Sp. z o.o.",
+        "strengths": [
+            {"title": "Silna pozycja rynkowa", "description": "Lider w segmencie tworzyw sztucznych w Polsce"},
+            {"title": "Doświadczony zespół", "description": "Kadra z wieloletnim doświadczeniem w branży"},
+            {"title": "Nowoczesne technologie", "description": "Inwestycje w automatyzację i R&D"},
+            {"title": "Szeroka sieć dystrybucji", "description": "Obecność w całej Polsce i eksport do UE"},
+        ],
+        "weaknesses": [
+            {"title": "Zależność od dostawców", "description": "Ograniczona liczba kluczowych dostawców surowców"},
+            {"title": "Koszty energii", "description": "Wysoki udział kosztów energii w produkcji"},
+            {"title": "Rotacja pracowników", "description": "Wyzwania z utrzymaniem wykwalifikowanej kadry"},
+        ],
+        "opportunities": [
+            {"title": "Zielona transformacja", "description": "Rosnący popyt na produkty ekologiczne"},
+            {"title": "Ekspansja zagraniczna", "description": "Potencjał rozwoju na rynkach CEE"},
+            {"title": "Nowe segmenty", "description": "Możliwość wejścia w sektor medyczny"},
+            {"title": "Digitalizacja", "description": "Automatyzacja procesów i Przemysł 4.0"},
+        ],
+        "threats": [
+            {"title": "Konkurencja cenowa", "description": "Presja ze strony tanich importerów z Azji"},
+            {"title": "Regulacje środowiskowe", "description": "Zaostrzające się wymogi UE dot. tworzyw"},
+            {"title": "Wahania cen surowców", "description": "Niestabilność cen ropy i pochodnych"},
+        ],
+    },
+    "default": {
+        "company_name": "Przykładowa firma",
+        "strengths": [
+            {"title": "Mocna strona 1", "description": "Opis mocnej strony firmy"},
+            {"title": "Mocna strona 2", "description": "Kolejny atut przedsiębiorstwa"},
+        ],
+        "weaknesses": [
+            {"title": "Słaba strona 1", "description": "Opis słabości do poprawy"},
+            {"title": "Słaba strona 2", "description": "Kolejny obszar wymagający uwagi"},
+        ],
+        "opportunities": [
+            {"title": "Szansa 1", "description": "Możliwość rozwoju biznesu"},
+            {"title": "Szansa 2", "description": "Kolejna okazja rynkowa"},
+        ],
+        "threats": [
+            {"title": "Zagrożenie 1", "description": "Ryzyko zewnętrzne"},
+            {"title": "Zagrożenie 2", "description": "Kolejne potencjalne zagrożenie"},
+        ],
+    }
+}
+
+
+class SWOTItem(BaseModel):
+    title: str
+    description: str
+
+
+class SWOTAnalysisResponse(BaseModel):
+    company_name: str
+    strengths: List[SWOTItem]
+    weaknesses: List[SWOTItem]
+    opportunities: List[SWOTItem]
+    threats: List[SWOTItem]
+
+
+@router.get("/swot/{company_id}", response_model=SWOTAnalysisResponse)
+async def get_swot_analysis(
+    company_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get SWOT analysis for a company."""
+    # Use company-specific data if available, otherwise use default
+    company_key = company_id.lower().replace("_", "").replace("-", "")
+    if "fado" in company_key:
+        swot_data = SWOT_DATA["fado"]
+    else:
+        swot_data = SWOT_DATA["default"]
+        swot_data["company_name"] = f"Analiza SWOT - {company_id}"
+
+    return SWOTAnalysisResponse(
+        company_name=swot_data["company_name"],
+        strengths=[SWOTItem(**s) for s in swot_data["strengths"]],
+        weaknesses=[SWOTItem(**w) for w in swot_data["weaknesses"]],
+        opportunities=[SWOTItem(**o) for o in swot_data["opportunities"]],
+        threats=[SWOTItem(**t) for t in swot_data["threats"]]
+    )
+
+
 @router.get("/job/{job_id}")
 async def get_analysis_job(job_id: str):
     """Get analysis job status and results."""

@@ -235,6 +235,60 @@ Opis: Realistyczny udział rynkowy możliwy do osiągnięcia dla średniej wielk
 - TAM: 3,2% rocznie
 - SAM: 4,8% rocznie
 - SOM: 8,5% rocznie (przy agresywnej strategii ekspansji)"""
+            },
+            {
+                "id": "section_5",
+                "title": "Trendy rynkowe - Timeline",
+                "content": """**Trend: Bioplastiki i materiały biodegradowalne**
+Kategoria: Technologia
+Status: Rosnący
+Okres: 2020-2028
+Wpływ: Wysoki
+Punkty czasowe:
+- 2020: Pierwsze regulacje UE dot. plastiku jednorazowego (SUP Directive)
+- 2021: Wzrost popytu na alternatywy o 15%
+- 2022: Główni producenci uruchamiają linie bio
+- 2023: Udział bioplastików osiąga 5% rynku
+- 2024: Prognoza: 8% udziału, nowe technologie PLA/PHA
+- 2026: Oczekiwany udział 12%, masowa produkcja
+- 2028: Cel UE: 20% opakowań z materiałów odnawialnych
+
+**Trend: Gospodarka cyrkularna i recykling**
+Kategoria: Regulacje
+Status: Rosnący
+Okres: 2019-2030
+Wpływ: Wysoki
+Punkty czasowe:
+- 2019: EU Circular Economy Action Plan
+- 2020: Polska ustawa o ROP (Rozszerzona Odpowiedzialność Producenta)
+- 2022: Wymogi 25% recyklatu w butelkach PET
+- 2024: System kaucyjny w Polsce
+- 2025: Cel 50% recyklingu opakowań plastikowych
+- 2030: Cel UE: 55% recyklingu wszystkich plastików
+
+**Trend: Automatyzacja i Przemysł 4.0**
+Kategoria: Technologia
+Status: Dojrzały
+Okres: 2018-2026
+Wpływ: Średni
+Punkty czasowe:
+- 2018: Pierwsze wdrożenia IoT w branży
+- 2020: Pandemia przyspiesza automatyzację
+- 2022: 30% fabryk z elementami Industry 4.0
+- 2024: Roboty współpracujące (cobots) standardem
+- 2026: Przewidywane 60% automatyzacji procesów
+
+**Trend: Konsolidacja rynku**
+Kategoria: Rynek
+Status: Stabilny
+Okres: 2021-2027
+Wpływ: Średni
+Punkty czasowe:
+- 2021: 3 duże fuzje w sektorze
+- 2022: Wejście funduszy PE na rynek
+- 2023: Top 10 kontroluje 45% rynku
+- 2025: Prognoza: Top 10 z 55% udziałem
+- 2027: Oczekiwana dalsza konsolidacja"""
             }
         ],
         "sources": [
