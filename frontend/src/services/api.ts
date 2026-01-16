@@ -249,6 +249,7 @@ export interface CompanyNews {
 export interface NewsFilterOptions {
   limit?: number;
   category?: string;
+  sentiment?: string;  // positive, negative, neutral
   dateFrom?: string;  // ISO format YYYY-MM-DD
   dateTo?: string;    // ISO format YYYY-MM-DD
 }
@@ -259,10 +260,13 @@ export const companyApi = {
   },
 
   async getCompanyNews(identifier: string, options: NewsFilterOptions = {}): Promise<ApiResponse<CompanyNews>> {
-    const { limit = 10, category, dateFrom, dateTo } = options;
+    const { limit = 10, category, sentiment, dateFrom, dateTo } = options;
     let url = `/companies/${encodeURIComponent(identifier)}/news?limit=${limit}`;
     if (category) {
       url += `&category=${encodeURIComponent(category)}`;
+    }
+    if (sentiment) {
+      url += `&sentiment=${encodeURIComponent(sentiment)}`;
     }
     if (dateFrom) {
       url += `&date_from=${encodeURIComponent(dateFrom)}`;

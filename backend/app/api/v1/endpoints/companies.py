@@ -100,6 +100,26 @@ MOCK_COMPANY_NEWS = {
             "published_at": (datetime.now() - timedelta(days=20)).isoformat(),
             "sentiment": "positive",
             "category": "general"
+        },
+        {
+            "id": "news_006",
+            "title": "FADO przyznaje się do przekroczenia norm emisji",
+            "summary": "Wojewódzki Inspektorat Ochrony Środowiska nałożył na FADO Sp. z o.o. karę w wysokości 200 tys. PLN za przekroczenie dopuszczalnych norm emisji. Firma zapowiada wdrożenie nowych filtrów.",
+            "source": "Gazeta Prawna",
+            "source_url": "https://www.gazetaprawna.pl/fado-normy-emisji",
+            "published_at": (datetime.now() - timedelta(days=14)).isoformat(),
+            "sentiment": "negative",
+            "category": "legal"
+        },
+        {
+            "id": "news_007",
+            "title": "Spadek zamówień w FADO - branża motoryzacyjna zwalnia",
+            "summary": "FADO Sp. z o.o. odnotowuje 15% spadek zamówień z sektora motoryzacyjnego w Q1 2026. Firma rozważa redukcję etatów w dziale produkcji.",
+            "source": "Puls Biznesu",
+            "source_url": "https://www.pb.pl/fado-spadek-zamowien",
+            "published_at": (datetime.now() - timedelta(days=6)).isoformat(),
+            "sentiment": "negative",
+            "category": "financial"
         }
     ],
     "2": [  # Splast S.A.
@@ -597,6 +617,7 @@ async def get_company_news(
     identifier: str,
     limit: int = Query(10, ge=1, le=50),
     category: Optional[str] = Query(None, description="Filter by category: general, financial, product, hr, legal"),
+    sentiment: Optional[str] = Query(None, description="Filter by sentiment: positive, negative, neutral"),
     date_from: Optional[str] = Query(None, description="Filter news from this date (ISO format YYYY-MM-DD)"),
     date_to: Optional[str] = Query(None, description="Filter news until this date (ISO format YYYY-MM-DD)"),
     current_user: User = Depends(get_current_user)
@@ -622,6 +643,10 @@ async def get_company_news(
     # Filter by category if specified
     if category:
         news_items = [n for n in news_items if n["category"] == category]
+
+    # Filter by sentiment if specified
+    if sentiment:
+        news_items = [n for n in news_items if n["sentiment"] == sentiment]
 
     # Filter by date range if specified
     if date_from:

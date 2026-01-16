@@ -19,6 +19,7 @@ export default function CompanyProfilePage() {
   const [newsLoading, setNewsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newsCategory, setNewsCategory] = useState<string>('');
+  const [newsSentiment, setNewsSentiment] = useState<string>('');
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
   const [showDateFilter, setShowDateFilter] = useState(false);
@@ -50,6 +51,7 @@ export default function CompanyProfilePage() {
       const result = await companyApi.getCompanyNews(companyId, {
         limit: 10,
         category: newsCategory || undefined,
+        sentiment: newsSentiment || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
       });
@@ -60,7 +62,7 @@ export default function CompanyProfilePage() {
     }
 
     loadNews();
-  }, [activeTab, companyId, company, newsCategory, dateFrom, dateTo]);
+  }, [activeTab, companyId, company, newsCategory, newsSentiment, dateFrom, dateTo]);
 
   // Clear date filters
   const clearDateFilters = () => {
@@ -407,6 +409,29 @@ export default function CompanyProfilePage() {
                     )}
                   </button>
                 </div>
+              </div>
+
+              {/* Sentiment Filter */}
+              <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-200">
+                <span className="text-sm text-slate-600 mr-2">Sentyment:</span>
+                {[
+                  { value: '', label: 'Wszystkie' },
+                  { value: 'positive', label: '✅ Pozytywny' },
+                  { value: 'neutral', label: '⚪ Neutralny' },
+                  { value: 'negative', label: '❌ Negatywny' },
+                ].map((sent) => (
+                  <button
+                    key={sent.value}
+                    onClick={() => setNewsSentiment(sent.value)}
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      newsSentiment === sent.value
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {sent.label}
+                  </button>
+                ))}
               </div>
 
               {/* Date Range Filter */}
