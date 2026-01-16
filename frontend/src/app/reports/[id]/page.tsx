@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -3221,6 +3222,47 @@ function insertBulletedList(text: string, textarea: HTMLTextAreaElement): string
   return newText
 }
 
+function insertTable(text: string, textarea: HTMLTextAreaElement, rows: number, cols: number): string {
+  const start = textarea.selectionStart
+
+  // Generate markdown table
+  let table = '\n\n'
+
+  // Header row
+  table += '|'
+  for (let i = 0; i < cols; i++) {
+    table += ` Header ${i + 1} |`
+  }
+  table += '\n'
+
+  // Separator row
+  table += '|'
+  for (let i = 0; i < cols; i++) {
+    table += ' --- |'
+  }
+  table += '\n'
+
+  // Data rows
+  for (let r = 0; r < rows - 1; r++) {
+    table += '|'
+    for (let c = 0; c < cols; c++) {
+      table += ` Cell ${r + 1}-${c + 1} |`
+    }
+    table += '\n'
+  }
+
+  table += '\n'
+
+  const newText = text.substring(0, start) + table + text.substring(start)
+
+  setTimeout(() => {
+    textarea.selectionStart = textarea.selectionEnd = start + table.length
+    textarea.focus()
+  }, 0)
+
+  return newText
+}
+
 export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
@@ -3280,6 +3322,12 @@ export default function ReportViewerPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [editedSections, setEditedSections] = useState<{[key: string]: string}>({})
   const [isSaving, setIsSaving] = useState(false)
+
+  // Table insertion state
+  const [showTableModal, setShowTableModal] = useState(false)
+  const [tableRows, setTableRows] = useState(3)
+  const [tableCols, setTableCols] = useState(3)
+  const [currentSectionForTable, setCurrentSectionForTable] = useState<string | null>(null)
 
   useEffect(() => {
     fetchReport()
@@ -4816,6 +4864,72 @@ export default function ReportViewerPage() {
         </div>
       )}
 
+      {/* Table Size Modal */}
+      {showTableModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Wstaw tabelę</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Liczba wierszy:
+              </label>
+              <input
+                type="number"
+                min="2"
+                max="20"
+                value={tableRows}
+                onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Liczba kolumn:
+              </label>
+              <input
+                type="number"
+                min="2"
+                max="10"
+                value={tableCols}
+                onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowTableModal(false)
+                  setCurrentSectionForTable(null)
+                }}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={() => {
+                  if (currentSectionForTable && report) {
+                    // Find textarea by section ID in DOM
+                    const sectionElement = document.getElementById(`section-${currentSectionForTable}`)
+                    const textarea = sectionElement?.querySelector('textarea') as HTMLTextAreaElement
+                    if (textarea) {
+                      const currentContent = editedSections[currentSectionForTable] || report.sections.find(s => s.id === currentSectionForTable)?.content || ''
+                      const newContent = insertTable(currentContent, textarea, tableRows, tableCols)
+                      setEditedSections({ ...editedSections, [currentSectionForTable]: newContent })
+                    }
+                  }
+                  setShowTableModal(false)
+                  setCurrentSectionForTable(null)
+                }}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+              >
+                Wstaw
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto max-w-4xl px-4 py-8">
         {/* Report Header */}
         <div className="mb-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
@@ -5069,6 +5183,17 @@ export default function ReportViewerPage() {
                           e.target.value = ''
                         }}
                       />
+                      <button
+                        onClick={() => {
+                          // Open table size modal
+                          setCurrentSectionForTable(section.id)
+                          setShowTableModal(true)
+                        }}
+                        className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
+                        title="Insert table"
+                      >
+                        📊 Table
+                      </button>
                     </div>
                     <textarea
                       value={editedSections[section.id] || section.content}
@@ -5083,6 +5208,7 @@ export default function ReportViewerPage() {
                       <div className="mb-2 text-xs font-semibold uppercase text-gray-500">Preview:</div>
                       <div className="prose prose-gray max-w-none">
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           className="text-gray-700"
                           components={{
                             a: ({ node, ...props }) => (
@@ -5114,6 +5240,7 @@ export default function ReportViewerPage() {
                   /* View mode - show ReactMarkdown */
                   <div className="prose prose-gray max-w-none">
                     <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
                       className="text-gray-700"
                       components={{
                         // Custom link component to open in new tab

@@ -54,7 +54,12 @@ MOCK_REPORTS = [
             {
                 "id": "section_1",
                 "title": "Informacje podstawowe",
-                "content": """FADO Sp. z o.o. to polska firma założona w 1998 roku, specjalizująca się w produkcji wyrobów z tworzyw sztucznych. Firma posiada siedzibę w Warszawie przy ul. Przemysłowej 15.
+                "content": """| Header 1 | Header 2 | Header 3 |
+| --- | --- | --- |
+| Cell 1-1 | Cell 1-2 | Cell 1-3 |
+| Cell 2-1 | Cell 2-2 | Cell 2-3 |
+
+FADO Sp. z o.o. to polska firma założona w 1998 roku, specjalizująca się w produkcji wyrobów z tworzyw sztucznych. Firma posiada siedzibę w Warszawie przy ul. Przemysłowej 15.
 
 **Dane rejestrowe:**
 - NIP: 5260016831
@@ -2369,7 +2374,7 @@ class ReportUpdateRequest(BaseModel):
     summary: Optional[str] = None
 
 
-@router.patch("/reports/{report_id}")
+@router.patch("/{report_id}")
 async def update_report(
     report_id: str,
     update_data: ReportUpdateRequest,
@@ -2404,7 +2409,7 @@ async def update_report(
     }
 
 
-@router.post("/reports/upload-image")
+@router.post("/upload-image")
 async def upload_image(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
