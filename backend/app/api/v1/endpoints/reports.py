@@ -26,6 +26,7 @@ MOCK_REPORTS = [
         "created_at": "2026-01-14T10:30:00Z",
         "updated_at": "2026-01-14T14:22:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Kompleksowa analiza profilu firmy FADO Sp. z o.o. - lidera w produkcji tworzyw sztucznych.",
         "sections": [
             {
@@ -246,6 +247,7 @@ Opis: Współzałożycielka, odpowiedzialna za rozwój biznesu
         "created_at": "2026-01-13T09:15:00Z",
         "updated_at": "2026-01-13T16:45:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Kompleksowa analiza rynku produkcji tworzyw sztucznych w Polsce - trendy, gracze, prognozy.",
         "sections": [
             {
@@ -419,6 +421,7 @@ Punkty czasowe:
         "created_at": "2026-01-12T11:00:00Z",
         "updated_at": "2026-01-12T18:30:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Raport due diligence dla TechSoft Sp. z o.o. - firmy IT specjalizującej się w rozwoju oprogramowania.",
         "sections": [
             {
@@ -474,6 +477,7 @@ Firma wykazuje zdrową strukturę finansową z rosnącymi przychodami i dodatnim
         "created_at": "2026-01-11T14:00:00Z",
         "updated_at": "2026-01-11T17:30:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Analiza głównych konkurentów w sektorze IT w Polsce - porównanie ofert, pozycji rynkowej i strategii.",
         "sections": [
             {
@@ -605,6 +609,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-10T09:00:00Z",
         "updated_at": "2026-01-10T12:00:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Kompleksowy profil Splast S.A. - lidera rynku opakowań przemysłowych w Polsce.",
         "sections": [
             {
@@ -625,6 +630,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-09T10:00:00Z",
         "updated_at": "2026-01-09T15:00:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Kompleksowa analiza rynku e-commerce w Polsce - trendy, prognozy, główni gracze.",
         "sections": [
             {
@@ -645,6 +651,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-08T11:00:00Z",
         "updated_at": "2026-01-08T16:00:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Raport due diligence dla startupu technologicznego StartupXYZ Sp. z o.o.",
         "sections": [
             {
@@ -665,6 +672,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-07T08:00:00Z",
         "updated_at": "2026-01-07T14:00:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Porównanie głównych firm logistycznych w Polsce - InPost, DPD, DHL, Poczta Polska.",
         "sections": [
             {
@@ -685,6 +693,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-06T09:30:00Z",
         "updated_at": "2026-01-06T13:30:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Analiza firmy GreenEnergy - producenta paneli fotowoltaicznych.",
         "sections": [
             {
@@ -705,6 +714,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-05T10:00:00Z",
         "updated_at": "2026-01-05T16:00:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Rynek odnawialnych źródeł energii w Polsce - fotowoltaika, wiatr, biomasa.",
         "sections": [
             {
@@ -725,6 +735,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-04T11:00:00Z",
         "updated_at": "2026-01-04T17:00:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Due diligence firmy farmaceutycznej BioPharm Polska przed potencjalną akwizycją.",
         "sections": [
             {
@@ -745,6 +756,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-03T09:00:00Z",
         "updated_at": "2026-01-03T15:00:00Z",
         "status": "completed",
+        "is_archived": False,
         "summary": "Porównanie sieci handlowych: Biedronka, Lidl, Żabka, Dino.",
         "sections": [
             {
@@ -765,6 +777,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-16T08:00:00Z",
         "updated_at": "2026-01-16T10:30:00Z",
         "status": "draft",
+        "is_archived": False,
         "summary": "Wstępna analiza FinTech Sp. z o.o. - startup w branży płatności elektronicznych. Trwa zbieranie danych.",
         "sections": [
             {
@@ -785,6 +798,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-16T09:15:00Z",
         "updated_at": "2026-01-16T11:45:00Z",
         "status": "in_progress",
+        "is_archived": False,
         "summary": "Kompleksowa analiza rynku e-commerce w Polsce. Zebrano dane o głównych graczach, trwa analiza trendów.",
         "sections": [
             {
@@ -811,6 +825,7 @@ Opis: Wiodący software house Python/JavaScript
         "created_at": "2026-01-16T12:00:00Z",
         "updated_at": "2026-01-16T12:15:00Z",
         "status": "draft",
+        "is_archived": False,
         "summary": "Wstępny profil StartupXYZ Sp. z o.o. - firma IT specjalizująca się w AI. Czeka na dane finansowe.",
         "sections": [
             {
@@ -860,6 +875,8 @@ class ReportDetail(BaseModel):
     summary: str
     sections: List[ReportSection]
     sources: List[ReportSource]
+    is_favorite: Optional[bool] = False
+    is_archived: Optional[bool] = False
 
 
 class BulkDeleteRequest(BaseModel):
@@ -876,6 +893,7 @@ async def list_reports(
     tag_id: Optional[str] = None,
     favorites_only: bool = False,
     status: Optional[str] = None,
+    archived: Optional[bool] = None,
     current_user: User = Depends(get_current_user)
 ):
     """List user's reports with filtering and pagination."""
@@ -883,6 +901,17 @@ async def list_reports(
     from app.api.v1.endpoints.tags import REPORT_TAGS
 
     filtered_reports = MOCK_REPORTS
+
+    # Filter by archived status (default: show only non-archived)
+    if archived is None:
+        # Default: only show non-archived reports
+        filtered_reports = [r for r in filtered_reports if not r.get("is_archived", False)]
+    elif archived is True:
+        # Show only archived reports
+        filtered_reports = [r for r in filtered_reports if r.get("is_archived", False)]
+    elif archived is False:
+        # Explicitly show only non-archived
+        filtered_reports = [r for r in filtered_reports if not r.get("is_archived", False)]
 
     # Filter by favorites
     if favorites_only:
@@ -1024,7 +1053,8 @@ async def get_report(
                 summary=report["summary"],
                 sections=[ReportSection(**s) for s in report["sections"]],
                 sources=[ReportSource(**s) for s in report["sources"]],
-                is_favorite=is_favorite
+                is_favorite=is_favorite,
+                is_archived=report.get("is_archived", False)
             )
 
     return {"error": "Report not found"}
@@ -2099,3 +2129,37 @@ async def resolve_comment(
             "message": "Komentarz został oznaczony jako rozwiązany",
             "comment": comment_to_resolve
         }
+
+
+# ============================================================================
+# ARCHIVE/UNARCHIVE ENDPOINTS
+# ============================================================================
+
+@router.post("/{report_id}/archive")
+async def archive_report(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Archive a report."""
+    # Find the report
+    for report in MOCK_REPORTS:
+        if report["id"] == report_id:
+            report["is_archived"] = True
+            return {"message": "Raport zarchiwizowany pomyślnie", "is_archived": True}
+
+    raise HTTPException(status_code=404, detail="Report not found")
+
+
+@router.post("/{report_id}/unarchive")
+async def unarchive_report(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Unarchive a report."""
+    # Find the report
+    for report in MOCK_REPORTS:
+        if report["id"] == report_id:
+            report["is_archived"] = False
+            return {"message": "Raport przywrócony z archiwum", "is_archived": False}
+
+    raise HTTPException(status_code=404, detail="Report not found")

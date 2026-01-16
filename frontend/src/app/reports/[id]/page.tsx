@@ -31,6 +31,7 @@ interface ReportDetail {
   sections: ReportSection[]
   sources: ReportSource[]
   is_favorite?: boolean
+  is_archived?: boolean
 }
 
 interface SearchMatch {
@@ -3652,6 +3653,48 @@ export default function ReportViewerPage() {
     }
   }
 
+  const archiveReport = async () => {
+    const token = getStoredToken()
+    if (!token || !reportId) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/reports/${reportId}/archive`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        // Redirect to reports list after archiving
+        router.push('/reports')
+      }
+    } catch (err) {
+      console.error('Failed to archive report:', err)
+    }
+  }
+
+  const unarchiveReport = async () => {
+    const token = getStoredToken()
+    if (!token || !reportId) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/reports/${reportId}/unarchive`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        // Redirect to reports list after unarchiving
+        router.push('/reports')
+      }
+    } catch (err) {
+      console.error('Failed to unarchive report:', err)
+    }
+  }
+
   // Search functionality
   const performSearch = useCallback((query: string) => {
     if (!report || !query.trim()) {
@@ -3943,6 +3986,15 @@ export default function ReportViewerPage() {
                 strokeWidth={1.5}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+              </svg>
+            </button>
+            <button
+              onClick={report?.is_archived ? unarchiveReport : archiveReport}
+              className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+              title={report?.is_archived ? "Przywróć z archiwum" : "Archiwizuj raport"}
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
               </svg>
             </button>
             <button

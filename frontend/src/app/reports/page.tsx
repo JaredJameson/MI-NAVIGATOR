@@ -69,6 +69,7 @@ export default function ReportsPage() {
   const [filterTag, setFilterTag] = useState('')
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [filterStatus, setFilterStatus] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -106,7 +107,7 @@ export default function ReportsPage() {
   useEffect(() => {
     fetchReports()
     fetchAllTags()
-  }, [filterType, filterTag, filterStatus, currentPage, showFavoritesOnly])
+  }, [filterType, filterTag, filterStatus, currentPage, showFavoritesOnly, showArchived])
 
   const fetchReports = async () => {
     const token = getStoredToken()
@@ -127,6 +128,7 @@ export default function ReportsPage() {
       if (filterTag) params.append('tag_id', filterTag)
       if (filterStatus) params.append('status', filterStatus)
       if (showFavoritesOnly) params.append('favorites_only', 'true')
+      if (showArchived) params.append('archived', 'true')
 
       const response = await fetch(
         `${API_BASE_URL}/reports?${params.toString()}`,
@@ -919,6 +921,19 @@ export default function ReportsPage() {
             }`}
           >
             ✅ Zakończone
+          </button>
+          <button
+            onClick={() => {
+              setShowArchived(!showArchived)
+              setCurrentPage(1)
+            }}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              showArchived
+                ? 'bg-gray-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            📦 Archiwum
           </button>
         </div>
 
