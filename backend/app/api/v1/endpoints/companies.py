@@ -32,6 +32,24 @@ class CompanyNews(BaseModel):
     total_count: int
 
 
+class TimelineEvent(BaseModel):
+    id: str
+    date: str  # ISO format date
+    title: str
+    description: str
+    event_type: str  # founding, investment, partnership, product, legal, hr, milestone
+    impact: str  # high, medium, low
+    source: Optional[str] = None
+    source_url: Optional[str] = None
+
+
+class CompanyTimeline(BaseModel):
+    company_id: str
+    company_name: str
+    events: List[TimelineEvent]
+    total_count: int
+
+
 class CompanyProfile(BaseModel):
     id: str
     name: str
@@ -242,6 +260,195 @@ MOCK_COMPANY_NEWS = {
             "published_at": (datetime.now() - timedelta(days=18)).isoformat(),
             "sentiment": "positive",
             "category": "general"
+        }
+    ]
+}
+
+
+# Mock timeline events for companies
+MOCK_COMPANY_TIMELINE = {
+    "1": [  # FADO Sp. z o.o. - Complete company history
+        {
+            "id": "event_001",
+            "date": "1998-03-15",
+            "title": "Założenie firmy FADO Sp. z o.o.",
+            "description": "Założenie spółki przez trójkę wspólników: Jana Kowalskiego, Annę Nowak i Marka Wiśniewskiego. Kapitał zakładowy: 100,000 PLN.",
+            "event_type": "founding",
+            "impact": "high",
+            "source": "KRS",
+            "source_url": "https://ems.ms.gov.pl/"
+        },
+        {
+            "id": "event_002",
+            "date": "2000-06-10",
+            "title": "Uruchomienie pierwszej linii produkcyjnej",
+            "description": "Otwarcie zakładu produkcyjnego w Warszawie z linią do wytłaczania profili z PVC. Zatrudnienie 25 pracowników.",
+            "event_type": "milestone",
+            "impact": "high",
+            "source": None,
+            "source_url": None
+        },
+        {
+            "id": "event_003",
+            "date": "2003-09-20",
+            "title": "Pierwsza duża umowa z branżą motoryzacyjną",
+            "description": "Podpisanie kontraktu z Fiat Auto Poland na dostawę komponentów plastikowych. Wartość umowy: 5 mln PLN rocznie.",
+            "event_type": "partnership",
+            "impact": "high",
+            "source": "Puls Biznesu",
+            "source_url": "https://www.pb.pl/archiwum"
+        },
+        {
+            "id": "event_004",
+            "date": "2006-04-12",
+            "title": "Inwestycja w automatyzację produkcji",
+            "description": "Zakup robotów przemysłowych ABB i wdrożenie systemu MES. Inwestycja: 3 mln PLN. Wzrost wydajności o 40%.",
+            "event_type": "investment",
+            "impact": "medium",
+            "source": None,
+            "source_url": None
+        },
+        {
+            "id": "event_005",
+            "date": "2008-11-05",
+            "title": "Kryzys finansowy - restrukturyzacja",
+            "description": "Redukcja zatrudnienia o 15% i renegocjacja warunków kredytowych w odpowiedzi na kryzys gospodarczy 2008.",
+            "event_type": "legal",
+            "impact": "medium",
+            "source": None,
+            "source_url": None
+        },
+        {
+            "id": "event_006",
+            "date": "2011-05-18",
+            "title": "Certyfikat ISO 9001",
+            "description": "Uzyskanie certyfikatu ISO 9001:2008 System Zarządzania Jakością. Audyt przeprowadzony przez TÜV Rheinland.",
+            "event_type": "milestone",
+            "impact": "medium",
+            "source": "TÜV Rheinland",
+            "source_url": "https://www.tuv.com"
+        },
+        {
+            "id": "event_007",
+            "date": "2014-02-20",
+            "title": "Wejście inwestora strategicznego Plastics Holding",
+            "description": "Plastics Holding S.A. (podmiot kontrolowany przez Euro Polymers GmbH) nabywa 60% udziałów w FADO za 25 mln PLN.",
+            "event_type": "investment",
+            "impact": "high",
+            "source": "KRS",
+            "source_url": "https://ems.ms.gov.pl/"
+        },
+        {
+            "id": "event_008",
+            "date": "2016-07-10",
+            "title": "Rozbudowa zakładu - Hala C",
+            "description": "Budowa nowej hali produkcyjnej o powierzchni 3000 m2. Dodatkowe 2 linie produkcyjne. Inwestycja: 8 mln PLN.",
+            "event_type": "investment",
+            "impact": "high",
+            "source": None,
+            "source_url": None
+        },
+        {
+            "id": "event_009",
+            "date": "2018-03-25",
+            "title": "Certyfikat IATF 16949 dla branży motoryzacyjnej",
+            "description": "Uzyskanie prestiżowego certyfikatu IATF 16949:2016 potwierdzającego najwyższe standardy jakości dla dostawców automotive.",
+            "event_type": "milestone",
+            "impact": "high",
+            "source": "Bureau Veritas",
+            "source_url": "https://www.bureauveritas.pl"
+        },
+        {
+            "id": "event_010",
+            "date": "2020-03-15",
+            "title": "Pandemia COVID-19 - przestój produkcji",
+            "description": "Czasowe zamknięcie zakładu (3 tygodnie) z powodu pandemii. Wprowadzenie reżimu sanitarnego i pracy zmianowej.",
+            "event_type": "legal",
+            "impact": "medium",
+            "source": None,
+            "source_url": None
+        },
+        {
+            "id": "event_011",
+            "date": "2021-09-12",
+            "title": "Nowa linia recyklingu plastiku",
+            "description": "Uruchomienie linii do recyklingu tworzyw sztucznych. Zdolność przetwórcza: 1000 ton rocznie. Inwestycja: 2 mln PLN.",
+            "event_type": "product",
+            "impact": "medium",
+            "source": "Tworzywa.pl",
+            "source_url": "https://www.tworzywa.pl/fado-recykling"
+        },
+        {
+            "id": "event_012",
+            "date": "2023-01-20",
+            "title": "Jan Nowak obejmuje stanowisko COO",
+            "description": "Zmiana w zarządzie - Jan Nowak (były dyrektor w Splast S.A.) zostaje dyrektorem operacyjnym FADO.",
+            "event_type": "hr",
+            "impact": "medium",
+            "source": "Money.pl",
+            "source_url": "https://www.money.pl/fado-nowy-coo"
+        },
+        {
+            "id": "event_013",
+            "date": "2024-05-10",
+            "title": "Partnerstwo strategiczne z German Plastics GmbH",
+            "description": "Umowa na dostawy komponentów do sektora motoryzacyjnego. Wartość: 50 mln EUR w ciągu 3 lat.",
+            "event_type": "partnership",
+            "impact": "high",
+            "source": "Rzeczpospolita",
+            "source_url": "https://www.rp.pl/fado-umowa-niemcy"
+        },
+        {
+            "id": "event_014",
+            "date": "2025-11-30",
+            "title": "Mandat WIOŚ za przekroczenie norm emisji",
+            "description": "Wojewódzki Inspektorat Ochrony Środowiska nałożył karę 200,000 PLN za przekroczenie dopuszczalnych norm emisji. Firma zapowiada modernizację filtrów.",
+            "event_type": "legal",
+            "impact": "medium",
+            "source": "Gazeta Prawna",
+            "source_url": "https://www.gazetaprawna.pl/fado-normy-emisji"
+        },
+        {
+            "id": "event_015",
+            "date": "2026-01-10",
+            "title": "Ogłoszenie inwestycji w rozbudowę zakładu o 30%",
+            "description": "Plan rozbudowy mocy produkcyjnych o 30%. Nowa linia do wtrysku tworzyw. Wartość inwestycji: 15 mln PLN. Realizacja do Q2 2026.",
+            "event_type": "investment",
+            "impact": "high",
+            "source": "Puls Biznesu",
+            "source_url": "https://www.pb.pl/fado-rozbudowa-123456"
+        }
+    ],
+    "2": [  # Splast S.A.
+        {
+            "id": "event_101",
+            "date": "2005-06-15",
+            "title": "Założenie Splast S.A.",
+            "description": "Utworzenie spółki akcyjnej z kapitałem zakładowym 500,000 PLN. Siedziba: Kraków.",
+            "event_type": "founding",
+            "impact": "high",
+            "source": "KRS",
+            "source_url": "https://ems.ms.gov.pl/"
+        },
+        {
+            "id": "event_102",
+            "date": "2015-03-20",
+            "title": "IPO - debiut na GPW",
+            "description": "Wejście na rynek główny Giełdy Papierów Wartościowych w Warszawie. Pozyskanie 80 mln PLN z emisji akcji.",
+            "event_type": "investment",
+            "impact": "high",
+            "source": "Bankier.pl",
+            "source_url": "https://www.bankier.pl/splast-ipo"
+        },
+        {
+            "id": "event_103",
+            "date": "2025-11-15",
+            "title": "Kontrola UOKIK w sprawie praktyk cenowych",
+            "description": "Urząd Ochrony Konkurencji i Konsumentów wszczął postępowanie wyjaśniające dotyczące potencjalnych praktyk cenowych.",
+            "event_type": "legal",
+            "impact": "medium",
+            "source": "Gazeta Wyborcza",
+            "source_url": "https://wyborcza.biz/splast-uokik"
         }
     ]
 }
@@ -673,4 +880,57 @@ async def get_company_news(
         company_name=company["name"],
         news=[NewsArticle(**n) for n in news_items],
         total_count=len(news_items)
+    )
+
+
+@router.get("/{identifier}/timeline", response_model=CompanyTimeline)
+async def get_company_timeline(
+    identifier: str,
+    event_type: Optional[str] = Query(None, description="Filter by event type: founding, investment, partnership, product, legal, hr, milestone"),
+    impact: Optional[str] = Query(None, description="Filter by impact: high, medium, low"),
+    year_from: Optional[int] = Query(None, description="Filter events from this year"),
+    year_to: Optional[int] = Query(None, description="Filter events until this year"),
+    current_user: User = Depends(get_current_user)
+):
+    """Get timeline of key events for company."""
+    # Find company by id, nip, or krs
+    company = None
+    company_id = None
+    for c in MOCK_COMPANIES:
+        if (c["id"] == identifier or
+            c["nip"] == identifier or
+            c.get("krs", "") == identifier):
+            company = c
+            company_id = c["id"]
+            break
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Get timeline events for this company
+    events = MOCK_COMPANY_TIMELINE.get(company_id, [])
+
+    # Filter by event type if specified
+    if event_type:
+        events = [e for e in events if e["event_type"] == event_type]
+
+    # Filter by impact if specified
+    if impact:
+        events = [e for e in events if e["impact"] == impact]
+
+    # Filter by year range if specified
+    if year_from:
+        events = [e for e in events if int(e["date"][:4]) >= year_from]
+
+    if year_to:
+        events = [e for e in events if int(e["date"][:4]) <= year_to]
+
+    # Sort by date (oldest first)
+    events = sorted(events, key=lambda x: x["date"])
+
+    return CompanyTimeline(
+        company_id=company_id,
+        company_name=company["name"],
+        events=[TimelineEvent(**e) for e in events],
+        total_count=len(events)
     )

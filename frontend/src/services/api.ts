@@ -254,6 +254,31 @@ export interface NewsFilterOptions {
   dateTo?: string;    // ISO format YYYY-MM-DD
 }
 
+export interface TimelineEvent {
+  id: string;
+  date: string;  // ISO format date
+  title: string;
+  description: string;
+  event_type: 'founding' | 'investment' | 'partnership' | 'product' | 'legal' | 'hr' | 'milestone';
+  impact: 'high' | 'medium' | 'low';
+  source?: string;
+  source_url?: string;
+}
+
+export interface CompanyTimeline {
+  company_id: string;
+  company_name: string;
+  events: TimelineEvent[];
+  total_count: number;
+}
+
+export interface TimelineFilterOptions {
+  event_type?: string;
+  impact?: string;
+  year_from?: number;
+  year_to?: number;
+}
+
 export const companyApi = {
   async getCompany(identifier: string): Promise<ApiResponse<CompanyProfile>> {
     return fetchApi(`/companies/${encodeURIComponent(identifier)}`);
@@ -274,6 +299,18 @@ export const companyApi = {
     if (dateTo) {
       url += `&date_to=${encodeURIComponent(dateTo)}`;
     }
+    return fetchApi(url);
+  },
+
+  async getCompanyTimeline(identifier: string, options: TimelineFilterOptions = {}): Promise<ApiResponse<CompanyTimeline>> {
+    const { event_type, impact, year_from, year_to } = options;
+    let url = `/companies/${encodeURIComponent(identifier)}/timeline?`;
+    const params = [];
+    if (event_type) params.push(`event_type=${encodeURIComponent(event_type)}`);
+    if (impact) params.push(`impact=${encodeURIComponent(impact)}`);
+    if (year_from) params.push(`year_from=${year_from}`);
+    if (year_to) params.push(`year_to=${year_to}`);
+    url += params.join('&');
     return fetchApi(url);
   },
 };

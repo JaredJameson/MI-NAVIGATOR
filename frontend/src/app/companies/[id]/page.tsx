@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { companyApi, CompanyProfile, NewsArticle } from '@/services/api';
+import { companyApi, CompanyProfile, NewsArticle, TimelineEvent } from '@/services/api';
 
-type Tab = 'overview' | 'news' | 'financials' | 'people';
+type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people';
 
 export default function CompanyProfilePage() {
   const params = useParams();
@@ -14,15 +14,20 @@ export default function CompanyProfilePage() {
 
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [news, setNews] = useState<NewsArticle[]>([]);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
   const [newsLoading, setNewsLoading] = useState(false);
+  const [timelineLoading, setTimelineLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newsCategory, setNewsCategory] = useState<string>('');
   const [newsSentiment, setNewsSentiment] = useState<string>('');
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
   const [showDateFilter, setShowDateFilter] = useState(false);
+  const [timelineEventType, setTimelineEventType] = useState<string>('');
+  const [timelineImpact, setTimelineImpact] = useState<string>('');
+  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
 
   // Load company profile
   useEffect(() => {
@@ -63,6 +68,25 @@ export default function CompanyProfilePage() {
 
     loadNews();
   }, [activeTab, companyId, company, newsCategory, newsSentiment, dateFrom, dateTo]);
+
+  // Load timeline when switching to timeline tab or filters change
+  useEffect(() => {
+    async function loadTimeline() {
+      if (activeTab !== 'timeline' || !company) return;
+
+      setTimelineLoading(true);
+      const result = await companyApi.getCompanyTimeline(companyId, {
+        event_type: timelineEventType || undefined,
+        impact: timelineImpact || undefined,
+      });
+      if (result.data) {
+        setTimeline(result.data.events);
+      }
+      setTimelineLoading(false);
+    }
+
+    loadTimeline();
+  }, [activeTab, companyId, company, timelineEventType, timelineImpact]);
 
   // Clear date filters
   const clearDateFilters = () => {
@@ -241,6 +265,7 @@ export default function CompanyProfilePage() {
           <nav className="flex gap-1">
             {[
               { id: 'overview' as Tab, label: 'Przegląd', icon: '📊' },
+              { id: 'timeline' as Tab, label: 'Oś czasu', icon: '📅' },
               { id: 'news' as Tab, label: 'Aktualności', icon: '📰' },
               { id: 'financials' as Tab, label: 'Finanse', icon: '💰' },
               { id: 'people' as Tab, label: 'Osoby', icon: '👥' },
@@ -359,6 +384,191 @@ export default function CompanyProfilePage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Timeline Tab */}
+        {activeTab === 'timeline' && (
+          <div className="space-y-6">
+            {/* Filters */}
+            <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-slate-600 mr-2">Typ wydarzenia:</span>
+                {[
+                  { value: '', label: 'Wszystkie' },
+                  { value: 'founding', label: '🏛️ Założenie' },
+                  { value: 'investment', label: '💰 Inwestycja' },
+                  { value: 'partnership', label: '🤝 Partnerstwo' },
+                  { value: 'product', label: '📦 Produkt' },
+                  { value: 'legal', label: '⚖️ Prawne' },
+                  { value: 'hr', label: '👥 Kadry' },
+                  { value: 'milestone', label: '🎯 Kamień milowy' },
+                ].map((type) => (
+                  <button
+                    key={type.value}
+                    onClick={() => setTimelineEventType(type.value)}
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      timelineEventType === type.value
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-200">
+                <span className="text-sm text-slate-600 mr-2">Wpływ:</span>
+                {[
+                  { value: '', label: 'Wszystkie' },
+                  { value: 'high', label: '🔴 Wysoki' },
+                  { value: 'medium', label: '🟡 Średni' },
+                  { value: 'low', label: '🟢 Niski' },
+                ].map((imp) => (
+                  <button
+                    key={imp.value}
+                    onClick={() => setTimelineImpact(imp.value)}
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      timelineImpact === imp.value
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {imp.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Timeline Display */}
+            {timelineLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-slate-600">Ładowanie osi czasu...</p>
+              </div>
+            ) : timeline.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+                <div className="text-4xl mb-4">📅</div>
+                <h3 className="text-lg font-semibold text-slate-900">Brak wydarzeń</h3>
+                <p className="text-slate-600 mt-1">
+                  Nie znaleziono wydarzeń dla wybranych kryteriów.
+                </p>
+              </div>
+            ) : (
+              <div className="relative">
+                {/* Vertical timeline line */}
+                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-slate-200"></div>
+
+                {/* Timeline events */}
+                <div className="space-y-6">
+                  {timeline.map((event) => {
+                    const date = new Date(event.date);
+                    const year = date.getFullYear();
+                    const month = date.toLocaleDateString('pl-PL', { month: 'long' });
+                    const day = date.getDate();
+
+                    // Event type icon
+                    const typeIcons: Record<string, string> = {
+                      founding: '🏛️',
+                      investment: '💰',
+                      partnership: '🤝',
+                      product: '📦',
+                      legal: '⚖️',
+                      hr: '👥',
+                      milestone: '🎯',
+                    };
+
+                    // Impact color
+                    const impactColors: Record<string, { bg: string; text: string; border: string }> = {
+                      high: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-300' },
+                      medium: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-300' },
+                      low: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-300' },
+                    };
+
+                    const impactStyle = impactColors[event.impact];
+
+                    return (
+                      <div key={event.id} className="relative pl-20 group">
+                        {/* Date marker */}
+                        <div className="absolute left-0 top-0">
+                          <div className="flex flex-col items-center">
+                            <div className="w-16 h-16 rounded-full bg-white border-4 border-blue-600 flex items-center justify-center text-2xl z-10 shadow-md">
+                              {typeIcons[event.event_type]}
+                            </div>
+                            <div className="text-center mt-2">
+                              <div className="text-lg font-bold text-slate-900">{day}</div>
+                              <div className="text-xs text-slate-500">{month}</div>
+                              <div className="text-sm font-medium text-slate-700">{year}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Event card */}
+                        <div
+                          onClick={() => setSelectedEvent(selectedEvent?.id === event.id ? null : event)}
+                          className={`bg-white rounded-xl border-2 p-6 cursor-pointer transition-all ${
+                            selectedEvent?.id === event.id
+                              ? `${impactStyle.border} shadow-lg`
+                              : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <h3 className="text-lg font-semibold text-slate-900 flex-1">
+                              {event.title}
+                            </h3>
+                            <span className={`px-3 py-1 text-xs rounded-full ${impactStyle.bg} ${impactStyle.text} whitespace-nowrap`}>
+                              {event.impact === 'high' && '🔴 Wysoki wpływ'}
+                              {event.impact === 'medium' && '🟡 Średni wpływ'}
+                              {event.impact === 'low' && '🟢 Niski wpływ'}
+                            </span>
+                          </div>
+
+                          <p className="text-slate-600 text-sm mb-4">
+                            {event.description}
+                          </p>
+
+                          {selectedEvent?.id === event.id && event.source && (
+                            <div className="mt-4 pt-4 border-t border-slate-200">
+                              <div className="flex items-center gap-2 text-xs text-slate-500">
+                                <span>📄 Źródło: {event.source}</span>
+                                {event.source_url && (
+                                  <a
+                                    href={event.source_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    Zobacz więcej →
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Timeline summary */}
+                <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-1">
+                        Historia firmy {company?.name}
+                      </h4>
+                      <p className="text-sm text-slate-600">
+                        {timeline.length} {timeline.length === 1 ? 'wydarzenie' : timeline.length < 5 ? 'wydarzenia' : 'wydarzeń'} od {new Date(timeline[0].date).getFullYear()}
+                        {timeline.length > 1 && ` do ${new Date(timeline[timeline.length - 1].date).getFullYear()}`}
+                      </p>
+                    </div>
+                    <div className="text-4xl">🎯</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
