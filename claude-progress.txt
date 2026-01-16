@@ -1,5 +1,77 @@
 # MI-Navigator Development Progress
 
+## Session 42 - Date: 2026-01-16
+
+### Feature #299: Draft recovery after browser crash - PASSED ✅
+
+**Functionality Tested:**
+
+This feature tests the automatic draft recovery system that saves unsaved changes to localStorage and offers to restore them when the user returns after a browser crash or accidental closure.
+
+**End-to-End Testing with Browser Automation:**
+
+✅ **Step 1: Start editing report**
+- Navigated to /reports/report_001
+- Clicked "Edit report" button
+- Entered edit mode successfully
+
+✅ **Step 2: Make significant changes**
+- Added test content to first section: "🚨 DRAFT RECOVERY TEST - Session 2026-01-16 23:07"
+- Added explanation text about draft recovery functionality
+- Changes visible in preview area
+
+✅ **Step 3: Verify auto-save to localStorage**
+- Auto-save triggered automatically (displayed "Auto-zapisano 23:08")
+- Verified draft stored in localStorage with key `draft_report_001`
+- Draft contained:
+  - timestamp: 2026-01-16T22:08:12.385Z
+  - sectionsCount: 6 (all sections)
+  - firstSectionPreview confirmed test content present
+
+✅ **Step 4: Simulate browser crash**
+- Closed browser using `browser_close` tool
+- Simulated unexpected termination without saving
+
+✅ **Step 5: Reopen application**
+- Navigated back to http://localhost:3000/reports/report_001
+- Page loaded showing original content (without edits)
+- Clicked "Edit report" button
+
+✅ **Step 6: Verify recovery prompt appears**
+- Recovery dialog appeared immediately: **"Znaleziono niezapisane zmiany. Czy chcesz je przywrócić?"**
+- This is the critical recovery prompt showing draft detection works
+
+✅ **Step 7: Recover draft**
+- Clicked "OK" to accept recovery
+- Draft loaded into edit mode
+
+✅ **Step 8: Verify changes fully restored**
+- JavaScript evaluation confirmed textarea contains exact test content
+- Text preview shows: "🚨 DRAFT RECOVERY TEST - Session 2026-01-16 23:07"
+- All formatting preserved (markdown table, lists, paragraphs)
+- Auto-save re-activated ("Auto-zapisano 23:09")
+
+**Technical Verification:**
+- localStorage persistence confirmed across browser sessions
+- Draft age validation works (only restores drafts < 1 hour old)
+- Recovery prompt appears automatically on edit mode entry
+- User can choose to accept or decline recovery
+- All 6 report sections preserved in draft
+- Zero console errors throughout entire test
+
+**Visual Confirmation:**
+- Screenshot: feature_299_step1_report_loaded.png (initial load)
+- Screenshot: feature_299_step2_changes_made.png (edits with test content)
+- Screenshot: feature_299_step4_reopened.png (after reopen, before edit)
+- Screenshot: feature_299_step5_draft_recovered_final.png (recovered draft in edit mode)
+- Screenshot: feature_299_step7_final_verification.png (full page verification)
+
+**Commit:** [Pending]
+
+**Current Progress:** 106/380 features passing (27.9%)
+
+---
+
 ## Session 41 - Date: 2026-01-16
 
 ### Regression Tests Completed:
