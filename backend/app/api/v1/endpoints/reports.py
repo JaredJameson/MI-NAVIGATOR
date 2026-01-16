@@ -1089,6 +1089,48 @@ async def delete_report(report_id: str, current_user: User = Depends(get_current
     return {"message": "Report deleted successfully", "deleted_id": report_id}
 
 
+@router.post("/{report_id}/duplicate")
+async def duplicate_report(report_id: str, current_user: User = Depends(get_current_user)):
+    """Duplicate an existing report."""
+    global MOCK_REPORTS
+
+    # Find the original report
+    original_report = None
+    for report in MOCK_REPORTS:
+        if report["id"] == report_id:
+            original_report = report
+            break
+
+    if not original_report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Generate new ID for the duplicate
+    import uuid
+    new_id = f"report_{uuid.uuid4().hex[:8]}"
+
+    # Create a deep copy of the report
+    import copy
+    duplicated_report = copy.deepcopy(original_report)
+
+    # Update the duplicate with new data
+    duplicated_report["id"] = new_id
+    duplicated_report["title"] = f"{original_report['title']} (kopia)"
+    duplicated_report["created_at"] = datetime.now().isoformat() + "Z"
+    duplicated_report["updated_at"] = datetime.now().isoformat() + "Z"
+    duplicated_report["status"] = "draft"  # New copy starts as draft
+    duplicated_report["is_archived"] = False  # Never copy archived status
+
+    # Add the duplicate to the reports list
+    MOCK_REPORTS.append(duplicated_report)
+
+    return {
+        "message": "Report duplicated successfully",
+        "original_id": report_id,
+        "new_id": new_id,
+        "new_title": duplicated_report["title"]
+    }
+
+
 @router.post("/bulk-delete")
 async def bulk_delete_reports(
     request: BulkDeleteRequest,

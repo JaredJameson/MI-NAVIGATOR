@@ -3628,6 +3628,33 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Duplicate report
+  const duplicateReport = async () => {
+    const token = getStoredToken()
+    if (!token || !reportId) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/reports/${reportId}/duplicate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Navigate to the newly created duplicate report
+        router.push(`/reports/${data.new_id}`)
+      } else {
+        console.error('Failed to duplicate report:', await response.text())
+        alert('Nie udało się zduplikować raportu')
+      }
+    } catch (err) {
+      console.error('Failed to duplicate report:', err)
+      alert('Wystąpił błąd podczas duplikowania raportu')
+    }
+  }
+
   // Toggle favorite status
   const toggleFavorite = async () => {
     const token = getStoredToken()
@@ -3995,6 +4022,15 @@ export default function ReportViewerPage() {
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
+            </button>
+            <button
+              onClick={duplicateReport}
+              className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+              title="Duplikuj raport"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </button>
             <button
