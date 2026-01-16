@@ -3323,6 +3323,10 @@ export default function ReportViewerPage() {
   const [editedSections, setEditedSections] = useState<{[key: string]: string}>({})
   const [isSaving, setIsSaving] = useState(false)
 
+  // Auto-save state
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null)
+  const [isAutoSaving, setIsAutoSaving] = useState(false)
+
   // Table insertion state
   const [showTableModal, setShowTableModal] = useState(false)
   const [tableRows, setTableRows] = useState(3)
@@ -3398,6 +3402,26 @@ export default function ReportViewerPage() {
     document.addEventListener('selectionchange', handleSelectionChange)
     return () => document.removeEventListener('selectionchange', handleSelectionChange)
   }, [])
+
+  // Auto-save effect - saves to localStorage every 30 seconds when editing
+  useEffect(() => {
+    if (!isEditing || Object.keys(editedSections).length === 0) return
+
+    // Save immediately when edit mode starts
+    const timeoutId = setTimeout(() => {
+      autoSaveToLocal()
+    }, 1000) // Wait 1 second before first auto-save
+
+    // Then set up interval for periodic saves
+    const intervalId = setInterval(() => {
+      autoSaveToLocal()
+    }, 30000) // Auto-save every 30 seconds
+
+    return () => {
+      clearTimeout(timeoutId)
+      clearInterval(intervalId)
+    }
+  }, [isEditing, editedSections, reportId])
 
   const fetchReport = async () => {
     const token = getStoredToken()
@@ -3483,6 +3507,8 @@ export default function ReportViewerPage() {
       )
 
       if (response.ok) {
+        // Clear auto-save draft since changes are now saved
+        clearAutoSaveDraft()
         // Refresh report to get updated content
         await fetchReport()
         setIsEditing(false)
@@ -3498,16 +3524,73 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Auto-save to localStorage
+  const autoSaveToLocal = () => {
+    if (!reportId || Object.keys(editedSections).length === 0) return
+
+    try {
+      setIsAutoSaving(true)
+      localStorage.setItem(`draft_${reportId}`, JSON.stringify({
+        sections: editedSections,
+        timestamp: new Date().toISOString()
+      }))
+      setLastAutoSave(new Date())
+
+      // Clear auto-saving indicator after 1 second
+      setTimeout(() => setIsAutoSaving(false), 1000)
+    } catch (err) {
+      console.error('Failed to auto-save to localStorage:', err)
+      setIsAutoSaving(false)
+    }
+  }
+
+  // Clear auto-save draft from localStorage
+  const clearAutoSaveDraft = () => {
+    if (!reportId) return
+    try {
+      localStorage.removeItem(`draft_${reportId}`)
+      setLastAutoSave(null)
+    } catch (err) {
+      console.error('Failed to clear draft:', err)
+    }
+  }
+
   const toggleEditMode = () => {
     if (isEditing) {
-      // Cancel editing - reset edited sections
+      // Cancel editing - reset edited sections and clear draft
       setEditedSections({})
+      clearAutoSaveDraft()
     } else {
-      // Enter edit mode - initialize edited sections with current content
-      const initialEdited: {[key: string]: string} = {}
-      report?.sections.forEach(section => {
-        initialEdited[section.id] = section.content
-      })
+      // Enter edit mode - check for auto-saved draft first
+      let initialEdited: {[key: string]: string} = {}
+
+      try {
+        const draftData = localStorage.getItem(`draft_${reportId}`)
+        if (draftData) {
+          const draft = JSON.parse(draftData)
+          const draftAge = new Date().getTime() - new Date(draft.timestamp).getTime()
+          const oneHour = 60 * 60 * 1000
+
+          // Only restore if draft is less than 1 hour old
+          if (draftAge < oneHour && confirm('Znaleziono niezapisane zmiany. Czy chcesz je przywrócić?')) {
+            initialEdited = draft.sections
+            setLastAutoSave(new Date(draft.timestamp))
+          } else {
+            // Clear old draft
+            clearAutoSaveDraft()
+          }
+        }
+      } catch (err) {
+        console.error('Failed to restore draft:', err)
+      }
+
+      // If no draft restored, initialize with current content
+      if (Object.keys(initialEdited).length === 0) {
+        report?.sections.forEach(section => {
+          initialEdited[section.id] = section.content
+        })
+      }
+
       setEditedSections(initialEdited)
     }
     setIsEditing(!isEditing)
@@ -4266,6 +4349,22 @@ export default function ReportViewerPage() {
                 >
                   Cancel
                 </button>
+                {/* Auto-save indicator */}
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  {isAutoSaving ? (
+                    <>
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-gray-400 border-t-transparent"></div>
+                      <span>Zapisywanie...</span>
+                    </>
+                  ) : lastAutoSave ? (
+                    <>
+                      <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Auto-zapisano {new Date(lastAutoSave).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </>
+                  ) : null}
+                </div>
               </>
             )}
             <button
