@@ -1,5 +1,69 @@
 # MI-Navigator Development Progress
 
+## Session 21 - Date: 2026-01-16
+
+### Completed in This Session:
+
+#### Feature #271: Ownership tree visualization - PASSED
+- Implemented interactive ownership structure tree visualization for company profile reports
+- Added "Struktura własnościowa" section to FADO company report (report_001) with:
+  - Complete ownership tree: FADO Sp. z o.o. (100%) as root
+  - Shareholders: Plastics Holding S.A. (60%), Jan Kowalski (25%), Anna Nowak (15%)
+  - Nested shareholders: Euro Polymers GmbH, Polish Investment Fund S.A.
+  - UBOs: Heinrich Schmidt, Skarb Państwa, Jan Kowalski, Anna Nowak
+  - Role badges (Założyciel, Współzałożyciel)
+- Created OwnershipTreeDiagram component with:
+  - Tree visualization with parent-child relationships
+  - Expandable/collapsible nodes using arrow buttons
+  - Color-coded node types:
+    - 🏢 Indigo for main company (ROOT)
+    - 📊 Blue for shareholders (SHAREHOLDER)
+    - 👤 Green for beneficial owners (UBO)
+  - Percentage badges showing ownership stakes
+  - Legend explaining entity types
+  - Click-to-select nodes showing detailed information
+  - UBO summary section with ownership paths (direct vs indirect)
+  - Collapsible shareholders table with name, percentage, type, role columns
+  - Statistics: Udziałowcy: 5, Beneficjenci: 4
+- Parsing logic extracts:
+  - Tree structure from formatted content with indentation
+  - Shareholder details (type, KRS, country, role, description)
+  - UBO list with ownership paths
+- Auto-detects ownership sections by title ("struktura własno", "ownership", etc.)
+- "📊 Diagram interaktywny" badge on section header
+- Full end-to-end testing verified:
+  - Navigated to report_001 (FADO company profile)
+  - Ownership tree section displayed with interactive diagram
+  - Tree shows FADO → [Plastics Holding, Jan Kowalski, Anna Nowak]
+  - All percentages visible (100%, 60%, 25%, 15%)
+  - Expandable nodes with arrow buttons
+  - UBO section shows 4 beneficiaries with paths
+  - No console errors
+
+### Regression Tests Passed:
+- Feature #193: Dashboard widget consistent styling - all widgets have consistent borders, shadows, headers, and spacing
+
+### Statistics:
+- Total features: 380
+- Passing features: 82 (21.6%)
+- In progress: 0
+
+### Git Commits This Session:
+- e23c2e7 - Implement ownership tree visualization (Feature #271)
+
+### Running Services:
+- Backend: http://localhost:8000 (FastAPI)
+- Frontend: http://localhost:3000 (Next.js dev server)
+- PostgreSQL: localhost:5460
+- Redis: localhost:6395
+
+### Next Steps for Future Agents:
+1. Use `feature_get_next` to get next feature
+2. SWOT, Porter, TAM SAM SOM, Trend Timeline, and Ownership Tree diagrams now render for relevant sections
+3. Consider adding more visualization types (BCG matrix, value chain, Ansoff matrix, competitor map, etc.)
+
+---
+
 ## Session 20 - Date: 2026-01-16
 
 ### Completed in This Session:
