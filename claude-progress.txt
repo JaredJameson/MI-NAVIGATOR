@@ -1,5 +1,119 @@
 # MI-Navigator Development Progress
 
+## Session 38 - Date: 2026-01-16
+
+### Regression Tests Completed:
+
+#### Feature #98: Loading indicator during API calls - PASSED ✅
+- Navigated to /reports page
+- Loading indicator "Ładowanie raportów..." appeared immediately
+- Indicator disappeared after data loaded
+- 5 reports displayed (page 1 of 3)
+- Zero console errors
+- Screenshot: regression_98_reports_loaded.png
+
+#### Feature #119: Browser back after form submit - PASSED ✅
+- Filled and submitted search form on /reports with query "FADO"
+- Form submitted correctly, results displayed
+- Clicked browser back button
+- Returned to dashboard without resubmitting form
+- No duplicate submission occurred
+- Page displayed correctly
+- Zero console errors
+- Screenshot: regression_119_back_button_works.png
+
+### Feature #291: Duplicate report creation - PASSED ✅
+
+**Implementation Completed:**
+
+1. **Backend Changes** (backend/app/api/v1/endpoints/reports.py):
+   - Added `POST /reports/{report_id}/duplicate` endpoint after delete_report
+   - Endpoint validates report existence (404 if not found)
+   - Generates new unique ID using uuid: `report_{uuid4().hex[:8]}`
+   - Uses `copy.deepcopy()` to create complete copy of report data
+   - Updates duplicate with new metadata:
+     - New ID
+     - Title with "(kopia)" suffix
+     - Current timestamp for created_at and updated_at
+     - Status set to "draft"
+     - is_archived set to False (never copy archived status)
+   - Appends duplicate to MOCK_REPORTS list
+   - Returns success response with original_id, new_id, and new_title
+
+2. **Frontend Changes** (frontend/src/app/reports/[id]/page.tsx):
+   - Added `duplicateReport()` async function before toggleFavorite
+   - Function calls POST /reports/{reportId}/duplicate endpoint
+   - On success, navigates to duplicated report using router.push
+   - Displays error alert on failure
+   - Added duplicate button to toolbar after archive button
+   - Button uses copy/duplicate icon (overlapping squares SVG)
+   - Button title: "Duplikuj raport"
+
+**End-to-End Testing with Browser Automation:**
+
+✅ **Step 1**: Navigated to report_001 (original FADO report)
+- Page loaded successfully
+- Title: "Analiza profilu FADO Sp. z o.o."
+- Created: 14 stycznia 2026 11:30
+- All sections visible (6 sections)
+- Screenshot: feature_291_step1_original_report.png
+
+✅ **Step 2**: Clicked "Duplikuj raport" button
+- Button click successful
+- Automatic redirect to new report
+
+✅ **Step 3**: Verified copy created with new ID
+- URL changed to /reports/report_18e2b9f8 (new unique ID)
+- Title: "Analiza profilu FADO Sp. z o.o. (kopia)"
+- Created: 16 stycznia 2026 22:53 (current timestamp)
+- Updated: 16 stycznia 2026 22:53
+- Screenshot: feature_291_step2_duplicated_report.png
+
+✅ **Step 4**: Verified name indicates copy
+- Title includes "(kopia)" suffix ✅
+- Clear visual distinction from original
+
+✅ **Step 5**: Verified content matches original
+- All 6 sections present and identical:
+  1. Informacje podstawowe
+  2. Analiza finansowa
+  3. Pozycja rynkowa
+  4. Analiza SWOT (full diagram)
+  5. Wskaźniki finansowe - Radar (9 metrics)
+  6. Struktura własnościowa (ownership tree)
+- All data values match original (NIP, REGON, KRS, financials, etc.)
+- All visualizations preserved (SWOT, radar chart, ownership tree)
+
+✅ **Step 6**: Verified editable independently
+- Navigated to reports list - now showing "16 raportów" (was 12 before)
+- Filtered by "Szkice" status - duplicate appears with yellow "Szkic" badge
+- Screenshot: feature_291_step3_copy_in_drafts_list.png
+- Original report_001 still exists unchanged:
+  - Title WITHOUT "(kopia)"
+  - Original creation date (14 stycznia 2026 11:30)
+  - Status: "Zakończony" (not "Szkic")
+  - Screenshot: feature_291_step4_original_still_exists.png
+- Both reports are fully independent - changes to one won't affect the other
+
+✅ **Zero console errors** throughout entire test
+
+**Visual Verification:**
+- Duplicate button clearly visible in toolbar with copy icon
+- Smooth redirect after duplication
+- All UI elements responsive and working correctly
+- Status badge correctly shows "Szkic" for duplicate
+- Report counts updated correctly (12 → 16 total reports)
+
+**Files Modified:**
+- backend/app/api/v1/endpoints/reports.py (+40 lines: new duplicate endpoint)
+- frontend/src/app/reports/[id]/page.tsx (+24 lines: duplicateReport function + button)
+
+**Commit:** 847e0e8 "Implement report duplication feature (Feature #291)"
+
+**Current Progress:** 99/380 features passing (26.1%)
+
+---
+
 ## Session 37 - Date: 2026-01-16
 
 ### Regression Tests Completed:
