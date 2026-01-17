@@ -3,7 +3,7 @@ Authentication API Endpoints
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.schemas.user import (
-    UserCreate, UserLogin, UserResponse, Token, PasswordResetRequest, PasswordResetConfirm,
+    UserCreate, UserLogin, UserResponse, Token, TwoFactorRequired, PasswordResetRequest, PasswordResetConfirm,
     TwoFactorSetupResponse, TwoFactorVerifyRequest, TwoFactorStatusResponse
 )
 from app.services.auth import AuthService
@@ -91,7 +91,7 @@ async def register(
     return user
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Union[Token, TwoFactorRequired])
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     request: Request = None,
@@ -144,13 +144,116 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Log successful login
+    # Check if user has 2FA enabled
+    if user.two_factor_enabled:
+        # Generate temporary token valid for 5 minutes (for 2FA verification)
+        temp_token = AuthService.create_access_token(str(user.id), expires_minutes=5)
+
+        security_logger.info(
+            f"2FA required for login | Email: {form_data.username} | "
+            f"IP: {ip_address} | Timestamp: {datetime.utcnow().isoformat()}"
+        )
+
+        return {
+            "requires_2fa": True,
+            "temp_token": temp_token,
+            "message": "Please enter your 2FA code"
+        }
+
+    # Log successful login (no 2FA)
     security_logger.info(
         f"Successful login | Email: {form_data.username} | "
         f"IP: {ip_address} | Timestamp: {datetime.utcnow().isoformat()}"
     )
 
     # Create tokens
+    access_token = AuthService.create_access_token(str(user.id))
+    refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id))
+
+    # Store session
+    await AuthService.create_session(
+        db,
+        user.id,
+        refresh_token,
+        refresh_expires,
+        ip_address,
+        user_agent
+    )
+
+    # Update last login
+    await AuthService.update_last_login(db, user)
+    await db.commit()
+
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer"
+    )
+
+
+@router.post("/login/2fa/verify", response_model=Token)
+async def verify_2fa_login(
+    verify_data: dict,
+    request: Request = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Verify 2FA code during login and return final tokens.
+
+    Args:
+        verify_data: dict with temp_token and code
+    """
+    # Extract parameters from request body
+    temp_token = verify_data.get("temp_token")
+    code = verify_data.get("code")
+
+    if not temp_token or not code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing temp_token or code"
+        )
+
+    # Get client IP address
+    ip_address = request.client.host if request else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
+
+    # Decode temp token to get user ID
+    token_data = AuthService.decode_token(temp_token)
+
+    if not token_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired temporary token"
+        )
+
+    # Get user
+    user = await AuthService.get_user_by_id(db, token_data.sub)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+
+    # Verify 2FA code
+    if not TwoFactorService.verify_totp_code(user.totp_secret, code):
+        security_logger.warning(
+            f"Failed 2FA verification | Email: {user.email} | "
+            f"IP: {ip_address} | Timestamp: {datetime.utcnow().isoformat()}"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid 2FA code"
+        )
+
+    # Log successful 2FA login
+    security_logger.info(
+        f"Successful 2FA login | Email: {user.email} | "
+        f"IP: {ip_address} | Timestamp: {datetime.utcnow().isoformat()}"
+    )
+
+    # Create final tokens
     access_token = AuthService.create_access_token(str(user.id))
     refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id))
 
