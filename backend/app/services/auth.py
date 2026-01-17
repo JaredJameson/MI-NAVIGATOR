@@ -49,7 +49,8 @@ class AuthService:
         payload = {
             "sub": user_id,
             "exp": expire,
-            "type": "access"
+            "type": "access",
+            "jti": str(uuid.uuid4())  # unique token id for session fixation prevention
         }
         return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
