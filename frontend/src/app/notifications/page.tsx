@@ -93,16 +93,34 @@ export default function NotificationsPage() {
     }
   }
 
+  const getCsrfToken = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/csrf-token`)
+      const data = await response.json()
+      return data.csrf_token
+    } catch (err) {
+      console.error('Failed to fetch CSRF token:', err)
+      return null
+    }
+  }
+
   const markAsRead = async (notificationId: string) => {
     const token = getStoredToken()
     if (!token) return
 
     try {
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        console.error('Failed to get CSRF token')
+        return
+      }
+
       const response = await fetch(`${API_BASE_URL}/notifications/mark-read`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({ notification_ids: [notificationId] }),
       })
@@ -127,10 +145,17 @@ export default function NotificationsPage() {
     if (!token) return
 
     try {
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        console.error('Failed to get CSRF token')
+        return
+      }
+
       const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
         },
       })
 
