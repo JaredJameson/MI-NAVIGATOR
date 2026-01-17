@@ -26,6 +26,10 @@ from app.models.analytics_event import EventType
 router = APIRouter()
 
 
+# In-memory task storage for progress tracking
+BATCH_TASKS = {}  # {task_id: {"status": "processing", "total": 10, "processed": 3, "result": None}}
+
+
 # Mock templates database
 MOCK_TEMPLATES = [
     {
@@ -1815,6 +1819,83 @@ async def bulk_export_reports(
 
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
+
+
+@router.post("/bulk-export-async")
+async def bulk_export_reports_async(
+    request: BulkExportRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Start async bulk export with progress tracking."""
+    import asyncio
+
+    if not request.report_ids:
+        raise HTTPException(status_code=400, detail="No report IDs provided")
+
+    # Generate task ID
+    task_id = str(uuid.uuid4())
+
+    # Initialize task status
+    BATCH_TASKS[task_id] = {
+        "status": "processing",
+        "total": len(request.report_ids),
+        "processed": 0,
+        "result": None,
+        "error": None,
+        "format": request.format
+    }
+
+    # Start background processing (simulated)
+    async def process_export():
+        """Simulate processing with progress updates."""
+        try:
+            for i in range(len(request.report_ids)):
+                # Simulate processing time per report (0.5-1 second each)
+                await asyncio.sleep(0.5)
+
+                # Update progress
+                BATCH_TASKS[task_id]["processed"] = i + 1
+
+            # Mark as completed
+            BATCH_TASKS[task_id]["status"] = "completed"
+            BATCH_TASKS[task_id]["result"] = f"Successfully exported {len(request.report_ids)} reports"
+        except Exception as e:
+            BATCH_TASKS[task_id]["status"] = "failed"
+            BATCH_TASKS[task_id]["error"] = str(e)
+
+    # Start task in background (fire and forget)
+    asyncio.create_task(process_export())
+
+    return {
+        "task_id": task_id,
+        "status": "started",
+        "total": len(request.report_ids)
+    }
+
+
+@router.get("/bulk-export-progress/{task_id}")
+async def get_bulk_export_progress(
+    task_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get progress of bulk export operation."""
+    if task_id not in BATCH_TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = BATCH_TASKS[task_id]
+
+    # Calculate percentage
+    percentage = (task["processed"] / task["total"] * 100) if task["total"] > 0 else 0
+
+    return {
+        "task_id": task_id,
+        "status": task["status"],
+        "total": task["total"],
+        "processed": task["processed"],
+        "percentage": round(percentage, 1),
+        "result": task.get("result"),
+        "error": task.get("error")
+    }
 
 
 # In-memory storage for share links: { "share_token": {"report_id", "created_at", "expires_at", "created_by"} }
