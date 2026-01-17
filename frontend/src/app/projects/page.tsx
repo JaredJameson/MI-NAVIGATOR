@@ -36,9 +36,16 @@ export default function ProjectsPage() {
   }, [])
 
   const fetchProjects = async () => {
+    // Ensure we're in browser environment
+    if (typeof window === 'undefined') {
+      setIsLoading(false)
+      return
+    }
+
     const token = getStoredToken()
     if (!token) {
-      router.push('/auth/login')
+      // Don't redirect - AuthGuard will handle this
+      setIsLoading(false)
       return
     }
 
@@ -53,6 +60,11 @@ export default function ProjectsPage() {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Don't show error - AuthGuard will handle this
+          setIsLoading(false)
+          return
+        }
         throw new Error('Failed to fetch projects')
       }
 

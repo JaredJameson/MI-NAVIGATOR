@@ -119,9 +119,16 @@ export default function SettingsPage() {
   }, [])
 
   const fetchProfile = async () => {
+    // Ensure we're in browser environment
+    if (typeof window === 'undefined') {
+      setIsLoading(false)
+      return
+    }
+
     const token = getStoredToken()
     if (!token) {
-      router.push('/auth/login')
+      // Don't redirect - AuthGuard will handle this
+      setIsLoading(false)
       return
     }
 
@@ -134,7 +141,9 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          router.push('/auth/login')
+          // Don't redirect - AuthGuard will handle this
+          // Don't show error either - just silently fail and let AuthGuard redirect if needed
+          setIsLoading(false)
           return
         }
         throw new Error('Failed to fetch profile')
