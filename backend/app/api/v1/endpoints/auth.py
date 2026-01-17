@@ -4,6 +4,7 @@ Authentication API Endpoints
 
 from datetime import datetime
 from typing import Optional
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -14,6 +15,18 @@ from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, Passwor
 from app.services.auth import AuthService
 
 router = APIRouter()
+
+# Security logger for failed login attempts
+security_logger = logging.getLogger("security")
+security_logger.setLevel(logging.INFO)
+
+# Add console handler if not already present
+if not security_logger.handlers:
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+    console_handler.setFormatter(formatter)
+    security_logger.addHandler(console_handler)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -87,23 +100,37 @@ async def login(
     - username: user's email
     - password: user's password
     """
+    # Get client IP address
+    ip_address = request.client.host if request else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
+
     user = await AuthService.authenticate_user(db, form_data.username, form_data.password)
 
     if not user:
+        # Log failed login attempt
+        security_logger.warning(
+            f"Failed login attempt | Email: {form_data.username} | "
+            f"IP: {ip_address} | User-Agent: {user_agent} | "
+            f"Timestamp: {datetime.utcnow().isoformat()}"
+        )
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Log successful login
+    security_logger.info(
+        f"Successful login | Email: {form_data.username} | "
+        f"IP: {ip_address} | Timestamp: {datetime.utcnow().isoformat()}"
+    )
+
     # Create tokens
     access_token = AuthService.create_access_token(str(user.id))
     refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id))
 
     # Store session
-    ip_address = request.client.host if request else None
-    user_agent = request.headers.get("user-agent") if request else None
-
     await AuthService.create_session(
         db,
         user.id,
