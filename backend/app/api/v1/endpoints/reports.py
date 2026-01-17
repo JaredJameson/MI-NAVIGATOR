@@ -19,6 +19,7 @@ from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
 from app.models.report_template import ReportTemplate
 from app.db.session import get_db
+from app.services.audit_service import log_audit, AuditAction, ResourceType
 
 router = APIRouter()
 
@@ -1217,14 +1218,35 @@ async def update_report(report_id: str):
 
 
 @router.delete("/{report_id}")
-async def delete_report(report_id: str, current_user: User = Depends(get_current_user)):
+async def delete_report(
+    report_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Delete a report."""
     global MOCK_REPORTS
 
     # Check if report exists
-    report_exists = any(r["id"] == report_id for r in MOCK_REPORTS)
-    if not report_exists:
+    report = next((r for r in MOCK_REPORTS if r["id"] == report_id), None)
+    if not report:
         raise HTTPException(status_code=404, detail="Report not found")
+
+    # Log audit event BEFORE deletion
+    await log_audit(
+        db=db,
+        user=current_user,
+        action_type=AuditAction.REPORT_DELETE,
+        resource_type=ResourceType.REPORT,
+        resource_id=report_id,
+        description=f"Deleted report: {report.get('title', 'Unnamed Report')}",
+        request=request,
+        extra_data={
+            "report_title": report.get("title"),
+            "report_type": report.get("type"),
+            "created_at": report.get("created_at")
+        }
+    )
 
     # Remove the report
     MOCK_REPORTS = [r for r in MOCK_REPORTS if r["id"] != report_id]
@@ -1746,7 +1768,9 @@ SHARE_ACCESS_LOG: dict = {}
 @router.post("/{report_id}/share")
 async def share_report(
     report_id: str,
-    current_user: User = Depends(get_current_user)
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Generate share link for report with tracking."""
     # Verify report exists
@@ -1779,6 +1803,22 @@ async def share_report(
     SHARE_ACCESS_LOG[share_token] = []
 
     share_url = f"http://localhost:3000/share/{share_token}"
+
+    # Log audit event
+    await log_audit(
+        db=db,
+        user=current_user,
+        action_type=AuditAction.REPORT_SHARE,
+        resource_type=ResourceType.REPORT,
+        resource_id=report_id,
+        description=f"Shared report: {report['title']}",
+        request=request,
+        extra_data={
+            "report_title": report["title"],
+            "share_token": share_token,
+            "expires_at": expires_at.isoformat() + "Z"
+        }
+    )
 
     return {
         "share_token": share_token,
@@ -2746,4 +2786,50 @@ async def revoke_share_link(
         "success": True,
         "message": "Share link revoked successfully",
         "share_token": share_token
+    }
+
+
+# ==================== AUDIT LOGS ====================
+
+@router.get("/audit-logs")
+async def get_audit_logs_endpoint(
+    resource_id: Optional[str] = Query(None, description="Filter by resource ID (e.g., report ID)"),
+    action_type: Optional[str] = Query(None, description="Filter by action type (e.g., report.delete)"),
+    limit: int = Query(50, ge=1, le=200, description="Number of logs to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get audit logs for the current user.
+
+    Returns audit trail of sensitive operations performed by the user,
+    including delete, share, export, and other critical actions.
+
+    Query parameters:
+    - resource_id: Filter logs for specific resource (e.g., report ID)
+    - action_type: Filter by action type (report.delete, report.share, etc.)
+    - limit: Maximum number of logs to return (default: 50, max: 200)
+    - offset: Pagination offset (default: 0)
+    """
+    from app.services.audit_service import get_audit_logs
+
+    # Get audit logs for current user
+    audit_logs = await get_audit_logs(
+        db=db,
+        user_id=str(current_user.id),
+        action_type=action_type,
+        resource_id=resource_id,
+        limit=limit,
+        offset=offset
+    )
+
+    # Convert to dict for API response
+    logs_data = [log.to_dict() for log in audit_logs]
+
+    return {
+        "logs": logs_data,
+        "count": len(logs_data),
+        "limit": limit,
+        "offset": offset
     }

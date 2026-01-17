@@ -863,6 +863,19 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between py-4 border-b">
               <div>
+                <h3 className="font-medium text-gray-900">Audit Trail</h3>
+                <p className="text-sm text-gray-500">View log of all sensitive operations</p>
+              </div>
+              <Link
+                href="/settings/audit"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                View Audit Log →
+              </Link>
+            </div>
+
+            <div className="flex items-center justify-between py-4 border-b">
+              <div>
                 <h3 className="font-medium text-gray-900">Change Password</h3>
                 <p className="text-sm text-gray-500">Update your password</p>
               </div>
