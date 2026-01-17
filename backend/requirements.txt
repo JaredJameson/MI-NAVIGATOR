@@ -18,6 +18,8 @@ aioredis==2.0.1
 # Authentication
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+pyotp==2.9.0
+qrcode[pil]==7.4.2
 
 # AI / LLM
 anthropic==0.18.1

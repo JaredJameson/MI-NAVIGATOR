@@ -850,6 +850,19 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between py-4 border-b">
               <div>
+                <h3 className="font-medium text-gray-900">Security Settings</h3>
+                <p className="text-sm text-gray-500">Two-factor authentication and security options</p>
+              </div>
+              <Link
+                href="/settings/security"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                Manage Security →
+              </Link>
+            </div>
+
+            <div className="flex items-center justify-between py-4 border-b">
+              <div>
                 <h3 className="font-medium text-gray-900">Change Password</h3>
                 <p className="text-sm text-gray-500">Update your password</p>
               </div>

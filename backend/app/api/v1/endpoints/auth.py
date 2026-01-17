@@ -11,8 +11,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, PasswordResetRequest, PasswordResetConfirm
+from app.schemas.user import (
+    UserCreate, UserLogin, UserResponse, Token, PasswordResetRequest, PasswordResetConfirm,
+    TwoFactorSetupResponse, TwoFactorVerifyRequest, TwoFactorStatusResponse
+)
 from app.services.auth import AuthService
+from app.services.two_factor import TwoFactorService
 
 router = APIRouter()
 
@@ -312,6 +316,84 @@ async def reset_password(
         )
 
     return {"message": "Password reset successfully"}
+
+
+@router.post("/2fa/setup", response_model=TwoFactorSetupResponse)
+async def setup_two_factor(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Initialize 2FA setup for the current user.
+
+    Returns a QR code and secret for the user to scan with an authenticator app.
+    2FA is not enabled until the user verifies with a valid code.
+    """
+    secret, qr_code, manual_key = await TwoFactorService.setup_two_factor(db, current_user)
+    await db.commit()
+
+    return TwoFactorSetupResponse(
+        secret=secret,
+        qr_code=qr_code,
+        manual_entry_key=manual_key
+    )
+
+
+@router.post("/2fa/verify", response_model=TwoFactorStatusResponse)
+async def verify_and_enable_two_factor(
+    data: TwoFactorVerifyRequest,
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Verify the 2FA setup code and enable 2FA for the user.
+
+    The user must provide a valid 6-digit code from their authenticator app.
+    """
+    success = await TwoFactorService.enable_two_factor(db, current_user, data.code)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code. Please try again."
+        )
+
+    await db.commit()
+
+    return TwoFactorStatusResponse(
+        enabled=True,
+        message="Two-factor authentication has been enabled successfully"
+    )
+
+
+@router.post("/2fa/disable", response_model=TwoFactorStatusResponse)
+async def disable_two_factor(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Disable 2FA for the current user.
+
+    This will remove the TOTP secret and disable two-factor authentication.
+    """
+    await TwoFactorService.disable_two_factor(db, current_user)
+    await db.commit()
+
+    return TwoFactorStatusResponse(
+        enabled=False,
+        message="Two-factor authentication has been disabled"
+    )
+
+
+@router.get("/2fa/status", response_model=TwoFactorStatusResponse)
+async def get_two_factor_status(
+    current_user = Depends(get_current_user)
+):
+    """Get the current 2FA status for the user."""
+    return TwoFactorStatusResponse(
+        enabled=current_user.two_factor_enabled,
+        message=f"Two-factor authentication is {'enabled' if current_user.two_factor_enabled else 'disabled'}"
+    )
 
 
 @router.get("/csrf-token")

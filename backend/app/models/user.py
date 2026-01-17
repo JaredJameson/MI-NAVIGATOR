@@ -54,6 +54,10 @@ class User(Base):
     failed_login_attempts = Column(Integer, default=0)
     account_locked_until = Column(DateTime, nullable=True)
 
+    # Security - Two-Factor Authentication
+    totp_secret = Column(String(32), nullable=True)  # Base32 encoded secret
+    two_factor_enabled = Column(Boolean, default=False)
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

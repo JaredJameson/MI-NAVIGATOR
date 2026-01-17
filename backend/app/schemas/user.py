@@ -117,3 +117,28 @@ class PasswordResetConfirm(BaseModel):
         if "password" in info.data and v != info.data["password"]:
             raise ValueError("Passwords do not match")
         return v
+
+
+class TwoFactorSetupResponse(BaseModel):
+    """Schema for 2FA setup response."""
+    secret: str
+    qr_code: str  # Data URL for QR code image
+    manual_entry_key: str  # Base32 secret for manual entry
+
+
+class TwoFactorVerifyRequest(BaseModel):
+    """Schema for 2FA code verification."""
+    code: str  # 6-digit TOTP code
+
+    @field_validator("code")
+    @classmethod
+    def code_validation(cls, v: str) -> str:
+        if not v.isdigit() or len(v) != 6:
+            raise ValueError("Code must be exactly 6 digits")
+        return v
+
+
+class TwoFactorStatusResponse(BaseModel):
+    """Schema for 2FA status response."""
+    enabled: bool
+    message: str
