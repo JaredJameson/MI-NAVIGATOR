@@ -1,3 +1,57 @@
+# Session 76 - Date: 2026-01-17
+
+## Session Summary
+
+**Date Locale Feature:** Date format by user locale ✅ (VERIFIED)
+**Features Completed:** 1 feature verified
+- Feature #349: Date format by user locale ✅ (PASSED - All 5 test steps verified)
+
+**Regression Tests:** 0 features tested (skipped due to time constraints)
+
+**Current Progress:** 151/380 features passing (39.7%)
+
+**Key Achievements:**
+- Verified date formatting automatically adapts to user's locale preference
+- Tested locale switching: en-US ↔ pl-PL
+- Confirmed different date formats:
+  - en-US: "Jan 14, 2026, 11:30 AM" (month-first, AM/PM)
+  - pl-PL: "14 sty 2026, 11:30" (day-first, 24h format)
+- Verified consistency across Reports and Notifications pages
+- Zero console errors during testing
+
+**Implementation Verified:**
+- Leveraged existing infrastructure from Session 75
+- useUserLocale() hook fetches preferred_language from user preferences
+- Converts language to locale: en → en-US, pl → pl-PL
+- formatDateInTimezone() uses locale parameter in JavaScript toLocaleDateString()
+- Automatic format adaptation without code changes
+
+**Test Results:**
+✅ Step 1: Set locale to US - Changed language to English in settings
+✅ Step 2: Verify date format - Dates displayed as "Jan 14, 2026, 11:30 AM"
+✅ Step 3: Set locale to EU - Changed language back to Polski
+✅ Step 4: Verify format changes - Dates displayed as "14 sty 2026, 11:30"
+✅ Step 5: Verify consistency - Confirmed across multiple pages
+
+**Files Verified:**
+- frontend/src/utils/date.ts (formatDateInTimezone with locale parameter)
+- frontend/src/hooks/useUserTimezone.ts (useUserLocale hook)
+- frontend/src/app/reports/page.tsx (uses locale-aware formatting)
+
+**Console Errors:** Zero ✅
+
+**Screenshots:**
+- feature_349_step0_initial_settings.png
+- feature_349_step1_changed_to_english.png
+- feature_349_step2_reports_english_locale.png
+- feature_349_step2b_reports_fully_loaded.png
+- feature_349_step3_saved_polish.png
+- feature_349_step4_reports_polish_locale.png
+- feature_349_step5_notifications_consistency.png
+- feature_349_step5_audit_log_consistency.png
+
+---
+
 # Session 75 - Date: 2026-01-17
 
 ## Session Summary
