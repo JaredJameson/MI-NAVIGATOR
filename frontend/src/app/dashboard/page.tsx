@@ -299,7 +299,7 @@ export default function DashboardPage() {
         <button
           onClick={() => moveWidget(index, 'up')}
           disabled={isFirst}
-          className="rounded-full bg-blue-600 p-1.5 text-white shadow-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="rounded-full bg-blue-600 p-1.5 text-white shadow-md transition-colors hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           title="Przesuń w górę"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -309,7 +309,7 @@ export default function DashboardPage() {
         <button
           onClick={() => moveWidget(index, 'down')}
           disabled={isLast}
-          className="rounded-full bg-blue-600 p-1.5 text-white shadow-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="rounded-full bg-blue-600 p-1.5 text-white shadow-md transition-colors hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           title="Przesuń w dół"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -318,7 +318,7 @@ export default function DashboardPage() {
         </button>
         <button
           onClick={() => toggleWidgetVisibility(widget.id)}
-          className={`rounded-full p-1.5 text-white shadow-md ${isHidden ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+          className={`rounded-full p-1.5 text-white shadow-md transition-colors ${isHidden ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
           title={isHidden ? 'Pokaż widget' : 'Ukryj widget'}
         >
           {isHidden ? (
@@ -392,19 +392,19 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">MI-Navigator</h1>
             <nav className="flex items-center space-x-4">
-              <Link href="/reports" className="text-gray-600 hover:text-gray-900">
+              <Link href="/reports" className="text-gray-600 transition-colors hover:text-gray-900">
                 Reports
               </Link>
-              <Link href="/projects" className="text-gray-600 hover:text-gray-900">
+              <Link href="/projects" className="text-gray-600 transition-colors hover:text-gray-900">
                 Projects
               </Link>
-              <Link href="/settings" className="text-gray-600 hover:text-gray-900">
+              <Link href="/settings" className="text-gray-600 transition-colors hover:text-gray-900">
                 Settings
               </Link>
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 disabled:opacity-50"
               >
                 {isLoggingOut ? 'Logging out...' : 'Logout'}
               </button>
@@ -428,20 +428,20 @@ export default function DashboardPage() {
               <div className="flex gap-2">
                 <button
                   onClick={resetLayout}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   Resetuj
                 </button>
                 <button
                   onClick={cancelCustomize}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   Anuluj
                 </button>
                 <button
                   onClick={saveLayout}
                   disabled={isSaving}
-                  className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
                 >
                   {isSaving ? 'Zapisywanie...' : 'Zapisz układ'}
                 </button>
@@ -458,7 +458,7 @@ export default function DashboardPage() {
                     <button
                       key={w.id}
                       onClick={() => toggleWidgetVisibility(w.id)}
-                      className="flex items-center gap-1 rounded-md bg-white border border-blue-300 px-2 py-1 text-sm text-blue-700 hover:bg-blue-100"
+                      className="flex items-center gap-1 rounded-md bg-white border border-blue-300 px-2 py-1 text-sm text-blue-700 transition-colors hover:bg-blue-100"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -485,7 +485,7 @@ export default function DashboardPage() {
           <div className="mb-4 flex justify-end">
             <button
               onClick={() => setIsCustomizeMode(true)}
-              className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
@@ -604,7 +604,7 @@ export default function DashboardPage() {
                 setSearchQuery('FADO')
                 fetchSuggestions('FADO')
               }}
-              className="rounded bg-white/20 px-2 py-1 text-sm hover:bg-white/30"
+              className="rounded bg-white/20 px-2 py-1 text-sm transition-colors hover:bg-white/30"
             >
               FADO Sp. z o.o.
             </button>
@@ -613,7 +613,7 @@ export default function DashboardPage() {
                 setSearchQuery('Splast')
                 fetchSuggestions('Splast')
               }}
-              className="rounded bg-white/20 px-2 py-1 text-sm hover:bg-white/30"
+              className="rounded bg-white/20 px-2 py-1 text-sm transition-colors hover:bg-white/30"
             >
               Splast S.A.
             </button>
@@ -660,19 +660,19 @@ function ActiveResearchWidget() {
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href="/chat"
-          className="inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          className="inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
         >
           Start New Research
         </Link>
         <Link
           href="/analysis"
-          className="inline-block rounded-md border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+          className="inline-block rounded-md border border-blue-600 px-4 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50"
         >
           Market Analysis
         </Link>
         <Link
           href="/search"
-          className="inline-block rounded-md border border-indigo-600 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50"
+          className="inline-block rounded-md border border-indigo-600 px-4 py-2 text-sm text-indigo-600 transition-colors hover:bg-indigo-50"
         >
           PKD Search
         </Link>
@@ -741,7 +741,7 @@ function ProjectsWidget() {
         <h2 className="text-lg font-semibold text-gray-900">My Projects</h2>
         <Link
           href="/projects/new"
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700"
         >
           + New
         </Link>
