@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { getStoredToken, authApi } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -140,6 +139,10 @@ export default function SettingsPage() {
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [inAppNotifications, setInAppNotifications] = useState(true)
 
+  // Track unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [initialValues, setInitialValues] = useState<any>(null)
+
   // Custom Fields state
   const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([])
   const [isLoadingFields, setIsLoadingFields] = useState(false)
@@ -156,6 +159,51 @@ export default function SettingsPage() {
     fetchNotificationPreferences()
     fetchCustomFields()
   }, [])
+
+  // Track changes in form fields
+  useEffect(() => {
+    const currentValues = {
+      name,
+      industry,
+      userRole,
+      language,
+      depth,
+      format,
+      currency,
+      timezone,
+    }
+
+    // Default values to compare against
+    const baseValues = initialValues || {
+      name: '',
+      industry: '',
+      userRole: '',
+      language: 'pl',
+      depth: 'standard',
+      format: 'pdf',
+      currency: 'PLN',
+      timezone: 'Europe/Warsaw',
+    }
+
+    const hasChanges = Object.keys(currentValues).some(
+      (key) => currentValues[key as keyof typeof currentValues] !== baseValues[key]
+    )
+
+    setHasUnsavedChanges(hasChanges)
+  }, [name, industry, userRole, language, depth, format, currency, timezone, initialValues])
+
+  // Warn before leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
 
   const fetchProfile = async () => {
     // Ensure we're in browser environment
@@ -190,14 +238,25 @@ export default function SettingsPage() {
 
       const data = await response.json()
       setProfile(data)
-      setName(data.name || '')
-      setIndustry(data.industry || '')
-      setUserRole(data.user_role || '')
-      setLanguage(data.preferred_language || 'pl')
-      setDepth(data.preferred_depth || 'standard')
-      setFormat(data.preferred_format || 'pdf')
-      setCurrency(data.preferred_currency || 'PLN')
-      setTimezone(data.timezone || 'Europe/Warsaw')
+      const values = {
+        name: data.name || '',
+        industry: data.industry || '',
+        userRole: data.user_role || '',
+        language: data.preferred_language || 'pl',
+        depth: data.preferred_depth || 'standard',
+        format: data.preferred_format || 'pdf',
+        currency: data.preferred_currency || 'PLN',
+        timezone: data.timezone || 'Europe/Warsaw',
+      }
+      setName(values.name)
+      setIndustry(values.industry)
+      setUserRole(values.userRole)
+      setLanguage(values.language)
+      setDepth(values.depth)
+      setFormat(values.format)
+      setCurrency(values.currency)
+      setTimezone(values.timezone)
+      setInitialValues(values)
     } catch (err) {
       setError('Failed to load profile')
     } finally {
@@ -409,6 +468,20 @@ export default function SettingsPage() {
         throw new Error('Failed to update notification preferences')
       }
 
+      // Reset unsaved changes tracking after successful save
+      const newValues = {
+        name,
+        industry,
+        userRole,
+        language,
+        depth,
+        format,
+        currency,
+        timezone,
+      }
+      setInitialValues(newValues)
+      setHasUnsavedChanges(false)
+
       setSuccess('Settings saved successfully!')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
@@ -430,6 +503,19 @@ export default function SettingsPage() {
     }
   }
 
+  const handleNavigateAway = (href: string) => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Are you sure you want to leave this page? Your changes will be lost.'
+      )
+      if (confirmed) {
+        router.push(href)
+      }
+    } else {
+      router.push(href)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -445,20 +531,20 @@ export default function SettingsPage() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+              <button onClick={() => handleNavigateAway('/dashboard')} className="text-gray-600 hover:text-gray-900">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-              </Link>
+              </button>
               <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
             </div>
             <nav className="flex items-center space-x-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+              <button onClick={() => handleNavigateAway('/dashboard')} className="text-gray-600 hover:text-gray-900">
                 Dashboard
-              </Link>
-              <Link href="/chat" className="text-gray-600 hover:text-gray-900">
+              </button>
+              <button onClick={() => handleNavigateAway('/chat')} className="text-gray-600 hover:text-gray-900">
                 Chat
-              </Link>
+              </button>
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
@@ -738,15 +824,15 @@ export default function SettingsPage() {
               <h2 className="text-lg font-semibold text-gray-900">Tags</h2>
               <p className="text-sm text-gray-500 mt-1">Organize your reports with custom tags</p>
             </div>
-            <Link
-              href="/settings/tags"
+            <button
+              onClick={() => handleNavigateAway('/settings/tags')}
               className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
               Manage Tags
-            </Link>
+            </button>
           </div>
         </section>
 
@@ -922,12 +1008,12 @@ export default function SettingsPage() {
 
         {/* Save Button */}
         <div className="flex justify-end gap-4">
-          <Link
-            href="/dashboard"
+          <button
+            onClick={() => handleNavigateAway('/dashboard')}
             className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
           >
             Cancel
-          </Link>
+          </button>
           <button
             onClick={handleSaveProfile}
             disabled={isSaving}
@@ -947,12 +1033,12 @@ export default function SettingsPage() {
                 <h3 className="font-medium text-gray-900">Security Settings</h3>
                 <p className="text-sm text-gray-500">Two-factor authentication and security options</p>
               </div>
-              <Link
-                href="/settings/security"
+              <button
+                onClick={() => handleNavigateAway('/settings/security')}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
                 Manage Security →
-              </Link>
+              </button>
             </div>
 
             {/* Privacy Settings */}
@@ -961,12 +1047,12 @@ export default function SettingsPage() {
                 <h3 className="font-medium text-gray-900">Privacy Settings</h3>
                 <p className="text-sm text-gray-500">Export your data and manage privacy options (GDPR)</p>
               </div>
-              <Link
-                href="/settings/privacy"
+              <button
+                onClick={() => handleNavigateAway('/settings/privacy')}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
                 Manage Privacy →
-              </Link>
+              </button>
             </div>
 
             <div className="flex items-center justify-between py-4 border-b">
@@ -974,12 +1060,12 @@ export default function SettingsPage() {
                 <h3 className="font-medium text-gray-900">Feature Flags</h3>
                 <p className="text-sm text-gray-500">Control which features are enabled (Admin only)</p>
               </div>
-              <Link
-                href="/settings/feature-flags"
+              <button
+                onClick={() => handleNavigateAway('/settings/feature-flags')}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
                 Manage Features →
-              </Link>
+              </button>
             </div>
 
             <div className="flex items-center justify-between py-4 border-b">
@@ -987,12 +1073,12 @@ export default function SettingsPage() {
                 <h3 className="font-medium text-gray-900">Audit Trail</h3>
                 <p className="text-sm text-gray-500">View log of all sensitive operations</p>
               </div>
-              <Link
-                href="/settings/audit"
+              <button
+                onClick={() => handleNavigateAway('/settings/audit')}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
                 View Audit Log →
-              </Link>
+              </button>
             </div>
 
             <div className="flex items-center justify-between py-4 border-b">
@@ -1000,12 +1086,12 @@ export default function SettingsPage() {
                 <h3 className="font-medium text-gray-900">Change Password</h3>
                 <p className="text-sm text-gray-500">Update your password</p>
               </div>
-              <Link
-                href="/auth/forgot-password"
+              <button
+                onClick={() => handleNavigateAway('/auth/forgot-password')}
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
                 Reset Password
-              </Link>
+              </button>
             </div>
 
             <div className="flex items-center justify-between py-4">
