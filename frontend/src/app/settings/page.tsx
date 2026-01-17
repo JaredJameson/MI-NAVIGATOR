@@ -971,6 +971,19 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between py-4 border-b">
               <div>
+                <h3 className="font-medium text-gray-900">Feature Flags</h3>
+                <p className="text-sm text-gray-500">Control which features are enabled (Admin only)</p>
+              </div>
+              <Link
+                href="/settings/feature-flags"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                Manage Features →
+              </Link>
+            </div>
+
+            <div className="flex items-center justify-between py-4 border-b">
+              <div>
                 <h3 className="font-medium text-gray-900">Audit Trail</h3>
                 <p className="text-sm text-gray-500">View log of all sensitive operations</p>
               </div>
