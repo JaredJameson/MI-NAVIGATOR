@@ -35,9 +35,17 @@ class AuthService:
         return bcrypt.checkpw(password_bytes, hashed_bytes)
 
     @staticmethod
-    def create_access_token(user_id: str) -> str:
-        """Create a JWT access token."""
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    def create_access_token(user_id: str, expires_minutes: int = None) -> str:
+        """Create a JWT access token.
+
+        Args:
+            user_id: User ID to encode in token
+            expires_minutes: Optional custom expiration time in minutes (default: from settings)
+        """
+        if expires_minutes is None:
+            expires_minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+
+        expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
         payload = {
             "sub": user_id,
             "exp": expire,

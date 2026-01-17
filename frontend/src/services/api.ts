@@ -134,7 +134,7 @@ export const authApi = {
     });
   },
 
-  async login(email: string, password: string): Promise<ApiResponse<TokenResponse>> {
+  async login(email: string, password: string): Promise<ApiResponse<TokenResponse | any>> {
     // OAuth2 form data format
     const formData = new URLSearchParams();
     formData.append('username', email);
@@ -155,9 +155,15 @@ export const authApi = {
       };
     }
 
-    const data: TokenResponse = await response.json();
+    const data: any = await response.json();
 
-    // Store tokens
+    // Check if 2FA is required
+    if (data.requires_2fa) {
+      // Return 2FA response without storing tokens
+      return { data };
+    }
+
+    // Normal login - store tokens
     setTokens(data.access_token, data.refresh_token);
 
     return { data };

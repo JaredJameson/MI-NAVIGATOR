@@ -65,8 +65,8 @@ export default function LoginPage() {
         setError(data.detail || 'Invalid 2FA code')
       } else {
         // Store tokens
-        localStorage.setItem('access_token', data.access_token)
-        localStorage.setItem('refresh_token', data.refresh_token)
+        localStorage.setItem('mi_navigator_token', data.access_token)
+        localStorage.setItem('mi_navigator_refresh_token', data.refresh_token)
 
         // Successfully logged in, redirect to dashboard
         router.push('/dashboard')

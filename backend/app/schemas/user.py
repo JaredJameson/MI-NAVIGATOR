@@ -82,6 +82,13 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class TwoFactorRequired(BaseModel):
+    """Response when 2FA is required during login."""
+    requires_2fa: bool = True
+    temp_token: str
+    message: str
+
+
 class TokenPayload(BaseModel):
     """JWT Token payload."""
     sub: str  # user_id
