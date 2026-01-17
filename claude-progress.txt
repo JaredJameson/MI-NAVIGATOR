@@ -1,3 +1,117 @@
+# Session 75 - Date: 2026-01-17
+
+## Session Summary
+
+**Timezone Feature:** Timezone display in user locale ✅ (COMPLETED)
+**Features Completed:** 1 new feature
+- Feature #348: Timezone display in user locale ✅ (PASSED - All 5 test steps verified)
+
+**Regression Tests:** 2 features tested
+- Feature #332: XSS prevention in inputs ✅ (PASSED - Script tags sanitized, no execution)
+- Feature #239: Report version history ✅ (PASSED - Old versions display correctly)
+
+**Current Progress:** 150/380 features passing (39.5%)
+
+**Key Achievements:**
+- Implemented complete timezone support for displaying timestamps in user's selected timezone
+- Created date formatting utilities with timezone awareness (formatDateInTimezone, formatRelativeTime)
+- Built React hooks for timezone/locale management (useUserTimezone, useUserLocale)
+- Updated reports page to use timezone-aware date formatting
+- Fixed CSRF token regression in settings page (403 Forbidden on save)
+- Tested timezone conversion across 3 timezones: Warsaw (UTC+1), New York (UTC-5), Tokyo (UTC+9)
+- Verified accurate time conversion: 6h difference Warsaw→NY, 14h difference NY→Tokyo
+- All timestamps automatically update when user changes timezone setting
+- Zero console errors
+
+**Implementation Details:**
+
+**New Files Created:**
+1. `frontend/src/utils/date.ts` - Date formatting utilities
+   - formatDateInTimezone(dateString, timezone, locale) - Main formatting function
+   - formatDateTimeFull() - Full datetime with seconds
+   - formatRelativeTime() - Relative time (e.g., "2 hours ago")
+
+2. `frontend/src/hooks/useUserTimezone.ts` - React hooks
+   - useUserTimezone() - Fetches user's timezone from preferences API
+   - useUserLocale() - Fetches user's locale (pl-PL or en-US)
+
+**Files Modified:**
+1. `frontend/src/app/reports/page.tsx`
+   - Added imports for useUserTimezone, useUserLocale, formatDateInTimezone
+   - Updated formatDate() to use user's timezone instead of hardcoded 'pl-PL'
+   - Timestamps now respect user's timezone setting
+
+2. `frontend/src/app/settings/page.tsx`
+   - Added CSRF token helper function getCsrfToken()
+   - Updated handleSaveProfile() to include CSRF token in all PUT requests
+   - Fixed 403 Forbidden error when saving settings
+
+**Technical Implementation:**
+- Backend already had timezone field in User model (line 47: `timezone = Column(String(50), default="Europe/Warsaw")`)
+- Backend preferences endpoint already saved/returned timezone
+- Frontend was using hardcoded locale without timezone support
+- Solution: Use JavaScript's `toLocaleDateString()` with timeZone parameter
+- Timezone is fetched once per page load via React hook
+- All date formatting uses user's timezone automatically
+
+**Test Results:**
+
+**Feature #348: Timezone display in user locale - PASSED ✅**
+✅ Step 1: Set user timezone (Changed to America/New_York, saved successfully)
+✅ Step 2: View timestamps in UI (Navigated to reports page)
+✅ Step 3: Verify times in user timezone (Confirmed 6h difference: 11:30 → 05:30)
+✅ Step 4: Change timezone (Changed to Asia/Tokyo, saved successfully)
+✅ Step 5: Verify times update (Confirmed 14h difference: 05:30 → 19:30)
+
+**Timezone Conversion Verification:**
+| Report | Europe/Warsaw | America/New_York | Asia/Tokyo | Math Check |
+|--------|---------------|------------------|------------|------------|
+| FADO | 11:30 | 05:30 | 19:30 | ✅ UTC+1 → UTC-5 → UTC+9 |
+| Market | 10:15 | 04:15 | 18:15 | ✅ Correct 6h/14h diff |
+| DD | 12:00 | 06:00 | 20:00 | ✅ Correct 6h/14h diff |
+
+**Regression Test #332: XSS prevention - PASSED ✅**
+- Entered `<script>alert('XSS')</script>` in search field
+- Script NOT executed (no alert box appeared)
+- Text displayed as plain string (sanitized)
+- Message shown: "Brak wyników dla '<script>alert('XSS')</script>'"
+- Zero security vulnerabilities
+
+**Regression Test #239: Report version history - PASSED ✅**
+- Clicked "Historia wersji" button - panel opened with 3 versions
+- Clicked version 2 - old content displayed
+- Title changed to "(wersja 2)"
+- Timestamp showed version 2 date: "14 stycznia 2026 13:15"
+- Content showed old data: 120 employees (vs 150 in current), 2022 financials (vs 2023)
+- SWOT section missing in v2 (added in v3)
+
+**Console Errors:** Zero ✅
+
+**Screenshots:**
+- feature_348_step1_timezone_saved_successfully.png - Settings saved with NY timezone
+- feature_348_step2_reports_with_new_york_timezone.png - Reports showing 05:30 (6h earlier)
+- feature_348_step4_changed_to_tokyo.png - Settings saved with Tokyo timezone
+- feature_348_step5_reports_with_tokyo_timezone.png - Reports showing 19:30 (8h later than Warsaw)
+- regression_332_step2_after_xss_attempt.png - XSS script sanitized
+- regression_239_step4_old_version_clicked.png - Version 2 content displayed
+
+**Files Changed:**
+1. `frontend/src/utils/date.ts` - Date formatting utilities (NEW FILE)
+2. `frontend/src/hooks/useUserTimezone.ts` - Timezone/locale hooks (NEW FILE)
+3. `frontend/src/app/reports/page.tsx` - Timezone-aware formatting
+4. `frontend/src/app/settings/page.tsx` - CSRF token fix
+
+**Bugs Fixed:**
+- CSRF token missing in settings save causing 403 Forbidden
+- Hardcoded 'pl-PL' locale not respecting user timezone
+
+**Next Session Priorities:**
+1. Continue with next feature from queue
+2. Consider updating other pages to use timezone utilities (notifications, audit log, etc.)
+3. Maintain focus on completing one feature perfectly per session
+
+---
+
 # Session 74 - Date: 2026-01-17
 
 ## Session Summary
