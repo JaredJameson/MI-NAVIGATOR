@@ -265,3 +265,21 @@ async def reset_password(
         )
 
     return {"message": "Password reset successfully"}
+
+
+@router.get("/csrf-token")
+async def get_csrf_token():
+    """
+    Get a CSRF token for form submissions.
+
+    This token must be included in the X-CSRF-Token header
+    for all unsafe HTTP methods (POST, PUT, DELETE, PATCH).
+    """
+    from app.core.csrf import generate_csrf_token
+
+    token = generate_csrf_token()
+
+    return {
+        "csrf_token": token,
+        "message": "Include this token in X-CSRF-Token header for POST/PUT/DELETE requests"
+    }
