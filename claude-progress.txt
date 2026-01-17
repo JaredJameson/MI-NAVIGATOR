@@ -1,3 +1,60 @@
+# Session 89 - Date: 2026-01-18
+
+## Session Summary
+
+**Features In Progress:** 1 feature
+- Feature #365: Session invalidation on password change 🚧 (IMPLEMENTED - Testing in progress)
+
+**Regression Tests:** 2 features tested
+- Feature #238: Report annotation feature ✅ (PASSED)
+- Feature #315: API usage monitoring ✅ (PASSED)
+
+**Current Progress:** 165/380 features passing (43.4%)
+
+**Key Achievements:**
+- Implemented complete password change with session invalidation
+- Backend: Added delete_other_user_sessions() method to AuthService
+- Backend: Created PUT /api/v1/users/me/password endpoint
+- Frontend: Added password change form to /settings/security page
+- Security: Current session preserved while other sessions invalidated
+- Audit logging for password changes
+
+**Implementation Details:**
+
+**Backend (AuthService):**
+- New method: `delete_other_user_sessions(user_id, current_refresh_token)`
+- Deletes all sessions except the one with matching refresh token
+- Returns count of sessions deleted
+
+**Backend (users.py endpoint):**
+- PUT /api/v1/users/me/password
+- Validates current password
+- Validates new password (min 6 chars)
+- Hashes new password with bcrypt
+- Calls delete_other_user_sessions() to invalidate others
+- Logs password change to audit trail
+- Returns sessions_invalidated count
+
+**Frontend (security page):**
+- Added 3 password fields: current, new, confirm
+- Client-side validation (matching, length)
+- Sends refresh_token from localStorage
+- Shows success message with invalidated sessions count
+- Security warning notice about other devices being logged out
+
+**Files Changed:**
+1. backend/app/services/auth.py - Added delete_other_user_sessions()
+2. backend/app/api/v1/endpoints/users.py - Added password change endpoint
+3. frontend/src/app/settings/security/page.tsx - Added password change form
+
+**Next Steps:**
+- Test password change flow with browser automation
+- Verify session invalidation works correctly
+- Test with multiple tabs simulating different devices
+- Mark feature as passing once verified
+
+---
+
 # Session 88 - Date: 2026-01-18
 
 ## Session Summary
