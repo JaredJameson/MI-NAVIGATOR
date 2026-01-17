@@ -64,9 +64,14 @@ export default function BillingPage() {
                   Billing period: {formatDate(usage.billing_period_start)} - {formatDate(usage.billing_period_end)}
                 </div>
               </div>
-              <Link href="/settings/billing/upgrade" className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
-                Upgrade Plan
-              </Link>
+              <div className="flex gap-3">
+                <Link href="/settings/billing/downgrade" className="rounded-lg border border-gray-300 bg-white px-6 py-2 text-gray-700 hover:bg-gray-50">
+                  Downgrade
+                </Link>
+                <Link href="/settings/billing/upgrade" className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
+                  Upgrade Plan
+                </Link>
+              </div>
             </div>
           </div>
 
