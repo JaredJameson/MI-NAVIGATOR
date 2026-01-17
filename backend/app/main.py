@@ -125,6 +125,7 @@ app.add_middleware(
         "/api/v1/csrf-token",
         "/api/v1/errors/log",  # Allow error logging without CSRF token
         "/api/v1/reports",  # Allow report operations without CSRF token (auth handled at endpoint level)
+        "/api/v1/feedback",  # Allow feedback submission without CSRF token (auth handled at endpoint level)
     ]
 )
 
