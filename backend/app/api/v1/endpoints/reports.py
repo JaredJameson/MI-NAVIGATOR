@@ -2869,3 +2869,74 @@ async def revoke_share_link(
 # ==================== AUDIT LOGS ====================
 
 # REMOVED - Moved before /{report_id} route to avoid route conflict
+
+
+# ==================== REPORT GENERATION (FOR TIMEOUT TESTING) ====================
+
+@router.post("/generate-complex")
+async def generate_complex_report(
+    request: Request,
+    delay_seconds: int = Query(default=30, description="Simulation delay in seconds"),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Simulate long-running report generation for timeout testing.
+    This endpoint intentionally takes a long time to complete.
+    """
+    import asyncio
+
+    # Log the generation request
+    await log_audit(
+        db=request.state.db,
+        user_id=str(current_user.id),
+        action=AuditAction.OTHER,
+        resource_type=ResourceType.REPORT,
+        resource_id="complex_report_generation",
+        details=f"Started complex report generation (simulated delay: {delay_seconds}s)"
+    )
+
+    # Track analytics event
+    await track_event(
+        db=request.state.db,
+        user_id=str(current_user.id),
+        event_type=EventType.REPORT_GENERATED,
+        metadata={"simulation_delay": delay_seconds, "report_type": "complex"}
+    )
+
+    # Simulate long-running process
+    try:
+        # Sleep in small chunks to allow for cancellation
+        chunks = delay_seconds // 5 + (1 if delay_seconds % 5 > 0 else 0)
+        for i in range(chunks):
+            await asyncio.sleep(min(5, delay_seconds - i * 5))
+
+        # If we completed successfully, return full results
+        return {
+            "status": "completed",
+            "report_id": f"report_{uuid.uuid4().hex[:8]}",
+            "title": "Complex Market Analysis Report",
+            "completion_time": delay_seconds,
+            "sections_completed": 10,
+            "total_sections": 10,
+            "message": "Report generation completed successfully",
+            "data": {
+                "summary": "Comprehensive market analysis completed",
+                "key_findings": [
+                    "Market size: $5.2B",
+                    "Growth rate: 12% YoY",
+                    "Top 3 competitors identified"
+                ]
+            }
+        }
+    except asyncio.CancelledError:
+        # Handle cancellation (timeout)
+        return {
+            "status": "timeout",
+            "message": "Report generation timed out. Please try again with a simpler query.",
+            "sections_completed": 3,
+            "total_sections": 10,
+            "partial_results": {
+                "summary": "Partial analysis available",
+                "completed_sections": ["Market Overview", "Key Players", "Revenue Analysis"]
+            }
+        }
