@@ -1202,7 +1202,11 @@ async def get_report(
                 is_archived=report.get("is_archived", False)
             )
 
-    return {"error": "Report not found"}
+    # Return 404 with user-friendly error message (no stack trace)
+    raise HTTPException(
+        status_code=404,
+        detail="Raport nie został znaleziony. Sprawdź czy ID raportu jest poprawne."
+    )
 
 
 @router.put("/{report_id}")

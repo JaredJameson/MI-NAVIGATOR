@@ -4486,9 +4486,29 @@ export default function ReportViewerPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-red-600">{error || 'Nie znaleziono raportu'}</p>
-          <Link href="/reports" className="mt-4 inline-block text-blue-600 hover:underline">
-            Wroc do listy raportow
+          <div className="mb-4 text-6xl">⚠️</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Nie udało się załadować raportu</h1>
+          <p className="text-red-600 mb-4">{error || 'Raport nie został znaleziony'}</p>
+          <p className="text-gray-600 mb-6">Sprawdź czy raport istnieje lub spróbuj ponownie później.</p>
+          <Link href="/reports" className="inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700">
+            Wróć do listy raportów
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Additional safety check for report structure
+  if (!report.sections || !Array.isArray(report.sections)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mb-4 text-6xl">⚠️</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Błąd struktury raportu</h1>
+          <p className="text-red-600 mb-4">Raport jest nieprawidłowy lub uszkodzony</p>
+          <p className="text-gray-600 mb-6">Dane raportu nie zawierają wymaganych sekcji.</p>
+          <Link href="/reports" className="inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700">
+            Wróć do listy raportów
           </Link>
         </div>
       </div>
