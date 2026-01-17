@@ -31,6 +31,7 @@ interface UserProfile {
   preferred_language: string
   preferred_depth: string
   preferred_format: string
+  preferred_currency: string
   timezone: string
   onboarding_completed: boolean
 }
@@ -85,6 +86,13 @@ const FORMATS = [
   { value: 'pptx', label: 'PowerPoint (PPTX)' },
 ]
 
+const CURRENCIES = [
+  { value: 'PLN', label: 'PLN (Polish Złoty)' },
+  { value: 'EUR', label: 'EUR (Euro)' },
+  { value: 'USD', label: 'USD (US Dollar)' },
+  { value: 'GBP', label: 'GBP (British Pound)' },
+]
+
 const TIMEZONES = [
   { value: 'Europe/Warsaw', label: 'Europe/Warsaw (UTC+1/+2)' },
   { value: 'Europe/London', label: 'Europe/London (UTC+0/+1)' },
@@ -125,6 +133,7 @@ export default function SettingsPage() {
   const [language, setLanguage] = useState('pl')
   const [depth, setDepth] = useState('standard')
   const [format, setFormat] = useState('pdf')
+  const [currency, setCurrency] = useState('PLN')
   const [timezone, setTimezone] = useState('Europe/Warsaw')
 
   // Notification preferences
@@ -187,6 +196,7 @@ export default function SettingsPage() {
       setLanguage(data.preferred_language || 'pl')
       setDepth(data.preferred_depth || 'standard')
       setFormat(data.preferred_format || 'pdf')
+      setCurrency(data.preferred_currency || 'PLN')
       setTimezone(data.timezone || 'Europe/Warsaw')
     } catch (err) {
       setError('Failed to load profile')
@@ -372,6 +382,7 @@ export default function SettingsPage() {
           preferred_language: language,
           preferred_depth: depth,
           preferred_format: format,
+          preferred_currency: currency,
           timezone: timezone,
         }),
       })
@@ -615,6 +626,27 @@ export default function SettingsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+                Preferred Currency
+              </label>
+              <select
+                id="currency"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Currency symbol used for displaying financial data
+              </p>
             </div>
 
             <div>

@@ -10,6 +10,7 @@ interface UserPreferences {
   preferred_language: string;
   preferred_depth: string;
   preferred_format: string;
+  preferred_currency: string;
   timezone: string;
 }
 
@@ -86,4 +87,41 @@ export function useUserLocale(): string {
   }, []);
 
   return locale;
+}
+
+/**
+ * Hook to get user's currency setting
+ * @returns User's currency (defaults to 'PLN')
+ */
+export function useUserCurrency(): string {
+  const [currency, setCurrency] = useState<string>('PLN');
+
+  useEffect(() => {
+    const fetchCurrency = async () => {
+      try {
+        const token = localStorage.getItem('mi_navigator_token');
+        if (!token) {
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/me/preferences`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const prefs: UserPreferences = await response.json();
+          setCurrency(prefs.preferred_currency || 'PLN');
+        }
+      } catch (error) {
+        console.error('Failed to fetch user currency:', error);
+        // Keep default currency
+      }
+    };
+
+    fetchCurrency();
+  }, []);
+
+  return currency;
 }

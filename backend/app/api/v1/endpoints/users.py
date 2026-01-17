@@ -52,6 +52,7 @@ class UserPreferencesResponse(BaseModel):
     preferred_language: str
     preferred_depth: str
     preferred_format: str
+    preferred_currency: str
     timezone: str
 
 
@@ -60,6 +61,7 @@ class UserPreferencesUpdate(BaseModel):
     preferred_language: Optional[str] = None
     preferred_depth: Optional[str] = None
     preferred_format: Optional[str] = None
+    preferred_currency: Optional[str] = None
     timezone: Optional[str] = None
 
 
@@ -166,6 +168,7 @@ async def get_user_preferences(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
+        preferred_currency=current_user.preferred_currency or "PLN",
         timezone=current_user.timezone or "Europe/Warsaw"
     )
 
@@ -183,6 +186,8 @@ async def update_user_preferences(
         current_user.preferred_depth = prefs_data.preferred_depth
     if prefs_data.preferred_format is not None:
         current_user.preferred_format = prefs_data.preferred_format
+    if prefs_data.preferred_currency is not None:
+        current_user.preferred_currency = prefs_data.preferred_currency
     if prefs_data.timezone is not None:
         current_user.timezone = prefs_data.timezone
 
@@ -193,6 +198,7 @@ async def update_user_preferences(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
+        preferred_currency=current_user.preferred_currency or "PLN",
         timezone=current_user.timezone or "Europe/Warsaw"
     )
 

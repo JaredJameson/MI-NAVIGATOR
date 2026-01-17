@@ -44,6 +44,7 @@ class User(Base):
     preferred_language = Column(String(5), default="pl")
     preferred_depth = Column(String(20), default="standard")  # quick, standard, deep
     preferred_format = Column(String(10), default="pdf")  # pdf, docx, pptx
+    preferred_currency = Column(String(3), default="PLN")  # ISO 4217 currency code (PLN, EUR, USD)
     timezone = Column(String(50), default="Europe/Warsaw")  # IANA timezone identifier
 
     # Status
