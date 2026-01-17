@@ -17,6 +17,8 @@ from app.schemas.user import (
 )
 from app.services.auth import AuthService
 from app.services.two_factor import TwoFactorService
+from app.services.analytics_service import track_event
+from app.models.analytics_event import EventType
 
 router = APIRouter()
 
@@ -85,6 +87,16 @@ async def register(
 
     # Create user
     user = await AuthService.create_user(db, user_data)
+
+    # Track signup event (NO PII in metadata!)
+    await track_event(
+        db=db,
+        event_type=EventType.USER_SIGNUP,
+        event_name="User signed up",
+        user=user,
+        metadata={"source": "email_password"}
+    )
+
     await db.commit()
     await db.refresh(user)
 
@@ -182,6 +194,17 @@ async def login(
 
     # Update last login
     await AuthService.update_last_login(db, user)
+
+    # Track login event
+    await track_event(
+        db=db,
+        event_type=EventType.USER_LOGIN,
+        event_name="User logged in",
+        user=user,
+        request=request,
+        metadata={"two_factor_used": False}
+    )
+
     await db.commit()
 
     return Token(

@@ -7,6 +7,7 @@ from app.models.custom_field import CustomFieldDefinition, CustomFieldValue, Fie
 from app.models.workspace import Workspace, WorkspaceMember, WorkspaceMemberRole
 from app.models.report_template import ReportTemplate
 from app.models.audit_log import AuditLog
+from app.models.analytics_event import AnalyticsEvent, EventType
 
 __all__ = [
     "User",
@@ -18,5 +19,7 @@ __all__ = [
     "WorkspaceMember",
     "WorkspaceMemberRole",
     "ReportTemplate",
-    "AuditLog"
+    "AuditLog",
+    "AnalyticsEvent",
+    "EventType"
 ]

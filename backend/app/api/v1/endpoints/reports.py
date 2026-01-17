@@ -20,6 +20,8 @@ from app.models.user import User
 from app.models.report_template import ReportTemplate
 from app.db.session import get_db
 from app.services.audit_service import log_audit, AuditAction, ResourceType
+from app.services.analytics_service import track_event
+from app.models.analytics_event import EventType
 
 router = APIRouter()
 
@@ -1429,7 +1431,9 @@ def parse_financial_data_from_content(content: str) -> List[dict]:
 async def export_report(
     report_id: str,
     request: ExportRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    req: Request = None
 ):
     """Export report to specified format (pdf, xlsx, docx)."""
     # Find the report
@@ -1441,6 +1445,17 @@ async def export_report(
 
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
+
+    # Track export event (NO PII - just format type)
+    await track_event(
+        db=db,
+        event_type=EventType.REPORT_EXPORTED,
+        event_name="Report exported",
+        user=current_user,
+        request=req,
+        metadata={"export_format": request.format, "report_type": report.get("type")}
+    )
+    await db.commit()
 
     if request.format == "xlsx":
         return await export_to_excel(report)
