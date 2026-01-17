@@ -70,6 +70,15 @@ async function fetchApi<T>(
       headers,
     });
 
+    // Handle 503 Service Unavailable - maintenance mode
+    if (response.status === 503) {
+      // Check if we're already on the maintenance page to avoid redirect loop
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/maintenance')) {
+        window.location.href = '/maintenance';
+      }
+      return { error: 'System is under maintenance' };
+    }
+
     // Handle 401 Unauthorized - token expired
     if (response.status === 401 && retryCount === 0) {
       // Don't try to refresh if we're already on the auth endpoints

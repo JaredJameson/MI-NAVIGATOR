@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-change-in-production"
     API_V1_PREFIX: str = "/api/v1"
 
+    # Maintenance Mode
+    MAINTENANCE_MODE: bool = False
+    MAINTENANCE_MESSAGE: str = "System is undergoing scheduled maintenance. We will be back online shortly."
+    MAINTENANCE_ETA: str = "2 hours"  # Estimated time (e.g., "2 hours", "30 minutes")
+
     # Database
     DATABASE_URL: str = "sqlite:///./mi_navigator.db"
     ASYNC_DATABASE_URL: str = "sqlite+aiosqlite:///./mi_navigator.db"

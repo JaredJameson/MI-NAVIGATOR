@@ -14,6 +14,7 @@ from pathlib import Path
 from app.core.config import settings
 from app.core.rate_limit import RateLimitMiddleware
 from app.core.csrf import CSRFMiddleware
+from app.core.maintenance import MaintenanceMiddleware
 from app.api.v1.router import api_router
 
 async def run_scheduler():
@@ -102,6 +103,9 @@ app = FastAPI(
     lifespan=lifespan
     # redirect_slashes defaults to True
 )
+
+# Maintenance mode middleware (check first, before other middleware)
+app.add_middleware(MaintenanceMiddleware)
 
 # Rate limiting middleware
 app.add_middleware(RateLimitMiddleware, limit=10000, window_seconds=2592000)
