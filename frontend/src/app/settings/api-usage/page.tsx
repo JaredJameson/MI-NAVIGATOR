@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useUserLocale } from '@/hooks/useUserTimezone'
+import { formatNumber } from '@/utils/number'
 
 interface EndpointUsage {
   endpoint: string
@@ -25,6 +27,7 @@ interface ApiUsageData {
 }
 
 export default function ApiUsagePage() {
+  const locale = useUserLocale()
   const [usage, setUsage] = useState<ApiUsageData>({
     total_requests: 8432,
     requests_limit: 10000,
@@ -107,15 +110,15 @@ export default function ApiUsagePage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="text-3xl font-bold text-gray-900">
-                  {usage.total_requests.toLocaleString()}
+                  {formatNumber(usage.total_requests, locale)}
                 </div>
                 <div className="text-sm text-gray-600">
-                  of {usage.requests_limit.toLocaleString()} requests
+                  of {formatNumber(usage.requests_limit, locale)} requests
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-2xl font-semibold text-green-600">
-                  {usage.requests_remaining.toLocaleString()}
+                  {formatNumber(usage.requests_remaining, locale)}
                 </div>
                 <div className="text-sm text-gray-600">remaining</div>
               </div>
@@ -145,7 +148,7 @@ export default function ApiUsagePage() {
                   <div key={day.date} className="flex flex-col items-center flex-1">
                     <div className="w-full flex flex-col items-center justify-end h-56">
                       <div className="text-xs font-medium text-gray-900 mb-2">
-                        {day.requests.toLocaleString()}
+                        {formatNumber(day.requests, locale)}
                       </div>
                       <div
                         className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
@@ -180,7 +183,7 @@ export default function ApiUsagePage() {
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-gray-900">
-                        {endpoint.requests.toLocaleString()}
+                        {formatNumber(endpoint.requests, locale)}
                       </div>
                       <div className="text-xs text-gray-500">requests</div>
                     </div>
@@ -201,13 +204,13 @@ export default function ApiUsagePage() {
             <div className="rounded-lg bg-white p-6 shadow-sm">
               <div className="text-sm text-gray-600">Average Daily Requests</div>
               <div className="mt-2 text-2xl font-bold text-gray-900">
-                {Math.round(usage.total_requests / 30).toLocaleString()}
+                {formatNumber(Math.round(usage.total_requests / 30), locale)}
               </div>
             </div>
             <div className="rounded-lg bg-white p-6 shadow-sm">
               <div className="text-sm text-gray-600">Peak Daily Requests</div>
               <div className="mt-2 text-2xl font-bold text-gray-900">
-                {maxDailyRequests.toLocaleString()}
+                {formatNumber(maxDailyRequests, locale)}
               </div>
             </div>
             <div className="rounded-lg bg-white p-6 shadow-sm">

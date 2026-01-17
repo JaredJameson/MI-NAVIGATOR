@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
+import { useUserLocale } from '@/hooks/useUserTimezone'
+import { formatNumber, formatDecimal } from '@/utils/number'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -42,6 +44,7 @@ const GEOGRAPHIES = [
 
 export default function MarketAnalysisPage() {
   const router = useRouter()
+  const locale = useUserLocale()
   const [industry, setIndustry] = useState('manufacturing')
   const [geography, setGeography] = useState('poland')
   const [isLoading, setIsLoading] = useState(false)
@@ -230,17 +233,17 @@ export default function MarketAnalysisPage() {
                     {result.data.map((point, index) => (
                       <tr key={index} className="text-sm">
                         <td className="py-3 pr-4 font-medium text-gray-900">{point.region}</td>
-                        <td className="py-3 pr-4 text-gray-700">{point.market_size.toFixed(1)}</td>
+                        <td className="py-3 pr-4 text-gray-700">{formatDecimal(point.market_size, locale, 1)}</td>
                         <td className="py-3 pr-4">
                           <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                             point.growth_rate > 5 ? 'bg-green-100 text-green-800' :
                             point.growth_rate > 3 ? 'bg-yellow-100 text-yellow-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
-                            +{point.growth_rate.toFixed(1)}%
+                            +{formatDecimal(point.growth_rate, locale, 1)}%
                           </span>
                         </td>
-                        <td className="py-3 text-gray-700">{point.key_players.toLocaleString()}</td>
+                        <td className="py-3 text-gray-700">{formatNumber(point.key_players, locale)}</td>
                       </tr>
                     ))}
                   </tbody>

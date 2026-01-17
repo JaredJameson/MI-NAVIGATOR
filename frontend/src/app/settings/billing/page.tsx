@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useUserLocale } from '@/hooks/useUserTimezone'
+import { formatNumber, formatDecimal } from '@/utils/number'
 
 interface UsageData {
   analyses_this_month: number
@@ -17,6 +19,7 @@ interface UsageData {
 
 export default function BillingPage() {
   const router = useRouter()
+  const locale = useUserLocale()
   const [usage, setUsage] = useState<UsageData>({
     analyses_this_month: 42,
     analyses_limit: 100,
@@ -115,7 +118,7 @@ export default function BillingPage() {
                   </div>
                   <div className="text-right">
                     <div className="font-semibold text-gray-900">
-                      {usage.storage_used_gb} GB / {usage.storage_limit_gb} GB
+                      {formatDecimal(usage.storage_used_gb, locale, 1)} GB / {formatDecimal(usage.storage_limit_gb, locale, 1)} GB
                     </div>
                     <div className="text-sm text-gray-600">{storagePercentage}% used</div>
                   </div>
@@ -140,7 +143,7 @@ export default function BillingPage() {
                     <div className="text-sm text-gray-600">External data sources usage</div>
                   </div>
                   <div className="text-2xl font-bold text-gray-900">
-                    {usage.api_calls.toLocaleString()}
+                    {formatNumber(usage.api_calls, locale)}
                   </div>
                 </div>
               </div>
