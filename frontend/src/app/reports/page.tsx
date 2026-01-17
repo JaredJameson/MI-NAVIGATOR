@@ -358,12 +358,21 @@ export default function ReportsPage() {
     setError('')
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
+
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken
+      }
+
       const response = await fetch(`${API_BASE_URL}/reports/bulk-delete/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           report_ids: Array.from(selectedReports)
         }),
