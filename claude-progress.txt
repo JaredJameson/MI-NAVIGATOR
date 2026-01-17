@@ -1,3 +1,40 @@
+# Session 60 - Date: 2026-01-17
+
+## Session Summary
+
+**Features Completed:** 1 feature
+- Feature #336: Sensitive data not in URLs ✅
+
+**Regression Tests:** 2 features tested
+- Feature #294: Markdown support in text fields ✅ (PASSED)
+- Feature #312: Downgrade plan flow ❌ (FAILED - plan not persisted)
+
+**Current Progress:** 138/380 features passing (36.3%)
+
+**Key Achievements:**
+- Verified comprehensive URL security - NO sensitive data in URLs
+- Tested login flow - passwords in POST body, not URL
+- Verified JWT tokens in localStorage + headers, NOT in URLs
+- Confirmed all authentication via secure channels (headers/body)
+- Successfully tested markdown rendering (bold, italic, links, tables, lists)
+- Identified critical regression in downgrade plan flow
+
+**Security Verification Details:**
+- All URLs clean - no passwords, tokens, or PII in query parameters
+- Login: POST /api/v1/auth/login with credentials in request body
+- Tokens: stored in localStorage, sent via Authorization headers
+- Tested URLs: /auth/login, /dashboard, /settings, /settings/billing, /reports
+- Zero sensitive data exposure across entire application
+
+**Known Issues:**
+- Feature #312 (Downgrade plan flow): Scheduled downgrade shows "Success" but NOT persisted
+  - User downgrades from Professional to Starter
+  - Success message displayed
+  - After returning to billing page, no indication of scheduled downgrade
+  - Same issue as Feature #311 (Upgrade flow) - critical bug blocking subscription changes
+
+---
+
 # Session 59 - Date: 2026-01-17
 
 ## Session Summary
