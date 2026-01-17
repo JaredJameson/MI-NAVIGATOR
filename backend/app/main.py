@@ -111,7 +111,21 @@ app.add_middleware(MaintenanceMiddleware)
 app.add_middleware(RateLimitMiddleware, limit=10000, window_seconds=2592000)
 
 # CSRF protection middleware
-app.add_middleware(CSRFMiddleware)
+# Error logging endpoint is exempt to allow errors during login/before auth
+app.add_middleware(
+    CSRFMiddleware,
+    exempt_paths=[
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        "/health",
+        "/api/v1/auth/login",
+        "/api/v1/auth/register",
+        "/api/v1/auth/refresh",
+        "/api/v1/csrf-token",
+        "/api/v1/errors/log",  # Allow error logging without CSRF token
+    ]
+)
 
 # CORS middleware
 app.add_middleware(

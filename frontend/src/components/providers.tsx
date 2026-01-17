@@ -1,9 +1,11 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { FeatureFlagProvider } from '@/contexts/FeatureFlagContext'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { setupGlobalErrorHandlers } from '@/services/errorTracking'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -18,13 +20,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   )
 
+  // Setup global error handlers
+  useEffect(() => {
+    setupGlobalErrorHandlers();
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <FeatureFlagProvider>
-        <AuthGuard>
-          {children}
-        </AuthGuard>
-      </FeatureFlagProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <FeatureFlagProvider>
+          <AuthGuard>
+            {children}
+          </AuthGuard>
+        </FeatureFlagProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }

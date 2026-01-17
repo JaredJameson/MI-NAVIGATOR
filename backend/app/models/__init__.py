@@ -8,6 +8,7 @@ from app.models.workspace import Workspace, WorkspaceMember, WorkspaceMemberRole
 from app.models.report_template import ReportTemplate
 from app.models.audit_log import AuditLog
 from app.models.analytics_event import AnalyticsEvent, EventType
+from app.models.error_log import ErrorLog
 
 __all__ = [
     "User",
@@ -21,5 +22,6 @@ __all__ = [
     "ReportTemplate",
     "AuditLog",
     "AnalyticsEvent",
-    "EventType"
+    "EventType",
+    "ErrorLog"
 ]

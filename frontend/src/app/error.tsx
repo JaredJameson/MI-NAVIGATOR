@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { logError } from '@/services/errorTracking'
 
 export default function Error({
   error,
@@ -11,8 +12,13 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log error to monitoring service (e.g., Sentry)
+    // Log error to backend error tracking system
     console.error('Application error:', error)
+    logError(error, {
+      type: 'react_error_boundary',
+      digest: error.digest,
+      component: 'ErrorBoundary',
+    })
   }, [error])
 
   return (
