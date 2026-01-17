@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
 import { useUserTimezone, useUserLocale } from '@/hooks/useUserTimezone'
 import { formatDateInTimezone } from '@/utils/date'
+import { ReportListSkeleton } from '@/components/Skeleton'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -988,10 +989,7 @@ export default function ReportsPage() {
 
         {/* Loading State */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-            <span className="ml-3 text-gray-600">Ładowanie raportów...</span>
-          </div>
+          <ReportListSkeleton items={pageSize} />
         ) : reports.length === 0 ? (
           /* Empty State */
           <div className="rounded-xl bg-white p-12 text-center shadow-sm">

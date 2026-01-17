@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authApi, searchApi, SearchSuggestion } from '@/services/api'
+import { DashboardSkeleton } from '@/components/Skeleton'
 
 // Widget type definition
 interface Widget {
@@ -36,6 +37,7 @@ interface SearchHistoryItem {
 }
 
 export default function DashboardPage() {
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isCustomizeMode, setIsCustomizeMode] = useState(false)
@@ -53,28 +55,40 @@ export default function DashboardPage() {
 
   // Load saved layout on mount
   useEffect(() => {
-    const savedLayout = localStorage.getItem(LAYOUT_STORAGE_KEY)
-    if (savedLayout) {
+    const loadDashboardData = async () => {
+      setIsLoading(true)
       try {
-        const parsed = JSON.parse(savedLayout)
-        // Validate the parsed data has all required widgets
-        if (Array.isArray(parsed) && parsed.length === DEFAULT_WIDGETS.length) {
-          const hasAllWidgets = DEFAULT_WIDGETS.every(dw =>
-            parsed.some((pw: Widget) => pw.id === dw.id)
-          )
-          if (hasAllWidgets) {
-            // Ensure all widgets have visible property (backward compatibility)
-            const widgetsWithVisibility = parsed.map((w: Widget) => ({
-              ...w,
-              visible: w.visible !== undefined ? w.visible : true
-            }))
-            setWidgets(widgetsWithVisibility)
+        const savedLayout = localStorage.getItem(LAYOUT_STORAGE_KEY)
+        if (savedLayout) {
+          try {
+            const parsed = JSON.parse(savedLayout)
+            // Validate the parsed data has all required widgets
+            if (Array.isArray(parsed) && parsed.length === DEFAULT_WIDGETS.length) {
+              const hasAllWidgets = DEFAULT_WIDGETS.every(dw =>
+                parsed.some((pw: Widget) => pw.id === dw.id)
+              )
+              if (hasAllWidgets) {
+                // Ensure all widgets have visible property (backward compatibility)
+                const widgetsWithVisibility = parsed.map((w: Widget) => ({
+                  ...w,
+                  visible: w.visible !== undefined ? w.visible : true
+                }))
+                setWidgets(widgetsWithVisibility)
+              }
+            }
+          } catch (e) {
+            console.error('Failed to load dashboard layout:', e)
           }
         }
-      } catch (e) {
-        console.error('Failed to load dashboard layout:', e)
+
+        // Simulate minimum loading time for smooth skeleton transition
+        await new Promise(resolve => setTimeout(resolve, 300))
+      } finally {
+        setIsLoading(false)
       }
     }
+
+    loadDashboardData()
   }, [])
 
   // Load search history on mount
@@ -383,6 +397,11 @@ export default function DashboardPage() {
   // Get grid widgets (first 3) and full-width widgets (rest)
   const gridWidgets = visibleWidgets.filter(w => ['active-research', 'recent-activity', 'usage-stats'].includes(w.type))
   const fullWidgets = visibleWidgets.filter(w => ['projects', 'alerts'].includes(w.type))
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
