@@ -6,6 +6,7 @@ from app.models.user import User, Session
 from app.models.custom_field import CustomFieldDefinition, CustomFieldValue, FieldType
 from app.models.workspace import Workspace, WorkspaceMember, WorkspaceMemberRole
 from app.models.report_template import ReportTemplate
+from app.models.audit_log import AuditLog
 
 __all__ = [
     "User",
@@ -16,5 +17,6 @@ __all__ = [
     "Workspace",
     "WorkspaceMember",
     "WorkspaceMemberRole",
-    "ReportTemplate"
+    "ReportTemplate",
+    "AuditLog"
 ]

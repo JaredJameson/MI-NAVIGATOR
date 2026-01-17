@@ -1177,6 +1177,50 @@ async def create_report_from_template(
     }
 
 
+@router.get("/audit-logs")
+async def get_audit_logs_endpoint(
+    resource_id: Optional[str] = Query(None, description="Filter by resource ID (e.g., report ID)"),
+    action_type: Optional[str] = Query(None, description="Filter by action type (e.g., report.delete)"),
+    limit: int = Query(50, ge=1, le=200, description="Number of logs to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get audit logs for the current user.
+
+    Returns audit trail of sensitive operations performed by the user,
+    including delete, share, export, and other critical actions.
+
+    Query parameters:
+    - resource_id: Filter logs for specific resource (e.g., report ID)
+    - action_type: Filter by action type (report.delete, report.share, etc.)
+    - limit: Maximum number of logs to return (default: 50, max: 200)
+    - offset: Pagination offset (default: 0)
+    """
+    from app.services.audit_service import get_audit_logs
+
+    # Get audit logs for current user
+    audit_logs = await get_audit_logs(
+        db=db,
+        user_id=str(current_user.id),
+        action_type=action_type,
+        resource_id=resource_id,
+        limit=limit,
+        offset=offset
+    )
+
+    # Convert to dict for API response
+    logs_data = [log.to_dict() for log in audit_logs]
+
+    return {
+        "logs": logs_data,
+        "count": len(logs_data),
+        "limit": limit,
+        "offset": offset
+    }
+
+
 @router.get("/{report_id}")
 async def get_report(
     report_id: str
@@ -1839,7 +1883,9 @@ class EmailShareRequest(BaseModel):
 async def share_report_via_email(
     report_id: str,
     request: EmailShareRequest,
-    current_user: User = Depends(get_current_user)
+    request_obj: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Share report via email (dev mode - logs to console)."""
     # Find the report
@@ -1888,6 +1934,22 @@ Ten email został wygenerowany przez MI-Navigator - Market Intelligence Platform
 
     # Log to console (development mode)
     print(email_content)
+
+    # Log audit event
+    await log_audit(
+        db=db,
+        user=current_user,
+        action_type=AuditAction.REPORT_SHARE,
+        resource_type=ResourceType.REPORT,
+        resource_id=report_id,
+        description=f"Shared report '{report['title']}' via email to {request.recipient_email}",
+        request=request_obj,
+        extra_data={
+            "recipient_email": request.recipient_email,
+            "message": request.message,
+            "report_title": report['title']
+        }
+    )
 
     return {
         "success": True,
@@ -2791,45 +2853,4 @@ async def revoke_share_link(
 
 # ==================== AUDIT LOGS ====================
 
-@router.get("/audit-logs")
-async def get_audit_logs_endpoint(
-    resource_id: Optional[str] = Query(None, description="Filter by resource ID (e.g., report ID)"),
-    action_type: Optional[str] = Query(None, description="Filter by action type (e.g., report.delete)"),
-    limit: int = Query(50, ge=1, le=200, description="Number of logs to return"),
-    offset: int = Query(0, ge=0, description="Offset for pagination"),
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Get audit logs for the current user.
-
-    Returns audit trail of sensitive operations performed by the user,
-    including delete, share, export, and other critical actions.
-
-    Query parameters:
-    - resource_id: Filter logs for specific resource (e.g., report ID)
-    - action_type: Filter by action type (report.delete, report.share, etc.)
-    - limit: Maximum number of logs to return (default: 50, max: 200)
-    - offset: Pagination offset (default: 0)
-    """
-    from app.services.audit_service import get_audit_logs
-
-    # Get audit logs for current user
-    audit_logs = await get_audit_logs(
-        db=db,
-        user_id=str(current_user.id),
-        action_type=action_type,
-        resource_id=resource_id,
-        limit=limit,
-        offset=offset
-    )
-
-    # Convert to dict for API response
-    logs_data = [log.to_dict() for log in audit_logs]
-
-    return {
-        "logs": logs_data,
-        "count": len(logs_data),
-        "limit": limit,
-        "offset": offset
-    }
+# REMOVED - Moved before /{report_id} route to avoid route conflict

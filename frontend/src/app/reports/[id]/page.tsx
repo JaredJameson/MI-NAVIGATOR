@@ -4316,6 +4316,14 @@ export default function ReportViewerPage() {
     setShareSuccess(false)
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        setShareError('Failed to get security token')
+        setIsSharing(false)
+        return
+      }
+
       const response = await fetch(
         `${API_BASE_URL}/reports/${reportId}/share/email`,
         {
@@ -4323,6 +4331,7 @@ export default function ReportViewerPage() {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
           },
           body: JSON.stringify({
             recipient_email: shareEmail,

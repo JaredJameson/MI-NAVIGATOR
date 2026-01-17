@@ -32,7 +32,7 @@ export default function AuditLogPage() {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('mi_navigator_token');
       if (!token) {
         throw new Error('Not authenticated');
       }
