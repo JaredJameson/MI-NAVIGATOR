@@ -13,6 +13,7 @@ import io
 import re
 import uuid
 import json
+import asyncio
 from pathlib import Path
 
 from app.api.v1.endpoints.auth import get_current_user
@@ -3021,3 +3022,148 @@ async def generate_complex_report(
                 "completed_sections": ["Market Overview", "Key Players", "Revenue Analysis"]
             }
         }
+
+
+# ==================== CANCELLABLE LONG-RUNNING TASK (Feature #368) ====================
+
+# In-memory storage for cancellable tasks
+CANCELLABLE_TASKS = {}  # {task_id: {"status": "running", "cancelled": False, "progress": 0, "total_steps": 10, "current_step": 0, "result": None}}
+
+
+@router.post("/cancellable-task")
+async def start_cancellable_task(
+    total_steps: int = Query(default=10, description="Total number of steps to simulate"),
+    step_duration: float = Query(default=2.0, description="Duration of each step in seconds"),
+    current_user: User = Depends(get_current_user),
+    request: Request = None
+):
+    """
+    Start a cancellable long-running task.
+    Returns task_id that can be used to check status or cancel the task.
+
+    Feature #368: Cancel long-running operation
+    """
+    task_id = str(uuid.uuid4())
+
+    # Initialize task state
+    CANCELLABLE_TASKS[task_id] = {
+        "status": "running",
+        "cancelled": False,
+        "progress": 0,
+        "total_steps": total_steps,
+        "current_step": 0,
+        "result": None,
+        "partial_data": []
+    }
+
+    # Start background task
+    asyncio.create_task(_process_cancellable_task(task_id, total_steps, step_duration))
+
+    return {
+        "task_id": task_id,
+        "status": "started",
+        "total_steps": total_steps,
+        "message": f"Task started with {total_steps} steps"
+    }
+
+
+async def _process_cancellable_task(task_id: str, total_steps: int, step_duration: float):
+    """Background worker for cancellable task processing"""
+    task = CANCELLABLE_TASKS[task_id]
+
+    try:
+        for step in range(1, total_steps + 1):
+            # Check if task was cancelled
+            if task["cancelled"]:
+                task["status"] = "cancelled"
+                task["result"] = {
+                    "message": "Task was cancelled by user",
+                    "completed_steps": step - 1,
+                    "total_steps": total_steps,
+                    "partial_data": task["partial_data"]
+                }
+                return
+
+            # Simulate work
+            await asyncio.sleep(step_duration)
+
+            # Update progress
+            task["current_step"] = step
+            task["progress"] = int((step / total_steps) * 100)
+            task["partial_data"].append(f"Step {step} completed")
+
+        # Task completed successfully
+        task["status"] = "completed"
+        task["result"] = {
+            "message": "Task completed successfully",
+            "completed_steps": total_steps,
+            "total_steps": total_steps,
+            "final_data": task["partial_data"]
+        }
+
+    except Exception as e:
+        task["status"] = "error"
+        task["result"] = {
+            "message": f"Task failed: {str(e)}",
+            "completed_steps": task["current_step"],
+            "total_steps": total_steps
+        }
+
+
+@router.post("/cancellable-task/{task_id}/cancel")
+async def cancel_task(
+    task_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Cancel a running task.
+
+    Feature #368: Cancel long-running operation
+    """
+    if task_id not in CANCELLABLE_TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = CANCELLABLE_TASKS[task_id]
+
+    if task["status"] != "running":
+        return {
+            "task_id": task_id,
+            "message": f"Task is already {task['status']}, cannot cancel",
+            "status": task["status"]
+        }
+
+    # Set cancelled flag
+    task["cancelled"] = True
+
+    return {
+        "task_id": task_id,
+        "message": "Cancellation requested. Task will stop after current step.",
+        "current_step": task["current_step"],
+        "total_steps": task["total_steps"]
+    }
+
+
+@router.get("/cancellable-task/{task_id}/status")
+async def get_task_status(
+    task_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get status of a cancellable task.
+
+    Feature #368: Cancel long-running operation
+    """
+    if task_id not in CANCELLABLE_TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = CANCELLABLE_TASKS[task_id]
+
+    return {
+        "task_id": task_id,
+        "status": task["status"],
+        "progress": task["progress"],
+        "current_step": task["current_step"],
+        "total_steps": task["total_steps"],
+        "cancelled": task["cancelled"],
+        "result": task["result"]
+    }
