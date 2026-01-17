@@ -3167,3 +3167,153 @@ async def get_task_status(
         "cancelled": task["cancelled"],
         "result": task["result"]
     }
+
+
+# ==================== RETRY FAILED OPERATION (Feature #369) ====================
+
+# In-memory storage for retryable tasks
+RETRY_TASKS = {}  # {task_id: {"status": "failed|success|running", "attempt": 1, "max_attempts": 3, "should_fail": True, "result": None}}
+
+
+class RetryTaskRequest(BaseModel):
+    """Request model for retry task"""
+    should_fail_first: bool = True
+    max_attempts: int = 3
+
+
+@router.post("/retry-task")
+async def start_retry_task(
+    request: RetryTaskRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Start a retryable task that can fail and be retried.
+
+    Feature #369: Retry failed operation
+    """
+    task_id = str(uuid.uuid4())
+
+    # Initialize task state
+    RETRY_TASKS[task_id] = {
+        "status": "running",
+        "attempt": 1,
+        "max_attempts": request.max_attempts,
+        "should_fail": request.should_fail_first,
+        "result": None,
+        "error": None
+    }
+
+    # Start background task
+    asyncio.create_task(_process_retry_task(task_id))
+
+    return {
+        "task_id": task_id,
+        "message": "Retryable task started",
+        "attempt": 1,
+        "max_attempts": request.max_attempts
+    }
+
+
+async def _process_retry_task(task_id: str):
+    """Background worker for retryable task processing"""
+    task = RETRY_TASKS[task_id]
+
+    try:
+        # Simulate some work
+        await asyncio.sleep(1.5)
+
+        # Check if task should fail on this attempt
+        if task["should_fail"] and task["attempt"] == 1:
+            # Fail on first attempt
+            task["status"] = "failed"
+            task["error"] = "Simulated failure: Network timeout"
+            task["result"] = None
+        else:
+            # Success
+            task["status"] = "success"
+            task["result"] = {
+                "data": "Task completed successfully",
+                "attempt": task["attempt"],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            task["error"] = None
+
+    except Exception as e:
+        task["status"] = "failed"
+        task["error"] = str(e)
+        task["result"] = None
+
+
+@router.post("/retry-task/{task_id}/retry")
+async def retry_task(
+    task_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Retry a failed task.
+
+    Feature #369: Retry failed operation
+    """
+    if task_id not in RETRY_TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = RETRY_TASKS[task_id]
+
+    if task["status"] != "failed":
+        return {
+            "task_id": task_id,
+            "message": "Task is not in failed state",
+            "status": task["status"]
+        }
+
+    # Check if max attempts reached
+    if task["attempt"] >= task["max_attempts"]:
+        return {
+            "task_id": task_id,
+            "message": "Maximum retry attempts reached",
+            "attempt": task["attempt"],
+            "max_attempts": task["max_attempts"]
+        }
+
+    # Increment attempt counter
+    task["attempt"] += 1
+    task["status"] = "running"
+    task["error"] = None
+
+    # Mark that we should succeed on retry (simulate fix)
+    task["should_fail"] = False
+
+    # Start background task again
+    asyncio.create_task(_process_retry_task(task_id))
+
+    return {
+        "task_id": task_id,
+        "message": "Task retry initiated",
+        "attempt": task["attempt"],
+        "max_attempts": task["max_attempts"]
+    }
+
+
+@router.get("/retry-task/{task_id}/status")
+async def get_retry_task_status(
+    task_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get status of a retryable task.
+
+    Feature #369: Retry failed operation
+    """
+    if task_id not in RETRY_TASKS:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = RETRY_TASKS[task_id]
+
+    return {
+        "task_id": task_id,
+        "status": task["status"],
+        "attempt": task["attempt"],
+        "max_attempts": task["max_attempts"],
+        "error": task["error"],
+        "result": task["result"]
+    }

@@ -2596,3 +2596,109 @@ Feature #355: Feature flag toggling - PASSED ✅
 - Infrastructure ready for production use with real long-running operations
 
 ---
+
+---
+
+# Session 94 - Date: 2026-01-18
+**Focus:** Verification and regression testing of Feature #368 (Cancel long-running operation)
+
+## Session Summary
+
+**Feature Completed:** Feature #368 - Cancel long-running operation - PASSED ✅
+
+**Progress:** 
+- Started: 167/380 (43.9%)
+- Completed: 168/380 (44.2%)
+- Features Added: 1
+
+**Regression Tests:** 2 features verified
+- Feature #269 (TAM/SAM/SOM visualization) - PASSED ✅
+- Feature #273 (Financial ratio radar chart) - PASSED ✅
+
+## Feature #368: Cancel long-running operation - PASSED ✅
+
+**Status:** Fully implemented in Session 92, verified end-to-end in Session 94
+
+**Test Execution:**
+1. ✅ Started cancellable task with 10 steps
+2. ✅ Monitored real-time progress tracking (polling every 500ms)
+3. ✅ Clicked cancel button after step 8 completed
+4. ✅ Verified graceful cancellation (status changed to "cancelled")
+5. ✅ Confirmed partial results displayed: "Completed 8 of 10 steps" with detailed list
+6. ✅ Tested reset functionality - clean state restored
+
+**Technical Implementation:**
+- Backend: FastAPI endpoints with cancellation flag in in-memory storage
+- Frontend: React with real-time polling and progress visualization
+- Endpoints:
+  - `POST /api/v1/reports/cancellable-task` - Start task
+  - `POST /api/v1/reports/cancellable-task/{id}/cancel` - Cancel task
+  - `GET /api/v1/reports/cancellable-task/{id}/status` - Get status
+- Test page: `/test-cancel`
+
+## Regression Testing
+
+### Feature #269: TAM/SAM/SOM visualization
+**Location:** `/reports/[id]/page.tsx` (report_002 - Market Analysis)
+
+**Verified:**
+1. ✅ Concentric circles diagram renders correctly
+2. ✅ TAM (outer), SAM (middle), SOM (inner) circles properly positioned
+3. ✅ All values labeled with currency formatting
+4. ✅ Interactive tooltips working on hover
+5. ✅ Visual hierarchy clear and accessible
+
+**Test Path:** Dashboard → Reports → report_002 (Market Analysis)
+
+### Feature #273: Financial ratio radar chart
+**Location:** `/reports/[id]/page.tsx` (report_001 - Company Profile)
+
+**Verified:**
+1. ✅ Radar chart renders in section "5. Wskaźniki finansowe - Radar"
+2. ✅ All ratios displayed (ROE, ROA, Current Ratio, Debt-to-Equity, etc.)
+3. ✅ Benchmark overlay visible
+4. ✅ Values displayed with proper formatting
+5. ✅ Interactive tooltips functional
+
+**Test Path:** Dashboard → Reports → report_001 (FADO Company Profile)
+
+## Technical Notes
+
+**Zero Console Errors:** All tests ran without any console errors ✅
+
+**Implementation Notes:**
+- Feature #368 was fully implemented in Session 92 but not tested
+- Current session focused on complete verification via browser automation
+- All 5 test steps passed successfully
+- Task cancellation is graceful with proper state management
+- Partial results are correctly preserved and displayed
+
+**Files Verified:**
+1. `backend/app/api/v1/endpoints/reports.py` - Cancellable task endpoints working
+2. `frontend/src/app/test-cancel/page.tsx` - Test UI fully functional
+3. `frontend/src/app/reports/[id]/page.tsx` - TAM/SAM/SOM and radar charts working
+
+**Screenshots Captured:** 13 images
+- feature_368_step1_started.png
+- feature_368_step2_cancelled.png
+- feature_368_step5_clean_state.png
+- feature_368_verification_initial.png
+- regression_269_tam_sam_som_visualization.png
+- regression_269_tam_tooltip_visible.png
+- regression_269_interactive_tooltip.png
+- regression_269_scrolled.png
+- regression_269_bottom.png
+- regression_269_homepage.png
+- regression_269_tam_sam_som.png
+- regression_273_financial_radar_chart.png
+- regression_273_values_displayed.png
+
+## Next Steps
+
+1. Continue with next feature from queue (Feature #369 or next pending)
+2. Consider removing test page `/test-cancel` once cancellation is integrated into real features
+3. Monitor regression test results for visualization features
+
+**Completion Time:** ~45 minutes (including regression testing)
+
+---
