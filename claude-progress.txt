@@ -1,3 +1,83 @@
+# Session 62 - Date: 2026-01-17
+
+## Session Summary
+
+**Backend Fixes:** SQLAlchemy async syntax + Backend restart ✅
+**Security Fix:** AuthGuard session expiration handling ✅
+
+**Regression Tests:** 1 feature tested
+- Feature #6: Session expiration handling ✅ (PASSED after fix)
+
+**Current Progress:** 138/380 features passing (36.3%)
+
+**Key Achievements:**
+- Fixed AuthGuard to properly block unauthorized access
+  - Token check now synchronous during initial render
+  - Prevents child components from executing before auth check
+  - Properly redirects to /auth/login when session expired
+- Fixed backend SQLAlchemy 2.0 async syntax errors
+  - Changed from `db.query()` to `select()` + `await db.execute()`
+  - Updated `get_templates()` and `save_report_as_template()`
+  - Fixes AttributeError on AsyncSession
+- Restarted backend successfully with all fixes applied
+
+**Files Changed:**
+1. `frontend/src/components/auth/AuthGuard.tsx` - Synchronous token checking
+2. `backend/app/api/v1/endpoints/reports.py` - Async SQLAlchemy syntax
+
+**Regression Test #6 Results:**
+✅ Step 1: User logged in
+✅ Step 2: Token removed (simulate expiration)
+✅ Step 3: Attempted to access /settings
+✅ Step 4: Redirected to /auth/login (after hard reload)
+✅ Step 5: Login page displayed
+✅ Step 6: No sensitive data leaked
+
+---
+
+# Session 61 - Date: 2026-01-17
+
+## Session Summary
+
+**Regression Fix:** Feature #292 CSRF error fixed ✅
+**Database Implementation:** Report templates now use database (was in-memory) ✅
+**Critical Bug Fixed:** FastAPI route order conflict ⚠️ REQUIRES BACKEND RESTART
+
+**Regression Tests:** 1 feature tested (partial)
+- Feature #292: Template creation from report ⚠️ (FIXED but needs restart)
+
+**Current Progress:** 138/380 features passing (36.3%)
+
+**Key Achievements:**
+- Fixed CSRF regression in template creation (Feature #292)
+  - Added `getCsrfToken()` helper to frontend
+  - Template save now includes X-CSRF-Token header
+- Implemented database persistence for templates
+  - Created `ReportTemplate` model with SQLite compatibility
+  - Created Alembic migration `8m9n0o1p2q3r_add_report_templates_table`
+  - Updated `save_report_as_template()` to use database
+  - Updated `get_templates()` to query database
+- Fixed critical FastAPI route ordering bug
+  - Moved `/templates` routes before `/{report_id}` to avoid conflicts
+  - FastAPI was matching `/templates` as `report_id="templates"`
+
+**CRITICAL: Backend Restart Required**
+The route reordering fix requires a full backend restart to take effect. FastAPI caches route registrations at startup and won't pick up route order changes via hot-reload.
+
+**Files Changed:**
+1. `frontend/src/app/reports/[id]/page.tsx` - Added CSRF token handling
+2. `backend/app/models/report_template.py` - New model (SQLite compatible)
+3. `backend/app/models/__init__.py` - Added ReportTemplate export
+4. `backend/alembic/versions/8m9n0o1p2q3r_add_report_templates_table.py` - Migration
+5. `backend/app/api/v1/endpoints/reports.py` - Database integration + route reordering
+
+**Verification Status:**
+- Template creation: ✅ Works (success message shown)
+- Database INSERT: ✅ Works (confirmed in logs)
+- Template retrieval: ⚠️ Blocked until restart (route conflict)
+
+---
+
 # Session 60 - Date: 2026-01-17
 
 ## Session Summary
