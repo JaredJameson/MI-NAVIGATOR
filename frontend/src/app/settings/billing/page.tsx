@@ -172,6 +172,17 @@ export default function BillingPage() {
             </div>
           </div>
 
+          {/* Payment Methods */}
+          <div className="rounded-lg bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Payment Methods</h2>
+              <Link href="/settings/billing/payment-methods" className="text-blue-600 hover:text-blue-700">
+                Manage →
+              </Link>
+            </div>
+            <p className="text-gray-600">Manage your credit cards and payment methods</p>
+          </div>
+
           {/* Plan Details */}
           <div className="rounded-lg bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Plan Features</h2>
