@@ -7,6 +7,20 @@ import { getStoredToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
+// Helper function to get CSRF token
+const getCsrfToken = async (): Promise<string | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/csrf-token`)
+    if (response.ok) {
+      const data = await response.json()
+      return data.csrf_token
+    }
+  } catch (err) {
+    console.error('Failed to get CSRF token:', err)
+  }
+  return null
+}
+
 interface Tag {
   id: string
   name: string
@@ -570,14 +584,21 @@ export default function ReportsPage() {
     if (!report) return
 
     const isFavorite = report.is_favorite
+    const csrfToken = await getCsrfToken()
 
     try {
       const method = isFavorite ? 'DELETE' : 'POST'
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${token}`,
+      }
+
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken
+      }
+
       const response = await fetch(`${API_BASE_URL}/reports/${reportId}/favorite`, {
         method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       })
 
       if (response.ok) {

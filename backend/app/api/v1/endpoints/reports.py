@@ -929,8 +929,8 @@ async def list_reports(
     tag_id: Optional[str] = None,
     favorites_only: bool = False,
     status: Optional[str] = None,
-    archived: Optional[bool] = None
-    # current_user: User = Depends(get_current_user)  # Disabled for testing
+    archived: Optional[bool] = None,
+    current_user: User = Depends(get_current_user)
 ):
     """List user's reports with filtering and pagination."""
     # Import REPORT_TAGS from tags module

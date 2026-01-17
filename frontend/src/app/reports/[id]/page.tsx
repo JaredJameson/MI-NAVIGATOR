@@ -9,6 +9,20 @@ import remarkGfm from 'remark-gfm'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
+// Helper function to get CSRF token
+const getCsrfToken = async (): Promise<string | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/csrf-token`)
+    if (response.ok) {
+      const data = await response.json()
+      return data.csrf_token
+    }
+  } catch (err) {
+    console.error('Failed to get CSRF token:', err)
+  }
+  return null
+}
+
 interface ReportSection {
   id: string
   title: string
@@ -3938,10 +3952,18 @@ export default function ReportViewerPage() {
     if (!templateName || templateName.trim() === '') return
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        alert('Nie udało się pobrać tokenu CSRF')
+        return
+      }
+
       const response = await fetch(`${API_BASE_URL}/reports/${reportId}/save-as-template?template_name=${encodeURIComponent(templateName.trim())}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
         },
       })
 
@@ -3964,14 +3986,21 @@ export default function ReportViewerPage() {
     if (!token || !report) return
 
     const isFavorite = report.is_favorite
+    const csrfToken = await getCsrfToken()
 
     try {
       const method = isFavorite ? 'DELETE' : 'POST'
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${token}`,
+      }
+
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken
+      }
+
       const response = await fetch(`${API_BASE_URL}/reports/${reportId}/favorite`, {
         method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       })
 
       if (response.ok) {
@@ -3987,12 +4016,20 @@ export default function ReportViewerPage() {
     const token = getStoredToken()
     if (!token || !reportId) return
 
+    const csrfToken = await getCsrfToken()
+
     try {
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${token}`,
+      }
+
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken
+      }
+
       const response = await fetch(`${API_BASE_URL}/reports/${reportId}/archive`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       })
 
       if (response.ok) {
@@ -4008,12 +4045,20 @@ export default function ReportViewerPage() {
     const token = getStoredToken()
     if (!token || !reportId) return
 
+    const csrfToken = await getCsrfToken()
+
     try {
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${token}`,
+      }
+
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken
+      }
+
       const response = await fetch(`${API_BASE_URL}/reports/${reportId}/unarchive`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       })
 
       if (response.ok) {

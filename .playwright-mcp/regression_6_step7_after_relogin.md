@@ -1,0 +1,38 @@
+### Page state
+- Page URL: http://localhost:3000/auth/login
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e4]: MI-Navigator | Market Intelligence Platform
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - heading "MI-Navigator" [level=1] [ref=e8]
+      - paragraph [ref=e9]: Market Intelligence Platform
+    - generic [ref=e10]:
+      - generic [ref=e27]:
+        - img [ref=e28]
+        - text: Incorrect email or password
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: Email
+          - textbox "Email" [ref=e14]:
+            - /placeholder: you@example.com
+            - text: test@example.com
+        - generic [ref=e15]:
+          - generic [ref=e16]: Password
+          - textbox "Password" [ref=e17]:
+            - /placeholder: Enter your password
+            - text: Password123!
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - checkbox "Remember me" [ref=e20]
+          - generic [ref=e21]: Remember me
+        - link "Forgot password?" [ref=e22] [cursor=pointer]:
+          - /url: /auth/forgot-password
+      - button "Sign in" [ref=e23] [cursor=pointer]
+      - paragraph [ref=e24]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e25] [cursor=pointer]:
+          - /url: /auth/register
+```

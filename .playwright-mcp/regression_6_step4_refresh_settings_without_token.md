@@ -1,0 +1,121 @@
+### Page state
+- Page URL: http://localhost:3000/settings
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e4]
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - link [ref=e10] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e11]
+          - heading "Settings" [level=1] [ref=e13]
+        - navigation [ref=e14]:
+          - link "Dashboard" [ref=e15] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Chat" [ref=e16] [cursor=pointer]:
+            - /url: /chat
+          - button "Logout" [ref=e17] [cursor=pointer]
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - heading "Profile Information" [level=2] [ref=e20]
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - generic [ref=e23]: Email
+            - textbox "Email" [disabled] [ref=e24]: test@example.com
+            - paragraph [ref=e25]: Email cannot be changed
+          - generic [ref=e26]:
+            - generic [ref=e27]: Display Name
+            - textbox "Display Name" [ref=e28]:
+              - /placeholder: Your name
+              - text: admin'; DROP TABLE users; --
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - generic [ref=e31]: Industry
+              - combobox "Industry" [ref=e32]:
+                - option "Select industry..."
+                - option "Manufacturing"
+                - option "Services"
+                - option "Technology" [selected]
+                - option "Retail"
+                - option "Finance"
+                - option "Healthcare"
+                - option "Logistics"
+                - option "Other"
+            - generic [ref=e33]:
+              - generic [ref=e34]: Role
+              - combobox "Role" [ref=e35]:
+                - option "Select role..."
+                - option "CEO / Executive"
+                - option "Sales"
+                - option "Analyst" [selected]
+                - option "Business Development"
+                - option "Operations"
+                - option "Other"
+      - generic [ref=e36]:
+        - heading "Preferences" [level=2] [ref=e37]
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]: Language
+            - combobox "Language" [ref=e41]:
+              - option "Polski" [selected]
+              - option "English"
+          - generic [ref=e42]:
+            - generic [ref=e43]: Default Analysis Depth
+            - combobox "Default Analysis Depth" [ref=e44]:
+              - option "Quick (Basic overview)"
+              - option "Standard (Detailed analysis)" [selected]
+              - option "Deep (Comprehensive research)"
+            - paragraph [ref=e45]: Controls the detail level of generated reports and analyses
+          - generic [ref=e46]:
+            - generic [ref=e47]: Default Export Format
+            - combobox "Default Export Format" [ref=e48]:
+              - option "PDF" [selected]
+              - option "Word (DOCX)"
+              - option "PowerPoint (PPTX)"
+      - generic [ref=e49]:
+        - heading "Notifications" [level=2] [ref=e50]
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - generic [ref=e54]: Email Notifications
+              - paragraph [ref=e55]: Receive email notifications about reports, alerts, and updates
+            - switch [checked] [ref=e56] [cursor=pointer]
+          - generic [ref=e57]:
+            - generic [ref=e58]:
+              - generic [ref=e59]: In-App Notifications
+              - paragraph [ref=e60]: Show notifications within the application
+            - switch [checked] [ref=e61] [cursor=pointer]
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - heading "Tags" [level=2] [ref=e65]
+          - paragraph [ref=e66]: Organize your reports with custom tags
+        - link "Manage Tags" [ref=e67] [cursor=pointer]:
+          - /url: /settings/tags
+          - img [ref=e68]
+          - text: Manage Tags
+      - generic [ref=e71]:
+        - heading "Custom Fields" [level=2] [ref=e72]
+        - button "+ Add Field" [ref=e73] [cursor=pointer]
+      - generic [ref=e76]:
+        - link "Cancel" [ref=e77] [cursor=pointer]:
+          - /url: /dashboard
+        - button "Save Changes" [ref=e78] [cursor=pointer]
+      - generic [ref=e79]:
+        - heading "Account" [level=2] [ref=e80]
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - heading "Change Password" [level=3] [ref=e84]
+              - paragraph [ref=e85]: Update your password
+            - link "Reset Password" [ref=e86] [cursor=pointer]:
+              - /url: /auth/forgot-password
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - heading "Delete Account" [level=3] [ref=e89]
+              - paragraph [ref=e90]: Permanently delete your account and all data
+            - button "Delete (Coming soon)" [disabled] [ref=e91]
+```
