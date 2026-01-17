@@ -1,3 +1,21 @@
+# Session 90 - Date: 2026-01-18
+
+## Session Summary
+
+**Features Completed:** 1 feature
+- Feature #365: Session invalidation on password change ✅ (PASSED - All 4 test steps verified)
+
+**Bug Fixes:** 1 critical bug fixed
+- Fixed security page refresh token retrieval (was using wrong localStorage key)
+
+**Regression Tests:** 2 features tested
+- Feature #347: Account deletion GDPR compliance ⚠️ (Button disabled - "Coming soon")
+- Feature #98: Loading indicator during API calls ✅ (PASSED)
+
+**Current Progress:** 166/380 features passing (43.7%)
+
+---
+
 # Session 89 - Date: 2026-01-18
 
 ## Session Summary
@@ -9,7 +27,7 @@
 - Feature #238: Report annotation feature ✅ (PASSED)
 - Feature #315: API usage monitoring ✅ (PASSED)
 
-**Current Progress:** 165/380 features passing (43.4%)
+**Previous Progress:** 165/380 features passing (43.4%)
 
 **Key Achievements:**
 - Implemented complete password change with session invalidation

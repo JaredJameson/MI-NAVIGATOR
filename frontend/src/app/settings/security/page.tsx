@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getStoredToken } from '@/services/api'
+import { getStoredToken, getStoredRefreshToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -210,7 +210,7 @@ export default function SecuritySettingsPage() {
     }
 
     // Get refresh token from localStorage
-    const refreshToken = localStorage.getItem('refresh_token')
+    const refreshToken = getStoredRefreshToken()
     if (!refreshToken) {
       setError('Session token not found')
       return
