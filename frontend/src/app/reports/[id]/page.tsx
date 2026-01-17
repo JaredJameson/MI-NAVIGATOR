@@ -4241,6 +4241,7 @@ export default function ReportViewerPage() {
     setShowExportMenu(false)
 
     try {
+      const csrfToken = await getCsrfToken()
       const response = await fetch(
         `${API_BASE_URL}/reports/${reportId}/export`,
         {
@@ -4248,6 +4249,7 @@ export default function ReportViewerPage() {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken || '',
           },
           body: JSON.stringify({ format }),
         }

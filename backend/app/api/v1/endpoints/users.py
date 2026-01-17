@@ -32,6 +32,7 @@ class UserProfileResponse(BaseModel):
     preferred_language: str = "pl"
     preferred_depth: str = "standard"
     preferred_format: str = "pdf"
+    timezone: str = "Europe/Warsaw"
     onboarding_completed: bool = False
 
     class Config:
@@ -51,6 +52,7 @@ class UserPreferencesResponse(BaseModel):
     preferred_language: str
     preferred_depth: str
     preferred_format: str
+    timezone: str
 
 
 class UserPreferencesUpdate(BaseModel):
@@ -58,6 +60,7 @@ class UserPreferencesUpdate(BaseModel):
     preferred_language: Optional[str] = None
     preferred_depth: Optional[str] = None
     preferred_format: Optional[str] = None
+    timezone: Optional[str] = None
 
 
 class NotificationPreferencesResponse(BaseModel):
@@ -115,6 +118,7 @@ async def get_user_profile(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
+        timezone=current_user.timezone or "Europe/Warsaw",
         onboarding_completed=current_user.onboarding_completed or False
     )
 
@@ -148,6 +152,7 @@ async def update_user_profile(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
+        timezone=current_user.timezone or "Europe/Warsaw",
         onboarding_completed=current_user.onboarding_completed or False
     )
 
@@ -160,7 +165,8 @@ async def get_user_preferences(
     return UserPreferencesResponse(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
-        preferred_format=current_user.preferred_format or "pdf"
+        preferred_format=current_user.preferred_format or "pdf",
+        timezone=current_user.timezone or "Europe/Warsaw"
     )
 
 
@@ -177,6 +183,8 @@ async def update_user_preferences(
         current_user.preferred_depth = prefs_data.preferred_depth
     if prefs_data.preferred_format is not None:
         current_user.preferred_format = prefs_data.preferred_format
+    if prefs_data.timezone is not None:
+        current_user.timezone = prefs_data.timezone
 
     await db.commit()
     await db.refresh(current_user)
@@ -184,7 +192,8 @@ async def update_user_preferences(
     return UserPreferencesResponse(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
-        preferred_format=current_user.preferred_format or "pdf"
+        preferred_format=current_user.preferred_format or "pdf",
+        timezone=current_user.timezone or "Europe/Warsaw"
     )
 
 

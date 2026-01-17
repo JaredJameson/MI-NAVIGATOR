@@ -55,6 +55,7 @@ class UserResponse(BaseModel):
     preferred_language: str
     preferred_depth: str
     preferred_format: str
+    timezone: str = "Europe/Warsaw"
     onboarding_completed: bool
     is_active: bool
     created_at: datetime
@@ -73,6 +74,7 @@ class UserUpdate(BaseModel):
     preferred_language: Optional[str] = None
     preferred_depth: Optional[str] = None
     preferred_format: Optional[str] = None
+    timezone: Optional[str] = None
 
 
 class Token(BaseModel):
