@@ -3921,12 +3921,20 @@ export default function ReportViewerPage() {
     const token = getStoredToken()
     if (!token || !reportId) return
 
+    const csrfToken = await getCsrfToken()
+
     try {
+      const headers: HeadersInit = {
+        'Authorization': `Bearer ${token}`,
+      }
+
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken
+      }
+
       const response = await fetch(`${API_BASE_URL}/reports/${reportId}/duplicate`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       })
 
       if (response.ok) {

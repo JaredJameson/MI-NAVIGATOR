@@ -104,9 +104,29 @@ async def login(
     ip_address = request.client.host if request else "unknown"
     user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
 
+    # First check if user exists and if account is locked
+    existing_user = await AuthService.get_user_by_email(db, form_data.username)
+
+    if existing_user and await AuthService.is_account_locked(existing_user):
+        # Account is locked
+        lockout_time = existing_user.account_locked_until
+        security_logger.warning(
+            f"Locked account login attempt | Email: {form_data.username} | "
+            f"IP: {ip_address} | Locked until: {lockout_time.isoformat() if lockout_time else 'N/A'}"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account temporarily locked due to multiple failed login attempts. Please try again later.",
+        )
+
+    # Try to authenticate
     user = await AuthService.authenticate_user(db, form_data.username, form_data.password)
 
     if not user:
+        # Commit failed attempt counter update before raising exception
+        await db.commit()
+
         # Log failed login attempt
         security_logger.warning(
             f"Failed login attempt | Email: {form_data.username} | "

@@ -149,22 +149,66 @@ class AuthService:
             await db.delete(session)
 
     @staticmethod
+    async def is_account_locked(user: User) -> bool:
+        """Check if user account is locked."""
+        if user.account_locked_until is None:
+            return False
+
+        # Check if lockout period has expired
+        if datetime.utcnow() >= user.account_locked_until:
+            # Lockout period expired, account is no longer locked
+            return False
+
+        return True
+
+    @staticmethod
+    async def reset_failed_attempts(db: AsyncSession, user: User) -> None:
+        """Reset failed login attempts counter."""
+        user.failed_login_attempts = 0
+        user.account_locked_until = None
+        await db.flush()
+
+    @staticmethod
+    async def increment_failed_attempts(db: AsyncSession, user: User) -> None:
+        """Increment failed login attempts and lock account if threshold exceeded."""
+        MAX_ATTEMPTS = 5
+        LOCKOUT_DURATION_MINUTES = 15
+
+        user.failed_login_attempts += 1
+
+        # Lock account if threshold exceeded
+        if user.failed_login_attempts >= MAX_ATTEMPTS:
+            user.account_locked_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+
+        await db.flush()
+
+    @staticmethod
     async def authenticate_user(
         db: AsyncSession,
         email: str,
         password: str
     ) -> Optional[User]:
-        """Authenticate a user by email and password."""
+        """
+        Authenticate a user by email and password.
+        Increments failed attempts on wrong password, resets on success.
+        Returns None if authentication fails.
+        """
         user = await AuthService.get_user_by_email(db, email)
 
         if not user:
             return None
 
-        if not AuthService.verify_password(password, user.password_hash):
-            return None
-
         if not user.is_active:
             return None
+
+        # Verify password
+        if not AuthService.verify_password(password, user.password_hash):
+            # Increment failed attempts
+            await AuthService.increment_failed_attempts(db, user)
+            return None
+
+        # Successful login - reset failed attempts counter
+        await AuthService.reset_failed_attempts(db, user)
 
         return user
 
