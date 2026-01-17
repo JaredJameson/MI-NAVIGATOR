@@ -1,3 +1,50 @@
+# Session 70 - Date: 2026-01-17
+
+## Session Summary
+
+**CSRF Regression Fix:** Notification mark-as-read ✅
+**Regression Tests:** 1 feature tested
+- Feature #258: Notification mark as read ❌→✅ (FAILED initially, FIXED CSRF regression)
+
+**Current Progress:** 146/380 features passing (38.4%)
+
+**Key Achievements:**
+- Fixed critical CSRF regression in notification system
+- Notifications can now be marked as read (was failing with 403 Forbidden)
+- Successfully tested complete mark-as-read flow
+- Zero console errors
+
+**CSRF Regression Fix (Feature #258):**
+- **Issue:** Backend returning 403 Forbidden for POST /api/v1/notifications/mark-read
+- **Root cause:** Missing CSRF token in `markAsRead()` and `markAllAsRead()` functions
+- **Fix:** Added `getCsrfToken()` helper and `X-CSRF-Token` header to both functions
+- **Result:** Notifications now properly marked as read, unread count updates correctly
+
+**Files Changed:**
+1. `frontend/src/app/notifications/page.tsx` - Added CSRF token handling
+
+**Test Results:**
+✅ Step 1: View unread notifications (4 unread visible)
+✅ Step 2: Click notification to read (first notification clicked)
+✅ Step 3: Verify marked as read (backend returned 200 OK)
+✅ Step 4: Verify unread count updates (4 → 3 after marking one read)
+✅ Step 5: Mark all as read (clicked "Oznacz wszystkie jako przeczytane")
+✅ Step 6: Verify all marked read (unread count badge disappeared)
+
+**Console Errors:** Zero ✅
+
+**Screenshots:**
+- regression_258_step1_unread_notifications.png - Initial state with 4 unread
+- regression_258_step3_unread_count_decreased.png - After marking one read (3 unread)
+- regression_258_step6_all_marked_read.png - All notifications read
+
+**Next Feature Started:**
+- Feature #345: Audit trail for sensitive operations (in_progress)
+- Requires implementation of comprehensive audit logging system
+- Current state: Share link access log exists, but full audit trail not implemented
+
+---
+
 # Session 69 - Date: 2026-01-17
 
 ## Session Summary
