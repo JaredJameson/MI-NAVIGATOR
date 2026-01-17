@@ -24,41 +24,59 @@ export default function LoginPage() {
     twoFactorCode?: string
   }>({})
 
+  // Field validation success states
+  const [fieldSuccess, setFieldSuccess] = useState<{
+    email?: boolean
+    password?: boolean
+    twoFactorCode?: boolean
+  }>({})
+
   // Validate individual fields
   const validateField = (name: string, value: string) => {
     const errors: typeof fieldErrors = { ...fieldErrors }
+    const success: typeof fieldSuccess = { ...fieldSuccess }
 
     switch (name) {
       case 'email':
         if (!value.trim()) {
           errors.email = 'Email is required'
+          delete success.email
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           errors.email = 'Please enter a valid email address'
+          delete success.email
         } else {
           delete errors.email
+          success.email = true
         }
         break
       case 'password':
         if (!value) {
           errors.password = 'Password is required'
+          delete success.password
         } else if (value.length < 6) {
           errors.password = 'Password must be at least 6 characters'
+          delete success.password
         } else {
           delete errors.password
+          success.password = true
         }
         break
       case 'twoFactorCode':
         if (!value) {
           errors.twoFactorCode = 'Authentication code is required'
+          delete success.twoFactorCode
         } else if (value.length !== 6) {
           errors.twoFactorCode = 'Code must be 6 digits'
+          delete success.twoFactorCode
         } else {
           delete errors.twoFactorCode
+          success.twoFactorCode = true
         }
         break
     }
 
     setFieldErrors(errors)
+    setFieldSuccess(success)
     return !errors[name as keyof typeof errors]
   }
 
@@ -173,7 +191,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value)
-                      if (fieldErrors.email) {
+                      if (fieldErrors.email || fieldSuccess.email) {
                         validateField('email', e.target.value)
                       }
                     }}
@@ -181,6 +199,8 @@ export default function LoginPage() {
                     className={`block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-1 ${
                       fieldErrors.email
                         ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                        : fieldSuccess.email
+                        ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
                         : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                     }`}
                     placeholder="you@example.com"
@@ -191,6 +211,13 @@ export default function LoginPage() {
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  {fieldSuccess.email && !fieldErrors.email && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}
@@ -213,7 +240,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value)
-                      if (fieldErrors.password) {
+                      if (fieldErrors.password || fieldSuccess.password) {
                         validateField('password', e.target.value)
                       }
                     }}
@@ -221,6 +248,8 @@ export default function LoginPage() {
                     className={`block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-1 ${
                       fieldErrors.password
                         ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                        : fieldSuccess.password
+                        ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
                         : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                     }`}
                     placeholder="Enter your password"
@@ -231,6 +260,13 @@ export default function LoginPage() {
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                       <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  {fieldSuccess.password && !fieldErrors.password && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                       </svg>
                     </div>
                   )}

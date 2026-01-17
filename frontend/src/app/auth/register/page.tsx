@@ -14,9 +14,64 @@ export default function RegisterPage() {
     name: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [fieldSuccess, setFieldSuccess] = useState<Record<string, boolean>>({})
   const [generalError, setGeneralError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const validateField = (name: string, value: string): boolean => {
+    const newErrors = { ...errors }
+    const newSuccess = { ...fieldSuccess }
+
+    switch (name) {
+      case 'email':
+        if (!value) {
+          newErrors.email = 'Email is required'
+          delete newSuccess.email
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          newErrors.email = 'Invalid email format'
+          delete newSuccess.email
+        } else {
+          delete newErrors.email
+          newSuccess.email = true
+        }
+        break
+      case 'password':
+        if (!value) {
+          newErrors.password = 'Password is required'
+          delete newSuccess.password
+        } else if (value.length < 8) {
+          newErrors.password = 'Password must be at least 8 characters'
+          delete newSuccess.password
+        } else if (!/[A-Z]/.test(value)) {
+          newErrors.password = 'Password must contain at least one uppercase letter'
+          delete newSuccess.password
+        } else if (!/[0-9]/.test(value)) {
+          newErrors.password = 'Password must contain at least one digit'
+          delete newSuccess.password
+        } else {
+          delete newErrors.password
+          newSuccess.password = true
+        }
+        break
+      case 'confirmPassword':
+        if (!value) {
+          newErrors.confirmPassword = 'Please confirm your password'
+          delete newSuccess.confirmPassword
+        } else if (formData.password !== value) {
+          newErrors.confirmPassword = 'Passwords do not match'
+          delete newSuccess.confirmPassword
+        } else {
+          delete newErrors.confirmPassword
+          newSuccess.confirmPassword = true
+        }
+        break
+    }
+
+    setErrors(newErrors)
+    setFieldSuccess(newSuccess)
+    return !newErrors[name]
+  }
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -53,9 +108,9 @@ export default function RegisterPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-    // Clear specific error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
+    // Validate field on change if it was previously validated
+    if (errors[name] || fieldSuccess[name]) {
+      validateField(name, value)
     }
   }
 
@@ -154,9 +209,12 @@ export default function RegisterPage() {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={(e) => validateField('email', e.target.value)}
                   className={`block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-1 ${
                     errors.email
                       ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                      : fieldSuccess.email
+                      ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
                       : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   }`}
                   placeholder="you@example.com"
@@ -167,6 +225,13 @@ export default function RegisterPage() {
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+                {fieldSuccess.email && !errors.email && (
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                     </svg>
                   </div>
                 )}
@@ -188,9 +253,12 @@ export default function RegisterPage() {
                   type="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={(e) => validateField('password', e.target.value)}
                   className={`block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-1 ${
                     errors.password
                       ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                      : fieldSuccess.password
+                      ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
                       : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   }`}
                   placeholder="Min 8 characters"
@@ -201,6 +269,13 @@ export default function RegisterPage() {
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+                {fieldSuccess.password && !errors.password && (
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                     </svg>
                   </div>
                 )}
@@ -227,9 +302,12 @@ export default function RegisterPage() {
                   type="password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  onBlur={(e) => validateField('confirmPassword', e.target.value)}
                   className={`block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-1 ${
                     errors.confirmPassword
                       ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                      : fieldSuccess.confirmPassword
+                      ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
                       : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
                   }`}
                   placeholder="Repeat password"
@@ -240,6 +318,13 @@ export default function RegisterPage() {
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+                {fieldSuccess.confirmPassword && !errors.confirmPassword && (
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                     </svg>
                   </div>
                 )}
