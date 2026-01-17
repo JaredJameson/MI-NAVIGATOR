@@ -7,6 +7,20 @@ import { getStoredToken, authApi } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
+// Helper function to get CSRF token
+const getCsrfToken = async (): Promise<string | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/csrf-token`)
+    if (response.ok) {
+      const data = await response.json()
+      return data.csrf_token
+    }
+  } catch (err) {
+    console.error('Failed to get CSRF token:', err)
+  }
+  return null
+}
+
 interface UserProfile {
   id: string
   email: string
@@ -17,6 +31,7 @@ interface UserProfile {
   preferred_language: string
   preferred_depth: string
   preferred_format: string
+  timezone: string
   onboarding_completed: boolean
 }
 
@@ -70,6 +85,20 @@ const FORMATS = [
   { value: 'pptx', label: 'PowerPoint (PPTX)' },
 ]
 
+const TIMEZONES = [
+  { value: 'Europe/Warsaw', label: 'Europe/Warsaw (UTC+1/+2)' },
+  { value: 'Europe/London', label: 'Europe/London (UTC+0/+1)' },
+  { value: 'Europe/Paris', label: 'Europe/Paris (UTC+1/+2)' },
+  { value: 'Europe/Berlin', label: 'Europe/Berlin (UTC+1/+2)' },
+  { value: 'America/New_York', label: 'America/New_York (UTC-5/-4)' },
+  { value: 'America/Chicago', label: 'America/Chicago (UTC-6/-5)' },
+  { value: 'America/Los_Angeles', label: 'America/Los_Angeles (UTC-8/-7)' },
+  { value: 'Asia/Tokyo', label: 'Asia/Tokyo (UTC+9)' },
+  { value: 'Asia/Shanghai', label: 'Asia/Shanghai (UTC+8)' },
+  { value: 'Asia/Dubai', label: 'Asia/Dubai (UTC+4)' },
+  { value: 'Australia/Sydney', label: 'Australia/Sydney (UTC+10/+11)' },
+]
+
 const FIELD_TYPES = [
   { value: 'text', label: 'Text' },
   { value: 'number', label: 'Number' },
@@ -96,6 +125,7 @@ export default function SettingsPage() {
   const [language, setLanguage] = useState('pl')
   const [depth, setDepth] = useState('standard')
   const [format, setFormat] = useState('pdf')
+  const [timezone, setTimezone] = useState('Europe/Warsaw')
 
   // Notification preferences
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -157,6 +187,7 @@ export default function SettingsPage() {
       setLanguage(data.preferred_language || 'pl')
       setDepth(data.preferred_depth || 'standard')
       setFormat(data.preferred_format || 'pdf')
+      setTimezone(data.timezone || 'Europe/Warsaw')
     } catch (err) {
       setError('Failed to load profile')
     } finally {
@@ -304,12 +335,19 @@ export default function SettingsPage() {
     setSuccess('')
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token')
+      }
+
       // Update profile
       const profileResponse = await fetch(`${API_BASE_URL}/users/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({
           name,
@@ -328,11 +366,13 @@ export default function SettingsPage() {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({
           preferred_language: language,
           preferred_depth: depth,
           preferred_format: format,
+          timezone: timezone,
         }),
       })
 
@@ -346,6 +386,7 @@ export default function SettingsPage() {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({
           email_notifications: emailNotifications,
@@ -574,6 +615,27 @@ export default function SettingsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label htmlFor="timezone" className="block text-sm font-medium text-gray-700">
+                Timezone
+              </label>
+              <select
+                id="timezone"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                All timestamps in the application will be displayed in your selected timezone
+              </p>
             </div>
           </div>
         </section>

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
+import { useUserTimezone, useUserLocale } from '@/hooks/useUserTimezone'
+import { formatDateInTimezone } from '@/utils/date'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -75,6 +77,8 @@ const REPORT_TYPE_LABELS: Record<string, { label: string; color: string; icon: s
 
 export default function ReportsPage() {
   const router = useRouter()
+  const userTimezone = useUserTimezone()
+  const userLocale = useUserLocale()
   const [reports, setReports] = useState<ReportSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -204,15 +208,9 @@ export default function ReportsPage() {
     fetchReports()
   }
 
+  // Format date using user's timezone preference
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pl-PL', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return formatDateInTimezone(dateString, userTimezone, userLocale)
   }
 
   const getTypeInfo = (type: string) => {
