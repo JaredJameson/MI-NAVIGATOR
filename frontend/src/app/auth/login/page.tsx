@@ -17,9 +17,63 @@ export default function LoginPage() {
   const [tempToken, setTempToken] = useState('')
   const [twoFactorCode, setTwoFactorCode] = useState('')
 
+  // Field validation errors
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string
+    password?: string
+    twoFactorCode?: string
+  }>({})
+
+  // Validate individual fields
+  const validateField = (name: string, value: string) => {
+    const errors: typeof fieldErrors = { ...fieldErrors }
+
+    switch (name) {
+      case 'email':
+        if (!value.trim()) {
+          errors.email = 'Email is required'
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          errors.email = 'Please enter a valid email address'
+        } else {
+          delete errors.email
+        }
+        break
+      case 'password':
+        if (!value) {
+          errors.password = 'Password is required'
+        } else if (value.length < 6) {
+          errors.password = 'Password must be at least 6 characters'
+        } else {
+          delete errors.password
+        }
+        break
+      case 'twoFactorCode':
+        if (!value) {
+          errors.twoFactorCode = 'Authentication code is required'
+        } else if (value.length !== 6) {
+          errors.twoFactorCode = 'Code must be 6 digits'
+        } else {
+          delete errors.twoFactorCode
+        }
+        break
+    }
+
+    setFieldErrors(errors)
+    return !errors[name as keyof typeof errors]
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Validate all fields
+    const emailValid = validateField('email', email)
+    const passwordValid = validateField('password', password)
+
+    if (!emailValid || !passwordValid) {
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -45,6 +99,14 @@ export default function LoginPage() {
   const handleTwoFactorSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Validate 2FA code
+    const codeValid = validateField('twoFactorCode', twoFactorCode)
+
+    if (!codeValid) {
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -104,30 +166,80 @@ export default function LoginPage() {
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="you@example.com"
-                />
+                <div className="relative mt-1">
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      if (fieldErrors.email) {
+                        validateField('email', e.target.value)
+                      }
+                    }}
+                    onBlur={(e) => validateField('email', e.target.value)}
+                    className={`block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-1 ${
+                      fieldErrors.email
+                        ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                        : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                    }`}
+                    placeholder="you@example.com"
+                    aria-invalid={fieldErrors.email ? 'true' : 'false'}
+                    aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                  />
+                  {fieldErrors.email && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {fieldErrors.email && (
+                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="Enter your password"
-                />
+                <div className="relative mt-1">
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      if (fieldErrors.password) {
+                        validateField('password', e.target.value)
+                      }
+                    }}
+                    onBlur={(e) => validateField('password', e.target.value)}
+                    className={`block w-full rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-1 ${
+                      fieldErrors.password
+                        ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                        : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                    }`}
+                    placeholder="Enter your password"
+                    aria-invalid={fieldErrors.password ? 'true' : 'false'}
+                    aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+                  />
+                  {fieldErrors.password && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {fieldErrors.password && (
+                  <p className="mt-1 text-sm text-red-600" id="password-error">
+                    {fieldErrors.password}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -202,22 +314,50 @@ export default function LoginPage() {
               <label htmlFor="2faCode" className="block text-sm font-medium text-gray-700 mb-2">
                 Authentication Code
               </label>
-              <input
-                id="2faCode"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                value={twoFactorCode}
-                onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
-                required
-                className="block w-full text-center text-2xl tracking-widest rounded-md border border-gray-300 px-3 py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="000000"
-                autoFocus
-              />
-              <p className="mt-2 text-xs text-gray-500 text-center">
-                Code expires in 30 seconds
-              </p>
+              <div className="relative">
+                <input
+                  id="2faCode"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={twoFactorCode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '')
+                    setTwoFactorCode(value)
+                    if (fieldErrors.twoFactorCode) {
+                      validateField('twoFactorCode', value)
+                    }
+                  }}
+                  onBlur={(e) => validateField('twoFactorCode', e.target.value)}
+                  className={`block w-full text-center text-2xl tracking-widest rounded-md px-3 py-3 shadow-sm focus:outline-none focus:ring-1 ${
+                    fieldErrors.twoFactorCode
+                      ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
+                      : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
+                  placeholder="000000"
+                  autoFocus
+                  aria-invalid={fieldErrors.twoFactorCode ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.twoFactorCode ? '2fa-error' : '2fa-help'}
+                />
+                {fieldErrors.twoFactorCode && (
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              {fieldErrors.twoFactorCode && (
+                <p className="mt-1 text-sm text-red-600" id="2fa-error">
+                  {fieldErrors.twoFactorCode}
+                </p>
+              )}
+              {!fieldErrors.twoFactorCode && (
+                <p className="mt-2 text-xs text-gray-500 text-center" id="2fa-help">
+                  Code expires in 30 seconds
+                </p>
+              )}
             </div>
 
             <button
