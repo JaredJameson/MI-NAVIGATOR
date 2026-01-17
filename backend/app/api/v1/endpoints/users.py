@@ -3,13 +3,17 @@ User API Endpoints
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+import json
+from datetime import datetime
 
 from app.db.session import get_db
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
+from app.models.audit_log import AuditLog
 
 router = APIRouter()
 
@@ -211,3 +215,73 @@ async def update_notification_preferences(
         NOTIFICATION_PREFS[user_id]["in_app_project_updates"] = prefs_data.in_app_project_updates
 
     return NotificationPreferencesResponse(**NOTIFICATION_PREFS[user_id])
+
+
+@router.post("/me/export-data")
+async def export_user_data(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Export all user data for GDPR compliance.
+    Returns a JSON file with all user information.
+    """
+    # Fetch user's audit logs
+    audit_stmt = select(AuditLog).where(AuditLog.user_id == current_user.id).order_by(AuditLog.created_at.desc())
+    audit_result = await db.execute(audit_stmt)
+    audit_logs = audit_result.scalars().all()
+
+    # Build comprehensive data export
+    export_data = {
+        "user_profile": {
+            "id": str(current_user.id),
+            "email": current_user.email,
+            "name": current_user.name,
+            "avatar_url": current_user.avatar_url,
+            "role": current_user.role.value if current_user.role else None,
+            "industry": current_user.industry,
+            "industry_segment": current_user.industry_segment,
+            "user_role": current_user.user_role,
+            "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+            "updated_at": current_user.updated_at.isoformat() if current_user.updated_at else None,
+            "last_login_at": current_user.last_login_at.isoformat() if current_user.last_login_at else None,
+        },
+        "preferences": {
+            "preferred_language": current_user.preferred_language,
+            "preferred_depth": current_user.preferred_depth,
+            "preferred_format": current_user.preferred_format,
+            "onboarding_completed": current_user.onboarding_completed,
+            "email_verified": current_user.email_verified,
+        },
+        "security": {
+            "two_factor_enabled": current_user.two_factor_enabled,
+            "account_locked": current_user.account_locked_until.isoformat() if current_user.account_locked_until else None,
+        },
+        "activity_log": [
+            {
+                "action": log.action,
+                "description": log.description,
+                "ip_address": log.ip_address,
+                "timestamp": log.created_at.isoformat() if log.created_at else None,
+                "extra_data": log.extra_data,
+            }
+            for log in audit_logs
+        ],
+        "export_metadata": {
+            "exported_at": datetime.utcnow().isoformat(),
+            "export_format": "JSON",
+            "data_version": "1.0",
+        }
+    }
+
+    # Return as JSON download
+    json_content = json.dumps(export_data, indent=2, ensure_ascii=False)
+    filename = f"user_data_export_{current_user.id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+
+    return Response(
+        content=json_content,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )

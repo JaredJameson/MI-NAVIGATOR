@@ -861,6 +861,20 @@ export default function SettingsPage() {
               </Link>
             </div>
 
+            {/* Privacy Settings */}
+            <div className="flex items-center justify-between py-4 border-b">
+              <div>
+                <h3 className="font-medium text-gray-900">Privacy Settings</h3>
+                <p className="text-sm text-gray-500">Export your data and manage privacy options (GDPR)</p>
+              </div>
+              <Link
+                href="/settings/privacy"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                Manage Privacy →
+              </Link>
+            </div>
+
             <div className="flex items-center justify-between py-4 border-b">
               <div>
                 <h3 className="font-medium text-gray-900">Audit Trail</h3>
