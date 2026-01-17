@@ -1,3 +1,99 @@
+# Session 77 - Date: 2026-01-17
+
+## Session Summary
+
+**Number Locale Feature:** Number format by user locale ✅ (COMPLETED)
+**Features Completed:** 1 new feature
+- Feature #350: Number format by user locale ✅ (PASSED - All 5 test steps verified)
+
+**Regression Tests:** 0 features tested
+
+**Current Progress:** 152/380 features passing (40.0%)
+
+**Key Achievements:**
+- Implemented comprehensive number formatting system with locale support
+- Created number.ts utility module with 5 formatting functions
+- Integrated formatNumber() and formatDecimal() across 3 pages
+- Verified correct formatting for both en-US and pl-PL locales
+- Zero console errors during testing
+
+**Implementation Details:**
+
+**New Files Created:**
+1. `frontend/src/utils/number.ts` - Number formatting utilities
+   - formatNumber(value, locale) - Format integers with thousands separator
+   - formatDecimal(value, locale, decimals) - Format decimals with specified precision
+   - formatCurrency(value, locale, currency) - Format as currency
+   - formatPercentage(value, locale, decimals) - Format as percentage
+   - formatCompactNumber(value, locale) - Compact notation (1.2K, 3.4M)
+
+**Files Modified:**
+1. `frontend/src/app/settings/api-usage/page.tsx`
+   - Added useUserLocale() hook
+   - Replaced all .toLocaleString() calls with formatNumber(value, locale)
+   - Applied to: total_requests, requests_limit, requests_remaining, daily usage, endpoint requests
+
+2. `frontend/src/app/settings/billing/page.tsx`
+   - Added useUserLocale() hook
+   - Applied formatNumber() to api_calls
+   - Applied formatDecimal() to storage_used_gb and storage_limit_gb with 1 decimal place
+
+3. `frontend/src/app/analysis/page.tsx`
+   - Added useUserLocale() hook
+   - Applied formatDecimal() to market_size and growth_rate
+   - Applied formatNumber() to key_players count
+
+**Format Verification:**
+
+**en-US Format (English):**
+- Thousands separator: Comma (8,432)
+- Decimal separator: Period (2.4)
+- Examples verified:
+  - API calls: 8,432
+  - Request limit: 10,000
+  - Storage: 2.4 GB / 10.0 GB
+  - Market size: 3.2 (billion)
+  - Growth rate: 4.5%
+
+**pl-PL Format (Polski):**
+- Thousands separator: Space (10 000)
+- Decimal separator: Comma (2,4)
+- Examples verified:
+  - API calls: 8432 (no separator for < 10000)
+  - Request limit: 10 000
+  - Storage: 2,4 GB / 10,0 GB
+  - Market size: 3,2 (miliard)
+  - Growth rate: 4,5%
+
+**Test Results:**
+✅ Step 1: Set locale with comma decimal - Changed language to English (en-US)
+✅ Step 2: View numbers - Navigated to API Usage page
+✅ Step 3: Verify comma as decimal separator - Confirmed: 2.4 GB, 8,432 requests
+✅ Step 4: Set locale with period decimal - Changed language back to Polski (pl-PL)
+✅ Step 5: Verify period as decimal separator - Confirmed: 2,4 GB, 10 000 requests
+
+**Technical Notes:**
+- Uses JavaScript Intl.NumberFormat API for locale-aware formatting
+- Automatically adapts to user's preferred_language setting
+- Consistent with date formatting from Feature #349
+- No hardcoded locale values - all dynamic based on user preference
+
+**Console Errors:** Zero ✅
+
+**Screenshots:**
+- feature_350_step1_language_changed_to_english.png - Settings with English selected
+- feature_350_step2_api_usage_english_format.png - API Usage showing en-US format
+- feature_350_step3_language_changed_to_polish.png - Settings with Polski selected
+- feature_350_step4_billing_polish_format.png - Billing showing pl-PL format (2,4 GB)
+- feature_350_step5_api_usage_polish_format.png - API Usage showing pl-PL format (10 000)
+
+**Next Session Priorities:**
+1. Continue with next feature from queue
+2. Consider applying number formatting to other pages (dashboard, reports, etc.)
+3. Maintain focus on completing one feature perfectly per session
+
+---
+
 # Session 76 - Date: 2026-01-17
 
 ## Session Summary
