@@ -3344,6 +3344,7 @@ export default function ReportViewerPage() {
   // Auto-save state
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null)
   const [isAutoSaving, setIsAutoSaving] = useState(false)
+  const editedSectionsRef = useRef<{[key: string]: string}>({})
 
   // Table insertion state
   const [showTableModal, setShowTableModal] = useState(false)
@@ -3421,9 +3422,14 @@ export default function ReportViewerPage() {
     return () => document.removeEventListener('selectionchange', handleSelectionChange)
   }, [])
 
+  // Keep ref in sync with editedSections
+  useEffect(() => {
+    editedSectionsRef.current = editedSections
+  }, [editedSections])
+
   // Auto-save effect - saves to localStorage every 30 seconds when editing
   useEffect(() => {
-    if (!isEditing || Object.keys(editedSections).length === 0) return
+    if (!isEditing) return
 
     // Save immediately when edit mode starts
     const timeoutId = setTimeout(() => {
@@ -3439,7 +3445,7 @@ export default function ReportViewerPage() {
       clearTimeout(timeoutId)
       clearInterval(intervalId)
     }
-  }, [isEditing, editedSections, reportId])
+  }, [isEditing, reportId])
 
   const fetchReport = async () => {
     const token = getStoredToken()
@@ -3544,12 +3550,13 @@ export default function ReportViewerPage() {
 
   // Auto-save to localStorage
   const autoSaveToLocal = () => {
-    if (!reportId || Object.keys(editedSections).length === 0) return
+    const currentSections = editedSectionsRef.current
+    if (!reportId || Object.keys(currentSections).length === 0) return
 
     try {
       setIsAutoSaving(true)
       localStorage.setItem(`draft_${reportId}`, JSON.stringify({
-        sections: editedSections,
+        sections: currentSections,
         timestamp: new Date().toISOString()
       }))
       setLastAutoSave(new Date())
