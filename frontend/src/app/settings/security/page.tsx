@@ -32,6 +32,12 @@ export default function SecuritySettingsPage() {
   const [isSettingUp, setIsSettingUp] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
 
+  // Password Change State
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+
   useEffect(() => {
     fetchTwoFactorStatus()
   }, [])
@@ -176,6 +182,80 @@ export default function SecuritySettingsPage() {
     }
   }
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError('All password fields are required')
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setError('New password must be at least 6 characters long')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match')
+      return
+    }
+
+    const token = getStoredToken()
+    if (!token) {
+      setError('Not authenticated')
+      return
+    }
+
+    // Get refresh token from localStorage
+    const refreshToken = localStorage.getItem('refresh_token')
+    if (!refreshToken) {
+      setError('Session token not found')
+      return
+    }
+
+    setIsChangingPassword(true)
+
+    try {
+      const csrfToken = await getCsrfToken()
+      const response = await fetch(`${API_BASE_URL}/users/me/password`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+          refresh_token: refreshToken
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to change password' }))
+        throw new Error(errorData.detail || 'Failed to change password')
+      }
+
+      const data = await response.json()
+      setSuccess(`${data.message} (${data.sessions_invalidated} other session(s) logged out)`)
+
+      // Clear form
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(''), 5000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to change password')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -276,6 +356,87 @@ export default function SecuritySettingsPage() {
               </div>
             </div>
           )}
+        </section>
+
+        {/* Change Password Section */}
+        <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Update your password and invalidate all other active sessions for security.
+            </p>
+          </div>
+
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div>
+              <label htmlFor="current-password" className="block text-sm font-medium text-gray-700 mb-1">
+                Current Password
+              </label>
+              <input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                disabled={isChangingPassword}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
+                New Password
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                disabled={isChangingPassword}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Must be at least 6 characters long
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm New Password
+              </label>
+              <input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                disabled={isChangingPassword}
+              />
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isChangingPassword}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isChangingPassword ? 'Changing Password...' : 'Change Password'}
+              </button>
+            </div>
+
+            <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="flex items-start gap-2">
+                <svg className="h-5 w-5 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-amber-900">Security Notice</p>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Changing your password will log out all other devices. You will stay logged in on this device.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </form>
         </section>
 
         {/* Back to Settings */}

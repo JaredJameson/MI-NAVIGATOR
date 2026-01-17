@@ -89,6 +89,19 @@ class NotificationPreferencesUpdate(BaseModel):
     in_app_project_updates: Optional[bool] = None
 
 
+class PasswordChangeRequest(BaseModel):
+    """Password change request."""
+    current_password: str
+    new_password: str
+    refresh_token: str  # Current session's refresh token to preserve
+
+
+class PasswordChangeResponse(BaseModel):
+    """Password change response."""
+    message: str
+    sessions_invalidated: int
+
+
 class AccountDeletionRequest(BaseModel):
     """Account deletion request."""
     password: str
@@ -245,6 +258,83 @@ async def update_notification_preferences(
         NOTIFICATION_PREFS[user_id]["in_app_project_updates"] = prefs_data.in_app_project_updates
 
     return NotificationPreferencesResponse(**NOTIFICATION_PREFS[user_id])
+
+
+@router.put("/me/password", response_model=PasswordChangeResponse)
+async def change_password(
+    password_data: PasswordChangeRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    request_obj: Request = None
+):
+    """
+    Change user password and invalidate all other sessions.
+
+    This endpoint:
+    1. Verifies the current password
+    2. Updates to the new password
+    3. Invalidates all sessions EXCEPT the current one (identified by refresh_token)
+    4. Logs the password change
+
+    Args:
+        password_data: Current password, new password, and current refresh token
+        current_user: Authenticated user
+        db: Database session
+        request_obj: HTTP request for audit logging
+
+    Returns:
+        PasswordChangeResponse with number of sessions invalidated
+
+    Raises:
+        HTTPException: If current password is incorrect or new password is invalid
+    """
+    # Verify current password
+    if not AuthService.verify_password(password_data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Current password is incorrect"
+        )
+
+    # Validate new password (minimum 6 characters)
+    if len(password_data.new_password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 6 characters long"
+        )
+
+    # Hash new password
+    new_password_hash = AuthService.hash_password(password_data.new_password)
+
+    # Update password
+    current_user.password_hash = new_password_hash
+    current_user.updated_at = datetime.utcnow()
+
+    # Invalidate all other sessions (keep current session active)
+    sessions_deleted = await AuthService.delete_other_user_sessions(
+        db,
+        current_user.id,
+        password_data.refresh_token
+    )
+
+    await db.commit()
+
+    # Log password change
+    if request_obj:
+        await log_audit(
+            db=db,
+            user=current_user,
+            action_type="password_changed",
+            resource_type="user",
+            resource_id=str(current_user.id),
+            description=f"Password changed for user '{current_user.email}'. {sessions_deleted} other session(s) invalidated.",
+            request=request_obj,
+            extra_data={"sessions_invalidated": sessions_deleted}
+        )
+
+    return PasswordChangeResponse(
+        message="Password changed successfully. Other sessions have been invalidated.",
+        sessions_invalidated=sessions_deleted
+    )
 
 
 @router.post("/me/export-data")

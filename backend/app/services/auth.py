@@ -158,6 +158,29 @@ class AuthService:
             await db.delete(session)
 
     @staticmethod
+    async def delete_other_user_sessions(db: AsyncSession, user_id: uuid.UUID, current_refresh_token: str) -> int:
+        """
+        Delete all sessions for a user except the one with the given refresh token.
+        Used when changing password to invalidate other devices while keeping current session active.
+
+        Args:
+            db: Database session
+            user_id: User ID whose sessions to delete
+            current_refresh_token: Refresh token of the current session to keep
+
+        Returns:
+            Number of sessions deleted
+        """
+        result = await db.execute(select(Session).where(Session.user_id == user_id))
+        sessions = result.scalars().all()
+        deleted_count = 0
+        for session in sessions:
+            if session.refresh_token != current_refresh_token:
+                await db.delete(session)
+                deleted_count += 1
+        return deleted_count
+
+    @staticmethod
     async def is_account_locked(user: User) -> bool:
         """Check if user account is locked."""
         if user.account_locked_until is None:
