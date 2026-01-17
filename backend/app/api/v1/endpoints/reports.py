@@ -7,13 +7,18 @@ from fastapi.responses import StreamingResponse
 from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 import io
 import re
 import uuid
+import json
 from pathlib import Path
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
+from app.models.report_template import ReportTemplate
+from app.db.session import get_db
 
 router = APIRouter()
 
@@ -1059,6 +1064,116 @@ async def get_all_report_ids(
 async def create_report(current_user: User = Depends(get_current_user)):
     """Create a new report."""
     return {"id": "report_123", "status": "created"}
+
+
+# Template routes (must come before /{report_id} to avoid route conflicts)
+@router.get("/templates")
+async def get_templates(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all report templates for current user."""
+    query = select(ReportTemplate).where(
+        ReportTemplate.created_by == str(current_user.id)
+    ).order_by(ReportTemplate.created_at.desc())
+
+    result = await db.execute(query)
+    templates = result.scalars().all()
+
+    # Convert to JSON format
+    templates_list = []
+    for template in templates:
+        templates_list.append({
+            "id": template.id,
+            "name": template.name,
+            "type": template.type,
+            "created_at": template.created_at.isoformat() + "Z",
+            "created_by": template.created_by,
+            "use_count": template.use_count,
+            "last_used": template.last_used.isoformat() + "Z" if template.last_used else None,
+            "original_report_id": template.original_report_id,
+            "original_report_title": template.original_report_title,
+        })
+
+    return {
+        "templates": templates_list,
+        "total": len(templates_list)
+    }
+
+
+@router.get("/templates/{template_id}")
+async def get_template(
+    template_id: str
+):
+    """Get a specific template."""
+    for template in MOCK_TEMPLATES:
+        if template["id"] == template_id:
+            return template
+
+    raise HTTPException(status_code=404, detail="Template not found")
+
+
+@router.delete("/templates/{template_id}")
+async def delete_template(
+    template_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a template."""
+    for i, template in enumerate(MOCK_TEMPLATES):
+        if template["id"] == template_id:
+            MOCK_TEMPLATES.pop(i)
+            return {"message": "Template deleted successfully"}
+
+    raise HTTPException(status_code=404, detail="Template not found")
+
+
+@router.post("/templates/{template_id}/use")
+async def create_report_from_template(
+    template_id: str,
+    report_title: str = Query(..., description="Title for the new report")
+):
+    """Create a new report from a template."""
+    from uuid import uuid4
+    import copy
+
+    # Find the template
+    source_template = None
+    for template in MOCK_TEMPLATES:
+        if template["id"] == template_id:
+            source_template = template
+            break
+
+    if not source_template:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    # Create new report from template
+    report_id = f"report_{uuid4().hex[:8]}"
+    new_report = {
+        "id": report_id,
+        "title": report_title,
+        "type": source_template["type"],
+        "company": "",  # To be filled
+        "created_at": datetime.utcnow().isoformat() + "Z",
+        "updated_at": datetime.utcnow().isoformat() + "Z",
+        "status": "draft",
+        "is_archived": False,
+        "summary": f"Raport utworzony z szablonu: {source_template['name']}",
+        "sections": copy.deepcopy(source_template["sections"]),
+        "template_id": template_id,
+        "template_name": source_template["name"],
+    }
+
+    MOCK_REPORTS.append(new_report)
+
+    # Update template usage stats
+    source_template["use_count"] += 1
+    source_template["last_used"] = datetime.utcnow().isoformat() + "Z"
+
+    return {
+        "message": "Report created from template",
+        "report_id": report_id,
+        "report_title": report_title
+    }
 
 
 @router.get("/{report_id}")
@@ -2357,10 +2472,10 @@ async def unarchive_report(
 async def save_report_as_template(
     report_id: str,
     template_name: str = Query(..., description="Name for the template"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Save a report as a reusable template."""
-    from uuid import uuid4
     import copy
 
     # Find the source report
@@ -2373,113 +2488,26 @@ async def save_report_as_template(
     if not source_report:
         raise HTTPException(status_code=404, detail="Report not found")
 
-    # Create template from report
-    template_id = f"template_{uuid4().hex[:8]}"
-    template = {
-        "id": template_id,
-        "name": template_name,
-        "type": source_report["type"],
-        "created_at": datetime.utcnow().isoformat() + "Z",
-        "created_by": current_user.email,
-        "use_count": 0,
-        "last_used": None,
-        # Template structure (sections without specific data)
-        "sections": copy.deepcopy(source_report["sections"]),
-        # Original report metadata for reference
-        "original_report_id": report_id,
-        "original_report_title": source_report["title"],
-    }
+    # Create template in database
+    new_template = ReportTemplate(
+        name=template_name,
+        type=source_report["type"],
+        created_by=str(current_user.id),
+        sections=json.dumps(copy.deepcopy(source_report["sections"])),  # Store as JSON string
+        use_count=0,
+        last_used=None,
+        original_report_id=report_id,
+        original_report_title=source_report["title"],
+    )
 
-    MOCK_TEMPLATES.append(template)
+    db.add(new_template)
+    await db.commit()
+    await db.refresh(new_template)
 
     return {
         "message": "Template created successfully",
-        "template_id": template_id,
+        "template_id": new_template.id,
         "template_name": template_name
-    }
-
-
-@router.get("/templates")
-async def get_templates():
-    """Get all report templates."""
-    return {
-        "templates": MOCK_TEMPLATES,
-        "total": len(MOCK_TEMPLATES)
-    }
-
-
-@router.get("/templates/{template_id}")
-async def get_template(
-    template_id: str
-):
-    """Get a specific template."""
-    for template in MOCK_TEMPLATES:
-        if template["id"] == template_id:
-            return template
-
-    raise HTTPException(status_code=404, detail="Template not found")
-
-
-@router.delete("/templates/{template_id}")
-async def delete_template(
-    template_id: str,
-    current_user: User = Depends(get_current_user)
-):
-    """Delete a template."""
-    for i, template in enumerate(MOCK_TEMPLATES):
-        if template["id"] == template_id:
-            MOCK_TEMPLATES.pop(i)
-            return {"message": "Template deleted successfully"}
-
-    raise HTTPException(status_code=404, detail="Template not found")
-
-
-@router.post("/templates/{template_id}/use")
-async def create_report_from_template(
-    template_id: str,
-    report_title: str = Query(..., description="Title for the new report")
-):
-    """Create a new report from a template."""
-    from uuid import uuid4
-    import copy
-
-    # Find the template
-    source_template = None
-    for template in MOCK_TEMPLATES:
-        if template["id"] == template_id:
-            source_template = template
-            break
-
-    if not source_template:
-        raise HTTPException(status_code=404, detail="Template not found")
-
-    # Create new report from template
-    report_id = f"report_{uuid4().hex[:8]}"
-    new_report = {
-        "id": report_id,
-        "title": report_title,
-        "type": source_template["type"],
-        "company": "",  # To be filled
-        "created_at": datetime.utcnow().isoformat() + "Z",
-        "updated_at": datetime.utcnow().isoformat() + "Z",
-        "status": "draft",
-        "is_archived": False,
-        "summary": f"Raport utworzony z szablonu: {source_template['name']}",
-        "sections": copy.deepcopy(source_template["sections"]),
-        "template_id": template_id,
-        "template_name": source_template["name"],
-    }
-
-    MOCK_REPORTS.append(new_report)
-
-    # Update template usage stats
-    source_template["use_count"] += 1
-    source_template["last_used"] = datetime.utcnow().isoformat() + "Z"
-
-    return {
-        "message": "Report created from template",
-        "report_id": report_id,
-        "report_title": report_title
     }
 
 

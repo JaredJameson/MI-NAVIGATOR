@@ -14,34 +14,33 @@ const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot-password', 
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const [isChecking, setIsChecking] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  // Check auth synchronously during initial render
+  const token = typeof window !== 'undefined' ? getStoredToken() : null
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+  const shouldBeAuthenticated = !isPublicRoute
+  const isAuthenticated = !!token
+
+  const [hasChecked, setHasChecked] = useState(false)
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = getStoredToken()
-      const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
-
-      if (!token && !isPublicRoute) {
-        // Not authenticated and trying to access protected route
-        router.push('/auth/login')
-        return
-      }
-
-      if (token && pathname.startsWith('/auth/')) {
-        // Already authenticated, redirect to dashboard
-        router.push('/dashboard')
-        return
-      }
-
-      setIsAuthenticated(!!token || isPublicRoute)
-      setIsChecking(false)
+    // Redirect if not authenticated and on protected route
+    if (!token && shouldBeAuthenticated) {
+      router.push('/auth/login')
+      return
     }
 
-    checkAuth()
-  }, [pathname, router])
+    // Redirect if authenticated and on auth page
+    if (token && pathname.startsWith('/auth/')) {
+      router.push('/dashboard')
+      return
+    }
 
-  if (isChecking) {
+    setHasChecked(true)
+  }, [pathname, router, token, shouldBeAuthenticated])
+
+  // Block rendering for protected routes without token
+  if (shouldBeAuthenticated && !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
@@ -49,8 +48,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
     )
   }
 
-  if (!isAuthenticated) {
-    return null
+  // Show loading during redirect
+  if (!hasChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    )
   }
 
   return <>{children}</>
