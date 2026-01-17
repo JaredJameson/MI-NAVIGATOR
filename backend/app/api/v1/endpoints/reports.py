@@ -2063,7 +2063,7 @@ class RestoreVersionRequest(BaseModel):
 async def restore_report_version(
     report_id: str,
     request: RestoreVersionRequest
-    # current_user: User = Depends(get_current_user)  # Disabled for testing
+    # Note: Auth disabled to match other version endpoints in this project
 ):
     """Restore a report to a previous version.
 
@@ -2095,7 +2095,7 @@ async def restore_report_version(
     new_version = {
         "version": max_version + 1,
         "created_at": datetime.now().isoformat() + "Z",
-        "author": current_user.name or current_user.email,
+        "author": "Jan Kowalski",  # Mock author for now (auth disabled)
         "changes": f"Przywrócono wersję {request.version}",
         "is_current": True,
     }
