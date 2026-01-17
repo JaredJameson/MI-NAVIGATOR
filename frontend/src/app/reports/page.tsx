@@ -406,6 +406,7 @@ export default function ReportsPage() {
     setShowBulkExportMenu(false)
 
     try {
+      const csrfToken = await getCsrfToken()
       const response = await fetch(
         `${API_BASE_URL}/reports/bulk-export`,
         {
@@ -413,6 +414,7 @@ export default function ReportsPage() {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken || '',
           },
           body: JSON.stringify({
             report_ids: Array.from(selectedReports),
