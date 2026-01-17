@@ -6,6 +6,7 @@ import { AuthGuard } from '@/components/auth/AuthGuard'
 import { FeatureFlagProvider } from '@/contexts/FeatureFlagContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { setupGlobalErrorHandlers } from '@/services/errorTracking'
+import { OfflineIndicator } from '@/components/OfflineIndicator'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -29,6 +30,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <FeatureFlagProvider>
+          <OfflineIndicator />
           <AuthGuard>
             {children}
           </AuthGuard>
