@@ -14,6 +14,46 @@
 
 **Current Progress:** 166/380 features passing (43.7%)
 
+**Key Achievements:**
+- Successfully tested and verified password change with session invalidation
+- Fixed critical bug in security page (refresh token localStorage key)
+- Verified multi-session scenario (browser + API login)
+- Confirmed current session preservation while other sessions invalidated
+
+**Bug Fix Details:**
+- **Problem:** Security page showed "Session token not found" error
+- **Cause:** Used `localStorage.getItem('refresh_token')` instead of `getStoredRefreshToken()`
+- **Solution:** Import and use `getStoredRefreshToken()` from `@/services/api`
+- **Impact:** Password change now works correctly, no more token errors
+
+**Test Verification:**
+Feature #365 - Session invalidation on password change:
+- ✅ Step 1: Created 2 sessions (Tab 0: browser login, Session 2: curl login)
+- ✅ Step 2: Changed password from Tab 0 (TestPassword123 → NewPassword456 → FinalPassword789)
+- ✅ Step 3: Tab 0 session still active (dashboard loads, user logged in)
+- ✅ Step 4: Curl session invalidated (message: "1 other session(s) logged out")
+
+**Implementation Verification:**
+- Backend `AuthService.delete_other_user_sessions()` works correctly
+- Compares refresh tokens and deletes non-matching sessions
+- Audit log created with session count: "Password changed for user... 1 other session(s) invalidated"
+- Frontend displays success message with invalidation count
+
+**Files Changed:**
+1. `frontend/src/app/settings/security/page.tsx` - Fixed refresh token retrieval
+
+**Screenshots Captured:**
+- feature_365_step1_before_password_change.png
+- feature_365_step2_filled_password_form.png
+- feature_365_password_changed_success.png
+- feature_365_final_test_1_session_invalidated.png (showing "1 session logged out")
+- feature_365_current_session_still_active.png (dashboard still accessible)
+
+**Next Session Priorities:**
+1. Continue with next feature from queue
+2. All 4 test steps passed - feature fully verified
+3. Session invalidation working as designed
+
 ---
 
 # Session 89 - Date: 2026-01-18
