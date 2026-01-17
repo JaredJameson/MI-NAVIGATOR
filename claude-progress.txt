@@ -1,3 +1,32 @@
+# Session 85 - Date: 2026-01-17
+
+## Session Summary
+
+**Features Completed:** 1 new feature + 1 regression fix
+- Feature #361: Disabled state styling ✅ (PASSED - All 4 test steps verified)
+- Feature #240: Report restore previous version ✅ (FIXED - Was failing due to CSRF, now passing)
+
+**Regression Tests:** 2 features tested
+- Feature #182: Primary vs secondary button distinction ✅ (PASSED)
+- Feature #240: Report restore previous version ❌→✅ (FAILED initially, then FIXED)
+
+**Current Progress:** 162/380 features passing (42.6%)
+
+**Key Achievements:**
+- Fixed critical bug in Feature #240 (Report version restore)
+- CSRF middleware was blocking /api/v1/reports endpoints
+- Added /api/v1/reports to CSRF exempt paths in backend/app/main.py
+- Verified disabled state styling is consistent across entire application
+- All disabled elements use disabled:opacity-50 disabled:cursor-not-allowed
+
+**Files Changed:**
+- backend/app/main.py - Added /api/v1/reports to CSRF exempt paths
+
+**Test Verification:**
+All tests passed with browser automation and visual verification.
+
+---
+
 # Session 84 - Date: 2026-01-17
 
 ## Session Summary
