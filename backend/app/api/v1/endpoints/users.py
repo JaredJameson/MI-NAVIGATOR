@@ -3,10 +3,10 @@ User API Endpoints
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 import json
 from datetime import datetime
 
@@ -14,6 +14,9 @@ from app.db.session import get_db
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
 from app.models.audit_log import AuditLog
+from app.models.report_template import ReportTemplate
+from app.services.auth import AuthService
+from app.services.audit_service import log_audit
 
 router = APIRouter()
 
@@ -79,6 +82,18 @@ class NotificationPreferencesUpdate(BaseModel):
     in_app_report_ready: Optional[bool] = None
     in_app_alert_triggered: Optional[bool] = None
     in_app_project_updates: Optional[bool] = None
+
+
+class AccountDeletionRequest(BaseModel):
+    """Account deletion request."""
+    password: str
+    confirmation_text: str  # User must type "DELETE" to confirm
+
+
+class AccountDeletionResponse(BaseModel):
+    """Account deletion response."""
+    message: str
+    deleted_at: str
 
 
 # In-memory storage for notification preferences (mock)
@@ -284,4 +299,82 @@ async def export_user_data(
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"'
         }
+    )
+
+
+@router.delete("/me", response_model=AccountDeletionResponse)
+async def delete_user_account(
+    deletion_request: AccountDeletionRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    request_obj: Request = None
+):
+    """
+    Delete user account and all associated data (GDPR compliance).
+
+    This is a permanent action that:
+    1. Verifies the user's password
+    2. Checks confirmation text is "DELETE"
+    3. Deletes all user data (audit logs, templates, etc.)
+    4. Deletes the user account
+
+    Args:
+        deletion_request: Password and confirmation text
+        current_user: Authenticated user
+        db: Database session
+        request_obj: HTTP request for audit logging
+
+    Returns:
+        AccountDeletionResponse with deletion timestamp
+
+    Raises:
+        HTTPException: If password is incorrect or confirmation text is wrong
+    """
+    # Verify password
+    if not AuthService.verify_password(deletion_request.password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password"
+        )
+
+    # Verify confirmation text
+    if deletion_request.confirmation_text != "DELETE":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Confirmation text must be 'DELETE'"
+        )
+
+    user_id = current_user.id
+    user_email = current_user.email
+    deletion_time = datetime.utcnow()
+
+    # Log account deletion before deleting
+    if request_obj:
+        await log_audit(
+            db=db,
+            user=current_user,
+            action_type="account_deleted",
+            resource_type="user",
+            resource_id=str(user_id),
+            description=f"User account '{user_email}' permanently deleted",
+            request=request_obj,
+            extra_data={"email": user_email, "deleted_at": deletion_time.isoformat()}
+        )
+
+    # Delete all related data
+    # 1. Delete audit logs
+    await db.execute(delete(AuditLog).where(AuditLog.user_id == user_id))
+
+    # 2. Delete report templates
+    await db.execute(delete(ReportTemplate).where(ReportTemplate.created_by == user_id))
+
+    # 3. Delete user account
+    await db.delete(current_user)
+
+    # Commit all deletions
+    await db.commit()
+
+    return AccountDeletionResponse(
+        message=f"Account {user_email} and all associated data have been permanently deleted",
+        deleted_at=deletion_time.isoformat()
     )
