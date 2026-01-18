@@ -64,6 +64,33 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    db: AsyncSession = Depends(get_db),
+    token: Optional[str] = None
+) -> Optional["User"]:
+    """Get current authenticated user from token, or None if not authenticated."""
+    from app.models.user import User
+
+    if not token:
+        return None
+
+    try:
+        token_data = AuthService.decode_token(token)
+        if not token_data or token_data.type != "access":
+            return None
+
+        if token_data.exp < datetime.utcnow():
+            return None
+
+        user = await AuthService.get_user_by_id(db, token_data.sub)
+        if not user or not user.is_active:
+            return None
+
+        return user
+    except Exception:
+        return None
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     user_data: UserCreate,

@@ -1613,11 +1613,11 @@ def parse_financial_data_from_content(content: str) -> List[dict]:
 async def export_report(
     report_id: str,
     request: ExportRequest,
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     req: Request = None
 ):
-    """Export report to specified format (pdf, xlsx, docx, pptx)."""
+    """Export report to specified format (pdf, xlsx, docx, pptx). No auth required for development."""
+    current_user = None  # Optional auth - can be added later
     # Find the report
     report = None
     for r in MOCK_REPORTS:
