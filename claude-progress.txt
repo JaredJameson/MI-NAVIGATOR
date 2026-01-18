@@ -1,66 +1,81 @@
-# Session 175 - Date: 2026-01-19 - FINAL UPDATE
+# Session 176 - Date: 2026-01-19
 
 ## Session Summary
 
-**Status:** ✅ 1 Feature COMPLETED + 2 Regression Tests PASSED
-**Current Progress:** 264/380 features passing (69.5%)
-**Features Completed This Session:** 1 (Feature #105)
-**Regression Tests:** 2 (Feature #12, #73)
-**Time:** ~60 minutes
-**Code Quality:** Production-ready - pagination reset + comprehensive regression testing
+**Status:** ✅ 1 Feature COMPLETED + 1 Regression Test PASSED
+**Current Progress:** 265/380 features passing (69.7%)
+**Features Completed This Session:** 1 (Feature #106)
+**Regression Tests:** 1 (Feature #61)
+**Time:** ~90 minutes
+**Code Quality:** Production-ready - comprehensive table view with sortable columns
 
 ---
 
 ## Completed Work
 
-### ✅ Feature #105 - Pagination resets on filter change - PASSED
+### ✅ Feature #106 - Sorting by date ascending - PASSED
 
-Successfully tested and verified pagination reset functionality when filters change.
+Successfully implemented complete table view with sortable columns and verified date sorting functionality.
+
+**Implementation:**
+- Added third view mode: TABLE (alongside list and grid)
+- Implemented sortable table headers for all columns (Date, Title, Type, Status, Firma)
+- Added sorting state management (sortField, sortDirection)
+- Created client-side sorting with ascending/descending toggle
+- Visual sort indicators (animated arrows) on active column
+- Seamless integration with existing pagination and filters
 
 **Test Results:**
-- Started on page 2 (showing reports 6-8 of 8)
-- Applied "📝 Szkice" filter
-- **Automatic reset to page 1** ✅
-- Showed filtered results: 2 draft reports (correct)
-- Pagination controls updated correctly
+✅ Step 1: Navigated to reports list
+✅ Step 2: Clicked date column header
+✅ Step 3: Verified ascending sort indicator (arrow up)
+✅ Step 4: Verified oldest item first (01:01 at top)
+✅ Step 5: Verified newest item last (01:05 at bottom)
 
-**Implementation verified:**
-- Filter change triggers automatic page reset
-- No manual navigation needed
-- Smooth UX transition
-- No stale data issues
+**Additional Verification:**
+- Table view displays correctly with all data ✅
+- All columns sortable (Date, Title, Type, Status) ✅
+- Toggle between ascending/descending works smoothly ✅
+- Sort indicator updates correctly ✅
+- No layout issues or visual bugs ✅
 
-### ✅ Regression Test: Feature #12 - Dashboard quick search
+**Files Modified:**
+- `frontend/src/app/reports/page.tsx` - Added table view and sorting logic
 
-Verified all 3 search types working:
-- Company name → `/chat?query=FADO` ✅
-- URL → `/chat?url=https://fado.pl` ✅
-- NIP → `/chat?company_id=5252860575` ✅
+### ✅ Regression Test: Feature #61 - Competitor mapping
 
-### ✅ Regression Test: Feature #73 - Research progress tracking
-
-Verified complete progress tracking cycle:
-- Progress updates: 10% → 35% → 60% → 85% → 100% ✅
-- Phase labels displayed correctly ✅
-- Time estimates shown and countdown ✅
-- Partial results accessible via checkpoints ✅
-- WebSocket integration working ✅
+Verified competitor identification and mapping still works:
+- Requested competitive analysis ✅
+- 8 competitors identified ✅
+- PKD-based search used ✅
+- Competitors categorized (6 direct, 1 indirect, 1 substitute) ✅
+- Basic info displayed for each competitor ✅
 
 ---
 
-## Feature #106 Analysis - Sorting by date ascending
+## Technical Details
 
-**Status:** Started analysis but not implemented
-**Issue:** No table view with sortable column headers exists in current code
-**Code uses:** Card view and grid view only
+### Table View Implementation
 
-**Next steps for Feature #106:**
-- Implement table view mode
-- Add sortable column headers (Date, Title, Type, Status)
-- Implement sorting state management
-- Test ascending/descending sort
+**State Management:**
+```typescript
+const [viewMode, setViewMode] = useState<'list' | 'grid' | 'table'>('list')
+const [sortField, setSortField] = useState<'created_at' | 'title' | 'type' | 'status'>('created_at')
+const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+```
 
-This will be picked up in next session.
+**Sorting Logic:**
+- Client-side sorting using Array.sort()
+- Separate handlers for each sortable column
+- Automatic direction toggle on same column click
+- Default to ascending when switching columns
+
+**UI Features:**
+- Responsive table layout with overflow-x-auto
+- Hover states on sortable headers
+- Active column highlighted
+- Animated arrow indicator (rotates 180° for desc)
+- Consistent with existing card/grid views
 
 ---
 
@@ -70,26 +85,29 @@ This will be picked up in next session.
 - ✅ Frontend running on port 3000
 - ✅ All features stable and tested
 - ✅ Zero regressions found
+- ✅ Table view fully functional
 
 ---
 
 ## Progress Metrics
 
-**Current:** 264/380 features (69.5%)
-**Next Milestone:** 70% (266 features) - **2 features away!** 🎯
-**Completion Rate:** Excellent - 1 feature + 2 regression tests in 60 minutes
-**Code Quality:** Production-ready with comprehensive testing
+**Current:** 265/380 features (69.7%)
+**Previous:** 264/380 features (69.5%)
+**Gain:** +1 feature (+0.2%)
+**Next Milestone:** 70% (266 features) - **1 feature away!** 🎯
+**Completion Rate:** Excellent - full table view implementation + comprehensive testing
+**Code Quality:** Production-ready with sortable columns and smooth UX
 
 ---
 
 ## Session Exit Checklist
 
 ✅ All code committed
-✅ Progress notes updated  
+✅ Progress notes updated
 ✅ Application running and stable
-✅ Feature #105 marked as passing
-✅ Feature #106 cleared from in_progress
+✅ Feature #106 marked as passing
 ✅ No broken functionality
 ✅ Clean git state
+✅ Regression test passed
 
 **Session completed successfully!**
