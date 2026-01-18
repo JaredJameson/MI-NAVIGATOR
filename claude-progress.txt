@@ -1,3 +1,145 @@
+# Session 137 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature completed (Company profile from CEIDG)
+**Features Completed:** 1 feature
+- Feature #51: Company profile from CEIDG ✅ (FULLY TESTED AND PASSING)
+
+**Regression Tests:** 0 features (session focused on fixing and completing Feature #51)
+
+**Current Progress:** 219/380 features passing (57.6%)
+
+**Key Achievements:**
+- ✅ Fixed authentication issue (logout and re-login)
+- ✅ Added missing PKD codes to dictionary (16.23.Z, 31.02.Z, 74.10.Z)
+- ✅ Completed all 7 test steps for CEIDG company lookup
+- ✅ Verified PKD codes display correctly with green theme
+- ✅ Feature #51 marked as passing
+
+## Feature #51 - Company Profile from CEIDG ✅
+
+**Implementation Status:** Complete (fully tested end-to-end)
+
+**Problem Identified:**
+Previous session had implemented CEIDG functionality but couldn't test due to 401 auth errors. Additionally, PKD codes were not displaying because the PKD_CODES dictionary was missing entries for CEIDG-specific codes.
+
+**Bug Fix (backend/app/api/v1/endpoints/companies.py):**
+
+Added 3 missing PKD codes to PKD_CODES dictionary (lines 504-508):
+```python
+"16.23.Z": {"name": "Produkcja wyrobów stolarskich i ciesielskich dla budownictwa", "category": "Produkcja"},
+"31.02.Z": {"name": "Produkcja mebli kuchennych", "category": "Produkcja"},
+"74.10.Z": {"name": "Specjalistyczne projektowanie", "category": "Usługi profesjonalne"},
+```
+
+**Auth Issue Resolution:**
+- 401 errors were due to expired/invalid session
+- Solution: Logout and re-login via /auth/login
+- After fresh login, all endpoints worked correctly
+
+**Test Results - All 7 Steps Verified:**
+
+✅ **Step 1: Navigate to chat**
+- URL: http://localhost:3000/chat
+- Page loaded with empty conversation state
+
+✅ **Step 2: Enter sole proprietor NIP number**
+- Entered: 9876543211
+- Frontend detected NIP automatically
+- Banner appeared: "NIP Detected: 9876543211"
+- "Lookup Company" button displayed
+
+✅ **Step 3: Verify CEIDG data is fetched**
+- Clicked "Lookup Company" button
+- WebSocket message sent successfully
+- Backend returned type: `company_profile_ceidg`
+- Console log confirmed full data structure
+
+✅ **Step 4: Verify business name displayed**
+- Business name: "Zakład Stolarski Jan Kowalski" ✓
+- Displayed in large bold heading
+- Green header background distinguishes from KRS (blue)
+
+✅ **Step 5: Verify owner name displayed**
+- Owner name: "Jan Kowalski" ✓
+- Displayed as subtitle: "Właściciel: Jan Kowalski"
+- Clearly separated from business name
+
+✅ **Step 6: Verify business address shown**
+- Address: "ul. Drewniana 45, 02-123 Warszawa" ✓
+- Displayed in dedicated "Adres prowadzenia działalności" section
+- Proper formatting with street, postal code, city
+
+✅ **Step 7: Verify PKD codes displayed**
+- All 2 PKD codes shown with full details:
+  * **16.23.Z** (Produkcja) - Produkcja wyrobów stolarskich i ciesielskich dla budownictwa
+  * **31.02.Z** (Produkcja) - Produkcja mebli kuchennych
+- Each code displayed with:
+  * Green badge with code number (vs blue for KRS)
+  * Gray badge with category
+  * Full Polish description
+- Section heading: "Przedmiot przeważającej działalności (PKD)"
+
+**Visual Design Verification:**
+
+CEIDG Profile Card:
+- ✅ Green color scheme (header: #F0FDF4, badges: #16A34A)
+- ✅ Person icon in header (vs document icon for KRS)
+- ✅ "Dane z CEIDG API" label
+- ✅ Separate business name and owner name fields
+- ✅ Registration data grid (NIP, REGON, founding date)
+- ✅ Address section with proper formatting
+- ✅ PKD codes with green badges
+- ✅ Footer timestamp: "Dane pobrano: 18.01.2026, 13:01:21"
+
+**Console Log Verification:**
+```json
+{
+  "type": "company_profile_ceidg",
+  "data": {
+    "lookup_type": "NIP",
+    "identifier": "9876543211",
+    "basic_info": {
+      "business_name": "Zakład Stolarski Jan Kowalski",
+      "owner_name": "Jan Kowalski",
+      "nip": "9876543211",
+      "regon": "123456789",
+      "address": "ul. Drewniana 45, 02-123 Warszawa",
+      "status": "active",
+      "founded": "2015"
+    },
+    "pkd_codes": [
+      {"code": "16.23.Z", "name": "Produkcja wyrobów stolarskich i ciesielskich dla budownictwa", "category": "Produkcja"},
+      {"code": "31.02.Z", "name": "Produkcja mebli kuchennych", "category": "Produkcja"}
+    ],
+    "source": "CEIDG API",
+    "fetched_at": "2026-01-18T13:01:21.432782"
+  }
+}
+```
+
+**CEIDG vs KRS Design Differences:**
+| Aspect | KRS (Companies) | CEIDG (Sole Proprietors) |
+|--------|----------------|--------------------------|
+| Color Scheme | Blue (#F0F7FF, #3B82F6) | Green (#F0FDF4, #16A34A) |
+| Icon | Document icon | Person icon |
+| Name Display | Single "name" field | Separate business_name + owner_name |
+| Registration | NIP + KRS + REGON | NIP + REGON (no KRS) |
+| Source Label | "Dane z KRS API" | "Dane z CEIDG API" |
+| PKD Badge | Blue | Green |
+
+**Files Modified:**
+- backend/app/api/v1/endpoints/companies.py (+3 lines - PKD codes)
+
+**Screenshots:**
+- feature51_step3_ceidg_profile_displayed.png - Initial profile view
+- feature51_step7_pkd_codes_displayed.png - Full profile with PKD codes
+
+**Commit:** de47993 "fix: Add missing PKD codes for CEIDG companies - Feature #51 complete"
+
+---
+
 # Session 136 - Date: 2026-01-18
 
 ## Session Summary
