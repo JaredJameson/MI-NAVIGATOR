@@ -2299,6 +2299,85 @@ Firma zatrudnia obecnie 150-200 pracowników [2] i osiąga przychody rzędu 68 m
 
 Ktory typ raportu Cie interesuje?"""
 
+    # News aggregation request
+    elif ("news" in user_lower or
+          "aktualnosc" in user_lower or
+          "aktualnos" in user_lower or
+          "newsy" in user_lower or
+          "wiadomosc" in user_lower or
+          "artykul" in user_lower):
+
+        # Extract company name/identifier
+        company_name = "FADO"  # Default for testing
+        company_id = "1"  # FADO's ID
+
+        # Try to extract company name from message
+        if "fado" in user_lower:
+            company_name = "FADO"
+            company_id = "1"
+        elif "splast" in user_lower:
+            company_name = "Splast"
+            company_id = "2"
+        elif "techsoft" in user_lower:
+            company_name = "TechSoft"
+            company_id = "3"
+
+        # Import news data
+        from app.api.v1.endpoints.companies import MOCK_COMPANY_NEWS
+        from datetime import datetime, timedelta
+
+        # Get news articles for the company
+        all_news = MOCK_COMPANY_NEWS.get(company_id, [])
+
+        # Limit to 6 most recent articles
+        news_items = all_news[:6]
+
+        # Format articles for display
+        articles = []
+        for article in news_items:
+            articles.append({
+                "id": article["id"],
+                "title": article["title"],
+                "summary": article["summary"],
+                "source": article["source"],
+                "source_url": article["source_url"],
+                "published_at": article["published_at"],
+                "sentiment": article["sentiment"],
+                "category": article["category"],
+                "days_ago": (datetime.now() - datetime.fromisoformat(article["published_at"])).days
+            })
+
+        # Calculate stats
+        total_articles = len(articles)
+        positive_count = sum(1 for a in articles if a["sentiment"] == "positive")
+        negative_count = sum(1 for a in articles if a["sentiment"] == "negative")
+        neutral_count = sum(1 for a in articles if a["sentiment"] == "neutral")
+
+        # Count unique sources
+        unique_sources = len(set(a["source"] for a in articles))
+
+        # Most recent article age
+        most_recent_days = min((a["days_ago"] for a in articles), default=0)
+
+        return json.dumps({
+            "type": "news_feed",
+            "data": {
+                "company_name": company_name,
+                "company_id": company_id,
+                "articles": articles,
+                "summary": {
+                    "total_articles": total_articles,
+                    "positive": positive_count,
+                    "negative": negative_count,
+                    "neutral": neutral_count,
+                    "unique_sources": unique_sources,
+                    "most_recent_days": most_recent_days,
+                    "date_range": f"Last {max((a['days_ago'] for a in articles), default=0)} days"
+                },
+                "fetched_at": datetime.utcnow().isoformat()
+            }
+        }, ensure_ascii=False)
+
     elif "pomoc" in user_lower or "help" in user_lower:
         return """Jestem asystentem MI-Navigator do analizy rynkowej i badania firm. Moge pomoc Ci:
 
