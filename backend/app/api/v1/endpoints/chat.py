@@ -2469,6 +2469,11 @@ async def websocket_endpoint(
                 'deep dive', 'full analysis', 'investigate', 'report'
             ])
 
+            # Detect if this is a deep research request with checkpoints
+            is_deep_research = any(keyword in content.lower() for keyword in [
+                'deep research', 'deep dive', 'due diligence'
+            ])
+
             if is_comprehensive:
                 # Phase 1: Data Collection
                 await websocket.send_json({
@@ -2481,6 +2486,57 @@ async def websocket_endpoint(
                     }
                 })
                 await asyncio.sleep(1.5)
+
+                # CHECKPOINT: Deep research pause after data collection
+                if is_deep_research:
+                    # Send partial results
+                    partial_results = {
+                        "company_name": "FADO Sp. z o.o.",
+                        "nip": "5260016831",
+                        "status": "active",
+                        "revenue_2023": "15.2M PLN",
+                        "employees": "120-150",
+                        "sources_gathered": 5
+                    }
+
+                    await websocket.send_json({
+                        "type": "checkpoint",
+                        "data": {
+                            "checkpoint_id": str(uuid.uuid4()),
+                            "phase": "Data Collection Complete",
+                            "message": "Initial data gathered. Would you like to continue with full analysis?",
+                            "partial_results": partial_results,
+                            "options": [
+                                {"id": "continue", "label": "Continue", "description": "Proceed with full financial and market analysis"},
+                                {"id": "review", "label": "Review", "description": "Review partial results before continuing"},
+                                {"id": "modify", "label": "Modify Scope", "description": "Adjust research scope or focus areas"}
+                            ]
+                        }
+                    })
+
+                    # Wait for user response (timeout after 60 seconds)
+                    import asyncio
+                    try:
+                        user_response = await asyncio.wait_for(websocket.receive_text(), timeout=60.0)
+                        response_data = json.loads(user_response)
+                        checkpoint_action = response_data.get("checkpoint_action", "continue")
+
+                        if checkpoint_action == "modify":
+                            # User wants to modify scope
+                            modified_scope = response_data.get("modified_scope", "")
+                            # Update content with modifications
+                            content = f"{content}\n\nModified scope: {modified_scope}"
+
+                        elif checkpoint_action == "review":
+                            # User wants to review - just send acknowledgement
+                            await websocket.send_text("Continuing after review...")
+                            await asyncio.sleep(0.5)
+
+                        # If "continue" or after review/modify, proceed
+                    except asyncio.TimeoutError:
+                        # Auto-continue after timeout
+                        await websocket.send_text("No response received. Auto-continuing research...")
+                        await asyncio.sleep(0.5)
 
                 # Phase 2: Analysis
                 await websocket.send_json({

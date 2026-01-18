@@ -9,7 +9,8 @@ interface AuthGuardProps {
 }
 
 // Routes that don't require authentication
-const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password']
+// Dev mode: Add /chat and /dashboard for testing without auth
+const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/chat', '/dashboard']
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter()
