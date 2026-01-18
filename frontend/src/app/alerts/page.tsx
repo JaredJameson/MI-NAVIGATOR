@@ -86,6 +86,33 @@ export default function AlertsPage() {
     }
   }
 
+  const toggleConfig = async (configId: string) => {
+    try {
+      const token = localStorage.getItem('mi_navigator_token')
+      if (!token) {
+        router.push('/auth/login')
+        return
+      }
+
+      const response = await fetch(`${API_BASE_URL}/alerts/configs/${configId}/toggle`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle alert configuration')
+      }
+
+      // Refresh data
+      await fetchData()
+    } catch (err: any) {
+      console.error('Failed to toggle config:', err)
+      alert(err.message || 'Failed to toggle alert configuration')
+    }
+  }
+
   const deleteConfig = async (configId: string) => {
     if (!confirm('Are you sure you want to delete this alert configuration?')) {
       return
@@ -264,13 +291,29 @@ export default function AlertsPage() {
                         </p>
                       </div>
 
-                      <button
-                        onClick={() => deleteConfig(config.id)}
-                        className="ml-4 text-red-600 hover:text-red-700"
-                        title="Delete alert"
-                      >
-                        🗑️
-                      </button>
+                      <div className="ml-4 flex gap-2">
+                        <button
+                          onClick={() => toggleConfig(config.id)}
+                          className={`${config.is_active ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
+                          title={config.is_active ? 'Disable alert' : 'Enable alert'}
+                        >
+                          {config.is_active ? '⏸️' : '▶️'}
+                        </button>
+                        <Link
+                          href={`/alerts/edit/${config.id}`}
+                          className="text-blue-600 hover:text-blue-700"
+                          title="Edit alert"
+                        >
+                          ✏️
+                        </Link>
+                        <button
+                          onClick={() => deleteConfig(config.id)}
+                          className="text-red-600 hover:text-red-700"
+                          title="Delete alert"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

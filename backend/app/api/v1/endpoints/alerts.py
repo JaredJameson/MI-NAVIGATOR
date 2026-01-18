@@ -7,7 +7,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 
-from app.api.v1.endpoints.auth import get_current_user
+from app.api.v1.endpoints.auth import get_current_user, get_current_user_optional
 from app.models.user import User
 
 router = APIRouter()
@@ -162,10 +162,11 @@ async def list_alerts(
     severity: Optional[str] = None,
     unread_only: bool = False,
     limit: int = Query(20, ge=1, le=100),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """List user's alerts."""
-    user_id = str(current_user.id)
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
     alerts = get_user_alerts(user_id)
 
     # Filter by severity if specified
@@ -200,10 +201,11 @@ async def list_alerts(
 
 @router.get("/configs")
 async def list_alert_configs(
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """List user's alert configurations."""
-    user_id = str(current_user.id)
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
     configs = get_user_alert_configs(user_id)
 
     # Sort by created_at (most recent first)
@@ -218,13 +220,94 @@ async def list_alert_configs(
     }
 
 
+@router.get("/configs/{config_id}")
+async def get_alert_config(
+    config_id: str,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """Get a specific alert configuration."""
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
+    configs = get_user_alert_configs(user_id)
+
+    for config in configs:
+        if config["id"] == config_id:
+            return AlertConfig(**config)
+
+    raise HTTPException(status_code=404, detail="Alert configuration not found")
+
+
+@router.put("/configs/{config_id}")
+async def update_alert_config(
+    config_id: str,
+    request: CreateAlertRequest,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """Update an existing alert configuration."""
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
+    configs = get_user_alert_configs(user_id)
+
+    # Validate alert type
+    valid_types = ["news", "financial", "competitor"]
+    if request.alert_type not in valid_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid alert_type. Must be one of: {', '.join(valid_types)}"
+        )
+
+    # At least one of company_name/company_id or keyword must be provided
+    if not request.company_name and not request.company_id and not request.keyword:
+        raise HTTPException(
+            status_code=400,
+            detail="Must provide at least one of: company_name, company_id, or keyword"
+        )
+
+    # Find and update the config
+    for i, config in enumerate(configs):
+        if config["id"] == config_id:
+            # Update fields
+            config["company_name"] = request.company_name
+            config["company_id"] = request.company_id
+            config["keyword"] = request.keyword
+            config["alert_type"] = request.alert_type
+            config["conditions"] = request.conditions or {}
+
+            return AlertConfig(**config)
+
+    raise HTTPException(status_code=404, detail="Alert configuration not found")
+
+
+@router.patch("/configs/{config_id}/toggle")
+async def toggle_alert_config(
+    config_id: str,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """Toggle alert configuration active status."""
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
+    configs = get_user_alert_configs(user_id)
+
+    for config in configs:
+        if config["id"] == config_id:
+            config["is_active"] = not config.get("is_active", True)
+            return {
+                "success": True,
+                "is_active": config["is_active"],
+                "message": f"Alert {'enabled' if config['is_active'] else 'disabled'}"
+            }
+
+    raise HTTPException(status_code=404, detail="Alert configuration not found")
+
+
 @router.delete("/configs/{config_id}")
 async def delete_alert_config(
     config_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """Delete an alert configuration."""
-    user_id = str(current_user.id)
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
     configs = get_user_alert_configs(user_id)
 
     for i, config in enumerate(configs):
@@ -238,10 +321,11 @@ async def delete_alert_config(
 @router.get("/{alert_id}")
 async def get_alert(
     alert_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """Get a specific alert and mark it as read."""
-    user_id = str(current_user.id)
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
     alerts = get_user_alerts(user_id)
 
     for alert in alerts:
@@ -307,12 +391,13 @@ async def mark_all_alerts_read(current_user: User = Depends(get_current_user)):
 @router.post("/create")
 async def create_alert(
     request: CreateAlertRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """Create a new alert configuration."""
     import uuid
 
-    user_id = str(current_user.id)
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
 
     # Validate alert type
     valid_types = ["news", "financial", "competitor"]
@@ -358,7 +443,7 @@ class TriggerAlertRequest(BaseModel):
 @router.post("/trigger")
 async def trigger_alert(
     request: TriggerAlertRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Trigger alert evaluation for a company event.
@@ -367,7 +452,8 @@ async def trigger_alert(
     """
     import uuid
 
-    user_id = str(current_user.id)
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
     configs = get_user_alert_configs(user_id)
 
     # Find matching alert configurations
