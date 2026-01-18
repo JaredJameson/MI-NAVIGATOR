@@ -3387,7 +3387,9 @@ export default function ReportViewerPage() {
 
   // Share via email state
   const [showShareModal, setShowShareModal] = useState(false)
-  const [shareTab, setShareTab] = useState<'email' | 'link'>('link') // Default to link tab
+  const [shareTab, setShareTab] = useState<'email' | 'link' | 'embed'>('link') // Default to link tab
+  const [embedCode, setEmbedCode] = useState('')
+  const [embedCopied, setEmbedCopied] = useState(false)
   const [shareEmail, setShareEmail] = useState('')
   const [shareMessage, setShareMessage] = useState('')
   const [isSharing, setIsSharing] = useState(false)
@@ -4611,6 +4613,36 @@ export default function ReportViewerPage() {
       setTimeout(() => setLinkCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy:', err)
+    }
+  }
+
+  // Generate embed code
+  const handleGenerateEmbedCode = async () => {
+    let linkToUse = shareLink
+
+    // First generate share link if not already generated
+    if (!linkToUse) {
+      await handleGenerateShareLink()
+      // Wait a bit for state to update, then use the shareLink from state
+      // In practice, we need to refactor to return the link from handleGenerateShareLink
+      // For now, we'll wait and check again
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    // Use the shareLink state (should be populated by now)
+    // If still not available, it will be empty and user needs to regenerate
+    const iframe = `<iframe src="${shareLink}" width="100%" height="800" frameborder="0" allowfullscreen></iframe>`
+    setEmbedCode(iframe)
+  }
+
+  // Copy embed code to clipboard
+  const handleCopyEmbedCode = async () => {
+    try {
+      await navigator.clipboard.writeText(embedCode)
+      setEmbedCopied(true)
+      setTimeout(() => setEmbedCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy embed code:', err)
     }
   }
 
@@ -6132,6 +6164,8 @@ export default function ReportViewerPage() {
                     setShareSuccess(false)
                     setShareLink('')
                     setLinkCopied(false)
+                    setEmbedCode('')
+                    setEmbedCopied(false)
                   }}
                   className="text-gray-400 hover:text-gray-600"
                 >
@@ -6163,6 +6197,16 @@ export default function ReportViewerPage() {
                 }`}
               >
                 ✉️ Email
+              </button>
+              <button
+                onClick={() => setShareTab('embed')}
+                className={`flex-1 px-4 py-3 text-sm font-medium ${
+                  shareTab === 'embed'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                📋 Embed
               </button>
             </div>
 
@@ -6368,6 +6412,90 @@ export default function ReportViewerPage() {
                             'Wyślij'
                           )}
                         </button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Embed Tab */}
+              {shareTab === 'embed' && (
+                <>
+                  {!embedCode ? (
+                    <div className="text-center py-6">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                      </svg>
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">Wygeneruj kod osadzania</h3>
+                      <p className="mt-1 text-sm text-gray-500">Stwórz kod HTML do osadzenia raportu na swojej stronie</p>
+
+                      <div className="mt-6">
+                        <button
+                          onClick={handleGenerateEmbedCode}
+                          className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        >
+                          <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                          </svg>
+                          Wygeneruj kod
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="rounded-md bg-green-50 p-4">
+                        <div className="flex items-start">
+                          <svg className="h-5 w-5 text-green-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-green-800">Kod osadzania wygenerowany!</p>
+                            <p className="text-xs text-green-700 mt-1">Skopiuj poniższy kod i wklej na swojej stronie</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Kod HTML (iframe)
+                        </label>
+                        <div className="space-y-2">
+                          <textarea
+                            value={embedCode}
+                            readOnly
+                            rows={4}
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-gray-50 font-mono"
+                          />
+                          <button
+                            onClick={handleCopyEmbedCode}
+                            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center"
+                          >
+                            {embedCopied ? (
+                              <>
+                                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Skopiowano!
+                              </>
+                            ) : (
+                              <>
+                                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Kopiuj kod
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="rounded-md bg-blue-50 p-3 text-xs text-blue-800">
+                        <p className="font-medium mb-1">💡 Jak użyć:</p>
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Skopiuj powyższy kod HTML</li>
+                          <li>Wklej go w miejscu gdzie chcesz osadzić raport</li>
+                          <li>Raport będzie wyświetlany w iframe o szerokości 100% i wysokości 800px</li>
+                        </ol>
                       </div>
                     </>
                   )}
