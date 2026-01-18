@@ -1,3 +1,99 @@
+# Session 119 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature completed + 1 regression test
+**Features Completed:** 1 feature
+- Feature #26: Create new research project ✅ (PASSED - Full project creation with all required fields)
+
+**Regression Tests:** 1
+- Feature #324: Chat interface visual design ✅ (PASSED - Professional styling verified)
+
+**Current Progress:** 194/380 features passing (51.1%)
+
+**Key Achievements:**
+- **Added "+ Nowy projekt" button** to projects list page (was missing!)
+- **Full project creation flow verified** - Form validation, save, redirect, persistence
+- **All 8 test steps passed** - Navigate → Fill form → Save → Verify in list → Verify persistence
+- Professional UI with purple styling
+- CSRF protection working
+- Zero console errors
+
+## Feature #26 Implementation Details
+
+**Create New Research Project - Complete CRUD Flow**
+
+**Problem:** Projects page (`/projects`) was missing the "New Project" button. While `/projects/new` form existed and backend endpoint worked, users couldn't access the form.
+
+**Solution:**
+
+Added button to projects page header (line 109-114 in `frontend/src/app/projects/page.tsx`):
+
+```typescript
+<Link
+  href="/projects/new"
+  className="rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 transition-colors"
+>
+  + Nowy projekt
+</Link>
+```
+
+**Test Verification (All 8 Steps):**
+
+✅ **Step 1:** Navigate to `/projects` - Projects list loaded with existing projects
+✅ **Step 2:** Click "+ Nowy projekt" button - Navigated to `/projects/new`
+✅ **Step 3:** Fill project name - "Test Regression - Feature 26 Project"
+✅ **Step 4:** Select type - "Due Diligence" (purple border when selected)
+✅ **Step 5:** Add description - Full multi-line description added
+✅ **Step 6:** Click "Utwórz projekt" - Project created with ID `project_004`
+✅ **Step 7:** Verify in list - Project appears with all data (icon, badge, name, description, 0 reports, today's date)
+✅ **Step 8:** Refresh page - Project data persists correctly
+
+**Existing Infrastructure (Already Working):**
+
+1. **Frontend Form** (`/projects/new/page.tsx`):
+   - Name input (required)
+   - Type selector (4 options: Due Diligence, Market Analysis, Competitive, Research)
+   - Description textarea
+   - CSRF token handling
+   - Form validation
+   - Redirect to project details after creation
+
+2. **Backend Endpoint** (`POST /projects/`):
+   - Creates project with unique ID (project_XXX)
+   - Stores in MOCK_PROJECTS global dict
+   - Returns project object with timestamps
+   - Auth required (Depends on get_current_user)
+
+**Data Flow:**
+
+1. User clicks "+ Nowy projekt" → Navigate to `/projects/new`
+2. Fill form fields (name, type, description)
+3. Submit → POST to `/api/v1/projects/` with CSRF token
+4. Backend creates project with ID `project_004`, stores in memory
+5. Frontend receives project object, extracts ID
+6. Redirect to `/projects/project_004`
+7. Project details page loads
+8. User returns to `/projects` → List fetches from backend → New project visible
+
+**Screenshots:**
+- `feature26_step1_projects_page.png` - Projects list (before adding project)
+- `feature26_step2_new_project_form.png` - Empty form
+- `feature26_step5_filled_form.png` - Filled form ready to submit
+- `feature26_step6_project_created.png` - Project details page after creation
+- `feature26_step7_project_visible.png` - New project in list
+- `regression_feature324_step1_chat_loaded.png` - Chat interface empty state
+- `regression_feature324_step2_message_bubbles.png` - Chat with messages
+
+**Files Modified:**
+- `frontend/src/app/projects/page.tsx` - Added "+ Nowy projekt" button (6 lines)
+- `docker-compose.yml` - Changed ports (5432→5445, 6379→6399) to avoid conflicts
+- `backend/.env` - Updated Redis port to 6399
+
+**Result:** Feature #26 PASSED ✅
+
+---
+
 # Session 118 - Date: 2026-01-18
 
 ## Session Summary
