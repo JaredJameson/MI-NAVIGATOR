@@ -40,6 +40,36 @@ export interface WebsiteAnalysisData {
     has_contact_form?: boolean
     last_updated?: string
   }
+  site_structure?: {
+    pages_crawled: Array<{
+      url: string
+      title: string
+      type: string
+      word_count: number
+      last_modified: string
+    }>
+    depth_reached: number
+    total_links: number
+  }
+  products_services?: Array<{
+    name: string
+    category: string
+    description: string
+    page_url: string
+  }>
+  team_members?: Array<{
+    name: string
+    position: string
+    bio: string
+    photo_url?: string
+  }>
+  blog_posts?: Array<{
+    title: string
+    url: string
+    published_date: string
+    excerpt: string
+    category: string
+  }>
   crawled_at: string
   crawl_status: string
 }
@@ -291,6 +321,167 @@ export function WebsiteAnalysis({ data }: WebsiteAnalysisProps) {
                 <div className="text-sm font-medium text-gray-900">{formatDate(data.content_summary.last_updated)}</div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Site Structure */}
+      {data.site_structure && data.site_structure.pages_crawled && data.site_structure.pages_crawled.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span>🗺️</span>
+            Struktura strony
+          </h4>
+          <div className="bg-indigo-50 p-3 rounded mb-3">
+            <div className="flex items-center gap-6 text-sm">
+              <div>
+                <span className="text-gray-600">Przeskanowano stron:</span>
+                <span className="ml-2 font-semibold text-gray-900">{data.site_structure.pages_crawled.length}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Głębokość:</span>
+                <span className="ml-2 font-semibold text-gray-900">{data.site_structure.depth_reached} poziomy</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Linki:</span>
+                <span className="ml-2 font-semibold text-gray-900">{data.site_structure.total_links}</span>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {data.site_structure.pages_crawled.map((page, idx) => (
+              <div key={idx} className="border border-gray-200 rounded p-3 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        page.type === 'homepage' ? 'bg-purple-100 text-purple-800' :
+                        page.type === 'products' ? 'bg-blue-100 text-blue-800' :
+                        page.type === 'team' ? 'bg-green-100 text-green-800' :
+                        page.type === 'blog' ? 'bg-orange-100 text-orange-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {page.type}
+                      </span>
+                      <h5 className="text-sm font-medium text-gray-900">{page.title}</h5>
+                    </div>
+                    <a
+                      href={page.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline break-all"
+                    >
+                      {page.url}
+                    </a>
+                  </div>
+                  <div className="text-right ml-4">
+                    <div className="text-xs text-gray-500">{page.word_count} słów</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{formatDate(page.last_modified)}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Products & Services */}
+      {data.products_services && data.products_services.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span>🛍️</span>
+            Produkty i usługi ({data.products_services.length})
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {data.products_services.map((item, idx) => (
+              <div key={idx} className="border border-gray-200 rounded p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-2">
+                  <h5 className="text-sm font-semibold text-gray-900 flex-1">{item.name}</h5>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                    {item.category}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{item.description}</p>
+                <a
+                  href={item.page_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  Zobacz więcej →
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Team Members */}
+      {data.team_members && data.team_members.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span>👥</span>
+            Zespół ({data.team_members.length})
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.team_members.map((member, idx) => (
+              <div key={idx} className="border border-gray-200 rounded p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    {member.photo_url ? (
+                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
+                        {member.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="text-sm font-semibold text-gray-900">{member.name}</h5>
+                    <p className="text-xs text-blue-600 mb-2">{member.position}</p>
+                    <p className="text-xs text-gray-600 line-clamp-2">{member.bio}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Blog Posts */}
+      {data.blog_posts && data.blog_posts.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span>📝</span>
+            Blog i aktualności ({data.blog_posts.length})
+          </h4>
+          <div className="space-y-3">
+            {data.blog_posts.map((post, idx) => (
+              <div key={idx} className="border border-gray-200 rounded p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-2">
+                  <h5 className="text-sm font-semibold text-gray-900 flex-1">{post.title}</h5>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 ml-2">
+                    {post.category}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{post.excerpt}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">{formatDate(post.published_date)}</span>
+                  <a
+                    href={post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    Czytaj więcej →
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -238,8 +238,190 @@ def generate_mock_response(user_message: str) -> str:
                     }
                 }, ensure_ascii=False)
 
+    # Website analysis - detect URLs (HIGH PRIORITY - check before other conditions)
+    if re.search(r'https?://[^\s]+', user_message):
+        # Extract URL from message
+        url_match = re.search(r'(https?://[^\s]+)', user_message)
+        url = url_match.group(1) if url_match else ""
+
+        # Generate mock website analysis data with deep crawl
+        return json.dumps({
+            "type": "website_analysis",
+            "data": {
+                "url": url,
+                "basic_info": {
+                    "title": "FADO Sp. z o.o. - Producent tworzyw sztucznych",
+                    "description": "Lider w produkcji tworzyw sztucznych w Polsce. Specjalizujemy się w produkcji części z tworzyw sztucznych dla przemysłu motoryzacyjnego i elektronicznego.",
+                    "language": "pl",
+                    "status": "active",
+                    "ssl_enabled": True,
+                    "mobile_friendly": True
+                },
+                "contact_info": {
+                    "email": "kontakt@fado.com.pl",
+                    "phone": "+48 42 123 45 67",
+                    "address": "ul. Przemysłowa 15, 95-200 Pabianice",
+                    "company_name": "FADO Sp. z o.o.",
+                    "nip": "5260016831"
+                },
+                "social_media": {
+                    "facebook": "https://facebook.com/fado.pl",
+                    "linkedin": "https://linkedin.com/company/fado",
+                    "twitter": None,
+                    "instagram": None,
+                    "youtube": "https://youtube.com/@fadopl"
+                },
+                "tech_stack": {
+                    "cms": "WordPress 6.4",
+                    "analytics": ["Google Analytics", "Google Tag Manager"],
+                    "hosting": "nazwa.pl",
+                    "frameworks": ["React", "TailwindCSS"]
+                },
+                "content_summary": {
+                    "page_count": 15,
+                    "has_blog": True,
+                    "has_products": True,
+                    "has_team": True,
+                    "has_contact_form": True,
+                    "last_updated": "2026-01-15"
+                },
+                "site_structure": {
+                    "pages_crawled": [
+                        {
+                            "url": f"{url}",
+                            "title": "Strona główna - FADO",
+                            "type": "homepage",
+                            "word_count": 850,
+                            "last_modified": "2026-01-15"
+                        },
+                        {
+                            "url": f"{url}/produkty",
+                            "title": "Nasze produkty - FADO",
+                            "type": "products",
+                            "word_count": 1200,
+                            "last_modified": "2026-01-10"
+                        },
+                        {
+                            "url": f"{url}/o-nas",
+                            "title": "O firmie - FADO",
+                            "type": "about",
+                            "word_count": 650,
+                            "last_modified": "2025-12-20"
+                        },
+                        {
+                            "url": f"{url}/zespol",
+                            "title": "Nasz zespół - FADO",
+                            "type": "team",
+                            "word_count": 480,
+                            "last_modified": "2025-11-15"
+                        },
+                        {
+                            "url": f"{url}/blog",
+                            "title": "Blog - FADO",
+                            "type": "blog",
+                            "word_count": 320,
+                            "last_modified": "2026-01-12"
+                        },
+                        {
+                            "url": f"{url}/kontakt",
+                            "title": "Kontakt - FADO",
+                            "type": "contact",
+                            "word_count": 280,
+                            "last_modified": "2025-10-05"
+                        }
+                    ],
+                    "depth_reached": 2,
+                    "total_links": 45
+                },
+                "products_services": [
+                    {
+                        "name": "Wtrysk form plastikowych",
+                        "category": "Usługa produkcyjna",
+                        "description": "Wtrysk precision parts z tworzyw sztucznych dla przemysłu motoryzacyjnego. Maksymalna waga detalu: 500g.",
+                        "page_url": f"{url}/produkty/wtrysk-form"
+                    },
+                    {
+                        "name": "Formy wtryskowe na zamówienie",
+                        "category": "Produkt",
+                        "description": "Projektowanie i wykonanie form wtryskowych. Średni czas realizacji: 4-6 tygodni.",
+                        "page_url": f"{url}/produkty/formy-wtryskowe"
+                    },
+                    {
+                        "name": "Opakowania z tworzyw sztucznych",
+                        "category": "Produkt",
+                        "description": "Produkcja opakowań przemysłowych i konsumenckich. Dostępne materiały: PP, PE, PET.",
+                        "page_url": f"{url}/produkty/opakowania"
+                    },
+                    {
+                        "name": "Recykling tworzyw sztucznych",
+                        "category": "Usługa",
+                        "description": "Przetwarzanie odpadów plastikowych i produkcja granulatu z materiałów wtórnych.",
+                        "page_url": f"{url}/produkty/recykling"
+                    }
+                ],
+                "team_members": [
+                    {
+                        "name": "Jan Kowalski",
+                        "position": "Prezes Zarządu",
+                        "bio": "25 lat doświadczenia w branży tworzyw sztucznych. Założyciel FADO.",
+                        "photo_url": f"{url}/images/team/jan-kowalski.jpg"
+                    },
+                    {
+                        "name": "Anna Nowak",
+                        "position": "Dyrektor Techniczny",
+                        "bio": "Specjalistka w zakresie technologii wtryskarskich. Doktorat z inżynierii materiałowej.",
+                        "photo_url": f"{url}/images/team/anna-nowak.jpg"
+                    },
+                    {
+                        "name": "Piotr Wiśniewski",
+                        "position": "Kierownik Produkcji",
+                        "bio": "15 lat w zarządzaniu procesami produkcyjnymi. Certyfikat Six Sigma Black Belt.",
+                        "photo_url": f"{url}/images/team/piotr-wisniewski.jpg"
+                    },
+                    {
+                        "name": "Maria Kowalczyk",
+                        "position": "Kierownik Działu Sprzedaży",
+                        "bio": "Ekspert w obszarze B2B sales. Rozwinęła partnerstwa z 50+ kluczowymi klientami.",
+                        "photo_url": f"{url}/images/team/maria-kowalczyk.jpg"
+                    }
+                ],
+                "blog_posts": [
+                    {
+                        "title": "Nowe technologie w recyklingu tworzyw sztucznych",
+                        "url": f"{url}/blog/nowe-technologie-recykling",
+                        "published_date": "2026-01-12",
+                        "excerpt": "Poznaj najnowsze metody przetwarzania odpadów plastikowych i ich wpływ na środowisko. Nasze centrum R&D wprowadziło innowacyjny proces...",
+                        "category": "Technologia"
+                    },
+                    {
+                        "title": "FADO otrzymało certyfikat ISO 14001",
+                        "url": f"{url}/blog/certyfikat-iso-14001",
+                        "published_date": "2026-01-05",
+                        "excerpt": "Z dumą ogłaszamy, że nasza firma uzyskała certyfikat zarządzania środowiskowego ISO 14001:2015. To potwierdzenie naszego zaangażowania...",
+                        "category": "Aktualności"
+                    },
+                    {
+                        "title": "Jak wybrać odpowiedni materiał do wtrysku?",
+                        "url": f"{url}/blog/wybor-materialu-wtrysk",
+                        "published_date": "2025-12-28",
+                        "excerpt": "Przewodnik po popularnych tworzywach sztucznych stosowanych we wtryskiwaniu: PP, PE, ABS, PC. Poznaj właściwości i zastosowania...",
+                        "category": "Poradnik"
+                    },
+                    {
+                        "title": "Rozbudowa parku maszynowego w FADO",
+                        "url": f"{url}/blog/rozbudowa-park-maszynowy",
+                        "published_date": "2025-12-15",
+                        "excerpt": "Inwestycja w 3 nowe wtryskarki o sile zamykania do 500 ton. Zwiększenie mocy produkcyjnej o 30%...",
+                        "category": "Aktualności"
+                    }
+                ],
+                "crawled_at": datetime.utcnow().isoformat(),
+                "crawl_status": "success"
+            }
+        }, ensure_ascii=False)
+
     # Company profile request
-    if ("profil" in user_lower or "profile" in user_lower) and ("firma" in user_lower or "company" in user_lower):
+    elif ("profil" in user_lower or "profile" in user_lower) and ("firma" in user_lower or "company" in user_lower):
         return json.dumps({
             "type": "company_card",
             "data": {
@@ -818,58 +1000,6 @@ Ktory typ raportu Cie interesuje?"""
 - Porownywac firmy w branzy
 
 Jak moge Ci dzis pomoc?"""
-
-    # Website analysis - detect URLs
-    elif re.search(r'https?://[^\s]+', user_message):
-        # Extract URL from message
-        url_match = re.search(r'(https?://[^\s]+)', user_message)
-        url = url_match.group(1) if url_match else ""
-
-        # Generate mock website analysis data
-        return json.dumps({
-            "type": "website_analysis",
-            "data": {
-                "url": url,
-                "basic_info": {
-                    "title": "FADO Sp. z o.o. - Producent tworzyw sztucznych",
-                    "description": "Lider w produkcji tworzyw sztucznych w Polsce. Specjalizujemy się w produkcji części z tworzyw sztucznych dla przemysłu motoryzacyjnego i elektronicznego.",
-                    "language": "pl",
-                    "status": "active",
-                    "ssl_enabled": True,
-                    "mobile_friendly": True
-                },
-                "contact_info": {
-                    "email": "kontakt@fado.com.pl",
-                    "phone": "+48 42 123 45 67",
-                    "address": "ul. Przemysłowa 15, 95-200 Pabianice",
-                    "company_name": "FADO Sp. z o.o.",
-                    "nip": "5260016831"
-                },
-                "social_media": {
-                    "facebook": "https://facebook.com/fado.pl",
-                    "linkedin": "https://linkedin.com/company/fado",
-                    "twitter": None,
-                    "instagram": None,
-                    "youtube": "https://youtube.com/@fadopl"
-                },
-                "tech_stack": {
-                    "cms": "WordPress 6.4",
-                    "analytics": ["Google Analytics", "Google Tag Manager"],
-                    "hosting": "nazwa.pl",
-                    "frameworks": ["React", "TailwindCSS"]
-                },
-                "content_summary": {
-                    "page_count": 15,
-                    "has_blog": True,
-                    "has_products": True,
-                    "has_team": True,
-                    "has_contact_form": True,
-                    "last_updated": "2026-01-15"
-                },
-                "crawled_at": datetime.utcnow().isoformat(),
-                "crawl_status": "success"
-            }
-        }, ensure_ascii=False)
 
     else:
         return f"""Dziekuje za wiadomosc. Jestem asystentem Market Intelligence i pomagam w:
