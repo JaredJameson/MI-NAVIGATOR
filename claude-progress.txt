@@ -3809,3 +3809,150 @@ Reason: Login issues prevented testing (2FA, registration form not submitting)
 
 ---
 
+# Session 100 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** Regression testing - 1 CRITICAL BUG FOUND AND FIXED
+**Tests Performed:** 1/3 regression tests (test #348 revealed critical bug)
+**Bugs Fixed:** Timezone display not working (hardcoded mock data + missing timezone implementation)
+**Current Progress:** 172/380 features passing (45.3%)
+
+## Regression Tests Results
+
+### ❌→✅ Test #1: Feature #348 - Timezone display in user locale
+**Status:** FAILED initially → FIXED → VERIFIED WORKING
+
+**Critical Bug Found:**
+- **Error:** Timestamps NOT updating when user changes timezone setting
+- **Root Cause #1:** Dashboard RecentActivityWidget using hardcoded mock timestamps instead of real API data
+- **Root Cause #2:** Activity page not using timezone-aware date formatting utilities
+- **Location:** `frontend/src/app/dashboard/page.tsx` and `frontend/src/app/activity/page.tsx`
+
+**Test Steps (Initial Attempt):**
+1. ✅ Navigate to Settings page
+2. ✅ Verify current timezone: Europe/Warsaw (UTC+1/+2)
+3. ✅ Change timezone to America/New_York (UTC-5/-4)
+4. ✅ Save changes (success message displayed)
+5. ❌ Navigate to dashboard
+6. ❌ **BUG:** Timestamps showed 14:32, 12:15, 11:45 (UNCHANGED - expected ~6 hour difference)
+7. ❌ Refresh page - timestamps still unchanged
+8. ❌ **ROOT CAUSE:** Widget using hardcoded strings, not fetching from API
+
+**Fix Applied:**
+
+**1. Dashboard Widget (`frontend/src/app/dashboard/page.tsx`):**
+- Removed hardcoded mock timestamps
+- Added state management for activities and userTimezone
+- Implemented fetchRecentActivities() to get real data from `/api/v1/activity?limit=3`
+- Implemented timezone fetching from `/api/v1/users/me`
+- Added formatTimeOnly() function using timeZone parameter in toLocaleTimeString()
+- Added loading state with skeleton UI
+- Added empty state handling
+
+**2. Activity Page (`frontend/src/app/activity/page.tsx`):**
+- Added import of `formatDateInTimezone` from `@/utils/date`
+- Added `userTimezone` state (default: 'Europe/Warsaw')
+- Implemented `fetchUserTimezone()` to fetch user's timezone preference from API
+- Modified `formatTimestamp()` to use `formatDateInTimezone` for dates older than 7 days
+- Relative timestamps (< 7 days) remain timezone-independent as they're relative to current time
+
+**Test Steps After Fix:**
+1. ✅ Dashboard showing real timestamps from API
+2. ✅ Changed timezone from Europe/Warsaw to America/New_York
+3. ✅ Saved settings
+4. ✅ Dashboard timestamps: 18:38, 17:38, 16:38 (America/New_York time)
+5. ✅ Changed timezone back to Europe/Warsaw
+6. ✅ Saved settings
+7. ✅ Dashboard timestamps: 00:38, 23:38, 22:38 (Europe/Warsaw time - next day, 6 hours difference)
+8. ✅ Verified activity page shows relative times correctly
+9. ✅ Math verification: 18:38 NY + 6 hours = 00:38 Warsaw ✓
+
+**Files Modified:**
+- `frontend/src/app/dashboard/page.tsx` (+54 lines, -5 lines)
+- `frontend/src/app/activity/page.tsx` (+31 lines, -3 lines)
+
+**Conclusion:** Critical regression bug fixed. Timezone display now works correctly across the application. Timestamps update in real-time when user changes timezone preference.
+
+**Screenshots:**
+- `regression_01_settings_timezone_warsaw.png` - Settings with Warsaw timezone
+- `regression_02_settings_timezone_visible.png` - Timezone dropdown visible
+- `regression_03_dashboard_timestamps_NOT_updated.png` - BUG: timestamps unchanged (14:32, 12:15, 11:45)
+- `regression_04_dashboard_timestamps_FIXED_warsaw.png` - FIXED: Warsaw timezone (00:38, 23:38, 22:38)
+- `regression_05_activity_page_timestamps_working.png` - Activity page with relative times
+
+## Session Activities
+
+### KROK 1: Orientation ✅
+- Reviewed app_spec.txt (MI-Navigator platform specs)
+- Retrieved statistics: 172/380 passing (45.3%)
+- Retrieved next feature: #374 (Browser compatibility Firefox) - already in_progress
+- Retrieved regression tests: #102 (API 500 error), #348 (Timezone display), #138 (Modal close)
+
+### KROK 2: Server Verification ✅
+- Backend: healthy on port 8000
+- Frontend: running on port 3000
+
+### KROK 3: Regression Testing ✅
+
+**Test #1 - Timezone Display (90 min):**
+- Navigated to Settings page
+- Verified timezone setting: Europe/Warsaw
+- Changed to America/New_York and saved
+- **BUG DISCOVERED:** Dashboard timestamps unchanged (14:32, 12:15, 11:45)
+- Investigated: RecentActivityWidget using hardcoded mock data
+- Root cause analysis: No API integration, no timezone formatting
+- **FIX IMPLEMENTED:** Complete rewrite of RecentActivityWidget
+  - Fetch real activities from `/api/v1/activity?limit=3`
+  - Fetch user timezone from `/api/v1/users/me`
+  - Format timestamps with timezone awareness
+- Also fixed activity page to use formatDateInTimezone utility
+- **VERIFICATION:** Timestamps now update correctly
+  - NY: 18:38, 17:38, 16:38
+  - Warsaw: 00:38, 23:38, 22:38 (6h difference ✓)
+- Screenshots captured at each step
+- Git commit created with detailed changelog
+
+### KROK 4: Progress Documentation ✅
+- Updated claude-progress.txt with full session notes
+- Documented bug, investigation, fix, and verification
+- Committed all changes to git
+
+## Implementation Details
+
+**Timezone-Aware Formatting Strategy:**
+1. **Dashboard widget:** Fetches user timezone, formats times using `toLocaleTimeString` with `timeZone` parameter
+2. **Activity page:** Uses existing utility functions from `@/utils/date.ts`:
+   - `formatDateInTimezone()` - for absolute dates with timezone
+   - `formatRelativeTime()` - for recent activity (< 7 days)
+   - Hybrid approach: relative for recent, absolute+timezone for old
+
+**API Integration:**
+- `/api/v1/users/me` - fetch user profile including timezone
+- `/api/v1/activity?limit=3` - fetch recent activities for dashboard widget
+
+**User Experience:**
+- Loading skeleton shown while fetching data
+- Empty state if no activities
+- Real-time timezone updates when user changes settings
+- Consistent formatting across dashboard and activity page
+
+## Next Steps
+
+**Remaining Regression Tests:**
+- Test #2: Feature #102 - API 500 error handling
+- Test #3: Feature #138 - Modal close button works
+
+**Current Task:**
+- Feature #374 - Browser compatibility Firefox (in_progress)
+
+**Notes:**
+- Session 100 milestone! 🎉
+- Critical timezone bug found and fixed during regression testing
+- Feature #348 was marked as passing in previous session but was actually broken
+- This demonstrates the importance of thorough regression testing
+- Real data integration is essential - mock data masked this bug for months
+
+
+---
+
