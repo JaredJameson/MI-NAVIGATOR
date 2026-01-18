@@ -104,6 +104,17 @@ app = FastAPI(
     # redirect_slashes defaults to True
 )
 
+# CORS middleware (must be first to handle OPTIONS requests)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],  # Allow browser to access all response headers
+    max_age=600  # Cache preflight requests for 10 minutes
+)
+
 # Maintenance mode middleware (check first, before other middleware)
 app.add_middleware(MaintenanceMiddleware)
 
@@ -130,17 +141,6 @@ app.add_middleware(
         "/api/v1/analysis",  # Allow analysis operations without CSRF token (auth handled at endpoint level)
         "/api/v1/chat/ws/",  # Allow WebSocket connections (token passed via query parameter)
     ]
-)
-
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],  # Allow browser to access all response headers
-    max_age=600  # Cache preflight requests for 10 minutes
 )
 
 # Include API router
