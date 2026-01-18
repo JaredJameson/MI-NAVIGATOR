@@ -1,3 +1,220 @@
+# Session 136 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature partially implemented (Company profile from CEIDG - blocked by auth issues)
+**Features Completed:** 0 features (implementation complete, testing blocked)
+- Feature #51: Company profile from CEIDG ⚠️ (IMPLEMENTED - TESTING BLOCKED BY 401 ERRORS)
+
+**Regression Tests:** 1 feature verified
+- Feature #239: Report version history ✅ (PASSED)
+
+**Current Progress:** 218/380 features passing (57.4%)
+
+**Key Achievements:**
+- ✅ Implemented CEIDG company profile backend logic
+- ✅ Created CompanyProfileCEIDG component
+- ✅ Added 3 mock sole proprietorship companies
+- ✅ Frontend NIP detection working (banner displays)
+- ⚠️ Backend and frontend integration complete but untested due to 401 auth errors
+
+**Blockers:**
+- 401 Unauthorized errors when creating chat conversations
+- Cannot complete end-to-end testing until auth issue resolved
+- Feature #51 implementation is complete but cannot be marked as passing
+
+## Feature #51 - Company Profile from CEIDG ⚠️
+
+**Implementation Status:** Backend and frontend complete, E2E testing blocked by auth errors
+
+**What Was Implemented:**
+
+### Backend Changes (backend/app/api/v1/endpoints/companies.py):
+
+1. **Added MOCK_CEIDG_COMPANIES** (lines 595-628):
+   ```python
+   MOCK_CEIDG_COMPANIES = [
+       {
+           "id": "ceidg_1",
+           "business_name": "Zakład Stolarski Jan Kowalski",
+           "owner_name": "Jan Kowalski",
+           "nip": "9876543211",
+           "regon": "123456789",
+           "address": {...},
+           "pkd_codes": ["16.23.Z", "31.02.Z"],
+           "status": "active",
+           "founded": "2015"
+       },
+       # + 2 more companies
+   ]
+   ```
+
+2. **Mock Data Companies:**
+   - **Zakład Stolarski Jan Kowalski** - NIP: 9876543211 (carpentry)
+   - **Studio Graficzne Anna Nowak** - NIP: 1234567891 (graphic design)
+   - **Usługi IT Piotr Wiśniewski** - NIP: 5551234567 (IT services)
+
+### Backend Changes (backend/app/api/v1/endpoints/chat.py):
+
+1. **Modified Company Lookup Logic** (lines 140-195):
+   - Imports MOCK_CEIDG_COMPANIES alongside MOCK_COMPANIES
+   - First checks KRS companies by NIP/KRS number
+   - If not found in KRS, checks CEIDG companies by NIP
+   - Sets `is_ceidg` flag to determine response type
+
+2. **CEIDG Response Structure:**
+   ```python
+   {
+       "type": "company_profile_ceidg",
+       "data": {
+           "lookup_type": "NIP",
+           "identifier": "9876543211",
+           "basic_info": {
+               "business_name": "Zakład Stolarski Jan Kowalski",
+               "owner_name": "Jan Kowalski",
+               "nip": "9876543211",
+               "regon": "123456789",
+               "address": "ul. Drewniana 45, 02-123 Warszawa",
+               "status": "active",
+               "founded": "2015"
+           },
+           "pkd_codes": [...],
+           "source": "CEIDG API",
+           "fetched_at": "2026-01-18T13:45:00.000Z"
+       }
+   }
+   ```
+
+### Frontend Changes:
+
+1. **Created CompanyProfileCEIDG.tsx** (140 lines):
+   - **Green color scheme** (vs blue for KRS) to distinguish sole proprietorships
+   - **Header:** Green background with person icon and "Dane z CEIDG API"
+   - **Business & Owner Section:**
+     * Business name (large bold)
+     * Owner name as subtitle ("Właściciel: Jan Kowalski")
+     * Status badge (green for active)
+   - **Registration Data Grid:** (2 columns)
+     * NIP (monospace font)
+     * REGON (monospace font)
+     * Data rozpoczęcia działalności (full width)
+   - **Address Section:** "Adres prowadzenia działalności"
+   - **PKD Codes Section:** Green badges for codes
+   - **Footer:** Localized timestamp
+
+2. **Updated StructuredMessage.tsx:**
+   - Added import for CompanyProfileCEIDG component
+   - Extended type union to include `company_profile_ceidg`
+   - Added case in switch statement to render CompanyProfileCEIDG
+   - Type-safe interfaces for CompanyProfileCEIDGData
+
+### Testing Completed:
+
+✅ **Step 1:** Navigated to /chat - page loaded
+✅ **Step 2:** Entered NIP 9876543211 - frontend detected it
+✅ **Step 3:** NIP detection banner displayed correctly
+✅ **Step 4:** "Lookup Company" button appeared
+⚠️ **Step 5:** Clicked button - 401 Unauthorized error
+❌ **Steps 6-7:** Could not complete due to auth blocker
+
+### Visual Design:
+
+**CEIDG vs KRS Differences:**
+| Aspect | KRS (Companies) | CEIDG (Sole Proprietors) |
+|--------|----------------|--------------------------|
+| Color Scheme | Blue (#F0F7FF, #3B82F6) | Green (#F0FDF4, #16A34A) |
+| Icon | Document icon | Person icon |
+| Name Display | Single "name" field | Separate business_name + owner_name |
+| Registration | NIP + KRS + REGON | NIP + REGON (no KRS) |
+| Source Label | "Dane z KRS API" | "Dane z CEIDG API" |
+| PKD Badge | Blue | Green |
+
+### Technical Implementation Details:
+
+**Backend Fallback Logic:**
+```python
+# 1. Check KRS companies (by NIP or KRS)
+for c in MOCK_COMPANIES:
+    if (c["nip"] == identifier or c.get("krs", "") == identifier):
+        company = c
+        break
+
+# 2. If not found, check CEIDG (by NIP only)
+if not company:
+    for c in MOCK_CEIDG_COMPANIES:
+        if c["nip"] == identifier:
+            company = c
+            is_ceidg = True
+            break
+```
+
+**Response Routing:**
+- If `is_ceidg = True` → returns `company_profile_ceidg` type
+- If `is_ceidg = False` → returns `company_profile_krs` type
+- If `company = None` → returns error type
+
+### What Needs To Be Done Next:
+
+1. **Fix Authentication Issue:**
+   - Investigate why POST /api/v1/chat/conversations returns 401
+   - Possibly session timeout or CSRF token issue
+   - May need to refresh authentication or restart services
+
+2. **Complete E2E Testing:**
+   - Once auth fixed, verify CEIDG data fetches correctly
+   - Test all 7 steps from feature specification
+   - Verify business name, owner name, address, PKD codes display
+   - Take screenshots for each step
+   - Mark feature as passing
+
+3. **Regression Testing:**
+   - Ensure KRS lookup still works (Feature #50)
+   - Verify NIP detection doesn't break for KRS companies
+
+### Files Modified:
+
+- `backend/app/api/v1/endpoints/companies.py` (+33 lines)
+- `backend/app/api/v1/endpoints/chat.py` (+55 lines modified)
+- `frontend/src/components/chat/CompanyProfileCEIDG.tsx` (+140 lines new)
+- `frontend/src/components/chat/StructuredMessage.tsx` (+6 lines)
+
+**Commit:** c1fc50d "feat: Add CEIDG (sole proprietorship) company profile support - Feature #51 (partial)"
+
+---
+
+## Regression Test Results
+
+### Feature #239: Report Version History ✅
+**Test Type:** UI Functionality - Version management
+**Result:** PASSED
+
+Test sequence:
+1. ✅ Navigated to /reports/report_001
+2. ✅ Clicked "Historia wersji" button - panel opened
+3. ✅ Verified 3 versions listed:
+   - Wersja 3 (Aktualna) - Dodano sekcję Analiza SWOT
+   - Wersja 2 - Zaktualizowano dane finansowe
+   - Wersja 1 - Utworzono raport
+4. ✅ Clicked on Wersja 2 - older version loaded
+5. ✅ Verified old content displayed:
+   - Title shows "(wersja 2)"
+   - Only 2 sections (vs 6 in current)
+   - Financial data from 2022 (vs 2023)
+   - 120 employees (vs 150)
+
+**Validation:**
+- Version history displays correctly ✅
+- Clicking old version loads historical content ✅
+- Data differences clearly visible ✅
+- No visual artifacts or layout issues ✅
+
+**Screenshots:**
+- regression_feature239_step1_report_page.png
+- regression_feature239_step2_version_history_panel.png
+- regression_feature239_step5_old_version_displayed.png
+
+---
+
 # Session 135 - Date: 2026-01-18
 
 ## Session Summary
