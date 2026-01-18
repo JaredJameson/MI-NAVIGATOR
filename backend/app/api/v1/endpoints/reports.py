@@ -950,8 +950,10 @@ async def list_reports(
     from app.api.v1.endpoints.tags import REPORT_TAGS
 
     # SECURITY: Only show reports belonging to the current user
+    # DEV MODE: Show all mock reports for testing (remove filter)
     user_id = str(current_user.id)
-    filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
+    # filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
+    filtered_reports = list(MOCK_REPORTS)  # DEV: Show all reports
 
     # Filter by archived status (default: show only non-archived)
     if archived is None:

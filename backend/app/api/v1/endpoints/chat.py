@@ -760,6 +760,190 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # Competitor benchmarking table request (MUST be before competitor_mapping)
+    elif ("porównaj konkurent" in user_lower or "compare competitor" in user_lower or
+          "benchmarking" in user_lower or "porównanie konkurent" in user_lower or
+          "tabela porównaw" in user_lower or "comparison table" in user_lower or
+          "competitor comparison" in user_lower):
+        return json.dumps({
+            "type": "competitor_benchmarking",
+            "data": {
+                "target_company": {
+                    "name": "FADO Sp. z o.o.",
+                    "nip": "5260016831",
+                    "krs": "0000145732"
+                },
+                "competitors": [
+                    {
+                        "name": "FADO Sp. z o.o.",
+                        "is_target": True,
+                        "location": "Pabianice, łódzkie",
+                        "employees": 150,
+                        "revenue_2023": 45.2,
+                        "revenue_2022": 40.2,
+                        "revenue_2021": 35.8,
+                        "revenue_growth_yoy": 12.3,
+                        "profit_margin": 10.6,
+                        "roe": 18.2,
+                        "roa": 9.4,
+                        "debt_ratio": 32,
+                        "current_ratio": 2.1,
+                        "market_share": 3.5,
+                        "certifications": ["ISO 9001", "ISO 14001"],
+                        "export_markets": False,
+                        "r_and_d_investment": True,
+                        "website_quality": 85,
+                        "linkedin_followers": 1200
+                    },
+                    {
+                        "name": "PLAST-MET S.A.",
+                        "is_target": False,
+                        "location": "Poznań, wielkopolskie",
+                        "employees": 225,
+                        "revenue_2023": 75.0,
+                        "revenue_2022": 68.5,
+                        "revenue_2021": 62.0,
+                        "revenue_growth_yoy": 9.5,
+                        "profit_margin": 12.8,
+                        "roe": 20.1,
+                        "roa": 10.2,
+                        "debt_ratio": 28,
+                        "current_ratio": 2.4,
+                        "market_share": 5.8,
+                        "certifications": ["ISO 9001", "ISO 14001", "IATF 16949"],
+                        "export_markets": True,
+                        "r_and_d_investment": True,
+                        "website_quality": 90,
+                        "linkedin_followers": 2500
+                    },
+                    {
+                        "name": "POLIMER Sp. z o.o.",
+                        "is_target": False,
+                        "location": "Wrocław, dolnośląskie",
+                        "employees": 175,
+                        "revenue_2023": 60.0,
+                        "revenue_2022": 55.2,
+                        "revenue_2021": 51.0,
+                        "revenue_growth_yoy": 8.7,
+                        "profit_margin": 9.2,
+                        "roe": 15.8,
+                        "roa": 8.1,
+                        "debt_ratio": 38,
+                        "current_ratio": 1.9,
+                        "market_share": 4.6,
+                        "certifications": ["ISO 9001"],
+                        "export_markets": False,
+                        "r_and_d_investment": False,
+                        "website_quality": 75,
+                        "linkedin_followers": 850
+                    },
+                    {
+                        "name": "EURO-PLAST Sp. z o.o.",
+                        "is_target": False,
+                        "location": "Gliwice, śląskie",
+                        "employees": 200,
+                        "revenue_2023": 70.0,
+                        "revenue_2022": 62.0,
+                        "revenue_2021": 55.0,
+                        "revenue_growth_yoy": 12.9,
+                        "profit_margin": 11.5,
+                        "roe": 19.2,
+                        "roa": 9.8,
+                        "debt_ratio": 30,
+                        "current_ratio": 2.2,
+                        "market_share": 5.4,
+                        "certifications": ["ISO 9001", "ISO 14001", "IATF 16949"],
+                        "export_markets": True,
+                        "r_and_d_investment": True,
+                        "website_quality": 88,
+                        "linkedin_followers": 3200
+                    },
+                    {
+                        "name": "TECHNOPLAST Sp. z o.o.",
+                        "is_target": False,
+                        "location": "Łódź, łódzkie",
+                        "employees": 125,
+                        "revenue_2023": 45.0,
+                        "revenue_2022": 40.0,
+                        "revenue_2021": 36.0,
+                        "revenue_growth_yoy": 12.5,
+                        "profit_margin": 8.5,
+                        "roe": 14.2,
+                        "roa": 7.3,
+                        "debt_ratio": 42,
+                        "current_ratio": 1.7,
+                        "market_share": 3.5,
+                        "certifications": ["ISO 9001"],
+                        "export_markets": False,
+                        "r_and_d_investment": False,
+                        "website_quality": 70,
+                        "linkedin_followers": 450
+                    }
+                ],
+                "metrics": {
+                    "categories": [
+                        {
+                            "name": "Wielkość firmy",
+                            "metrics": [
+                                {"key": "employees", "label": "Zatrudnienie", "unit": "osób", "format": "number"},
+                                {"key": "revenue_2023", "label": "Przychody 2023", "unit": "mln PLN", "format": "decimal"},
+                                {"key": "market_share", "label": "Udział w rynku", "unit": "%", "format": "decimal"}
+                            ]
+                        },
+                        {
+                            "name": "Wyniki finansowe",
+                            "metrics": [
+                                {"key": "revenue_growth_yoy", "label": "Wzrost przychodów YoY", "unit": "%", "format": "decimal", "higher_is_better": True},
+                                {"key": "profit_margin", "label": "Marża zysku", "unit": "%", "format": "decimal", "higher_is_better": True},
+                                {"key": "roe", "label": "ROE", "unit": "%", "format": "decimal", "higher_is_better": True},
+                                {"key": "roa", "label": "ROA", "unit": "%", "format": "decimal", "higher_is_better": True}
+                            ]
+                        },
+                        {
+                            "name": "Kondycja finansowa",
+                            "metrics": [
+                                {"key": "debt_ratio", "label": "Wskaźnik zadłużenia", "unit": "%", "format": "number", "higher_is_better": False},
+                                {"key": "current_ratio", "label": "Płynność bieżąca", "unit": "", "format": "decimal", "higher_is_better": True}
+                            ]
+                        },
+                        {
+                            "name": "Rozwój i innowacje",
+                            "metrics": [
+                                {"key": "certifications", "label": "Certyfikaty", "unit": "", "format": "list"},
+                                {"key": "export_markets", "label": "Eksport", "unit": "", "format": "boolean"},
+                                {"key": "r_and_d_investment", "label": "Inwestycje R&D", "unit": "", "format": "boolean"}
+                            ]
+                        },
+                        {
+                            "name": "Obecność online",
+                            "metrics": [
+                                {"key": "website_quality", "label": "Jakość strony", "unit": "/100", "format": "number", "higher_is_better": True},
+                                {"key": "linkedin_followers", "label": "Obserwujący LinkedIn", "unit": "", "format": "number", "higher_is_better": True}
+                            ]
+                        }
+                    ]
+                },
+                "insights": {
+                    "strengths": [
+                        "FADO ma najwyższą marżę zysku wśród firm o podobnej wielkości",
+                        "Silna pozycja ROE (18.2%) - lepsza niż POLIMER i TECHNOPLAST",
+                        "Niskie zadłużenie (32%) daje przestrzeń na finansowanie rozwoju"
+                    ],
+                    "weaknesses": [
+                        "Brak eksportu - konkurenci jak PLAST-MET i EURO-PLAST mają przewagę",
+                        "Mniej certyfikatów niż liderzy (brak IATF 16949 dla automotive)",
+                        "Niższa obecność w social media (LinkedIn) niż główni konkurenci"
+                    ],
+                    "opportunities": [
+                        "Możliwość zwiększenia udziału w rynku - podobny poziom do TECHNOPLAST",
+                        "Potencjał ekspansji na rynki eksportowe",
+                        "Inwestycje w dodatkowe certyfikaty mogą otworzyć nowe segmenty"
+                    ]
+                },
+                "fetched_at": datetime.utcnow().isoformat()
+            }
+        }, ensure_ascii=False)
+
     # Competitor mapping request
     elif ("konkurencja" in user_lower or "competitor" in user_lower or "konkurenci" in user_lower or
           "konkurent" in user_lower or "analiza konkurencyjna" in user_lower or
@@ -945,6 +1129,166 @@ def generate_mock_response(user_message: str) -> str:
                 ],
                 "fetched_at": datetime.utcnow().isoformat(),
                 "data_freshness": "Real-time PKD search + enriched company data"
+            }
+        }, ensure_ascii=False)
+
+    # SWOT analysis request
+    elif ("swot" in user_lower or
+          ("analiza" in user_lower and ("mocne" in user_lower or "słabe" in user_lower or "szanse" in user_lower or "zagrożenia" in user_lower)) or
+          ("strengths" in user_lower and "weaknesses" in user_lower) or
+          ("opportunities" in user_lower and "threats" in user_lower)):
+        return json.dumps({
+            "type": "swot_analysis",
+            "data": {
+                "company_name": "FADO Sp. z o.o.",
+                "nip": "5260016831",
+                "krs": "0000145732",
+                "industry": "Produkcja tworzyw sztucznych",
+                "analysis_date": datetime.utcnow().isoformat(),
+                "strengths": [
+                    {
+                        "title": "Nowoczesny park maszynowy",
+                        "description": "Firma posiada 45 wtryskarek o łącznej mocy 5000 ton rocznie, w tym 15 maszyn zakupionych w latach 2020-2023.",
+                        "impact": "high",
+                        "data_source": "Company website, industry reports"
+                    },
+                    {
+                        "title": "Długoletnie doświadczenie (26 lat na rynku)",
+                        "description": "Założona w 1998 roku, firma ma ugruntowaną pozycję i zaufanie klientów w sektorze automotive i elektroniki.",
+                        "impact": "high",
+                        "data_source": "KRS registry"
+                    },
+                    {
+                        "title": "Stabilna sytuacja finansowa",
+                        "description": "Przychody 45,2 mln PLN w 2023 (+12,3% r/r), marża brutto 28,5%, zero zadłużenia długoterminowego.",
+                        "impact": "high",
+                        "data_source": "Financial statements 2023"
+                    },
+                    {
+                        "title": "Certyfikaty jakości ISO 9001 i ISO 14001",
+                        "description": "Posiadanie międzynarodowych certyfikatów potwierdza wysoką jakość procesów i zarządzania środowiskowego.",
+                        "impact": "medium",
+                        "data_source": "Company website"
+                    },
+                    {
+                        "title": "Wykwalifikowana kadra techniczna",
+                        "description": "150 pracowników, w tym 25 inżynierów i 10 technologów z wieloletnim doświadczeniem.",
+                        "impact": "medium",
+                        "data_source": "Company profile"
+                    }
+                ],
+                "weaknesses": [
+                    {
+                        "title": "Brak eksportu poza UE",
+                        "description": "100% przychodów z rynku polskiego i UE, brak dywersyfikacji geograficznej (USA, Azja).",
+                        "impact": "medium",
+                        "data_source": "Financial statements, market analysis"
+                    },
+                    {
+                        "title": "Ograniczona automatyzacja procesów",
+                        "description": "Tylko 20% linii produkcyjnych w pełni zautomatyzowanych, co zwiększa koszty pracy.",
+                        "impact": "medium",
+                        "data_source": "Industry benchmarking"
+                    },
+                    {
+                        "title": "Niska rozpoznawalność marki",
+                        "description": "Słaba obecność online (1200 followersów LinkedIn), brak aktywnego marketingu B2B.",
+                        "impact": "low",
+                        "data_source": "Social media analysis"
+                    },
+                    {
+                        "title": "Zależność od sektora automotive (60% przychodów)",
+                        "description": "Wysokie ryzyko koncentracji - spowolnienie w motoryzacji bezpośrednio wpływa na wyniki.",
+                        "impact": "high",
+                        "data_source": "Financial statements breakdown"
+                    }
+                ],
+                "opportunities": [
+                    {
+                        "title": "Rosnący popyt na bioplastiki",
+                        "description": "Rynek bioplastyków rośnie o 15% rocznie, regulacje UE faworyzują materiały biodegradowalne.",
+                        "impact": "high",
+                        "data_source": "EU market research, Plastics Europe 2024"
+                    },
+                    {
+                        "title": "Ekspansja na rynki wschodnie (Ukraina, kraje bałtyckie)",
+                        "description": "Odbudowa Ukrainy stworzy popyt na materiały budowlane i opakowania przemysłowe.",
+                        "impact": "high",
+                        "data_source": "Market analysis, World Bank forecasts"
+                    },
+                    {
+                        "title": "Rozwój e-commerce napędza popyt na opakowania",
+                        "description": "Sektor e-commerce w Polsce rośnie o 20% rocznie, zwiększając zapotrzebowanie na opakowania zabezpieczające.",
+                        "impact": "medium",
+                        "data_source": "E-commerce market report 2024"
+                    },
+                    {
+                        "title": "Dotacje UE na transformację zieloną",
+                        "description": "Fundusze KPO i Horizon Europe dostępne na projekty recyklingu i gospodarki cyrkulacyjnej.",
+                        "impact": "medium",
+                        "data_source": "EU funding programs"
+                    },
+                    {
+                        "title": "Konsolidacja rynku - możliwości przejęć mniejszych graczy",
+                        "description": "Wielu małych producentów boryka się z rosnącymi kosztami energii i może być dostępnych do przejęcia.",
+                        "impact": "medium",
+                        "data_source": "Industry insider reports"
+                    }
+                ],
+                "threats": [
+                    {
+                        "title": "Rosnące ceny surowców (+ 35% w 2022-2023)",
+                        "description": "Ceny granulatu PET, PP, PE wzrosły znacząco, ciśnienie na marże producentów.",
+                        "impact": "high",
+                        "data_source": "Commodity price indices"
+                    },
+                    {
+                        "title": "Zaostrzające się regulacje środowiskowe",
+                        "description": "SUP Directive, system kaucyjny, podatek od plastiku (0,80 EUR/kg) zwiększają koszty compliance.",
+                        "impact": "high",
+                        "data_source": "EU regulations, Polish legislation"
+                    },
+                    {
+                        "title": "Konkurencja z krajów azjatyckich (niższe koszty produkcji)",
+                        "description": "Producenci z Chin i Wietnamu oferują ceny o 20-30% niższe dzięki tańszej pracy i energii.",
+                        "impact": "medium",
+                        "data_source": "Competitive analysis"
+                    },
+                    {
+                        "title": "Recesja w sektorze automotive",
+                        "description": "Spowolnienie sprzedaży samochodów w Europie (-8% w 2023) bezpośrednio wpływa na popyt na części plastikowe.",
+                        "impact": "high",
+                        "data_source": "ACEA automotive industry report"
+                    },
+                    {
+                        "title": "Rosnące koszty energii (+ 120% od 2021)",
+                        "description": "Produkcja tworzyw sztucznych jest energochłonna, wzrost cen energii znacząco obniża rentowność.",
+                        "impact": "high",
+                        "data_source": "Energy market data"
+                    }
+                ],
+                "summary": {
+                    "total_strengths": 5,
+                    "total_weaknesses": 4,
+                    "total_opportunities": 5,
+                    "total_threats": 5,
+                    "overall_assessment": "Firma ma silne fundamenty (nowoczesny park, stabilne finanse), ale musi  adresować zagrożenia zewnętrzne (koszty surowców/energii, regulacje) oraz wykorzystać szanse rynkowe (bioplastiki, ekspansja geograficzna).",
+                    "priority_actions": [
+                        "Rozważyć inwestycję w linie do produkcji bioplastyków",
+                        "Dywersyfikować bazę klientów poza sektor automotive",
+                        "Wzmocnić automatyzację procesów dla obniżki kosztów",
+                        "Zbadać możliwości ekspansji na Ukrainę i kraje bałtyckie",
+                        "Aplikować o dotacje UE na projekty zrównoważonego rozwoju"
+                    ]
+                },
+                "data_sources": [
+                    {"name": "KRS", "confidence": 0.95},
+                    {"name": "Financial statements 2023", "confidence": 0.95},
+                    {"name": "Company website", "confidence": 0.90},
+                    {"name": "Plastics Europe market report", "confidence": 0.85},
+                    {"name": "EU regulations database", "confidence": 0.95},
+                    {"name": "Industry benchmarking", "confidence": 0.80}
+                ]
             }
         }, ensure_ascii=False)
 
