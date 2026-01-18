@@ -819,6 +819,58 @@ Ktory typ raportu Cie interesuje?"""
 
 Jak moge Ci dzis pomoc?"""
 
+    # Website analysis - detect URLs
+    elif re.search(r'https?://[^\s]+', user_message):
+        # Extract URL from message
+        url_match = re.search(r'(https?://[^\s]+)', user_message)
+        url = url_match.group(1) if url_match else ""
+
+        # Generate mock website analysis data
+        return json.dumps({
+            "type": "website_analysis",
+            "data": {
+                "url": url,
+                "basic_info": {
+                    "title": "FADO Sp. z o.o. - Producent tworzyw sztucznych",
+                    "description": "Lider w produkcji tworzyw sztucznych w Polsce. Specjalizujemy się w produkcji części z tworzyw sztucznych dla przemysłu motoryzacyjnego i elektronicznego.",
+                    "language": "pl",
+                    "status": "active",
+                    "ssl_enabled": True,
+                    "mobile_friendly": True
+                },
+                "contact_info": {
+                    "email": "kontakt@fado.com.pl",
+                    "phone": "+48 42 123 45 67",
+                    "address": "ul. Przemysłowa 15, 95-200 Pabianice",
+                    "company_name": "FADO Sp. z o.o.",
+                    "nip": "5260016831"
+                },
+                "social_media": {
+                    "facebook": "https://facebook.com/fado.pl",
+                    "linkedin": "https://linkedin.com/company/fado",
+                    "twitter": None,
+                    "instagram": None,
+                    "youtube": "https://youtube.com/@fadopl"
+                },
+                "tech_stack": {
+                    "cms": "WordPress 6.4",
+                    "analytics": ["Google Analytics", "Google Tag Manager"],
+                    "hosting": "nazwa.pl",
+                    "frameworks": ["React", "TailwindCSS"]
+                },
+                "content_summary": {
+                    "page_count": 15,
+                    "has_blog": True,
+                    "has_products": True,
+                    "has_team": True,
+                    "has_contact_form": True,
+                    "last_updated": "2026-01-15"
+                },
+                "crawled_at": datetime.utcnow().isoformat(),
+                "crawl_status": "success"
+            }
+        }, ensure_ascii=False)
+
     else:
         return f"""Dziekuje za wiadomosc. Jestem asystentem Market Intelligence i pomagam w:
 
