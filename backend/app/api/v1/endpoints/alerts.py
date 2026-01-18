@@ -348,3 +348,77 @@ async def create_alert(
 
     return AlertConfig(**alert_config)
 
+
+class TriggerAlertRequest(BaseModel):
+    company_name: str
+    event_type: str  # news_mention, financial_change, competitor_activity
+    event_description: str
+
+
+@router.post("/trigger")
+async def trigger_alert(
+    request: TriggerAlertRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Trigger alert evaluation for a company event.
+    This simulates an event (e.g., news mention) and checks if any alert configs match.
+    If match found, creates a new alert notification.
+    """
+    import uuid
+
+    user_id = str(current_user.id)
+    configs = get_user_alert_configs(user_id)
+
+    # Find matching alert configurations
+    matched_configs = []
+    for config in configs:
+        if not config.get("is_active", True):
+            continue
+
+        # Check if company name matches
+        if config.get("company_name") and config["company_name"].lower() == request.company_name.lower():
+            matched_configs.append(config)
+
+    # If no matching configs, return no notifications generated
+    if not matched_configs:
+        return {
+            "success": True,
+            "notifications_generated": 0,
+            "message": f"No active alert configurations found for company '{request.company_name}'"
+        }
+
+    # Generate alert notifications for each matched config
+    alerts = get_user_alerts(user_id)
+    generated_count = 0
+
+    for config in matched_configs:
+        # Map event type to severity
+        severity_map = {
+            "news_mention": "medium",
+            "financial_change": "high",
+            "competitor_activity": "high"
+        }
+        severity = severity_map.get(request.event_type, "medium")
+
+        # Create new alert notification
+        new_alert = {
+            "id": f"alert_{uuid.uuid4().hex[:12]}",
+            "severity": severity,
+            "title": f"{request.company_name}: {request.event_type.replace('_', ' ').title()}",
+            "description": request.event_description,
+            "source": "Alert monitoring",
+            "company": request.company_name,
+            "created_at": datetime.now().isoformat() + "Z",
+            "read": False,
+        }
+
+        alerts.append(new_alert)
+        generated_count += 1
+
+    return {
+        "success": True,
+        "notifications_generated": generated_count,
+        "message": f"Generated {generated_count} alert notification(s) for '{request.company_name}'"
+    }
+
