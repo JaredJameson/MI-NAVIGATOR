@@ -3383,6 +3383,7 @@ export default function ReportViewerPage() {
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [exportError, setExportError] = useState('')
+  const [selectedSections, setSelectedSections] = useState<string[]>([]) // IDs of sections to export
 
   // Share via email state
   const [showShareModal, setShowShareModal] = useState(false)
@@ -3436,6 +3437,8 @@ export default function ReportViewerPage() {
   useEffect(() => {
     if (report && report.sections) {
       setSortedSections([...report.sections])
+      // Initialize all sections as selected by default
+      setSelectedSections(report.sections.map(s => s.id))
     }
   }, [report])
 
@@ -4394,6 +4397,26 @@ export default function ReportViewerPage() {
     return annotations.filter(a => a.section_id === sectionId)
   }
 
+  // Toggle section selection for export
+  const toggleSectionSelection = (sectionId: string) => {
+    setSelectedSections(prev => {
+      if (prev.includes(sectionId)) {
+        return prev.filter(id => id !== sectionId)
+      } else {
+        return [...prev, sectionId]
+      }
+    })
+  }
+
+  // Select/deselect all sections
+  const toggleAllSections = () => {
+    if (selectedSections.length === report?.sections.length) {
+      setSelectedSections([])
+    } else {
+      setSelectedSections(report?.sections.map(s => s.id) || [])
+    }
+  }
+
   // Export functionality
   const handleExport = async (format: 'xlsx' | 'pdf' | 'docx' | 'pptx') => {
     const token = getStoredToken()
@@ -4417,7 +4440,10 @@ export default function ReportViewerPage() {
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken || '',
           },
-          body: JSON.stringify({ format }),
+          body: JSON.stringify({
+            format,
+            section_ids: selectedSections.length > 0 ? selectedSections : undefined
+          }),
         }
       )
 
@@ -4884,11 +4910,50 @@ export default function ReportViewerPage() {
 
               {/* Export dropdown menu */}
               {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                <div className="absolute right-0 mt-2 w-80 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  {/* Section selection */}
+                  <div className="border-b px-4 py-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-gray-900">Wybierz sekcje</h4>
+                      <button
+                        onClick={toggleAllSections}
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        {selectedSections.length === report?.sections.length ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
+                      </button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {report?.sections.map((section, index) => (
+                        <label
+                          key={section.id}
+                          className="flex items-center gap-2 py-1 px-2 rounded hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedSections.includes(section.id)}
+                            onChange={() => toggleSectionSelection(section.id)}
+                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {index + 1}. {section.title}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    {selectedSections.length === 0 && (
+                      <p className="text-xs text-red-600 mt-2">Wybierz przynajmniej jedną sekcję</p>
+                    )}
+                  </div>
+
+                  {/* Export format buttons */}
                   <div className="py-1">
+                    <div className="px-4 py-2">
+                      <h4 className="text-xs font-medium text-gray-500 uppercase">Format eksportu</h4>
+                    </div>
                     <button
                       onClick={() => handleExport('xlsx')}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      disabled={selectedSections.length === 0}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded bg-green-100">
                         <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -4902,7 +4967,8 @@ export default function ReportViewerPage() {
                     </button>
                     <button
                       onClick={() => handleExport('pdf')}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      disabled={selectedSections.length === 0}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded bg-red-100">
                         <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -4916,7 +4982,8 @@ export default function ReportViewerPage() {
                     </button>
                     <button
                       onClick={() => handleExport('docx')}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      disabled={selectedSections.length === 0}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
                         <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -4930,7 +4997,8 @@ export default function ReportViewerPage() {
                     </button>
                     <button
                       onClick={() => handleExport('pptx')}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      disabled={selectedSections.length === 0}
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded bg-orange-100">
                         <svg className="h-5 w-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

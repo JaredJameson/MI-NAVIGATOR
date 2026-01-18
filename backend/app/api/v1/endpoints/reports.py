@@ -1563,7 +1563,8 @@ async def bulk_delete_reports(
 
 
 class ExportRequest(BaseModel):
-    format: str = "pdf"  # pdf, xlsx, docx
+    format: str = "pdf"  # pdf, xlsx, docx, pptx
+    section_ids: Optional[List[str]] = None  # Optional: filter sections to export
 
 
 class BulkExportRequest(BaseModel):
@@ -1614,7 +1615,7 @@ async def export_report(
     db: AsyncSession = Depends(get_db),
     req: Request = None
 ):
-    """Export report to specified format (pdf, xlsx, docx)."""
+    """Export report to specified format (pdf, xlsx, docx, pptx)."""
     # Find the report
     report = None
     for r in MOCK_REPORTS:
@@ -1625,6 +1626,14 @@ async def export_report(
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
 
+    # Filter sections if section_ids provided
+    if request.section_ids:
+        filtered_report = report.copy()
+        original_sections = filtered_report.get("sections", [])
+        filtered_sections = [s for s in original_sections if s["id"] in request.section_ids]
+        filtered_report["sections"] = filtered_sections
+        report = filtered_report
+
     # Track export event (NO PII - just format type) - only if user authenticated
     if current_user and db:
         await track_event(
@@ -1633,7 +1642,12 @@ async def export_report(
             event_name="Report exported",
             user=current_user,
             request=req,
-            metadata={"export_format": request.format, "report_type": report.get("type")}
+            metadata={
+                "export_format": request.format,
+                "report_type": report.get("type"),
+                "sections_count": len(report.get("sections", [])),
+                "filtered": bool(request.section_ids)
+            }
         )
         await db.commit()
 
