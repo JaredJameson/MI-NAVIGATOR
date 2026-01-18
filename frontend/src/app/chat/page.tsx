@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { getStoredToken } from '@/services/api'
+import { getStoredToken, fetchCsrfToken } from '@/services/api'
 import { StructuredMessage } from '@/components/chat/StructuredMessage'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -49,6 +49,10 @@ export default function ChatPage() {
   const [detectedUrl, setDetectedUrl] = useState<string | null>(null)
   const [detectedNIP, setDetectedNIP] = useState<string | null>(null)
   const [detectedKRS, setDetectedKRS] = useState<string | null>(null)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [projects, setProjects] = useState<any[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [isSavingReport, setIsSavingReport] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -582,6 +586,118 @@ export default function ChatPage() {
     return uploadedFileIds
   }
 
+  const handleSaveAsReport = async () => {
+    if (!conversation || conversation.messages.length === 0) {
+      setError('No conversation to save')
+      return
+    }
+
+    setShowSaveDialog(true)
+
+    // Fetch projects list
+    const token = getStoredToken()
+    if (!token) {
+      setError('Not authenticated')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setProjects(data.items || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch projects:', err)
+      setError('Failed to load projects')
+    }
+  }
+
+  const saveReport = async () => {
+    if (!selectedProjectId) {
+      setError('Please select a project')
+      return
+    }
+
+    if (!conversation) {
+      setError('No conversation to save')
+      return
+    }
+
+    setIsSavingReport(true)
+    const token = getStoredToken()
+
+    try {
+      // Get CSRF token
+      const csrfToken = await fetchCsrfToken()
+
+      // 1. Create report from conversation
+      const reportTitle = conversation.title || 'Chat Analysis Report'
+      const reportContent = conversation.messages
+        .map(m => `**${m.role === 'user' ? 'Question' : 'Answer'}:**\n${m.content}`)
+        .join('\n\n')
+
+      const reportPayload = {
+        title: reportTitle,
+        type: 'chat_analysis',
+        content: reportContent,
+        conversation_id: conversation.id,
+        summary: conversation.messages[0]?.content.substring(0, 200) || 'Chat analysis',
+      }
+
+      const reportResponse = await fetch(`${API_BASE_URL}/reports/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
+        },
+        body: JSON.stringify(reportPayload),
+      })
+
+      if (!reportResponse.ok) {
+        throw new Error('Failed to create report')
+      }
+
+      const reportData = await reportResponse.json()
+      const reportId = reportData.id
+
+      // 2. Associate report with project
+      const assignResponse = await fetch(
+        `${API_BASE_URL}/projects/${selectedProjectId}/reports?report_id=${reportId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-CSRF-Token': csrfToken || '',
+          },
+        }
+      )
+
+      if (!assignResponse.ok) {
+        throw new Error('Failed to assign report to project')
+      }
+
+      // Success!
+      setShowSaveDialog(false)
+      setSelectedProjectId('')
+      setIsSavingReport(false)
+
+      // Show success message
+      alert('Report saved successfully!')
+
+    } catch (err) {
+      console.error('Error saving report:', err)
+      setError('Failed to save report. Please try again.')
+      setIsSavingReport(false)
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col bg-gray-50">
       {/* Header */}
@@ -606,9 +722,22 @@ export default function ChatPage() {
               </div>
             )}
           </div>
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
-            New Chat
-          </button>
+          <div className="flex items-center gap-2">
+            {conversation && conversation.messages.length > 0 && (
+              <button
+                onClick={handleSaveAsReport}
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 flex items-center gap-2"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Save as Report
+              </button>
+            )}
+            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+              New Chat
+            </button>
+          </div>
         </div>
       </header>
 
@@ -837,6 +966,59 @@ export default function ChatPage() {
           </p>
         </div>
       </div>
+
+      {/* Save Report Dialog */}
+      {showSaveDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="mb-4 text-xl font-semibold text-gray-900">Save as Report</h2>
+
+            <div className="mb-4">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Select Project
+              </label>
+              <select
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">-- Select a project --</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {projects.length === 0 && (
+              <div className="mb-4 rounded-lg bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
+                No projects found. <Link href="/projects/new" className="underline">Create a new project</Link> first.
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowSaveDialog(false)
+                  setSelectedProjectId('')
+                }}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                disabled={isSavingReport}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveReport}
+                disabled={!selectedProjectId || isSavingReport}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isSavingReport ? 'Saving...' : 'Save Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

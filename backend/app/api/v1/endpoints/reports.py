@@ -62,6 +62,7 @@ MOCK_REPORTS = [
         "updated_at": "2026-01-14T14:22:00Z",
         "status": "completed",
         "is_archived": False,
+        "created_by": "user_001",
         "summary": "Kompleksowa analiza profilu firmy FADO Sp. z o.o. - lidera w produkcji tworzyw sztucznych.",
         "sections": [
             {
@@ -292,6 +293,7 @@ Opis: Współzałożycielka, odpowiedzialna za rozwój biznesu
         "updated_at": "2026-01-13T16:45:00Z",
         "status": "completed",
         "is_archived": False,
+        "created_by": "user_001",
         "summary": "Kompleksowa analiza rynku produkcji tworzyw sztucznych w Polsce - trendy, gracze, prognozy.",
         "sections": [
             {
@@ -466,6 +468,7 @@ Punkty czasowe:
         "updated_at": "2026-01-12T18:30:00Z",
         "status": "completed",
         "is_archived": False,
+        "created_by": "user_001",
         "summary": "Raport due diligence dla TechSoft Sp. z o.o. - firmy IT specjalizującej się w rozwoju oprogramowania.",
         "sections": [
             {
@@ -522,6 +525,7 @@ Firma wykazuje zdrową strukturę finansową z rosnącymi przychodami i dodatnim
         "updated_at": "2026-01-11T17:30:00Z",
         "status": "completed",
         "is_archived": False,
+        "created_by": "user_001",
         "summary": "Analiza głównych konkurentów w sektorze IT w Polsce - porównanie ofert, pozycji rynkowej i strategii.",
         "sections": [
             {
@@ -654,6 +658,7 @@ Opis: Wiodący software house Python/JavaScript
         "updated_at": "2026-01-10T12:00:00Z",
         "status": "completed",
         "is_archived": False,
+        "created_by": "user_001",
         "summary": "Kompleksowy profil Splast S.A. - lidera rynku opakowań przemysłowych w Polsce.",
         "sections": [
             {
@@ -1069,10 +1074,52 @@ async def get_all_report_ids(
     }
 
 
+class ReportCreateRequest(BaseModel):
+    title: str
+    type: str = "chat_analysis"
+    content: str
+    conversation_id: Optional[str] = None
+    summary: Optional[str] = None
+    company: Optional[str] = None
+
+
 @router.post("/")
-async def create_report(current_user: User = Depends(get_current_user)):
+async def create_report(
+    report: ReportCreateRequest,
+    current_user: User = Depends(get_current_user)
+):
     """Create a new report."""
-    return {"id": "report_123", "status": "created"}
+    global MOCK_REPORTS
+
+    # Generate unique report ID
+    report_id = f"report_{str(uuid.uuid4())[:8]}"
+
+    # Create report object
+    new_report = {
+        "id": report_id,
+        "title": report.title,
+        "type": report.type,
+        "company": report.company,
+        "created_at": datetime.utcnow().isoformat() + "Z",
+        "updated_at": datetime.utcnow().isoformat() + "Z",
+        "status": "completed",
+        "is_archived": False,
+        "summary": report.summary or report.content[:200],
+        "created_by": str(current_user.id),
+        "sections": [
+            {
+                "id": "section_1",
+                "title": "Conversation Content",
+                "content": report.content
+            }
+        ],
+        "sources": []
+    }
+
+    # Add to mock database
+    MOCK_REPORTS.append(new_report)
+
+    return {"id": report_id, "status": "created", "title": report.title}
 
 
 # Template routes (must come before /{report_id} to avoid route conflicts)
