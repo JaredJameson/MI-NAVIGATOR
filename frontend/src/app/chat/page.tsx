@@ -50,6 +50,12 @@ export default function ChatPage() {
   const [detectedNIP, setDetectedNIP] = useState<string | null>(null)
   const [detectedKRS, setDetectedKRS] = useState<string | null>(null)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [researchProgress, setResearchProgress] = useState<{
+    percentage: number
+    phase: string
+    message: string
+    estimated_time_remaining: string
+  } | null>(null)
   const [projects, setProjects] = useState<any[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [isSavingReport, setIsSavingReport] = useState(false)
@@ -133,6 +139,27 @@ export default function ChatPage() {
 
       ws.onmessage = (event) => {
         console.log('[WS] Message received:', event.data)
+
+        // Try to parse as JSON first
+        try {
+          const parsed = JSON.parse(event.data)
+
+          // Handle progress updates
+          if (parsed.type === 'progress') {
+            setResearchProgress(parsed.data)
+            // Clear progress when complete
+            if (parsed.data.percentage === 100) {
+              setTimeout(() => setResearchProgress(null), 2000)
+            }
+            return // Don't add progress updates as messages
+          }
+
+          // Handle other structured messages
+          // Continue processing...
+        } catch (e) {
+          // Not JSON, treat as plain text
+        }
+
         const aiMessage: Message = {
           id: `ai-${Date.now()}`,
           role: 'assistant',
@@ -797,13 +824,43 @@ export default function ChatPage() {
                   </div>
                 </div>
               ))}
-              {isLoading && (
+              {isLoading && !researchProgress && (
                 <div className="flex justify-start">
                   <div className="max-w-[80%] rounded-2xl bg-white px-4 py-3 shadow-sm border">
                     <div className="flex items-center gap-2 text-gray-500">
                       <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }}></div>
                       <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }}></div>
                       <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {researchProgress && (
+                <div className="flex justify-start">
+                  <div className="w-full max-w-md rounded-2xl bg-white px-6 py-4 shadow-sm border">
+                    <div className="space-y-3">
+                      {/* Phase and Message */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                          <span className="text-sm font-medium text-gray-900">{researchProgress.phase}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-blue-600">{researchProgress.percentage}%</span>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                          style={{ width: `${researchProgress.percentage}%` }}
+                        ></div>
+                      </div>
+
+                      {/* Message and Time */}
+                      <div className="flex items-center justify-between text-xs text-gray-600">
+                        <span>{researchProgress.message}</span>
+                        <span className="text-gray-500">⏱️ {researchProgress.estimated_time_remaining}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

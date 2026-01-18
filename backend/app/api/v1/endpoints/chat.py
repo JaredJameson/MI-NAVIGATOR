@@ -11,7 +11,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.api.v1.endpoints.auth import get_current_user
+from app.api.v1.endpoints.auth import get_current_user, get_current_user_optional
+from app.models.user import User
 
 router = APIRouter()
 
@@ -40,21 +41,25 @@ conversations_store = {}
 
 
 @router.get("/conversations", response_model=List[ConversationResponse])
-async def list_conversations(current_user = Depends(get_current_user)):
+async def list_conversations(current_user: Optional[User] = Depends(get_current_user_optional)):
     """List user's chat conversations."""
-    user_id = str(current_user.id)
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
     user_convs = [c for c in conversations_store.values() if c.get("user_id") == user_id]
     return [ConversationResponse(**{k: v for k, v in c.items() if k != "user_id"}) for c in user_convs]
 
 
 @router.post("/conversations", response_model=ConversationResponse)
-async def create_conversation(current_user = Depends(get_current_user)):
+async def create_conversation(current_user: Optional[User] = Depends(get_current_user_optional)):
     """Create a new chat conversation."""
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
+
     conv_id = str(uuid.uuid4())
     now = datetime.utcnow()
     conversation = {
         "id": conv_id,
-        "user_id": str(current_user.id),
+        "user_id": user_id,
         "title": None,
         "messages": [],
         "created_at": now,
@@ -65,10 +70,13 @@ async def create_conversation(current_user = Depends(get_current_user)):
 
 
 @router.get("/conversations/{conversation_id}", response_model=ConversationResponse)
-async def get_conversation(conversation_id: str, current_user = Depends(get_current_user)):
+async def get_conversation(conversation_id: str, current_user: Optional[User] = Depends(get_current_user_optional)):
     """Get conversation details with messages."""
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
+
     conv = conversations_store.get(conversation_id)
-    if not conv or conv.get("user_id") != str(current_user.id):
+    if not conv or conv.get("user_id") != user_id:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return ConversationResponse(**{k: v for k, v in conv.items() if k != "user_id"})
 
@@ -77,11 +85,14 @@ async def get_conversation(conversation_id: str, current_user = Depends(get_curr
 async def send_message(
     conversation_id: str,
     message: MessageCreate,
-    current_user = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """Send a message in conversation and get AI response."""
+    # Dev mode: use mock user if not authenticated
+    user_id = str(current_user.id) if current_user else "dev_user_123"
+
     conv = conversations_store.get(conversation_id)
-    if not conv or conv.get("user_id") != str(current_user.id):
+    if not conv or conv.get("user_id") != user_id:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     # Add user message
@@ -2449,6 +2460,64 @@ async def websocket_endpoint(
                 if conv["title"] is None:
                     conv["title"] = content[:50] + ("..." if len(content) > 50 else "")
 
+            # Send progress updates for comprehensive research
+            import asyncio
+
+            # Detect if this is a comprehensive research request
+            is_comprehensive = any(keyword in content.lower() for keyword in [
+                'analyze', 'research', 'due diligence', 'comprehensive', 'detailed',
+                'deep dive', 'full analysis', 'investigate', 'report'
+            ])
+
+            if is_comprehensive:
+                # Phase 1: Data Collection
+                await websocket.send_json({
+                    "type": "progress",
+                    "data": {
+                        "percentage": 10,
+                        "phase": "Data Collection",
+                        "message": "Gathering company data from multiple sources...",
+                        "estimated_time_remaining": "4-5 seconds"
+                    }
+                })
+                await asyncio.sleep(1.5)
+
+                # Phase 2: Analysis
+                await websocket.send_json({
+                    "type": "progress",
+                    "data": {
+                        "percentage": 35,
+                        "phase": "Financial Analysis",
+                        "message": "Analyzing financial statements and trends...",
+                        "estimated_time_remaining": "3-4 seconds"
+                    }
+                })
+                await asyncio.sleep(1.5)
+
+                # Phase 3: Market Research
+                await websocket.send_json({
+                    "type": "progress",
+                    "data": {
+                        "percentage": 60,
+                        "phase": "Market Research",
+                        "message": "Researching market position and competitors...",
+                        "estimated_time_remaining": "2-3 seconds"
+                    }
+                })
+                await asyncio.sleep(1.5)
+
+                # Phase 4: Synthesis
+                await websocket.send_json({
+                    "type": "progress",
+                    "data": {
+                        "percentage": 85,
+                        "phase": "Report Generation",
+                        "message": "Synthesizing findings and generating report...",
+                        "estimated_time_remaining": "1-2 seconds"
+                    }
+                })
+                await asyncio.sleep(1.5)
+
             # Generate mock response (mention files if present)
             if file_ids:
                 response = f"Otrzymałem Twoją wiadomość z {len(file_ids)} załączonym plikiem/plikami.\n\n"
@@ -2456,6 +2525,19 @@ async def websocket_endpoint(
                 response += f"\n\n[Uwaga: Przetwarzanie plików jest w trakcie implementacji. ID plików: {', '.join(file_ids[:3])}...]"
             else:
                 response = generate_mock_response(content)
+
+            # Send completion progress
+            if is_comprehensive:
+                await websocket.send_json({
+                    "type": "progress",
+                    "data": {
+                        "percentage": 100,
+                        "phase": "Complete",
+                        "message": "Analysis complete!",
+                        "estimated_time_remaining": "0 seconds"
+                    }
+                })
+                await asyncio.sleep(0.2)
 
             # Save AI response to conversation store
             if conv:
