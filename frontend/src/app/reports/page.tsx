@@ -89,7 +89,11 @@ export default function ReportsPage() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [filterStatus, setFilterStatus] = useState('')
   const [showArchived, setShowArchived] = useState(false)
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'grid' | 'table'>('list')
+
+  // Sorting state
+  const [sortField, setSortField] = useState<'created_at' | 'title' | 'type' | 'status'>('created_at')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -649,6 +653,40 @@ export default function ReportsPage() {
     }
   }
 
+  // Handle column sorting
+  const handleSort = (field: 'created_at' | 'title' | 'type' | 'status') => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New field - default to ascending
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  // Sort reports client-side
+  const sortedReports = [...reports].sort((a, b) => {
+    let compareValue = 0
+
+    switch (sortField) {
+      case 'created_at':
+        compareValue = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        break
+      case 'title':
+        compareValue = a.title.localeCompare(b.title)
+        break
+      case 'type':
+        compareValue = a.type.localeCompare(b.type)
+        break
+      case 'status':
+        compareValue = a.status.localeCompare(b.status)
+        break
+    }
+
+    return sortDirection === 'asc' ? compareValue : -compareValue
+  })
+
   // Toggle favorite status for a report
   const toggleFavorite = async (reportId: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -1072,6 +1110,19 @@ export default function ReportsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
               </svg>
             </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Widok tabeli"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -1109,6 +1160,224 @@ export default function ReportsPage() {
             >
               Rozpocznij nową analizę
             </Link>
+          </div>
+        ) : viewMode === 'table' ? (
+          /* Table View */
+          <div className="rounded-xl bg-white shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    {isSelectionMode && (
+                      <th className="w-12 px-4 py-3 text-left">
+                        <button
+                          onClick={selectAllOnPage}
+                          className="flex items-center justify-center"
+                        >
+                          <div
+                            className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors ${
+                              allOnPageSelected
+                                ? 'bg-blue-600 border-blue-600'
+                                : selectedReports.size > 0
+                                  ? 'bg-blue-200 border-blue-400'
+                                  : 'bg-white border-gray-300 hover:border-blue-400'
+                            }`}
+                          >
+                            {allOnPageSelected && (
+                              <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                        </button>
+                      </th>
+                    )}
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort('created_at')}
+                        className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
+                      >
+                        Data
+                        {sortField === 'created_at' && (
+                          <svg
+                            className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort('title')}
+                        className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
+                      >
+                        Tytuł
+                        {sortField === 'title' && (
+                          <svg
+                            className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort('type')}
+                        className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
+                      >
+                        Typ
+                        {sortField === 'type' && (
+                          <svg
+                            className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left">
+                      <button
+                        onClick={() => handleSort('status')}
+                        className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
+                      >
+                        Status
+                        {sortField === 'status' && (
+                          <svg
+                            className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Firma
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Akcje
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {sortedReports.map((report) => {
+                    const typeInfo = getTypeInfo(report.type)
+                    const isSelected = selectedReports.has(report.id)
+                    return (
+                      <tr
+                        key={report.id}
+                        className={`${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'} ${isSelectionMode ? 'cursor-pointer' : ''}`}
+                        onClick={(e) => isSelectionMode ? toggleReportSelection(report.id, e) : undefined}
+                      >
+                        {isSelectionMode && (
+                          <td className="w-12 px-4 py-4">
+                            <div
+                              className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
+                                isSelected
+                                  ? 'bg-blue-600 border-blue-600'
+                                  : 'bg-white border-gray-300 hover:border-blue-400'
+                              }`}
+                            >
+                              {isSelected && (
+                                <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(report.created_at)}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          <Link
+                            href={`/reports/${report.id}`}
+                            className="font-medium text-gray-900 hover:text-blue-600"
+                            onClick={(e) => isSelectionMode && e.preventDefault()}
+                          >
+                            {report.title}
+                          </Link>
+                          {reportTags[report.id]?.length > 0 && (
+                            <div className="mt-1 flex gap-1 flex-wrap">
+                              {reportTags[report.id].map(tag => (
+                                <span
+                                  key={tag.id}
+                                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                                  style={{ backgroundColor: tag.color }}
+                                >
+                                  {tag.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${typeInfo.color}`}>
+                            <span>{typeInfo.icon}</span>
+                            {typeInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            report.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            report.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {report.status === 'completed' ? 'Zakończony' :
+                             report.status === 'in_progress' ? 'W trakcie' :
+                             'Szkic'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {report.company || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                          {!isSelectionMode && (
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={(e) => toggleFavorite(report.id, e)}
+                                className="p-1 rounded hover:bg-gray-100"
+                                title={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+                              >
+                                <svg
+                                  className={`h-4 w-4 ${report.is_favorite ? 'fill-yellow-400 stroke-yellow-500' : 'fill-none stroke-gray-400'}`}
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={(e) => openTagModal(report.id, e)}
+                                className="p-1 rounded hover:bg-gray-100"
+                                title="Dodaj tag"
+                              >
+                                <svg className="h-4 w-4 stroke-gray-400" fill="none" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         ) : (
           /* Reports List or Grid */
