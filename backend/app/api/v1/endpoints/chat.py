@@ -2436,14 +2436,157 @@ async def websocket_endpoint(
                 message_data = json.loads(data)
                 content = message_data.get("content", "")
                 file_ids = message_data.get("file_ids", [])
+                brief_answer = message_data.get("brief_answer")  # For brief collection responses
+                plan_action = message_data.get("plan_action")  # For plan confirmation
             except (json.JSONDecodeError, AttributeError):
                 # Fallback to plain text
                 content = data
                 file_ids = []
+                brief_answer = None
+                plan_action = None
+
+            # Get conversation from store
+            conv = conversations_store.get(conversation_id)
+
+            # Initialize brief metadata if not exists
+            if conv and "brief" not in conv:
+                conv["brief"] = {}
+
+            # Handle brief collection responses
+            if conv and brief_answer:
+                question_id = message_data.get("question_id")
+                conv["brief"][question_id] = brief_answer
+
+                # Continue brief collection flow
+                if question_id == "objective":
+                    # Ask scope question
+                    await websocket.send_json({
+                        "type": "brief_question",
+                        "data": {
+                            "question_id": "scope",
+                            "question": "What is the scope of your research?",
+                            "description": "Define the breadth and boundaries of the research",
+                            "options": [
+                                {"value": "company_only", "label": "Company only", "description": "Focus solely on the target company"},
+                                {"value": "market_context", "label": "Company + Market context", "description": "Company analysis with market overview"},
+                                {"value": "competitive", "label": "Competitive landscape", "description": "Company, competitors, and market dynamics"},
+                                {"value": "industry_deep_dive", "label": "Full industry deep dive", "description": "Comprehensive industry, market, and ecosystem analysis"}
+                            ]
+                        }
+                    })
+                    continue  # Wait for next response
+
+                elif question_id == "scope":
+                    # Ask depth question
+                    await websocket.send_json({
+                        "type": "brief_question",
+                        "data": {
+                            "question_id": "depth",
+                            "question": "What level of detail do you need?",
+                            "description": "Choose the depth of analysis required",
+                            "options": [
+                                {"value": "executive_summary", "label": "Executive Summary", "description": "Key insights and highlights only (5-10 min)"},
+                                {"value": "standard", "label": "Standard Analysis", "description": "Balanced detail with actionable insights (15-20 min)"},
+                                {"value": "detailed", "label": "Detailed Report", "description": "Comprehensive analysis with supporting data (30-45 min)"},
+                                {"value": "exhaustive", "label": "Exhaustive Research", "description": "Deep dive with all available data (1-2 hours)"}
+                            ]
+                        }
+                    })
+                    continue  # Wait for next response
+
+                elif question_id == "depth":
+                    # Brief collection complete - generate plan
+                    objective = conv["brief"].get("objective", "")
+                    scope = conv["brief"].get("scope", "standard")
+                    depth = conv["brief"].get("depth", "standard")
+
+                    # Generate research plan based on brief
+                    plan_steps = []
+
+                    # Step 1: Always gather basic data
+                    plan_steps.append({
+                        "phase": "Data Collection",
+                        "description": "Gather company data from official sources (KRS, financial reports, website)",
+                        "estimated_time": "2-3 minutes"
+                    })
+
+                    # Add steps based on scope
+                    if scope in ["market_context", "competitive", "industry_deep_dive"]:
+                        plan_steps.append({
+                            "phase": "Market Analysis",
+                            "description": "Analyze market size, trends, and growth drivers",
+                            "estimated_time": "3-5 minutes"
+                        })
+
+                    if scope in ["competitive", "industry_deep_dive"]:
+                        plan_steps.append({
+                            "phase": "Competitive Analysis",
+                            "description": "Identify and analyze key competitors",
+                            "estimated_time": "5-7 minutes"
+                        })
+
+                    if scope == "industry_deep_dive":
+                        plan_steps.append({
+                            "phase": "Industry Ecosystem",
+                            "description": "Map value chain, suppliers, customers, and industry dynamics",
+                            "estimated_time": "7-10 minutes"
+                        })
+
+                    # Add synthesis step based on depth
+                    if depth == "executive_summary":
+                        plan_steps.append({
+                            "phase": "Executive Summary",
+                            "description": "Synthesize key findings and recommendations",
+                            "estimated_time": "2-3 minutes"
+                        })
+                    elif depth in ["standard", "detailed"]:
+                        plan_steps.append({
+                            "phase": "Analysis & Synthesis",
+                            "description": "Detailed analysis with insights and recommendations",
+                            "estimated_time": "5-8 minutes"
+                        })
+                    else:  # exhaustive
+                        plan_steps.append({
+                            "phase": "Comprehensive Report",
+                            "description": "In-depth analysis with all supporting data and cross-references",
+                            "estimated_time": "15-20 minutes"
+                        })
+
+                    # Send generated plan
+                    await websocket.send_json({
+                        "type": "plan",
+                        "data": {
+                            "plan_id": str(uuid.uuid4()),
+                            "objective": objective,
+                            "scope": scope,
+                            "depth": depth,
+                            "steps": plan_steps,
+                            "total_estimated_time": sum([int(step["estimated_time"].split("-")[0]) for step in plan_steps]),
+                            "message": "Here's your research plan based on your requirements. You can proceed or modify it."
+                        }
+                    })
+                    continue  # Wait for plan confirmation
+
+            # Handle plan confirmation
+            if conv and plan_action:
+                if plan_action == "confirm":
+                    # User confirmed plan - proceed with research using brief parameters
+                    content = conv["brief"].get("objective", content)
+                    # Set flag to start research
+                    conv["research_confirmed"] = True
+                elif plan_action == "modify":
+                    # User wants to modify - get modifications
+                    modifications = message_data.get("modifications", "")
+                    conv["brief"]["modifications"] = modifications
+                    # Regenerate plan (simplified - in real impl would adjust based on modifications)
+                    await websocket.send_text(f"Plan modified based on your feedback: {modifications}\n\nProceeding with adjusted research...")
+                    conv["research_confirmed"] = True
+                else:  # cancel
+                    await websocket.send_text("Research cancelled. Feel free to start a new query.")
+                    continue
 
             # Save user message to conversation store
-            conv = conversations_store.get(conversation_id)
-            if conv:
+            if conv and content:  # Only save if there's actual content (not just brief answers)
                 user_msg_id = str(uuid.uuid4())
                 now = datetime.utcnow()
                 user_message = {
@@ -2459,6 +2602,26 @@ async def websocket_endpoint(
                 # Update conversation title if first message
                 if conv["title"] is None:
                     conv["title"] = content[:50] + ("..." if len(content) > 50 else "")
+
+                # Check if this is first research query (trigger brief collection)
+                is_new_research = len(conv["messages"]) == 1 and any(keyword in content.lower() for keyword in [
+                    'analyze', 'research', 'due diligence', 'investigate', 'report', 'analysis'
+                ])
+
+                if is_new_research and "brief" not in conv or (conv and not conv.get("brief")):
+                    # Start brief collection flow
+                    conv["brief"] = {}
+                    await websocket.send_json({
+                        "type": "brief_question",
+                        "data": {
+                            "question_id": "objective",
+                            "question": "What is the main objective of your research?",
+                            "description": "Help us understand what you're trying to achieve",
+                            "input_type": "text",
+                            "placeholder": "e.g., Evaluate company for investment, competitive intelligence, due diligence..."
+                        }
+                    })
+                    continue  # Wait for user response before proceeding
 
             # Send progress updates for comprehensive research
             import asyncio

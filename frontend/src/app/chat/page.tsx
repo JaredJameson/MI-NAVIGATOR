@@ -63,6 +63,23 @@ export default function ChatPage() {
     partial_results: any
     options: Array<{id: string, label: string, description: string}>
   } | null>(null)
+  const [briefQuestion, setBriefQuestion] = useState<{
+    question_id: string
+    question: string
+    description: string
+    input_type?: string
+    placeholder?: string
+    options?: Array<{value: string, label: string, description: string}>
+  } | null>(null)
+  const [researchPlan, setResearchPlan] = useState<{
+    plan_id: string
+    objective: string
+    scope: string
+    depth: string
+    steps: Array<{phase: string, description: string, estimated_time: string}>
+    total_estimated_time: number
+    message: string
+  } | null>(null)
   const [projects, setProjects] = useState<any[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [isSavingReport, setIsSavingReport] = useState(false)
@@ -166,6 +183,21 @@ export default function ChatPage() {
             setCheckpoint(parsed.data)
             setResearchProgress(null) // Hide progress during checkpoint
             return // Don't add checkpoint as message
+          }
+
+          // Handle brief questions
+          if (parsed.type === 'brief_question') {
+            setBriefQuestion(parsed.data)
+            setIsLoading(false)
+            return // Don't add brief questions as messages
+          }
+
+          // Handle research plan
+          if (parsed.type === 'plan') {
+            setResearchPlan(parsed.data)
+            setBriefQuestion(null) // Clear brief questions
+            setIsLoading(false)
+            return // Don't add plan as message
           }
 
           // Handle other structured messages
@@ -453,6 +485,45 @@ export default function ChatPage() {
     // Clear checkpoint UI
     setCheckpoint(null)
     setIsLoading(true)
+  }
+
+  const answerBriefQuestion = (answer: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !briefQuestion) {
+      console.error('[Brief] WebSocket not connected or no brief question active')
+      return
+    }
+
+    const response = {
+      question_id: briefQuestion.question_id,
+      brief_answer: answer
+    }
+
+    console.log('[Brief] Sending answer:', response)
+    wsRef.current.send(JSON.stringify(response))
+
+    // Keep brief UI visible until next question arrives
+    setIsLoading(true)
+  }
+
+  const respondToPlan = (action: string, modifications?: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !researchPlan) {
+      console.error('[Plan] WebSocket not connected or no plan active')
+      return
+    }
+
+    const response = {
+      plan_action: action,
+      modifications: modifications || ''
+    }
+
+    console.log('[Plan] Sending response:', response)
+    wsRef.current.send(JSON.stringify(response))
+
+    // Clear plan UI
+    setResearchPlan(null)
+    if (action !== 'cancel') {
+      setIsLoading(true)
+    }
   }
 
   const startUrlAnalysis = async () => {
@@ -970,6 +1041,146 @@ export default function ChatPage() {
                           Click "Modify Scope" to adjust research focus
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {briefQuestion && (
+                <div className="flex justify-start">
+                  <div className="w-full max-w-2xl rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 px-6 py-5 shadow-lg">
+                    <div className="space-y-4">
+                      {/* Brief Question Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-purple-600 flex items-center justify-center">
+                          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">{briefQuestion.question}</h3>
+                          <p className="text-sm text-gray-600">{briefQuestion.description}</p>
+                        </div>
+                      </div>
+
+                      {/* Text Input or Options */}
+                      {briefQuestion.input_type === 'text' ? (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            placeholder={briefQuestion.placeholder || 'Enter your answer...'}
+                            className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const input = e.target as HTMLInputElement
+                                if (input.value.trim()) {
+                                  answerBriefQuestion(input.value.trim())
+                                  input.value = ''
+                                }
+                              }
+                            }}
+                          />
+                          <p className="text-xs text-gray-500">Press Enter to submit your answer</p>
+                        </div>
+                      ) : (
+                        <div className="grid gap-3">
+                          {briefQuestion.options?.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => answerBriefQuestion(option.value)}
+                              className="px-4 py-3 rounded-lg font-medium transition-all bg-white text-gray-700 hover:bg-purple-100 border border-purple-300 hover:border-purple-400"
+                            >
+                              <div className="text-left">
+                                <div className="font-semibold">{option.label}</div>
+                                <div className="text-xs text-gray-600 mt-0.5">{option.description}</div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {researchPlan && (
+                <div className="flex justify-start">
+                  <div className="w-full max-w-2xl rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 px-6 py-5 shadow-lg">
+                    <div className="space-y-4">
+                      {/* Plan Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">Research Plan Generated</h3>
+                          <p className="text-sm text-gray-600">{researchPlan.message}</p>
+                        </div>
+                      </div>
+
+                      {/* Plan Details */}
+                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                        <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                          <div>
+                            <span className="text-gray-500 text-xs">Objective</span>
+                            <p className="text-gray-900 font-medium mt-1">{researchPlan.objective}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 text-xs">Scope</span>
+                            <p className="text-gray-900 font-medium mt-1 capitalize">{researchPlan.scope.replace(/_/g, ' ')}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 text-xs">Depth</span>
+                            <p className="text-gray-900 font-medium mt-1 capitalize">{researchPlan.depth.replace(/_/g, ' ')}</p>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-gray-200 pt-4">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-3">Research Steps:</h4>
+                          <div className="space-y-2">
+                            {researchPlan.steps.map((step, index) => (
+                              <div key={index} className="flex gap-3">
+                                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm text-gray-900">{step.phase}</div>
+                                  <div className="text-xs text-gray-600">{step.description}</div>
+                                  <div className="text-xs text-gray-500 mt-1">⏱️ {step.estimated_time}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-gray-200 text-sm font-semibold text-gray-900">
+                            Total estimated time: ~{researchPlan.total_estimated_time} minutes
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          onClick={() => respondToPlan('confirm')}
+                          className="flex-1 min-w-[150px] px-4 py-3 rounded-lg font-medium transition-all bg-green-600 text-white hover:bg-green-700 shadow-md"
+                        >
+                          ✓ Proceed with Plan
+                        </button>
+                        <button
+                          onClick={() => {
+                            const mods = prompt('What would you like to modify in the plan?')
+                            if (mods) respondToPlan('modify', mods)
+                          }}
+                          className="flex-1 min-w-[150px] px-4 py-3 rounded-lg font-medium transition-all bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                        >
+                          ✏️ Modify Plan
+                        </button>
+                        <button
+                          onClick={() => respondToPlan('cancel')}
+                          className="px-4 py-3 rounded-lg font-medium transition-all bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                        >
+                          ✕ Cancel
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
