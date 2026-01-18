@@ -326,6 +326,12 @@ export default function SettingsPage() {
     }
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token')
+      }
+
       const options = (newFieldType === 'select' || newFieldType === 'multiselect')
         ? newFieldOptions.split(',').map(o => o.trim()).filter(o => o.length > 0)
         : null
@@ -335,6 +341,7 @@ export default function SettingsPage() {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({
           name: newFieldName.trim(),
@@ -376,10 +383,17 @@ export default function SettingsPage() {
     }
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token')
+      }
+
       const response = await fetch(`${API_BASE_URL}/custom-fields/definitions/${fieldId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
         },
       })
 

@@ -26,6 +26,7 @@ class UserProfileResponse(BaseModel):
     id: str
     email: str
     name: Optional[str] = None
+    role: str = "user"  # User role: guest, user, admin
     industry: Optional[str] = None
     industry_segment: Optional[str] = None
     user_role: Optional[str] = None
@@ -127,6 +128,7 @@ async def get_user_profile(
         id=str(current_user.id),
         email=current_user.email,
         name=current_user.name,
+        role=current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
         industry=current_user.industry,
         industry_segment=current_user.industry_segment,
         user_role=current_user.user_role,
@@ -161,6 +163,7 @@ async def update_user_profile(
         id=str(current_user.id),
         email=current_user.email,
         name=current_user.name,
+        role=current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
         industry=current_user.industry,
         industry_segment=current_user.industry_segment,
         user_role=current_user.user_role,
