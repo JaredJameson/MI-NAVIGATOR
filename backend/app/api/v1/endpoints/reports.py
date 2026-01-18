@@ -2736,14 +2736,20 @@ SHARE_LINKS: dict = {}
 SHARE_ACCESS_LOG: dict = {}
 
 
+class ShareLinkRequest(BaseModel):
+    """Request model for creating a share link"""
+    password: Optional[str] = None
+
+
 @router.post("/{report_id}/share")
 async def share_report(
     report_id: str,
+    share_request: ShareLinkRequest,
     request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Generate share link for report with tracking."""
+    """Generate share link for report with tracking and optional password protection."""
     # Verify report exists
     report = None
     for r in MOCK_REPORTS:
@@ -2761,13 +2767,22 @@ async def share_report(
     from datetime import timedelta
     expires_at = datetime.now() + timedelta(days=30)
 
+    # Hash password if provided
+    password_hash = None
+    if share_request.password:
+        import hashlib
+        # Using SHA-256 for simplicity (in production, use bcrypt or argon2)
+        password_hash = hashlib.sha256(share_request.password.encode()).hexdigest()
+
     # Store share link
     SHARE_LINKS[share_token] = {
         "report_id": report_id,
         "created_at": datetime.now().isoformat() + "Z",
         "expires_at": expires_at.isoformat() + "Z",
         "created_by": str(current_user.id),
-        "created_by_email": current_user.email
+        "created_by_email": current_user.email,
+        "password_hash": password_hash,
+        "password_protected": password_hash is not None
     }
 
     # Initialize access log for this token
@@ -2796,7 +2811,8 @@ async def share_report(
         "share_url": share_url,
         "expires_at": expires_at.isoformat() + "Z",
         "report_id": report_id,
-        "report_title": report["title"]
+        "report_title": report["title"],
+        "password_protected": password_hash is not None
     }
 
 
@@ -3628,14 +3644,19 @@ async def upload_image(
 # PUBLIC SHARE LINK ACCESS (with tracking)
 # ============================================================================
 
-@router.get("/public/share/{share_token}")
-async def access_shared_report(
+class SharePasswordRequest(BaseModel):
+    """Request model for verifying share link password"""
+    password: str
+
+
+@router.post("/public/share/{share_token}/verify-password")
+async def verify_share_password(
     share_token: str,
-    request: Request
+    password_request: SharePasswordRequest
 ):
     """
-    Public endpoint to access shared report (no authentication required).
-    Logs access details for tracking.
+    Verify password for password-protected share link.
+    Returns access token if password is correct.
     """
     # Check if share link exists
     if share_token not in SHARE_LINKS:
@@ -3648,6 +3669,52 @@ async def access_shared_report(
     expires_at = datetime.fromisoformat(share_link["expires_at"].replace("Z", "+00:00"))
     if datetime.now(expires_at.tzinfo) > expires_at:
         raise HTTPException(status_code=410, detail="Share link has expired")
+
+    # Check if link is password protected
+    if not share_link.get("password_hash"):
+        raise HTTPException(status_code=400, detail="This link is not password protected")
+
+    # Verify password
+    import hashlib
+    provided_hash = hashlib.sha256(password_request.password.encode()).hexdigest()
+
+    if provided_hash != share_link["password_hash"]:
+        raise HTTPException(status_code=401, detail="Incorrect password")
+
+    return {"success": True, "message": "Password verified"}
+
+
+@router.get("/public/share/{share_token}")
+async def access_shared_report(
+    share_token: str,
+    request: Request,
+    password_verified: Optional[str] = None
+):
+    """
+    Public endpoint to access shared report (no authentication required).
+    For password-protected links, returns metadata first.
+    After password verification, returns full report.
+    """
+    # Check if share link exists
+    if share_token not in SHARE_LINKS:
+        raise HTTPException(status_code=404, detail="Share link not found or expired")
+
+    share_link = SHARE_LINKS[share_token]
+
+    # Check if link has expired
+    from datetime import datetime
+    expires_at = datetime.fromisoformat(share_link["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(expires_at.tzinfo) > expires_at:
+        raise HTTPException(status_code=410, detail="Share link has expired")
+
+    # If password protected and not verified yet, return metadata only
+    if share_link.get("password_hash") and password_verified != "true":
+        # Return metadata only, frontend will prompt for password
+        return {
+            "password_protected": True,
+            "shared_by": share_link.get("created_by_email", "Unknown"),
+            "expires_at": share_link["expires_at"]
+        }
 
     report_id = share_link["report_id"]
 

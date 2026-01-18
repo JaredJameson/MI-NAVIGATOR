@@ -3398,6 +3398,8 @@ export default function ReportViewerPage() {
   const [shareLink, setShareLink] = useState('')
   const [isGeneratingLink, setIsGeneratingLink] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [sharePassword, setSharePassword] = useState('')
+  const [passwordProtected, setPasswordProtected] = useState(false)
 
   // Access log state
   const [showAccessLogModal, setShowAccessLogModal] = useState(false)
@@ -4579,7 +4581,11 @@ export default function ReportViewerPage() {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            password: passwordProtected ? sharePassword : null
+          })
         }
       )
 
@@ -6177,10 +6183,47 @@ export default function ReportViewerPage() {
                       </svg>
                       <h3 className="mt-2 text-sm font-medium text-gray-900">Wygeneruj link udostępniania</h3>
                       <p className="mt-1 text-sm text-gray-500">Stwórz publiczny link do tego raportu</p>
+
+                      {/* Password protection option */}
+                      <div className="mt-4 space-y-3 max-w-sm mx-auto">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="password-protect"
+                            checked={passwordProtected}
+                            onChange={(e) => {
+                              setPasswordProtected(e.target.checked)
+                              if (!e.target.checked) {
+                                setSharePassword('')
+                              }
+                            }}
+                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                          />
+                          <label htmlFor="password-protect" className="ml-2 text-sm text-gray-700">
+                            Chroń hasłem
+                          </label>
+                        </div>
+
+                        {passwordProtected && (
+                          <div className="text-left">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Hasło
+                            </label>
+                            <input
+                              type="password"
+                              value={sharePassword}
+                              onChange={(e) => setSharePassword(e.target.value)}
+                              placeholder="Wpisz hasło..."
+                              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                        )}
+                      </div>
+
                       <div className="mt-6">
                         <button
                           onClick={handleGenerateShareLink}
-                          disabled={isGeneratingLink}
+                          disabled={isGeneratingLink || (passwordProtected && !sharePassword)}
                           className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                         >
                           {isGeneratingLink ? (
