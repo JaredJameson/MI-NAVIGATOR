@@ -3373,6 +3373,23 @@ export default function ReportViewerPage() {
     fetchComments()
   }, [reportId])
 
+  // Handle hash navigation for deep linking to sections
+  useEffect(() => {
+    // Only run after report is loaded
+    if (!report) return
+
+    const hash = window.location.hash
+    if (hash) {
+      // Small delay to ensure DOM is fully rendered
+      setTimeout(() => {
+        const element = document.querySelector(hash)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 300)
+    }
+  }, [report])
+
   // Keyboard shortcut for search (Ctrl+F)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
