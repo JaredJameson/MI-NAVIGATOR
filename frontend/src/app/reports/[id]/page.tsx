@@ -3387,6 +3387,7 @@ export default function ReportViewerPage() {
 
   // Share via email state
   const [showShareModal, setShowShareModal] = useState(false)
+  const [shareTab, setShareTab] = useState<'email' | 'link'>('link') // Default to link tab
   const [shareEmail, setShareEmail] = useState('')
   const [shareMessage, setShareMessage] = useState('')
   const [isSharing, setIsSharing] = useState(false)
@@ -6109,13 +6110,13 @@ export default function ReportViewerPage() {
         </div>
       </main>
 
-      {/* Share via Email Modal */}
+      {/* Share Modal with Tabs */}
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
             <div className="border-b border-gray-200 p-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Udostępnij raport przez email</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Udostępnij raport</h3>
                 <button
                   onClick={() => {
                     setShowShareModal(false)
@@ -6123,6 +6124,8 @@ export default function ReportViewerPage() {
                     setShareMessage('')
                     setShareError('')
                     setShareSuccess(false)
+                    setShareLink('')
+                    setLinkCopied(false)
                   }}
                   className="text-gray-400 hover:text-gray-600"
                 >
@@ -6133,17 +6136,33 @@ export default function ReportViewerPage() {
               </div>
             </div>
 
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setShareTab('link')}
+                className={`flex-1 px-4 py-3 text-sm font-medium ${
+                  shareTab === 'link'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                🔗 Link
+              </button>
+              <button
+                onClick={() => setShareTab('email')}
+                className={`flex-1 px-4 py-3 text-sm font-medium ${
+                  shareTab === 'email'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                ✉️ Email
+              </button>
+            </div>
+
             <div className="p-4 space-y-4">
-              {shareSuccess ? (
-                <div className="rounded-md bg-green-50 p-4">
-                  <div className="flex items-center">
-                    <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <p className="text-sm text-green-700">Raport został pomyślnie udostępniony!</p>
-                  </div>
-                </div>
-              ) : (
+              {/* Link Tab */}
+              {shareTab === 'link' && (
                 <>
                   {shareError && (
                     <div className="rounded-md bg-red-50 p-4">
@@ -6151,63 +6170,164 @@ export default function ReportViewerPage() {
                     </div>
                   )}
 
-                  <div>
-                    <label htmlFor="share-email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Adres email odbiorcy *
-                    </label>
-                    <input
-                      id="share-email"
-                      type="email"
-                      value={shareEmail}
-                      onChange={(e) => setShareEmail(e.target.value)}
-                      placeholder="email@example.com"
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
+                  {!shareLink ? (
+                    <div className="text-center py-6">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">Wygeneruj link udostępniania</h3>
+                      <p className="mt-1 text-sm text-gray-500">Stwórz publiczny link do tego raportu</p>
+                      <div className="mt-6">
+                        <button
+                          onClick={handleGenerateShareLink}
+                          disabled={isGeneratingLink}
+                          className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {isGeneratingLink ? (
+                            <>
+                              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              Generowanie...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              Wygeneruj link
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="rounded-md bg-green-50 p-4">
+                        <div className="flex items-start">
+                          <svg className="h-5 w-5 text-green-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-green-800">Link utworzony pomyślnie!</p>
+                            <p className="text-xs text-green-700 mt-1">Każdy kto ma ten link może zobaczyć raport</p>
+                          </div>
+                        </div>
+                      </div>
 
-                  <div>
-                    <label htmlFor="share-message" className="block text-sm font-medium text-gray-700 mb-1">
-                      Wiadomość (opcjonalnie)
-                    </label>
-                    <textarea
-                      id="share-message"
-                      value={shareMessage}
-                      onChange={(e) => setShareMessage(e.target.value)}
-                      placeholder="Dodaj krótką wiadomość..."
-                      rows={4}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Link do udostępnienia
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={shareLink}
+                            readOnly
+                            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm bg-gray-50"
+                          />
+                          <button
+                            onClick={handleCopyShareLink}
+                            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                          >
+                            {linkCopied ? (
+                              <>
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </>
+                            ) : (
+                              'Kopiuj'
+                            )}
+                          </button>
+                        </div>
+                      </div>
 
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      onClick={() => {
-                        setShowShareModal(false)
-                        setShareEmail('')
-                        setShareMessage('')
-                        setShareError('')
-                      }}
-                      className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                      disabled={isSharing}
-                    >
-                      Anuluj
-                    </button>
-                    <button
-                      onClick={handleShareEmail}
-                      disabled={isSharing || !shareEmail}
-                      className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSharing ? (
-                        <span className="flex items-center justify-center">
-                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                          Wysyłanie...
-                        </span>
-                      ) : (
-                        'Wyślij'
+                      <div className="rounded-md bg-yellow-50 p-3 text-xs text-yellow-800">
+                        ⚠️ Link wygasa po 30 dniach. Możesz cofnąć dostęp w dowolnym momencie.
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Email Tab */}
+              {shareTab === 'email' && (
+                <>
+                  {shareSuccess ? (
+                    <div className="rounded-md bg-green-50 p-4">
+                      <div className="flex items-center">
+                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <p className="text-sm text-green-700">Raport został pomyślnie udostępniony!</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {shareError && (
+                        <div className="rounded-md bg-red-50 p-4">
+                          <p className="text-sm text-red-700">{shareError}</p>
+                        </div>
                       )}
-                    </button>
-                  </div>
+
+                      <div>
+                        <label htmlFor="share-email" className="block text-sm font-medium text-gray-700 mb-1">
+                          Adres email odbiorcy *
+                        </label>
+                        <input
+                          id="share-email"
+                          type="email"
+                          value={shareEmail}
+                          onChange={(e) => setShareEmail(e.target.value)}
+                          placeholder="email@example.com"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="share-message" className="block text-sm font-medium text-gray-700 mb-1">
+                          Wiadomość (opcjonalnie)
+                        </label>
+                        <textarea
+                          id="share-message"
+                          value={shareMessage}
+                          onChange={(e) => setShareMessage(e.target.value)}
+                          placeholder="Dodaj krótką wiadomość..."
+                          rows={4}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          onClick={() => {
+                            setShowShareModal(false)
+                            setShareEmail('')
+                            setShareMessage('')
+                            setShareError('')
+                          }}
+                          className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                          disabled={isSharing}
+                        >
+                          Anuluj
+                        </button>
+                        <button
+                          onClick={handleShareEmail}
+                          disabled={isSharing || !shareEmail}
+                          className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSharing ? (
+                            <span className="flex items-center justify-center">
+                              <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              Wysyłanie...
+                            </span>
+                          ) : (
+                            'Wyślij'
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
