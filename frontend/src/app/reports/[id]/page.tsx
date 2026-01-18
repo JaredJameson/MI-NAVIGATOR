@@ -3421,6 +3421,10 @@ export default function ReportViewerPage() {
   const [tableCols, setTableCols] = useState(3)
   const [currentSectionForTable, setCurrentSectionForTable] = useState<string | null>(null)
 
+  // Delete section state
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
+  const [sectionToDelete, setSectionToDelete] = useState<{ id: string, title: string } | null>(null)
+
   useEffect(() => {
     fetchReport()
     fetchAnnotations()
@@ -3562,6 +3566,37 @@ export default function ReportViewerPage() {
 
       return arrayMove(sections, oldIndex, newIndex)
     })
+
+    // Mark as having unsaved changes
+    setIsSaving(false)
+  }
+
+  // Handle delete section click - show confirmation modal
+  const handleDeleteSectionClick = (sectionId: string, sectionTitle: string) => {
+    setSectionToDelete({ id: sectionId, title: sectionTitle })
+    setShowDeleteConfirmModal(true)
+  }
+
+  // Confirm and delete section
+  const confirmDeleteSection = () => {
+    if (!sectionToDelete) return
+
+    // Remove section from sortedSections
+    setSortedSections((sections) => sections.filter((s) => s.id !== sectionToDelete.id))
+
+    // Remove section content from editedSections
+    const newEditedSections = { ...editedSections }
+    delete newEditedSections[sectionToDelete.id]
+    setEditedSections(newEditedSections)
+
+    // Remove section title from editedSectionTitles
+    const newEditedTitles = { ...editedSectionTitles }
+    delete newEditedTitles[sectionToDelete.id]
+    setEditedSectionTitles(newEditedTitles)
+
+    // Close modal
+    setShowDeleteConfirmModal(false)
+    setSectionToDelete(null)
 
     // Mark as having unsaved changes
     setIsSaving(false)
@@ -5467,6 +5502,45 @@ export default function ReportViewerPage() {
         </div>
       )}
 
+      {/* Delete Section Confirmation Modal */}
+      {showDeleteConfirmModal && sectionToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Usuń sekcję?</h3>
+                <p className="text-sm text-gray-500 mt-1">Ta operacja jest nieodwracalna</p>
+              </div>
+            </div>
+            <p className="text-gray-700 mb-6">
+              Czy na pewno chcesz usunąć sekcję <strong>&quot;{sectionToDelete.title}&quot;</strong>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirmModal(false)
+                  setSectionToDelete(null)
+                }}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={confirmDeleteSection}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+              >
+                Usuń sekcję
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto max-w-4xl px-4 py-8">
         {/* Report Header */}
         <div className="mb-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
@@ -5586,6 +5660,16 @@ export default function ReportViewerPage() {
                               📊 Diagram interaktywny
                             </span>
                           )}
+                          {/* Delete Section Button */}
+                          <button
+                            onClick={() => handleDeleteSectionClick(section.id, editedSectionTitles[section.id] || section.title)}
+                            className="ml-auto text-gray-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
+                            title="Usuń sekcję"
+                          >
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
                         </div>
 
                 {/* SWOT Diagram Visualization */}
