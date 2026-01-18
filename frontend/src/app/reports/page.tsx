@@ -320,11 +320,13 @@ export default function ReportsPage() {
     setError('')
 
     try {
+      const csrfToken = await getCsrfToken()
       const response = await fetch(`${API_BASE_URL}/projects/bulk-assign`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
         },
         body: JSON.stringify({
           report_ids: Array.from(selectedReports),
