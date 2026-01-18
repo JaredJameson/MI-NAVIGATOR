@@ -45,6 +45,7 @@ export default function ChatPage() {
   const [error, setError] = useState('')
   const [wsConnected, setWsConnected] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [detectedUrl, setDetectedUrl] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -57,6 +58,18 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom()
   }, [conversation?.messages])
+
+  // Detect URLs in input
+  useEffect(() => {
+    const urlRegex = /(https?:\/\/[^\s]+)/gi
+    const matches = inputValue.match(urlRegex)
+
+    if (matches && matches.length > 0) {
+      setDetectedUrl(matches[0])
+    } else {
+      setDetectedUrl(null)
+    }
+  }, [inputValue])
 
   const connectWebSocket = (conversationId: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -327,6 +340,71 @@ export default function ChatPage() {
     }
   }
 
+  const startUrlAnalysis = async () => {
+    if (!detectedUrl) return
+
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setError('')
+    setIsLoading(true)
+
+    try {
+      // Create conversation if needed
+      let conv = conversation
+      if (!conv) {
+        conv = await createConversation()
+        if (!conv) return
+      }
+
+      // Wait for WebSocket connection
+      console.log('[WS] Waiting for connection...')
+      const isConnected = await waitForWebSocketConnection(5000)
+
+      if (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        throw new Error('WebSocket connection timeout')
+      }
+
+      console.log('[WS] Connection ready')
+
+      // Prepare message with URL analysis instruction
+      const messageContent = `Analyze website: ${detectedUrl}`
+
+      // Add user message optimistically
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: messageContent,
+        created_at: new Date().toISOString(),
+      }
+
+      setConversation(prev => prev ? {
+        ...prev,
+        messages: [...prev.messages, userMessage],
+      } : null)
+
+      // Send via WebSocket
+      const messagePayload = JSON.stringify({
+        content: messageContent,
+        file_ids: []
+      })
+      console.log('[WS] Sending URL analysis:', messagePayload)
+      wsRef.current.send(messagePayload)
+
+      // Clear detected URL and input
+      setDetectedUrl(null)
+      setInputValue('')
+
+    } catch (err) {
+      console.error('[WS] Send error:', err)
+      setError('Failed to send message. Please try again.')
+      setIsLoading(false)
+    }
+  }
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -508,6 +586,29 @@ export default function ChatPage() {
       {/* Input */}
       <div className="border-t bg-white px-4 py-4">
         <div className="mx-auto max-w-4xl">
+          {/* URL Detection Suggestion */}
+          {detectedUrl && (
+            <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">URL Detected</p>
+                    <p className="text-xs text-blue-700">Would you like to analyze this website?</p>
+                  </div>
+                </div>
+                <button
+                  onClick={startUrlAnalysis}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  Analyze Website
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Uploaded Files Preview */}
           {uploadedFiles.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
