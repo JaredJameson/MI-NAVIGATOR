@@ -595,3 +595,14 @@ async def get_user_usage_stats(
         projects_count=projects_count,
         period=period
     )
+
+
+@router.get("/test-500-error")
+async def test_500_error():
+    """
+    Test endpoint to trigger a 500 error for testing error handling.
+    """
+    raise HTTPException(
+        status_code=500,
+        detail="This is a test 500 error for testing error handling in the frontend"
+    )

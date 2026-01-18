@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { getStoredToken } from '@/services/api'
+import { getStoredToken, getCsrfToken, fetchCsrfToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -50,6 +50,8 @@ export default function ProjectDetailPage() {
   const [reports, setReports] = useState<ReportSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     fetchProjectDetails()
@@ -113,6 +115,44 @@ export default function ProjectDetailPage() {
     return REPORT_TYPE_LABELS[type] || { label: type, icon: '📄' }
   }
 
+  const handleDeleteProject = async () => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setIsDeleting(true)
+    setError('')
+
+    try {
+      // Get CSRF token
+      let csrfToken = getCsrfToken()
+      if (!csrfToken) {
+        csrfToken = await fetchCsrfToken()
+      }
+
+      const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken || '',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project')
+      }
+
+      // Redirect to projects list after successful deletion
+      router.push('/projects')
+    } catch (err) {
+      setError('Nie udało się usunąć projektu')
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -162,6 +202,12 @@ export default function ProjectDetailPage() {
             >
               Edit Project
             </Link>
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+            >
+              Delete
+            </button>
           </nav>
         </div>
       </header>
@@ -245,6 +291,67 @@ export default function ProjectDetailPage() {
           )}
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Project</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete <strong>{project?.name}</strong>?
+              {reports.length > 0 && (
+                <span className="block mt-2 text-sm text-orange-600">
+                  ⚠️ This project has {reports.length} report(s) assigned. They will remain in your reports list.
+                </span>
+              )}
+            </p>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowDeleteDialog(false)
+                  setError('')
+                }}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteProject}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Project'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
