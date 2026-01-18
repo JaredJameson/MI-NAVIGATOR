@@ -944,7 +944,9 @@ async def list_reports(
     # Import REPORT_TAGS from tags module
     from app.api.v1.endpoints.tags import REPORT_TAGS
 
-    filtered_reports = MOCK_REPORTS
+    # SECURITY: Only show reports belonging to the current user
+    user_id = str(current_user.id)
+    filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
 
     # Filter by archived status (default: show only non-archived)
     if archived is None:
@@ -998,8 +1000,7 @@ async def list_reports(
     end = start + limit
     items = filtered_reports[start:end]
 
-    # Get user's favorites (use mock user_id for testing)
-    user_id = "test_user"  # str(current_user.id)  # Disabled for testing
+    # Get user's favorites
     user_favorites = USER_FAVORITES.get(user_id, [])
 
     return {
@@ -1230,13 +1231,21 @@ async def get_audit_logs_endpoint(
 
 @router.get("/{report_id}")
 async def get_report(
-    report_id: str
+    report_id: str,
+    current_user: User = Depends(get_current_user)
 ):
     """Get report details."""
     for report in MOCK_REPORTS:
         if report["id"] == report_id:
-            # Check if report is in user's favorites (temporarily disabled for testing)
-            user_id = "test_user"
+            # SECURITY: Check if user is the owner of the report
+            if report.get("created_by") != str(current_user.id):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Nie masz uprawnień do wyświetlenia tego raportu."
+                )
+
+            # Check if report is in user's favorites
+            user_id = str(current_user.id)
             is_favorite = user_id in USER_FAVORITES and report_id in USER_FAVORITES[user_id]
 
             return ReportDetail(
