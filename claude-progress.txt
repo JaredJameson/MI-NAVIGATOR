@@ -1,3 +1,198 @@
+# Session 96 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** Regression testing completed - Critical issues found
+
+**Regression Tests Performed:**
+- Feature #250: Bulk report export (PARTIAL FAILURE - PDF export not implemented)
+- Feature #303: Revoke share link (CANNOT TEST - feature appears missing from UI)
+- Feature #273: Financial ratio radar chart (SKIPPED - ran out of time)
+
+**Current Progress:** 171/380 features passing (45.0%)
+
+## Critical Findings
+
+### ⚠️ Feature #250: Bulk Report Export - INCOMPLETE IMPLEMENTATION
+
+**What Was Tested:**
+1. ✅ Navigation to reports list - WORKS
+2. ✅ Selection of multiple reports (3 selected) - WORKS
+3. ✅ Click bulk export button - WORKS
+4. ⚠️ Format selection - PARTIAL
+   - ✅ Excel (.xlsx): Successfully downloaded file (16KB) 
+   - ❌ PDF (ZIP): Shows "PDF bulk export coming soon" error message
+5. ⚠️ Download verification - PARTIAL (only Excel works)
+
+**Issue Details:**
+- Feature is marked as "passing" in database
+- Only 50% of functionality is implemented
+- PDF bulk export shows placeholder/"coming soon" message
+- This is a **REGRESSION** - feature was previously marked as working but is incomplete
+
+**Recommendation:** Feature #250 should be marked as FAILING or IN PROGRESS until PDF export is fully implemented.
+
+### ❌ Feature #303: Revoke Share Link - CANNOT VERIFY
+
+**What Was Attempted:**
+1. ✅ Opened report view (report_001 - FADO)
+2. ✅ Found "Udostępnij" (Share) button
+3. ❌ Button opens EMAIL SHARING dialog, not SHARE LINK functionality
+   - Dialog shows: "Udostępnij raport przez email"
+   - Fields: Email address, optional message
+   - No option to create/manage public share links
+
+**Issue Details:**
+- Test steps require: "Create share link", "Verify link works", "Revoke link"
+- UI only shows email sharing functionality
+- Share link feature may be:
+  - Not implemented
+  - Hidden in different location
+  - Mislabeled as different feature
+
+**Recommendation:** Need to investigate if share link feature exists elsewhere in UI, or if it was never implemented.
+
+## Session Activities
+
+### KROK 1: Orientation ✅
+- Reviewed app_spec.txt and progress notes
+- Retrieved statistics: 171/380 passing (45.0%)
+- Retrieved next feature: #373 (Browser compatibility Chrome)
+- Retrieved regression tests: #250, #303, #273
+
+### KROK 2: Server Verification ✅
+- Backend: Running on port 8000 (PID 65535)
+- Frontend: Initially not running
+- Started frontend with `npm run dev` - now on port 3000
+- Both servers healthy
+
+### KROK 3: Regression Testing ⚠️
+
+**Test #1: Feature #250 - Bulk Report Export**
+
+**Test Steps Executed:**
+1. Navigated to http://localhost:3000 - Logged in automatically
+2. Clicked "Reports" navigation link
+3. Clicked "Wybierz" (Select) button to enter selection mode
+4. Selected 3 reports:
+   - Report #1: Analiza profilu FADO Sp. z o.o.
+   - Report #2: Analiza rynku tworzyw sztucznych w Polsce
+   - Report #3: Due Diligence - TechSoft Sp. z o.o.
+5. Counter showed: "3 z 15 wybranych" (3 of 15 selected)
+6. Clicked "Eksportuj (3)" button
+7. Dropdown menu appeared with 2 options:
+   - Excel (.xlsx) - "Wszystkie w jednym pliku"
+   - PDF (archiwum ZIP) - "Osobne pliki w ZIP"
+
+**Excel Export Test:**
+- Clicked Excel option
+- ✅ File downloaded: `raporty_eksport_20260118_011947.xlsx` (16KB)
+- ✅ Selection mode exited automatically
+- ✅ Export successful
+
+**PDF Export Test:**
+- Re-entered selection mode
+- Selected same 3 reports
+- Clicked "Eksportuj (3)" again
+- Clicked PDF option
+- ❌ Red error message appeared: "PDF bulk export coming soon"
+- ❌ No download initiated
+- ❌ Feature not implemented
+
+**Screenshots Captured:**
+- 01_homepage.png - Login page
+- 02_reports_page.png - Reports list
+- 03_select_mode.png - Selection mode activated
+- 04_reports_selected.png - 3 reports selected with checkmarks
+- 05_export_dialog.png - Export dropdown menu
+- 06_export_started.png - PDF error message shown
+- 07_excel_export_attempt.png - After Excel export
+
+**Test #2: Feature #303 - Revoke Share Link**
+
+**Test Steps Attempted:**
+1. Clicked on first report (FADO) to open report view
+2. Located "Udostępnij" button in toolbar
+3. Clicked "Udostępnij" button
+4. ❌ **WRONG DIALOG APPEARED**
+   - Expected: Share link management dialog
+   - Got: "Udostępnij raport przez email" dialog
+   - Dialog contains:
+     - Email address input field
+     - Optional message textarea
+     - Send/Cancel buttons
+   - **NO SHARE LINK FUNCTIONALITY VISIBLE**
+
+**Conclusion:** Cannot proceed with test - share link feature not accessible from expected location.
+
+**Screenshots Captured:**
+- 08_report_view.png - Report detail page
+- 09_share_dialog.png - Email sharing dialog (not share link)
+
+## Issues Identified
+
+### Issue #1: Incomplete Bulk Export
+- **Feature:** #250
+- **Severity:** Medium
+- **Type:** Incomplete implementation
+- **Details:** PDF bulk export shows "coming soon" placeholder
+- **Impact:** Users cannot export multiple reports as PDF
+- **Action Needed:** Implement PDF bulk export OR remove from UI until ready
+
+### Issue #2: Missing/Hidden Share Link Feature
+- **Feature:** #303
+- **Severity:** High
+- **Type:** Missing functionality or incorrect UI
+- **Details:** "Udostępnij" button opens email dialog, not share link dialog
+- **Impact:** Cannot test revoke share link functionality
+- **Action Needed:** 
+  - Investigate if share link exists elsewhere
+  - If not implemented, mark feature as TODO
+  - If mislabeled, update test steps
+
+## Files Modified
+- None (read-only regression testing session)
+
+## Next Session Priorities
+
+**CRITICAL - Fix Regression Issues:**
+1. Investigate Feature #303 - locate or implement share link functionality
+2. Complete Feature #250 - implement PDF bulk export
+
+**THEN - Continue with planned work:**
+3. Feature #373: Browser compatibility Chrome testing
+4. Continue with feature backlog
+
+## Technical Notes
+
+- Frontend running on port 3000 after manual start
+- Backend stable on port 8000
+- Playwright MCP working correctly (previous session's issue resolved)
+- Application stable during all tests
+- Zero console errors during navigation
+- All UI interactions smooth and responsive
+
+## Time Spent
+
+- Orientation: ~5 minutes
+- Server verification: ~3 minutes  
+- Regression test #250: ~10 minutes
+- Regression test #303: ~5 minutes
+- Documentation: Ongoing
+
+## Conclusion
+
+This session successfully identified **2 critical regressions** in features previously marked as passing:
+
+1. **Feature #250** is only 50% functional (Excel works, PDF doesn't)
+2. **Feature #303** cannot be tested due to missing/hidden UI
+
+These issues must be addressed before new features are implemented, following the methodology requirement: **"Napraw zepsute testy przed implementacją nowych funkcji"**
+
+The application is otherwise stable and working well. The issues found are specific feature implementations, not systemic problems.
+
+---
+
 # Session 95 - Date: 2026-01-18
 
 ## Session Summary
