@@ -32,6 +32,30 @@ class BulkAssignRequest(BaseModel):
 
 
 # Mock projects database (global storage)
+# Activity tracking
+activity_counter = 1
+MOCK_ACTIVITIES = {}  # project_id -> list of activities
+
+def add_activity(project_id: str, activity_type: str, description: str, user_name: str = "Current User"):
+    """Add activity to project feed."""
+    global activity_counter
+
+    if project_id not in MOCK_ACTIVITIES:
+        MOCK_ACTIVITIES[project_id] = []
+
+    activity = {
+        "id": f"activity_{activity_counter:03d}",
+        "type": activity_type,
+        "description": description,
+        "user": user_name,
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+
+    activity_counter += 1
+    MOCK_ACTIVITIES[project_id].insert(0, activity)  # Insert at beginning (newest first)
+
+    return activity
+
 MOCK_PROJECTS = {
     "project_001": {
         "id": "project_001",
@@ -119,6 +143,14 @@ async def create_project(
 
     MOCK_PROJECTS[project_id] = new_project
 
+    # Add activity
+    add_activity(
+        project_id=project_id,
+        activity_type="project_created",
+        description=f"Utworzono projekt '{project.name}'",
+        user_name=current_user.email or "Current User"
+    )
+
     return new_project
 
 
@@ -146,14 +178,28 @@ async def update_project(
 
     existing = MOCK_PROJECTS[project_id]
 
-    if project.name is not None:
+    # Track changes for activity log
+    changes = []
+    if project.name is not None and project.name != existing["name"]:
         existing["name"] = project.name
-    if project.description is not None:
+        changes.append("nazwę")
+    if project.description is not None and project.description != existing.get("description"):
         existing["description"] = project.description
-    if project.type is not None:
+        changes.append("opis")
+    if project.type is not None and project.type != existing["type"]:
         existing["type"] = project.type
+        changes.append("typ")
 
     existing["updated_at"] = datetime.utcnow().isoformat() + "Z"
+
+    # Add activity if there were changes
+    if changes:
+        add_activity(
+            project_id=project_id,
+            activity_type="project_updated",
+            description=f"Zaktualizowano {', '.join(changes)} projektu",
+            user_name=current_user.email or "Current User"
+        )
 
     return existing
 
@@ -181,23 +227,8 @@ async def get_project_activity(
     if project_id not in MOCK_PROJECTS:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    # Mock activity data
-    activities = [
-        {
-            "id": "activity_001",
-            "type": "report_added",
-            "description": "Dodano raport do projektu",
-            "user": "Jan Kowalski",
-            "timestamp": "2026-01-14T15:30:00Z"
-        },
-        {
-            "id": "activity_002",
-            "type": "project_updated",
-            "description": "Zaktualizowano opis projektu",
-            "user": "Jan Kowalski",
-            "timestamp": "2026-01-14T10:00:00Z"
-        }
-    ]
+    # Return real activities from MOCK_ACTIVITIES
+    activities = MOCK_ACTIVITIES.get(project_id, [])
 
     return {"activities": activities}
 
@@ -217,6 +248,14 @@ async def add_report_to_project(
     if report_id not in project["report_ids"]:
         project["report_ids"].append(report_id)
         project["updated_at"] = datetime.utcnow().isoformat() + "Z"
+
+        # Add activity
+        add_activity(
+            project_id=project_id,
+            activity_type="report_added",
+            description=f"Dodano raport {report_id} do projektu",
+            user_name=current_user.email or "Current User"
+        )
 
     return {"message": "Report added to project", "report_ids": project["report_ids"]}
 

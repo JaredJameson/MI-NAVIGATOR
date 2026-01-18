@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken, getCsrfToken, fetchCsrfToken } from '@/services/api'
+import { ActivityFeed } from '@/components/projects/ActivityFeed'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -27,6 +28,14 @@ interface ReportSummary {
   updated_at: string
 }
 
+interface Activity {
+  id: string
+  type: string
+  description: string
+  user: string
+  timestamp: string
+}
+
 const PROJECT_TYPE_LABELS: Record<string, string> = {
   due_diligence: 'Due Diligence',
   market_analysis: 'Analiza rynku',
@@ -48,13 +57,16 @@ export default function ProjectDetailPage() {
 
   const [project, setProject] = useState<Project | null>(null)
   const [reports, setReports] = useState<ReportSummary[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingActivities, setIsLoadingActivities] = useState(true)
   const [error, setError] = useState('')
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     fetchProjectDetails()
+    fetchProjectActivity()
   }, [projectId])
 
   const fetchProjectDetails = async () => {
@@ -97,6 +109,32 @@ export default function ProjectDetailPage() {
       setError('Nie udało się załadować projektu')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchProjectActivity = async () => {
+    const token = getStoredToken()
+    if (!token) {
+      return
+    }
+
+    setIsLoadingActivities(true)
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects/${projectId}/activity`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setActivities(data.activities || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch activities:', err)
+    } finally {
+      setIsLoadingActivities(false)
     }
   }
 
@@ -289,6 +327,11 @@ export default function ProjectDetailPage() {
               })}
             </div>
           )}
+        </div>
+
+        {/* Activity Feed */}
+        <div className="mt-6">
+          <ActivityFeed activities={activities} isLoading={isLoadingActivities} />
         </div>
       </main>
 
