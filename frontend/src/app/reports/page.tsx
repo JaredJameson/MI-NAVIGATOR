@@ -89,6 +89,7 @@ export default function ReportsPage() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [filterStatus, setFilterStatus] = useState('')
   const [showArchived, setShowArchived] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -908,8 +909,9 @@ export default function ReportsPage() {
           </form>
         </div>
 
-        {/* Quick Status Filters */}
-        <div className="mb-6 flex gap-3">
+        {/* Quick Status Filters and View Toggle */}
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex gap-3">
           <button
             onClick={() => {
               setFilterStatus('')
@@ -979,6 +981,37 @@ export default function ReportsPage() {
           >
             📦 Archiwum
           </button>
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Widok listy"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Widok siatki"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Error Display */}
@@ -1017,8 +1050,8 @@ export default function ReportsPage() {
             </Link>
           </div>
         ) : (
-          /* Reports List */
-          <div className="space-y-4">
+          /* Reports List or Grid */
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
             {reports.map((report) => {
               const typeInfo = getTypeInfo(report.type)
               const isSelected = selectedReports.has(report.id)
