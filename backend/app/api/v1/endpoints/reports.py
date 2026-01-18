@@ -1318,11 +1318,126 @@ async def get_report(
     )
 
 
+class ReportUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    summary: Optional[str] = None
+    sections: Optional[List[ReportSection]] = None
+
+
 @router.put("/{report_id}")
-async def update_report(report_id: str):
-    """Update report content."""
-    # TODO: Implement report update
-    return {"message": "Report updated successfully"}
+async def update_report(
+    report_id: str,
+    update_data: ReportUpdateRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update report content (title, summary, sections)."""
+    global MOCK_REPORTS
+
+    # Find the report
+    report = next((r for r in MOCK_REPORTS if r["id"] == report_id), None)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # SECURITY: Verify ownership
+    if str(report.get("created_by")) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not authorized to edit this report")
+
+    # Track changes for audit log
+    changes = []
+
+    # Update title if provided
+    if update_data.title is not None and update_data.title != report.get("title"):
+        old_title = report.get("title")
+        report["title"] = update_data.title
+        changes.append(f"Title changed from '{old_title}' to '{update_data.title}'")
+
+    # Update summary if provided
+    if update_data.summary is not None and update_data.summary != report.get("summary"):
+        report["summary"] = update_data.summary
+        changes.append("Summary updated")
+
+    # Update sections if provided
+    if update_data.sections is not None:
+        # Check if section order changed
+        old_section_ids = [s["id"] for s in report["sections"]]
+        new_section_ids = [s.id for s in update_data.sections]
+        if old_section_ids != new_section_ids:
+            changes.append("Section order changed")
+
+        # Replace sections entirely to preserve the new order
+        updated_sections = []
+        for new_section in update_data.sections:
+            # Find matching section by ID to check for content changes
+            existing_section = next(
+                (s for s in report["sections"] if s["id"] == new_section.id),
+                None
+            )
+            if existing_section:
+                if existing_section["content"] != new_section.content:
+                    changes.append(f"Section '{new_section.title}' content updated")
+                if existing_section["title"] != new_section.title:
+                    changes.append(f"Section title updated")
+
+            # Add section with new order
+            updated_sections.append({
+                "id": new_section.id,
+                "title": new_section.title,
+                "content": new_section.content
+            })
+
+        # Replace the entire sections array to preserve order
+        report["sections"] = updated_sections
+
+    # Update timestamp
+    report["updated_at"] = datetime.utcnow().isoformat() + "Z"
+
+    # Create version entry
+    if report_id not in REPORT_VERSIONS:
+        REPORT_VERSIONS[report_id] = []
+
+    new_version_number = len(REPORT_VERSIONS[report_id]) + 1
+    version_entry = {
+        "version": new_version_number,
+        "created_at": report["updated_at"],
+        "author": current_user.email,
+        "changes": "; ".join(changes) if changes else "Minor updates",
+        "is_current": True,
+        "snapshot": {
+            "title": report["title"],
+            "summary": report["summary"],
+            "sections": report["sections"]
+        }
+    }
+
+    # Mark previous versions as not current
+    for v in REPORT_VERSIONS[report_id]:
+        v["is_current"] = False
+
+    REPORT_VERSIONS[report_id].append(version_entry)
+
+    # Log audit event
+    await log_audit(
+        db=db,
+        user=current_user,
+        action_type=AuditAction.REPORT_UPDATE,
+        resource_type=ResourceType.REPORT,
+        resource_id=report_id,
+        description=f"Updated report: {report['title']}",
+        request=request,
+        extra_data={
+            "changes": changes,
+            "version": new_version_number
+        }
+    )
+
+    return {
+        "message": "Report updated successfully",
+        "report_id": report_id,
+        "version": new_version_number,
+        "updated_at": report["updated_at"]
+    }
 
 
 @router.delete("/{report_id}")
