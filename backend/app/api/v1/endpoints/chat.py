@@ -116,9 +116,70 @@ async def send_message(
 
 def generate_mock_response(user_message: str) -> str:
     """Generate a mock AI response based on user message."""
+    import json
     user_lower = user_message.lower()
 
-    if "analiz" in user_lower or "firma" in user_lower or "company" in user_lower:
+    # Company profile request
+    if ("profil" in user_lower or "profile" in user_lower) and ("firma" in user_lower or "company" in user_lower):
+        return json.dumps({
+            "type": "company_card",
+            "data": {
+                "name": "FADO Sp. z o.o.",
+                "nip": "5260016831",
+                "krs": "0000145732",
+                "address": "ul. Fabryczna 10, 62-065 Grodzisk Wielkopolski",
+                "industry": "Manufacturing of plastic products",
+                "status": "Active",
+                "capital": "500,000 PLN",
+                "founded": "1995",
+                "employees": "150-200",
+                "description": "FADO is a leading Polish manufacturer specializing in injection molding and plastic processing. The company serves automotive, industrial, and consumer goods sectors."
+            }
+        }, ensure_ascii=False)
+
+    # Trend analysis request (check BEFORE financial data to avoid "revenue trend" matching "revenue")
+    elif "trend" in user_lower or "wykres" in user_lower or "chart" in user_lower or "wzrost" in user_lower or "growth" in user_lower:
+        return json.dumps({
+            "type": "trend_chart",
+            "data": {
+                "title": "Revenue Growth Trend (2020-2023)",
+                "type": "line",
+                "data": [
+                    {"label": "2020", "value": 45000000},
+                    {"label": "2021", "value": 52000000},
+                    {"label": "2022", "value": 61000000},
+                    {"label": "2023", "value": 68000000}
+                ],
+                "xKey": "label",
+                "yKey": "value",
+                "yLabel": "Revenue (PLN)",
+                "color": "#3b82f6"
+            }
+        }, ensure_ascii=False)
+
+    # Financial data request
+    elif "finansow" in user_lower or "financial" in user_lower or "przychod" in user_lower or "revenue" in user_lower:
+        return json.dumps({
+            "type": "data_table",
+            "data": {
+                "title": "Financial Performance (2020-2023)",
+                "columns": [
+                    {"key": "year", "label": "Year", "align": "left"},
+                    {"key": "revenue", "label": "Revenue (PLN)", "align": "right", "format": "currency"},
+                    {"key": "profit", "label": "Net Profit (PLN)", "align": "right", "format": "currency"},
+                    {"key": "margin", "label": "Margin (%)", "align": "right", "format": "percent"}
+                ],
+                "rows": [
+                    {"year": "2020", "revenue": 45000000, "profit": 3200000, "margin": 7.11},
+                    {"year": "2021", "revenue": 52000000, "profit": 4100000, "margin": 7.88},
+                    {"year": "2022", "revenue": 61000000, "profit": 5200000, "margin": 8.52},
+                    {"year": "2023", "revenue": 68000000, "profit": 6100000, "margin": 8.97}
+                ]
+            }
+        }, ensure_ascii=False)
+
+    # Default text response
+    elif "analiz" in user_lower or "firma" in user_lower or "company" in user_lower:
         return """Rozumiem, ze chcesz przeprowadzic analize firmy. Moge pomoc Ci w nastepujacych obszarach:
 
 1. **Analiza finansowa** - przychody, rentownosc, zadluzenie

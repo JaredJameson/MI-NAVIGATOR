@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
+import { StructuredMessage } from '@/components/chat/StructuredMessage'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1'
@@ -657,9 +658,13 @@ export default function ChatPage() {
                         : 'bg-white shadow-sm border'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap text-sm">
-                      {message.content}
-                    </div>
+                    {message.role === 'user' ? (
+                      <div className="whitespace-pre-wrap text-sm">
+                        {message.content}
+                      </div>
+                    ) : (
+                      <StructuredMessage content={message.content} />
+                    )}
                   </div>
                 </div>
               ))}
