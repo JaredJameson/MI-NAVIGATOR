@@ -23,6 +23,7 @@ from app.db.session import get_db
 from app.services.audit_service import log_audit, AuditAction, ResourceType
 from app.services.analytics_service import track_event
 from app.models.analytics_event import EventType
+from app.api.v1.endpoints.projects import MOCK_PROJECTS
 
 router = APIRouter()
 
@@ -1483,6 +1484,13 @@ async def delete_report(
         del REPORT_VERSIONS[report_id]
     if report_id in REPORT_COMMENTS:
         del REPORT_COMMENTS[report_id]
+
+    # Remove report reference from all projects
+    from datetime import timezone
+    for project in MOCK_PROJECTS.values():
+        if "report_ids" in project and report_id in project["report_ids"]:
+            project["report_ids"].remove(report_id)
+            project["updated_at"] = datetime.now(timezone.utc).isoformat()
 
     return {"message": "Report deleted successfully", "deleted_id": report_id}
 
