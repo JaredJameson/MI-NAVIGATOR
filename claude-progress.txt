@@ -2,9 +2,12 @@
 
 ## Session Summary
 
-**Status:** 1 feature implemented + WebSocket race condition fixed
+**Status:** 1 feature completed + 1 feature partially implemented + WebSocket race condition fixed
 **Features Completed:** 1 feature
 - Feature #19: Chat conversation history persistence ✅ (PASSED - Full persistence with navigation)
+
+**Features Partially Implemented:** 1 feature
+- Feature #20: Chat file upload functionality ⏳ (UI ready, backend pending)
 
 **Regression Tests:** 0 (discovered and fixed WebSocket bug during testing)
 
@@ -114,6 +117,92 @@ console.log('[WS] Connection ready')
 **Screenshots:**
 - `.playwright-mcp/websocket_fix_success.png` - Messages sending successfully
 - `.playwright-mcp/feature_19_chat_history_persistence_success.png` - History loaded after navigation
+
+## Feature #20 Partial Implementation
+
+**Chat File Upload Functionality - UI Complete**
+
+Began implementation of file upload feature. Completed frontend UI and validation logic, but backend implementation requires more time and is deferred to next session.
+
+**Implemented (Frontend):**
+
+1. **File Upload Button**
+   - Paperclip icon button (📎) before text input
+   - Triggers hidden file input on click
+   - Tooltip: "Upload file (PDF, DOCX, XLSX, CSV, PNG, JPG - max 50MB)"
+
+2. **File Selection & Validation**
+   ```typescript
+   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+     // Validates file size (max 50MB)
+     // Validates file type (PDF, DOCX, XLSX, CSV, PNG, JPG)
+     // Adds to uploadedFiles state
+   }
+   ```
+
+3. **File Preview UI**
+   - Shows chip/badge for each uploaded file
+   - Displays: file icon, name, size (KB), remove button (X)
+   - Positioned above input area
+   - Responsive flex layout
+
+4. **State Management**
+   - `uploadedFiles: File[]` - Array of selected files
+   - `fileInputRef` - Reference to hidden input
+   - `removeFile(index)` - Remove specific file
+
+5. **Send Button Logic**
+   - Disabled when: no text AND no files
+   - Enabled when: text OR files present
+
+**Not Yet Implemented (Next Session):**
+
+1. **Backend Endpoint**
+   - POST /files/upload or /chat/upload-file
+   - Multipart form data handling
+   - File storage (local filesystem or S3)
+
+2. **File Processing**
+   - PDF text extraction (PyMuPDF or pdf-parse)
+   - DOCX text extraction (python-docx)
+   - XLSX/CSV parsing
+   - Image OCR (optional)
+
+3. **Chat Integration**
+   - Include file references in WebSocket messages
+   - Display file attachments in message bubbles
+   - Store file metadata with conversation
+   - Send extracted text to AI for analysis
+
+4. **Testing**
+   - Upload actual PDF file
+   - Verify progress indicator
+   - Verify file attached to message
+   - Verify AI acknowledges file content
+
+**Why Deferred:**
+Full file upload implementation requires:
+- Backend endpoint creation (~30 lines)
+- File storage setup
+- Text extraction libraries configuration
+- WebSocket message format modification
+- Database schema updates (if persisting files)
+
+This is a substantial feature requiring fresh context for quality implementation. UI is production-ready and functional (validates, shows preview, can be removed).
+
+**Files Modified:**
+- `frontend/src/app/chat/page.tsx` - Added file upload UI and handlers
+
+**Screenshot:**
+- `.playwright-mcp/feature_20_upload_button_visible.png` - Upload button in chat UI
+
+**Next Session TODO:**
+1. Create backend upload endpoint
+2. Implement file storage
+3. Extract text from uploaded files
+4. Modify WebSocket to handle file metadata
+5. Test full upload flow
+6. Mark Feature #20 as passing
 
 ---
 
