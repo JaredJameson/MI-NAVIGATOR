@@ -1132,6 +1132,185 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # Porter Five Forces analysis request
+    elif ("porter" in user_lower or
+          ("five forces" in user_lower) or
+          ("5 forces" in user_lower) or
+          ("pięć sił" in user_lower) or
+          ("5 sił" in user_lower)):
+        return json.dumps({
+            "type": "porter_analysis",
+            "data": {
+                "industry_name": "Produkcja tworzyw sztucznych",
+                "region": "Polska",
+                "analysis_date": datetime.utcnow().isoformat(),
+                "supplier_power": {
+                    "score": 7,
+                    "level": "high",
+                    "factors": [
+                        {
+                            "factor": "Koncentracja dostawców surowców",
+                            "description": "Rynek granulatów tworzyw (PET, PP, PE) zdominowany przez kilku dużych dostawców globalnych (BASF, Dow, LyondellBasell).",
+                            "impact": "high"
+                        },
+                        {
+                            "factor": "Koszty zmiany dostawcy",
+                            "description": "Wysokie koszty certyfikacji nowych surowców i dostosowania procesów produkcyjnych.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Brak substytutów surowców",
+                            "description": "Ograniczone alternatywy dla petrochemicznych granulatów, bioplastiki stanowią <5% rynku.",
+                            "impact": "high"
+                        },
+                        {
+                            "factor": "Integracja pionowa dostawców",
+                            "description": "Duzi dostawcy posiadają własne rafinerie i łańcuchy dystrybucji.",
+                            "impact": "medium"
+                        }
+                    ],
+                    "data_source": "Plastics Europe Supply Chain Report 2024"
+                },
+                "buyer_power": {
+                    "score": 6,
+                    "level": "medium-high",
+                    "factors": [
+                        {
+                            "factor": "Duzi klienci B2B",
+                            "description": "Sektor automotive i elektronika stanowią 60-70% odbiorców, duża siła negocjacyjna dużych OEM.",
+                            "impact": "high"
+                        },
+                        {
+                            "factor": "Standaryzacja produktów",
+                            "description": "Wiele komponentów z tworzyw to produkty o niskiej różnicowości (opakowania, części standardowe).",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Koszty zmiany dostawcy",
+                            "description": "Dla klientów premium (automotive, medical) wysokie koszty zmiany, dla opakowań niskie.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Dostęp do informacji",
+                            "description": "Klienci mają łatwy dostęp do porównań cenowych i ofert konkurencji.",
+                            "impact": "medium"
+                        }
+                    ],
+                    "data_source": "Automotive & Packaging Industry Buyer Trends 2024"
+                },
+                "competitive_rivalry": {
+                    "score": 8,
+                    "level": "high",
+                    "factors": [
+                        {
+                            "factor": "Liczba konkurentów",
+                            "description": "Rynek silnie rozdrobniony - setki małych i średnich producentów w Polsce (600+ firm z PKD 22.2).",
+                            "impact": "high"
+                        },
+                        {
+                            "factor": "Niski wzrost rynku",
+                            "description": "Rynek tworzyw w EU rośnie tylko 1-2% rocznie, walka o udział rynkowy.",
+                            "impact": "high"
+                        },
+                        {
+                            "factor": "Wysokie koszty stałe",
+                            "description": "Konieczność utrzymania wykorzystania mocy produkcyjnych, presja na ceny.",
+                            "impact": "high"
+                        },
+                        {
+                            "factor": "Niskie bariery zmiany",
+                            "description": "Dla produktów commodity (opakowania) łatwa zmiana dostawcy przez klientów.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Różnorodność konkurentów",
+                            "description": "Konkurencja z lokalnymi graczami, dużymi koncernami międzynarodowymi i firmami z Azji.",
+                            "impact": "high"
+                        }
+                    ],
+                    "data_source": "Polish Plastics Industry Competitive Landscape 2024"
+                },
+                "threat_of_substitution": {
+                    "score": 5,
+                    "level": "medium",
+                    "factors": [
+                        {
+                            "factor": "Materiały alternatywne",
+                            "description": "Metalowe i szklane opakowania, papier, drewno, kompozyty - rosnące zastosowanie w niektórych segmentach.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Bioplastiki i materiały biodegradowalne",
+                            "description": "Rynek biodegradowalnych alternatyw rośnie 15% rocznie, ale nadal nisza (4-5% rynku).",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Różnice w kosztach i właściwościach",
+                            "description": "Tworzywa często tańsze i lżejsze od alternatyw, ale rosnąca presja regulacyjna na plastik.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Trendy konsumenckie",
+                            "description": "Rosnąca preferencja dla 'plastiku-free' packaging w segmencie FMCG i kosmetyków.",
+                            "impact": "medium"
+                        }
+                    ],
+                    "data_source": "EU Sustainable Materials Transition Report 2024"
+                },
+                "threat_of_new_entry": {
+                    "score": 4,
+                    "level": "medium-low",
+                    "factors": [
+                        {
+                            "factor": "Wysokie nakłady kapitałowe",
+                            "description": "Wtryskarki przemysłowe kosztują 100k-2M EUR, wymóg parku maszynowego min. 5-10 maszyn.",
+                            "impact": "low"
+                        },
+                        {
+                            "factor": "Ekonomia skali",
+                            "description": "Gracze z dużymi wolumenami mają przewagę kosztową 20-30% vs. małe firmy.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Wymagania certyfikacyjne",
+                            "description": "ISO 9001, ISO 14001, automotive IATF 16949, medical ISO 13485 - kosztowne certyfikaty.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Dostęp do kanałów dystrybucji",
+                            "description": "Długoletnie relacje z dużymi klientami (automotive, electronics) trudne do zdobycia.",
+                            "impact": "medium"
+                        },
+                        {
+                            "factor": "Konkurencja z Azji",
+                            "description": "Chińscy i wietnamscy producenci wchodzą na rynek EU z cenami niższymi o 25-35%.",
+                            "impact": "high"
+                        }
+                    ],
+                    "data_source": "Market Entry Barriers Analysis - Plastics Manufacturing EU 2024"
+                },
+                "overall_assessment": {
+                    "average_score": 6.0,
+                    "industry_attractiveness": "medium",
+                    "summary": "Branża produkcji tworzyw sztucznych w Polsce charakteryzuje się średnią atrakcyjnością. Wysoka siła dostawców (7/10) i intensywna rywalizacja (8/10) ograniczają marże. Średnia siła nabywców (6/10) i umiarkowane zagrożenie substytutami (5/10) oraz nowymi wejściami (4/10) dają pewną przestrzeń obronną. Kluczowe strategie: dyferencjacja produktów premium, automatyzacja dla redukcji kosztów, ekspansja geograficzna.",
+                    "key_recommendations": [
+                        "Dywersyfikacja bazy dostawców surowców (hedge przeciw sile dostawców)",
+                        "Inwestycja w segmenty premium/niszowe z wyższą marżą (automotive medical, aerospace)",
+                        "Automatyzacja produkcji dla przewagi kosztowej vs. konkurenci",
+                        "Rozwój oferty bioplastyków (hedge przeciw substytutom i trendom)",
+                        "Budowa silnych relacji z klientami i kontraktów długoterminowych"
+                    ]
+                },
+                "data_sources": [
+                    {"name": "Plastics Europe Supply Chain Report 2024", "confidence": 0.90},
+                    {"name": "Automotive & Packaging Industry Trends 2024", "confidence": 0.85},
+                    {"name": "Polish Plastics Industry Competitive Landscape", "confidence": 0.90},
+                    {"name": "EU Sustainable Materials Transition Report", "confidence": 0.85},
+                    {"name": "Market Entry Barriers Analysis 2024", "confidence": 0.85}
+                ]
+            }
+        }, ensure_ascii=False)
+
     # SWOT analysis request
     elif ("swot" in user_lower or
           ("analiza" in user_lower and ("mocne" in user_lower or "słabe" in user_lower or "szanse" in user_lower or "zagrożenia" in user_lower)) or
