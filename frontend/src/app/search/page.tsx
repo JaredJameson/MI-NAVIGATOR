@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { getStoredToken } from '@/services/api'
+import { getStoredToken, getCsrfToken, fetchCsrfToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -173,11 +173,18 @@ export default function SearchPage() {
     setSaveError('')
 
     try {
+      // Get or fetch CSRF token
+      let csrfToken = getCsrfToken()
+      if (!csrfToken) {
+        csrfToken = await fetchCsrfToken()
+      }
+
       const response = await fetch(`${API_BASE_URL}/search/saved`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || '',
         },
         body: JSON.stringify({
           name: saveSearchName,
