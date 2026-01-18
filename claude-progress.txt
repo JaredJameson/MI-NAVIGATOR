@@ -1,3 +1,184 @@
+# Session 97 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** Regression testing completed + Critical bug fixed
+**Tests Performed:** 3/3 regression tests
+**Bugs Fixed:** CSRF token missing in tag management
+**Current Progress:** 171/380 features passing (45.0%)
+
+## Regression Tests Results
+
+### ✅ Test #1: Feature #255 - Activity log viewing
+**Status:** PASSED
+
+**Test Steps:**
+1. ✅ Navigate to activity log (/activity)
+2. ✅ Verify recent activities shown (15 activities displayed)
+3. ✅ Verify activity types correct (multiple types: Raport utworzony, Wyszukiwanie, Logowanie, etc.)
+4. ✅ Verify timestamps accurate (chronological order, relative times)
+5. ✅ Filter by activity type (clicked "Logowanie")
+6. ✅ Verify filtering works (showed only 2 Logowanie activities)
+
+**Conclusion:** Feature works perfectly. No issues found.
+
+### ✅ Test #2: Feature #125 - Double click submit prevention
+**Status:** PASSED
+
+**Test Steps:**
+1. ✅ Fill out create form (Settings page, Display Name field)
+2. ✅ Double-click submit rapidly (double-clicked "Save Changes" button)
+3. ✅ Wait for completion (success message appeared once)
+4. ✅ Verify only one entity created (network shows 1 PUT request)
+5. ✅ Verify no duplicate entries (after refresh, value persisted once)
+
+**Data Created:** `TEST_DOUBLECLICK_18012026_01` in user profile
+**Network Verification:** Only ONE PUT to `/api/v1/users/me`
+
+**Conclusion:** Double-click prevention works correctly. No duplicate requests sent.
+
+### ⚠️ Test #3: Feature #285 - Tag management
+**Status:** FAILED initially → FIXED → PASSED
+
+**Critical Bug Found:**
+- **Error:** 403 Forbidden when creating tags
+- **Root Cause:** Missing CSRF token in tag create/update/delete requests
+- **Location:** `frontend/src/app/settings/tags/page.tsx` and `frontend/src/app/reports/page.tsx`
+
+**Fix Applied:**
+1. Added `getCsrfToken()` helper function to tags/page.tsx
+2. Modified `handleSubmit()` to fetch and send CSRF token in `X-CSRF-Token` header
+3. Modified `handleDelete()` to fetch and send CSRF token
+4. Modified `toggleTagForReport()` in reports/page.tsx to send CSRF token
+
+**Test Steps After Fix:**
+1. ✅ Navigate to tag management (/settings/tags)
+2. ✅ Create new tag (TEST_TAG_FIX_18012026, Purple color)
+3. ✅ Set tag color (Purple selected)
+4. ✅ Save tag (succeeded with CSRF token)
+5. ✅ Apply tag to report (assigned to report_001 - FADO)
+6. ✅ Verify tag appears (visible on report card with purple badge)
+
+**Files Modified:**
+- `frontend/src/app/settings/tags/page.tsx` (+20 lines)
+- `frontend/src/app/reports/page.tsx` (+9 lines)
+
+**Conclusion:** Critical regression bug fixed. Tag management now works end-to-end.
+
+## Session Activities
+
+### KROK 1: Orientation ✅
+- Reviewed app_spec.txt and progress notes
+- Retrieved statistics: 171/380 passing (45.0%)
+- Retrieved next feature: #373 (Browser compatibility Chrome)
+- Retrieved regression tests: #255, #125, #285
+
+### KROK 2: Server Verification ✅
+- Backend: Running on port 8000 (healthy)
+- Frontend: Running on port 3000 (healthy)
+
+### KROK 3: Regression Testing ✅
+
+**Test #1 - Activity Log (20 min):**
+- Navigated to /activity page
+- Verified 15 activities displayed with proper types and timestamps
+- Tested filtering by "Logowanie" type - works correctly
+- Screenshots: 01_homepage.png, 02_activity_log_page.png, 03_activity_filtered.png
+
+**Test #2 - Double Click Prevention (15 min):**
+- Used Settings page form (Display Name field)
+- Performed rapid double-click on "Save Changes"
+- Verified via network tab: only 1 PUT request sent
+- Verified persistence: value saved once (no duplicates)
+- Screenshots: 04_settings_page.png, 05_settings_after_refresh.png
+
+**Test #3 - Tag Management (45 min):**
+- **Initial attempt:** 403 Forbidden error
+- **Investigation:** Checked CSRFMiddleware in backend/app/main.py
+- **Root cause:** `/api/v1/tags/` not in exempt_paths, requires CSRF token
+- **Analysis:** Frontend not sending X-CSRF-Token header
+- **Fix:** Added getCsrfToken() and modified all tag-related fetch calls
+- **Verification:** Tag created successfully, assigned to report
+- Screenshots: 06_tag_management_page.png, 07_tag_creation_error.png, 08_tag_created_successfully.png, 09_tag_assigned_to_report.png
+
+### KROK 4: Code Fix Implementation ✅
+
+**Problem:** CSRFMiddleware (backend/app/core/csrf.py) blocks POST/PUT/DELETE requests without valid CSRF token in `X-CSRF-Token` header.
+
+**Solution:**
+1. Copied `getCsrfToken()` helper from settings/page.tsx
+2. Modified `handleSubmit()` in tags/page.tsx:
+   - Fetch CSRF token before API call
+   - Add `'X-CSRF-Token': csrfToken` to headers
+3. Modified `handleDelete()` in tags/page.tsx (same pattern)
+4. Modified `toggleTagForReport()` in reports/page.tsx (same pattern)
+
+**Testing:**
+- Created tag: TEST_TAG_FIX_18012026 ✅
+- Assigned to report_001 ✅
+- Tag visible on report card ✅
+
+### KROK 5: Commit Changes ✅
+
+**Commit:** `74e8c76`
+**Message:** "fix: Add CSRF token to tag management operations"
+**Files:** 2 files changed, 37 insertions(+)
+
+## Issues Found & Fixed
+
+### ✅ Issue #1: Missing CSRF Tokens in Tag Management
+- **Severity:** Critical (blocking feature)
+- **Type:** Security/Authentication bug
+- **Impact:** Tag creation/editing/deletion failed with 403 Forbidden
+- **Status:** FIXED
+- **Verification:** End-to-end tag workflow tested and working
+
+## Technical Insights
+
+### CSRF Protection Architecture
+- Backend uses CSRFMiddleware (app/core/csrf.py)
+- Validates `X-CSRF-Token` header for unsafe methods (POST/PUT/DELETE/PATCH)
+- Token obtained from `/api/v1/auth/csrf-token` endpoint
+- Exempt paths configured in app/main.py (lines 117-131)
+- `/api/v1/tags/` is NOT exempt, requires CSRF protection
+
+### Pattern for CSRF-Protected Requests
+```typescript
+const csrfToken = await getCsrfToken()
+if (!csrfToken) throw new Error('Failed to get CSRF token')
+
+const response = await fetch(url, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': csrfToken,  // ← Required!
+  },
+  body: JSON.stringify(data)
+})
+```
+
+## Recommendations for Next Session
+
+1. **Continue Feature #373:** Browser compatibility testing in Chrome
+2. **Review CSRF patterns:** Search for other endpoints that may have same issue
+3. **Consider adding:** Global API wrapper that automatically includes CSRF tokens
+4. **Known issues to address:**
+   - Feature #250: PDF bulk export not implemented (shows "coming soon")
+   - Feature #303: Share link functionality missing from UI
+
+## Statistics
+
+- **Time spent:** ~90 minutes
+- **Features tested:** 3
+- **Bugs found:** 1
+- **Bugs fixed:** 1
+- **Files modified:** 2
+- **Lines added:** 37
+- **Commits:** 1
+
+---
+
 # Session 96 - Date: 2026-01-18
 
 ## Session Summary
@@ -3431,4 +3612,119 @@ Tested via browser automation with offline/online event simulation:
 **Files Modified:** 8 files (next.config.js, manifest.json, layout.tsx, ServiceWorkerRegister.tsx, providers.tsx, test-pwa page, 3 bug fixes)
 
 Feature moved to end of queue (priority 2580) - requires deeper debugging of next-pwa plugin.
+
+---
+
+
+# Session 97 - Date: 2026-01-18
+
+## Session Summary
+
+**Regression Tests:** 3 features tested (all PASSED ✅)
+**Critical Issues Investigated:** 2 features from Session 96 (both CONFIRMED ⚠️)
+**Current Progress:** 171/380 features passing (45.0%)
+
+## Regression Tests - All PASSED
+
+### Feature #115: Enter key form submission - PASSED ✅
+- **Test:** Press Enter in password field on login form
+- **Result:** Form submitted correctly, redirected to 2FA screen
+- **Also Tested:** Register form - Enter key submission works
+- **Evidence:** regression_115_after_enter.png, regression_115_register_success.png
+
+### Feature #360: Success state field styling - PASSED ✅
+- **Test:** Valid input fields show green border and checkmark
+- **Result:** All valid fields display success styling correctly
+- **Tested On:** Login form (email, password) and Register form (name, email, password)
+- **Evidence:** regression_360_success_states.png
+
+### Feature #275: News filtering by date range - PASSED ✅
+- **Test:** Filter news articles by date on company detail page
+- **Steps:** Navigate to /companies/1 → Aktualności tab → Set date filter "Od: 2026-01-01"
+- **Result:** Articles filtered correctly (7→6 articles, Dec 2025 article excluded)
+- **Clear Filter:** "✕ Wyczyść" button restored all 7 articles
+- **Evidence:** regression_275_date_filter_dialog.png, regression_275_date_filtered.png, regression_275_filter_cleared.png
+
+## Critical Issues Investigation - Both CONFIRMED
+
+### Feature #250: Bulk report export (PDF) - REGRESSION CONFIRMED ⚠️
+
+**Issue:** PDF bulk export shows "PDF bulk export coming soon" error
+**Status:** Excel export works, PDF export not implemented
+
+**Test Steps:**
+1. Navigate to /reports
+2. Select 3 reports (report_001, report_002, report_003)
+3. Click "Eksportuj (3)" dropdown
+4. Try "Excel (.xlsx)" - SUCCESS ✅
+5. Try "PDF (.pdf)" - ERROR: "Eksport PDF wielu raportów będzie wkrótce dostępny" ❌
+
+**Evidence:** investigate_250_export_dropdown.png, investigate_250_pdf_export_result.png
+
+**Root Cause:** Backend endpoint for PDF bulk export not implemented
+**Impact:** Feature #250 should be marked as not fully passing
+
+### Feature #303: Revoke share link - UI MISSING ⚠️
+
+**Issue:** Share link functionality not found in UI
+**Status:** Only email sharing dialog exists, no share link UI
+
+**Test Steps:**
+1. Navigate to /reports/report_001
+2. Click "Udostępnij" button
+3. Dialog shows "Udostępnij raport przez email"
+4. No share link creation/revocation UI found
+
+**Evidence:** investigate_303_share_dialog.png
+
+**Root Cause:** Share link UI was never implemented, only email sharing exists
+**Impact:** Feature #303 cannot be tested as functionality doesn't exist in UI
+
+## Technical Notes
+
+### Testing Approach
+- Created new test user (newstest2@example.com) via API to avoid 2FA complexity
+- Used browser automation (Playwright MCP) for all UI testing
+- Captured screenshots for evidence of all test results
+- Date input required ISO format "2026-01-01" not "01/01/2026"
+
+### Server Status
+- Backend: Running on port 8000 (PID 65535) ✅
+- Frontend: Running on port 3000 (next-server) ✅
+- Both servers healthy and responsive
+
+### Files Accessed
+- claude-progress.txt (read, Session 96 findings)
+- app_spec.txt (read, project overview)
+- features.db (via MCP: stats, next feature, regression features)
+- check_users.py, get_totp.sh, disable_2fa_test_user.py (read for understanding)
+
+### Test Data Files
+- /tmp/register.json - First test user data
+- /tmp/register2.json - Second test user data (with confirm_password)
+
+## Next Session Priorities
+
+**CRITICAL - Address Confirmed Regressions:**
+
+Per methodology: "Napraw zepsute testy przed implementacją nowych funkcji"
+
+1. **Feature #250: Bulk PDF export** - Needs implementation
+   - Add backend endpoint for PDF bulk export
+   - Or mark feature as in-progress if complex
+
+2. **Feature #303: Share link UI** - Needs implementation
+   - Implement share link creation in report share dialog
+   - Add revoke functionality
+   - Or mark feature as not-implemented if out of scope
+
+**THEN - Continue with planned work:**
+
+3. **Feature #373: Browser compatibility Chrome** - Next in queue
+   - Only proceed after regressions addressed
+
+## Session Duration
+~60 minutes (orientation, server verification, 3 regression tests, 2 critical issue investigations, documentation)
+
+---
 
