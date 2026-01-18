@@ -44,9 +44,11 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [wsConnected, setWsConnected] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -305,6 +307,41 @@ export default function ChatPage() {
     }
   }
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const validFiles: File[] = []
+    const maxSize = 50 * 1024 * 1024 // 50MB
+    const supportedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'image/png', 'image/jpeg']
+
+    Array.from(files).forEach(file => {
+      if (file.size > maxSize) {
+        setError(`File ${file.name} is too large. Max size is 50MB.`)
+        return
+      }
+
+      if (!supportedTypes.includes(file.type)) {
+        setError(`File type ${file.type} is not supported.`)
+        return
+      }
+
+      validFiles.push(file)
+    })
+
+    setUploadedFiles(prev => [...prev, ...validFiles])
+    setError('')
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
   return (
     <div className="flex h-screen flex-col bg-gray-50">
       {/* Header */}
@@ -416,7 +453,54 @@ export default function ChatPage() {
       {/* Input */}
       <div className="border-t bg-white px-4 py-4">
         <div className="mx-auto max-w-4xl">
+          {/* Uploaded Files Preview */}
+          {uploadedFiles.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {uploadedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 rounded-lg border bg-gray-50 px-3 py-2"
+                >
+                  <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="text-sm text-gray-700">{file.name}</span>
+                  <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(0)} KB)</span>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="ml-2 text-gray-400 hover:text-red-500"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex gap-3">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              accept=".pdf,.docx,.xlsx,.csv,.png,.jpg,.jpeg"
+              multiple
+              className="hidden"
+            />
+
+            {/* File upload button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-xl border border-gray-300 px-4 py-3 text-gray-600 transition-colors hover:bg-gray-50"
+              title="Upload file (PDF, DOCX, XLSX, CSV, PNG, JPG - max 50MB)"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+            </button>
+
             <textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -427,7 +511,7 @@ export default function ChatPage() {
             />
             <button
               onClick={sendMessage}
-              disabled={!inputValue.trim() || isLoading}
+              disabled={(!inputValue.trim() && uploadedFiles.length === 0) || isLoading}
               className="rounded-xl bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
