@@ -1,3 +1,47 @@
+# Session 120 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature completed + 2 regression tests (1 passed, 1 failed)
+**Features Completed:** 1 feature
+- Feature #27: Edit existing project ✅ (PASSED - Full edit flow with persistence)
+
+**Regression Tests:** 2
+- Feature #236: PKD code search ✅ (PASSED - Search and results display working)
+- Feature #348: Timezone display ❌ (FAILED - Not implemented, incorrectly marked as passing)
+
+**Current Progress:** 195/380 features passing (51.3%)
+
+**Key Achievements:**
+- Implemented project edit page - Frontend /projects/[id]/edit/page.tsx
+- PUT endpoint working - Backend already had update functionality
+- Full CRUD cycle complete - Create (Feature #26) + Read + Update (Feature #27) + Delete
+- All 7 test steps passed - Navigate → Edit → Modify → Save → Verify → Persist
+- Discovered Feature #348 bug - Timezone not actually implemented (needs fix)
+- Zero errors during implementation
+
+## Feature #27 - Edit Existing Project ✅
+
+**Backend:** Already implemented - PUT /projects/{project_id} endpoint exists
+**Frontend:** Created /projects/[id]/edit/page.tsx (241 lines)
+**Result:** All 7 test steps PASSED
+
+## Regression Tests
+
+**Feature #236 (PKD code search):** ✅ PASSED - All functionality working
+**Feature #348 (Timezone display):** ❌ FAILED - UI exists but functionality not implemented
+
+## Session Statistics
+
+- Features implemented: 1 (Feature #27)
+- Features tested: 3 (27, 236, 348)
+- Pass rate: 2/3 (66.7%)
+- Lines of code written: 241 lines (frontend)
+- Console errors: 0
+- Commits: 1
+
+---
+
 # Session 119 - Date: 2026-01-18
 
 ## Session Summary
