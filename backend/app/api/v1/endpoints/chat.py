@@ -118,6 +118,7 @@ def generate_mock_response(user_message: str) -> str:
     """Generate a mock AI response based on user message."""
     import json
     import re
+    from datetime import datetime, timedelta
     user_lower = user_message.lower()
 
     # Company lookup by NIP or KRS (from frontend detection)
@@ -2324,7 +2325,6 @@ Ktory typ raportu Cie interesuje?"""
 
         # Import news data
         from app.api.v1.endpoints.companies import MOCK_COMPANY_NEWS
-        from datetime import datetime, timedelta
 
         # Get news articles for the company
         all_news = MOCK_COMPANY_NEWS.get(company_id, [])
