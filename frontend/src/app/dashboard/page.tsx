@@ -250,17 +250,38 @@ export default function DashboardPage() {
     const isNIP = nipPattern.test(query.replace(/\s/g, ''))
 
     let chatUrl = '/chat'
+    let searchType = 'query'
 
     if (isUrl) {
       // Navigate with URL parameter
       chatUrl = `/chat?url=${encodeURIComponent(query)}`
+      searchType = 'url'
     } else if (isNIP) {
       // Navigate with company_id parameter (NIP)
       chatUrl = `/chat?company_id=${encodeURIComponent(query.replace(/\s|-/g, ''))}`
+      searchType = 'company'
     } else {
       // Navigate with query parameter (company name or general query)
       chatUrl = `/chat?query=${encodeURIComponent(query)}`
+      searchType = 'query'
     }
+
+    // Add to search history before navigating
+    const historyItem: SearchHistoryItem = {
+      id: `direct-${Date.now()}`,
+      name: query,
+      type: searchType,
+      url: chatUrl,
+      timestamp: Date.now()
+    }
+
+    const newHistory = [
+      historyItem,
+      ...searchHistory.filter(h => h.url !== chatUrl)
+    ].slice(0, MAX_SEARCH_HISTORY)
+
+    setSearchHistory(newHistory)
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(newHistory))
 
     router.push(chatUrl)
   }
@@ -657,24 +678,15 @@ export default function DashboardPage() {
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="text-sm text-blue-200">Ostatnie:</span>
-            <button
-              onClick={() => {
-                setSearchQuery('FADO')
-                fetchSuggestions('FADO')
-              }}
-              className="rounded bg-white/20 px-2 py-1 text-sm transition-colors hover:bg-white/30"
-            >
-              FADO Sp. z o.o.
-            </button>
-            <button
-              onClick={() => {
-                setSearchQuery('Splast')
-                fetchSuggestions('Splast')
-              }}
-              className="rounded bg-white/20 px-2 py-1 text-sm transition-colors hover:bg-white/30"
-            >
-              Splast S.A.
-            </button>
+            {searchHistory.slice(0, 3).map((item) => (
+              <button
+                key={`recent-${item.id}`}
+                onClick={() => handleHistoryClick(item)}
+                className="rounded bg-white/20 px-2 py-1 text-sm transition-colors hover:bg-white/30"
+              >
+                {item.name}
+              </button>
+            ))}
           </div>
         </div>
 
