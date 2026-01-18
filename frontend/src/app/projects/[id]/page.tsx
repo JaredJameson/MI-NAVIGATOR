@@ -156,6 +156,12 @@ export default function ProjectDetailPage() {
           <nav className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
             <Link href="/reports" className="text-gray-600 hover:text-gray-900">Raporty</Link>
+            <Link
+              href={`/projects/${projectId}/edit`}
+              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+            >
+              Edit Project
+            </Link>
           </nav>
         </div>
       </header>
