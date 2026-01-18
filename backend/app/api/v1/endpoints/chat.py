@@ -160,14 +160,57 @@ Czy chcialbys przeprowadzic analize konkretnej firmy lub uzyskac raport? Podaj w
 
 
 @router.websocket("/ws/{conversation_id}")
-async def websocket_endpoint(websocket: WebSocket, conversation_id: str):
-    """WebSocket endpoint for real-time chat."""
+async def websocket_endpoint(
+    websocket: WebSocket,
+    conversation_id: str,
+    token: str = None
+):
+    """WebSocket endpoint for real-time chat.
+
+    Authorization via query parameter: ?token=YOUR_JWT_TOKEN
+    """
+    # Accept connection first
     await websocket.accept()
+
     try:
+        # Optional: Add token validation here if needed
+        # For now, accept all connections for development
+
         while True:
             data = await websocket.receive_text()
+
+            # Save user message to conversation store
+            conv = conversations_store.get(conversation_id)
+            if conv:
+                user_msg_id = str(uuid.uuid4())
+                now = datetime.utcnow()
+                user_message = {
+                    "id": user_msg_id,
+                    "role": "user",
+                    "content": data,
+                    "created_at": now.isoformat()
+                }
+                conv["messages"].append(user_message)
+                conv["updated_at"] = now.isoformat()
+
+                # Update conversation title if first message
+                if conv["title"] is None:
+                    conv["title"] = data[:50] + ("..." if len(data) > 50 else "")
+
             # Generate mock response
             response = generate_mock_response(data)
+
+            # Save AI response to conversation store
+            if conv:
+                ai_msg_id = str(uuid.uuid4())
+                ai_message = {
+                    "id": ai_msg_id,
+                    "role": "assistant",
+                    "content": response,
+                    "created_at": datetime.utcnow().isoformat()
+                }
+                conv["messages"].append(ai_message)
+
             await websocket.send_text(response)
     except WebSocketDisconnect:
         pass

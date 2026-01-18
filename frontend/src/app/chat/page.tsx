@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1'
 
 const getCsrfToken = async (): Promise<string | null> => {
   try {
@@ -37,11 +38,15 @@ interface Conversation {
 
 export default function ChatPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [conversation, setConversation] = useState<Conversation | null>(null)
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [wsConnected, setWsConnected] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -50,6 +55,90 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom()
   }, [conversation?.messages])
+
+  const connectWebSocket = (conversationId: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      console.log('[WS] Already connected')
+      return
+    }
+
+    const token = getStoredToken()
+    const wsUrl = `${WS_BASE_URL}/chat/ws/${conversationId}${token ? `?token=${token}` : ''}`
+    console.log('[WS] Connecting to:', wsUrl.replace(/token=[^&]+/, 'token=***'))
+
+    try {
+      const ws = new WebSocket(wsUrl)
+
+      ws.onopen = () => {
+        console.log('[WS] Connected')
+        setWsConnected(true)
+        setError('')
+      }
+
+      ws.onmessage = (event) => {
+        console.log('[WS] Message received:', event.data)
+        const aiMessage: Message = {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: event.data,
+          created_at: new Date().toISOString(),
+        }
+
+        setConversation(prev => prev ? {
+          ...prev,
+          messages: [...prev.messages, aiMessage],
+        } : null)
+
+        setIsLoading(false)
+      }
+
+      ws.onerror = (error) => {
+        console.error('[WS] Error:', error)
+        setError('WebSocket connection error')
+        setWsConnected(false)
+      }
+
+      ws.onclose = () => {
+        console.log('[WS] Disconnected')
+        setWsConnected(false)
+
+        // Auto-reconnect after 3 seconds
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('[WS] Attempting reconnect...')
+          connectWebSocket(conversationId)
+        }, 3000)
+      }
+
+      wsRef.current = ws
+    } catch (err) {
+      console.error('[WS] Connection failed:', err)
+      setError('Failed to connect to chat')
+      setWsConnected(false)
+    }
+  }
+
+  const disconnectWebSocket = () => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current)
+      reconnectTimeoutRef.current = null
+    }
+
+    if (wsRef.current) {
+      wsRef.current.close()
+      wsRef.current = null
+    }
+    setWsConnected(false)
+  }
+
+  useEffect(() => {
+    if (conversation?.id) {
+      connectWebSocket(conversation.id)
+    }
+
+    return () => {
+      disconnectWebSocket()
+    }
+  }, [conversation?.id])
 
   const createConversation = async (): Promise<Conversation | null> => {
     const token = getStoredToken()
@@ -79,11 +168,78 @@ export default function ChatPage() {
 
       const conv = await response.json()
       setConversation(conv)
+      // Update URL with conversation ID for persistence
+      router.push(`/chat?conversation_id=${conv.id}`, { scroll: false })
       return conv
     } catch (err) {
       setError('Failed to start conversation')
       return null
     }
+  }
+
+  const loadConversation = async (conversationId: string): Promise<void> => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${API_BASE_URL}/chat/conversations/${conversationId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to load conversation')
+      }
+
+      const conv = await response.json()
+      setConversation(conv)
+      setError('')
+    } catch (err) {
+      setError('Failed to load conversation history')
+      console.error('Load conversation error:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Load conversation from URL parameter on mount
+  useEffect(() => {
+    const conversationId = searchParams.get('conversation_id')
+    if (conversationId) {
+      // Load conversation if URL has conversation_id and it's different from current
+      if (!conversation || conversation.id !== conversationId) {
+        console.log('[Chat] Loading conversation:', conversationId)
+        loadConversation(conversationId)
+      }
+    }
+  }, [searchParams]) // Re-run when URL changes
+
+  // Helper function to wait for WebSocket connection
+  const waitForWebSocketConnection = (maxWait = 5000): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const startTime = Date.now()
+
+      const checkConnection = () => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+          resolve(true)
+          return
+        }
+
+        if (Date.now() - startTime > maxWait) {
+          resolve(false)
+          return
+        }
+
+        setTimeout(checkConnection, 100)
+      }
+
+      checkConnection()
+    })
   }
 
   const sendMessage = async () => {
@@ -106,9 +262,19 @@ export default function ChatPage() {
         if (!conv) return
       }
 
+      // Wait for WebSocket connection (up to 5 seconds)
+      console.log('[WS] Waiting for connection...')
+      const isConnected = await waitForWebSocketConnection(5000)
+
+      if (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        throw new Error('WebSocket connection timeout')
+      }
+
+      console.log('[WS] Connection ready')
+
       // Add user message optimistically
       const userMessage: Message = {
-        id: `temp-${Date.now()}`,
+        id: `user-${Date.now()}`,
         role: 'user',
         content: inputValue,
         created_at: new Date().toISOString(),
@@ -119,51 +285,15 @@ export default function ChatPage() {
         messages: [...prev.messages, userMessage],
       } : null)
 
+      // Send via WebSocket
+      console.log('[WS] Sending message:', inputValue)
+      wsRef.current.send(inputValue)
+
       setInputValue('')
 
-      // Send to API
-      const csrfToken = await getCsrfToken()
-      if (!csrfToken) {
-        throw new Error('Failed to get CSRF token')
-      }
-
-      const response = await fetch(
-        `${API_BASE_URL}/chat/conversations/${conv.id}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
-          },
-          body: JSON.stringify({ content: inputValue }),
-        }
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to send message')
-      }
-
-      const aiResponse = await response.json()
-
-      // Update with AI response
-      setConversation(prev => {
-        if (!prev) return null
-        // Remove temp message and add both user and AI messages
-        const messages = prev.messages.filter(m => !m.id.startsWith('temp-'))
-        return {
-          ...prev,
-          messages: [
-            ...messages,
-            { ...userMessage, id: `user-${Date.now()}` },
-            aiResponse,
-          ],
-        }
-      })
-
     } catch (err) {
+      console.error('[WS] Send error:', err)
       setError('Failed to send message. Please try again.')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -189,6 +319,15 @@ export default function ChatPage() {
             <h1 className="text-lg font-semibold text-gray-900">
               {conversation?.title || 'New Research'}
             </h1>
+            {/* WebSocket Status Indicator */}
+            {conversation && (
+              <div className="flex items-center gap-2">
+                <div className={`h-2 w-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-xs text-gray-500">
+                  {wsConnected ? 'Connected' : 'Disconnected'}
+                </span>
+              </div>
+            )}
           </div>
           <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
             New Chat

@@ -1,0 +1,468 @@
+### Page state
+- Page URL: http://localhost:3000/reports/report_001
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e4]
+  - generic [ref=e5]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - link [ref=e9] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e10]
+          - heading "Analiza profilu FADO Sp. z o.o." [level=1] [ref=e12]
+        - generic [ref=e13]:
+          - button "3" [ref=e14] [cursor=pointer]:
+            - img [ref=e15]
+            - generic [ref=e17]: "3"
+          - button "Historia wersji" [ref=e18] [cursor=pointer]:
+            - img [ref=e19]
+          - button "Dodaj do ulubionych" [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+          - button "Archiwizuj raport" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - button "Duplikuj raport" [ref=e27] [cursor=pointer]:
+            - img [ref=e28]
+          - button "Zapisz jako szablon" [ref=e30] [cursor=pointer]:
+            - img [ref=e31]
+          - button "Edit report" [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+          - button "Szukaj w raporcie (Ctrl+F)" [ref=e36] [cursor=pointer]:
+            - img [ref=e37]
+          - button "Udostępnij" [ref=e39] [cursor=pointer]:
+            - img [ref=e40]
+            - text: Udostępnij
+          - button "Log dostępu" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+            - text: Log dostępu
+          - button "Eksportuj" [ref=e46] [cursor=pointer]:
+            - img [ref=e47]
+            - text: Eksportuj
+            - img [ref=e49]
+    - main [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: Profil firmy
+          - generic [ref=e55]: • FADO Sp. z o.o.
+        - heading "Analiza profilu FADO Sp. z o.o." [level=1] [ref=e56]
+        - paragraph [ref=e57]: Kompleksowa analiza profilu firmy FADO Sp. z o.o. - lidera w produkcji tworzyw sztucznych.
+        - generic [ref=e58]:
+          - generic [ref=e59]: "Utworzono: 14 stycznia 2026 11:30"
+          - generic [ref=e60]: "Aktualizacja: 14 stycznia 2026 15:22"
+      - generic [ref=e61]:
+        - heading "Spis tresci" [level=2] [ref=e62]
+        - navigation [ref=e63]:
+          - link "1. Informacje podstawowe" [ref=e64] [cursor=pointer]:
+            - /url: "#section-section_1"
+          - link "2. Analiza finansowa" [ref=e65] [cursor=pointer]:
+            - /url: "#section-section_2"
+          - link "3. Pozycja rynkowa" [ref=e66] [cursor=pointer]:
+            - /url: "#section-section_3"
+          - link "4. Analiza SWOT" [ref=e67] [cursor=pointer]:
+            - /url: "#section-section_4"
+          - link "5. Wskaźniki finansowe - Radar" [ref=e68] [cursor=pointer]:
+            - /url: "#section-section_6"
+          - link "6. Struktura własnościowa" [ref=e69] [cursor=pointer]:
+            - /url: "#section-section_5"
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - heading "1. Informacje podstawowe" [level=2] [ref=e72]
+          - generic [ref=e74]:
+            - table [ref=e75]:
+              - rowgroup [ref=e76]:
+                - row "Header 1 Header 2 Header 3" [ref=e77]:
+                  - columnheader "Header 1" [ref=e78]
+                  - columnheader "Header 2" [ref=e79]
+                  - columnheader "Header 3" [ref=e80]
+              - rowgroup [ref=e81]:
+                - row "Cell 1-1 Cell 1-2 Cell 1-3" [ref=e82]:
+                  - cell "Cell 1-1" [ref=e83]
+                  - cell "Cell 1-2" [ref=e84]
+                  - cell "Cell 1-3" [ref=e85]
+                - row "Cell 2-1 Cell 2-2 Cell 2-3" [ref=e86]:
+                  - cell "Cell 2-1" [ref=e87]
+                  - cell "Cell 2-2" [ref=e88]
+                  - cell "Cell 2-3" [ref=e89]
+            - paragraph [ref=e90]: FADO Sp. z o.o. to polska firma założona w 1998 roku, specjalizująca się w produkcji wyrobów z tworzyw sztucznych. Firma posiada siedzibę w Warszawie przy ul. Przemysłowej 15.
+            - paragraph [ref=e91]:
+              - strong [ref=e92]: "Dane rejestrowe:"
+            - list [ref=e93]:
+              - listitem [ref=e94]: "NIP: 5260016831"
+              - listitem [ref=e95]: "REGON: 012567834"
+              - listitem [ref=e96]: "KRS: 0000145732"
+              - listitem [ref=e97]: "Forma prawna: Spółka z ograniczoną odpowiedzialnością"
+            - paragraph [ref=e98]:
+              - strong [ref=e99]: "Główna działalność (PKD):"
+            - list [ref=e100]:
+              - listitem [ref=e101]: 22.21.Z - Produkcja płyt, arkuszy, rur i kształtowników z tworzyw sztucznych
+              - listitem [ref=e102]: 22.22.Z - Produkcja opakowań z tworzyw sztucznych
+              - listitem [ref=e103]: 22.29.Z - Produkcja pozostałych wyrobów z tworzyw sztucznych
+            - paragraph [ref=e104]: Firma zatrudnia około 150 pracowników i posiada nowoczesny park maszynowy o łącznej mocy produkcyjnej 5000 ton rocznie.
+        - generic [ref=e105]:
+          - heading "2. Analiza finansowa" [level=2] [ref=e106]
+          - generic [ref=e108]:
+            - paragraph [ref=e109]:
+              - strong [ref=e110]: "Przychody i rentowność (2023):"
+            - list [ref=e111]:
+              - listitem [ref=e112]: "Przychody ze sprzedaży: 45,2 mln PLN"
+              - listitem [ref=e113]: "Wzrost r/r: +12,3%"
+              - listitem [ref=e114]: "Marża brutto: 28,5%"
+              - listitem [ref=e115]: "Zysk netto: 4,8 mln PLN"
+            - paragraph [ref=e116]:
+              - strong [ref=e117]: "Wskaźniki finansowe:"
+            - list [ref=e118]:
+              - listitem [ref=e119]: "ROE (Return on Equity): 18,2%"
+              - listitem [ref=e120]: "ROA (Return on Assets): 9,4%"
+              - listitem [ref=e121]: "Wskaźnik płynności bieżącej: 2,1"
+              - listitem [ref=e122]: "Wskaźnik zadłużenia: 32%"
+            - paragraph [ref=e123]:
+              - strong [ref=e124]: "Trend przychodów (mln PLN):"
+            - list [ref=e125]:
+              - listitem [ref=e126]: "2021: 35,8 mln PLN"
+              - listitem [ref=e127]: "2022: 40,2 mln PLN"
+              - listitem [ref=e128]: "2023: 45,2 mln PLN"
+            - paragraph [ref=e129]: Firma wykazuje stabilny wzrost przychodów na poziomie 10-15% rocznie. Marża brutto utrzymuje się na poziomie konkurencyjnym dla branży.
+            - paragraph [ref=e130]:
+              - strong [ref=e131]: "Źródła danych:"
+            - list [ref=e132]:
+              - listitem [ref=e133]:
+                - link "Raport roczny FADO 2023" [ref=e134] [cursor=pointer]:
+                  - /url: https://fado.pl/raporty/2023
+                - text: "- sprawozdanie finansowe"
+              - listitem [ref=e135]:
+                - text: Więcej informacji na stronie
+                - link "KRS Online" [ref=e136] [cursor=pointer]:
+                  - /url: https://ekrs.ms.gov.pl
+        - generic [ref=e137]:
+          - heading "3. Pozycja rynkowa" [level=2] [ref=e138]
+          - generic [ref=e140]:
+            - paragraph [ref=e141]:
+              - strong [ref=e142]: "Udział w rynku:"
+              - text: FADO zajmuje pozycję wśród Top 10 producentów tworzyw sztucznych w Polsce, z szacowanym udziałem w rynku na poziomie 3,5%.
+            - paragraph [ref=e143]:
+              - strong [ref=e144]: "Główni konkurenci:"
+            - list [ref=e145]:
+              - listitem [ref=e146]: Splast S.A. - lider rynku z udziałem 8%
+              - listitem [ref=e147]: PlastPak Sp. z o.o. - 4,2% rynku
+              - listitem [ref=e148]: PolyTech Sp. z o.o. - 3,8% rynku
+            - paragraph [ref=e149]:
+              - strong [ref=e150]: "Przewagi konkurencyjne:"
+            - list [ref=e151]:
+              - listitem [ref=e152]: Nowoczesny park maszynowy
+              - listitem [ref=e153]: Certyfikaty jakości ISO 9001 i ISO 14001
+              - listitem [ref=e154]: Elastyczność w realizacji zamówień
+              - listitem [ref=e155]: Własne centrum R&D
+            - paragraph [ref=e156]:
+              - strong [ref=e157]: "Wyzwania:"
+            - list [ref=e158]:
+              - listitem [ref=e159]: Rosnące ceny surowców
+              - listitem [ref=e160]: Presja regulacyjna na plastik
+              - listitem [ref=e161]: Konkurencja ze strony importu z Azji
+        - generic [ref=e162]:
+          - heading "4. Analiza SWOT 📊 Diagram interaktywny" [level=2] [ref=e163]:
+            - text: 4. Analiza SWOT
+            - generic [ref=e164]: 📊 Diagram interaktywny
+          - generic [ref=e165]:
+            - generic [ref=e166]:
+              - generic [ref=e168]:
+                - generic [ref=e169]:
+                  - generic [ref=e170]: ●
+                  - text: Pozytywne
+                - generic [ref=e171]: "|"
+                - generic [ref=e172]:
+                  - generic [ref=e173]: ●
+                  - text: Negatywne
+              - generic [ref=e174]: Czynniki wewnętrzne
+              - generic [ref=e175]:
+                - generic [ref=e176] [cursor=pointer]:
+                  - generic [ref=e177]:
+                    - generic [ref=e178]: 💪
+                    - generic [ref=e179]:
+                      - generic [ref=e180]: Mocne strony
+                      - generic [ref=e181]: Strengths
+                  - generic [ref=e182]:
+                    - generic [ref=e183]: "5"
+                    - img [ref=e184]
+                - list [ref=e187]:
+                  - listitem [ref=e188] [cursor=pointer]: ✓Doświadczenie 25+ lat na rynku
+                  - listitem [ref=e189] [cursor=pointer]: ✓Wykwalifikowana kadra
+                  - listitem [ref=e190] [cursor=pointer]: ✓Nowoczesna infrastruktura
+                  - listitem [ref=e191] [cursor=pointer]: ✓Certyfikaty jakości
+                  - listitem [ref=e192] [cursor=pointer]: ✓Stabilna baza klientów
+              - generic [ref=e193]:
+                - generic [ref=e194] [cursor=pointer]:
+                  - generic [ref=e195]:
+                    - generic [ref=e196]: ⚠️
+                    - generic [ref=e197]:
+                      - generic [ref=e198]: Słabe strony
+                      - generic [ref=e199]: Weaknesses
+                  - generic [ref=e200]:
+                    - generic [ref=e201]: "3"
+                    - img [ref=e202]
+                - list [ref=e205]:
+                  - listitem [ref=e206] [cursor=pointer]: ✗Koncentracja na rynku polskim
+                  - listitem [ref=e207] [cursor=pointer]: ✗Zależność od kilku głównych dostawców
+                  - listitem [ref=e208] [cursor=pointer]: ✗Brak własnej sieci dystrybucji
+              - generic [ref=e209]: Czynniki zewnętrzne
+              - generic [ref=e210]:
+                - generic [ref=e211] [cursor=pointer]:
+                  - generic [ref=e212]:
+                    - generic [ref=e213]: 🚀
+                    - generic [ref=e214]:
+                      - generic [ref=e215]: Szanse
+                      - generic [ref=e216]: Opportunities
+                  - generic [ref=e217]:
+                    - generic [ref=e218]: "4"
+                    - img [ref=e219]
+                - list [ref=e222]:
+                  - listitem [ref=e223] [cursor=pointer]: →Rozwój rynku opakowań biodegradowalnych
+                  - listitem [ref=e224] [cursor=pointer]: →Ekspansja na rynki CEE
+                  - listitem [ref=e225] [cursor=pointer]: →Rosnący popyt na plastik recyklingowy
+                  - listitem [ref=e226] [cursor=pointer]: →Digitalizacja procesów produkcyjnych
+              - generic [ref=e227]:
+                - generic [ref=e228] [cursor=pointer]:
+                  - generic [ref=e229]:
+                    - generic [ref=e230]: ⚡
+                    - generic [ref=e231]:
+                      - generic [ref=e232]: Zagrożenia
+                      - generic [ref=e233]: Threats
+                  - generic [ref=e234]:
+                    - generic [ref=e235]: "4"
+                    - img [ref=e236]
+                - list [ref=e239]:
+                  - listitem [ref=e240] [cursor=pointer]: "!Regulacje antyplastikowe EU"
+                  - listitem [ref=e241] [cursor=pointer]: "!Wahania cen ropy naftowej"
+                  - listitem [ref=e242] [cursor=pointer]: "!Konkurencja z krajów o niższych kosztach pracy"
+                  - listitem [ref=e243] [cursor=pointer]: "!Spowolnienie gospodarcze"
+            - generic [ref=e244]:
+              - generic [ref=e247]: "S: 5"
+              - generic [ref=e250]: "W: 3"
+              - generic [ref=e253]: "O: 4"
+              - generic [ref=e256]: "T: 4"
+              - generic [ref=e257]: "|"
+              - generic [ref=e258]: "Razem: 16 czynników"
+            - generic [ref=e259]: 💡 Kliknij nagłówek sekcji, aby ją rozwinąć
+        - generic [ref=e260]:
+          - heading "5. Wskaźniki finansowe - Radar 📊 Diagram interaktywny" [level=2] [ref=e261]:
+            - text: 5. Wskaźniki finansowe - Radar
+            - generic [ref=e262]: 📊 Diagram interaktywny
+          - generic [ref=e263]:
+            - generic [ref=e265] [cursor=pointer]:
+              - checkbox "Pokaż benchmark branżowy" [checked] [ref=e266]
+              - generic [ref=e267]: Pokaż benchmark branżowy
+            - img [ref=e269]:
+              - generic [ref=e311] [cursor=pointer]: Return on Equity
+              - generic [ref=e312] [cursor=pointer]: Return on Assets
+              - generic [ref=e313] [cursor=pointer]: Return on Sales
+              - generic [ref=e314] [cursor=pointer]: Current Ratio
+              - generic [ref=e315] [cursor=pointer]: Quick Ratio
+              - generic [ref=e316] [cursor=pointer]: Debt Ratio
+              - generic [ref=e317] [cursor=pointer]: D/E
+              - generic [ref=e318] [cursor=pointer]: Inventory Turnover
+              - generic [ref=e319] [cursor=pointer]: DSO - Days Sales Outstanding
+              - generic [ref=e320]: Wskaźniki
+            - generic [ref=e321]:
+              - generic [ref=e324]: Rentowność
+              - generic [ref=e327]: Płynność
+              - generic [ref=e330]: Zadłużenie
+              - generic [ref=e333]: Efektywność
+              - generic [ref=e334]: "|"
+              - generic [ref=e337]: Benchmark branżowy
+            - generic [ref=e338]:
+              - generic [ref=e339] [cursor=pointer]:
+                - generic [ref=e340]: Return on Equity
+                - generic [ref=e341]:
+                  - generic [ref=e342]: "18.2"
+                  - generic [ref=e343]: "%"
+                - generic [ref=e344]:
+                  - generic [ref=e345]: ▲
+                  - generic [ref=e346]: vs 15%
+              - generic [ref=e347] [cursor=pointer]:
+                - generic [ref=e348]: Return on Assets
+                - generic [ref=e349]:
+                  - generic [ref=e350]: "9.4"
+                  - generic [ref=e351]: "%"
+                - generic [ref=e352]:
+                  - generic [ref=e353]: ▲
+                  - generic [ref=e354]: vs 7.5%
+              - generic [ref=e355] [cursor=pointer]:
+                - generic [ref=e356]: Return on Sales
+                - generic [ref=e357]:
+                  - generic [ref=e358]: "10.6"
+                  - generic [ref=e359]: "%"
+                - generic [ref=e360]:
+                  - generic [ref=e361]: ▲
+                  - generic [ref=e362]: vs 8%
+              - generic [ref=e363] [cursor=pointer]:
+                - generic [ref=e364]: Current Ratio
+                - generic [ref=e365]:
+                  - generic [ref=e366]: "2.1"
+                  - generic [ref=e367]: "%"
+                - generic [ref=e368]:
+                  - generic [ref=e369]: ▲
+                  - generic [ref=e370]: vs 1.5%
+              - generic [ref=e371] [cursor=pointer]:
+                - generic [ref=e372]: Quick Ratio
+                - generic [ref=e373]:
+                  - generic [ref=e374]: "1.4"
+                  - generic [ref=e375]: "%"
+                - generic [ref=e376]:
+                  - generic [ref=e377]: ▲
+                  - generic [ref=e378]: vs 1%
+              - generic [ref=e379] [cursor=pointer]:
+                - generic [ref=e380]: Debt Ratio
+                - generic [ref=e381]:
+                  - generic [ref=e382]: "32"
+                  - generic [ref=e383]: "%"
+                - generic [ref=e384]:
+                  - generic [ref=e385]: ▲
+                  - generic [ref=e386]: vs 45%
+              - generic [ref=e387] [cursor=pointer]:
+                - generic [ref=e388]: D/E
+                - generic [ref=e389]:
+                  - generic [ref=e390]: "0.47"
+                  - generic [ref=e391]: "%"
+                - generic [ref=e392]:
+                  - generic [ref=e393]: ▲
+                  - generic [ref=e394]: vs 0.8%
+              - generic [ref=e395] [cursor=pointer]:
+                - generic [ref=e396]: Inventory Turnover
+                - generic [ref=e397]:
+                  - generic [ref=e398]: "6.2"
+                  - generic [ref=e399]: "%"
+                - generic [ref=e400]:
+                  - generic [ref=e401]: ▲
+                  - generic [ref=e402]: vs 5%
+              - generic [ref=e403] [cursor=pointer]:
+                - generic [ref=e404]: DSO - Days Sales Outstanding
+                - generic [ref=e405]:
+                  - generic [ref=e406]: "45"
+                  - generic [ref=e407]: dni
+                - generic [ref=e408]:
+                  - generic [ref=e409]: ▲
+                  - generic [ref=e410]: vs 60dni
+            - generic [ref=e412]:
+              - generic [ref=e413]: 📊
+              - generic [ref=e414]:
+                - generic [ref=e415]: Podsumowanie analizy
+                - generic [ref=e416]: FADO Sp. z o.o. wykazuje wskaźniki finansowe powyżej średniej branżowej w większości kategorii. Szczególnie silna pozycja w zakresie rentowności (ROE, ROA) oraz płynności. Niski poziom zadłużenia daje możliwość dalszej ekspansji poprzez finansowanie dłużne.
+            - generic [ref=e418]: 📊 Wykres radarowy - 9 wskaźników finansowych z benchmarkiem branżowym
+            - generic [ref=e419]: 💡 Kliknij punkt lub kafelek, aby zobaczyć szczegóły wskaźnika
+        - generic [ref=e420]:
+          - heading "6. Struktura własnościowa 📊 Diagram interaktywny" [level=2] [ref=e421]:
+            - text: 6. Struktura własnościowa
+            - generic [ref=e422]: 📊 Diagram interaktywny
+          - generic [ref=e423]:
+            - generic [ref=e424]:
+              - generic [ref=e425]:
+                - generic [ref=e426]: 🏢
+                - generic [ref=e427]: Spółka główna
+              - generic [ref=e428]:
+                - generic [ref=e429]: 📊
+                - generic [ref=e430]: Udziałowiec
+              - generic [ref=e431]:
+                - generic [ref=e432]: 👤
+                - generic [ref=e433]: Beneficjent rzeczywisty (UBO)
+            - generic [ref=e436]:
+              - generic [ref=e437] [cursor=pointer]:
+                - button [ref=e438]:
+                  - img [ref=e439]
+                - generic [ref=e441]: 🏢
+                - generic [ref=e442]:
+                  - generic [ref=e443]: FADO Sp. z o.o.
+                  - generic [ref=e444]:
+                    - generic [ref=e445]: 100%
+                    - generic [ref=e446]: Spółka
+              - generic [ref=e447]:
+                - generic [ref=e455] [cursor=pointer]:
+                  - button [ref=e456]:
+                    - img [ref=e457]
+                  - generic [ref=e459]: 📊
+                  - generic [ref=e460]:
+                    - generic [ref=e461]: Plastics Holding S.A.
+                    - generic [ref=e462]:
+                      - generic [ref=e463]: 60%
+                      - generic [ref=e464]: Udziałowiec
+                - generic [ref=e471] [cursor=pointer]:
+                  - button [ref=e472]:
+                    - img [ref=e473]
+                  - generic [ref=e475]: 📊
+                  - generic [ref=e476]:
+                    - generic [ref=e477]: Jan Kowalski
+                    - generic [ref=e478]:
+                      - generic [ref=e479]: 25%
+                      - generic [ref=e480]: Udziałowiec
+                  - generic [ref=e481]: Założyciel
+                - generic [ref=e488] [cursor=pointer]:
+                  - button [ref=e489]:
+                    - img [ref=e490]
+                  - generic [ref=e492]: 📊
+                  - generic [ref=e493]:
+                    - generic [ref=e494]: Anna Nowak
+                    - generic [ref=e495]:
+                      - generic [ref=e496]: 15%
+                      - generic [ref=e497]: Udziałowiec
+                  - generic [ref=e498]: Współzałożyciel
+            - generic [ref=e499]:
+              - heading "👤 Beneficjenci rzeczywiści (UBO)" [level=4] [ref=e500]
+              - generic [ref=e501]:
+                - generic [ref=e502]:
+                  - generic [ref=e503]:
+                    - generic [ref=e504]: ↗
+                    - generic [ref=e505]: Heinrich Schmidt
+                  - generic [ref=e506]: poprzez Euro Polymers GmbH → Plastics Holding S.A.
+                - generic [ref=e507]:
+                  - generic [ref=e508]:
+                    - generic [ref=e509]: ↗
+                    - generic [ref=e510]: Skarb Państwa
+                  - generic [ref=e511]: poprzez Polish Investment Fund S.A. → Plastics Holding S.A.
+                - generic [ref=e512]:
+                  - generic [ref=e513]:
+                    - generic [ref=e514]: ✓
+                    - generic [ref=e515]: Jan Kowalski
+                  - generic [ref=e516]: Bezpośrednio
+                - generic [ref=e517]:
+                  - generic [ref=e518]:
+                    - generic [ref=e519]: ✓
+                    - generic [ref=e520]: Anna Nowak
+                  - generic [ref=e521]: Bezpośrednio
+            - button "Pokaż tabelę udziałowców" [ref=e523] [cursor=pointer]:
+              - img [ref=e524]
+              - text: Pokaż tabelę udziałowców
+            - generic [ref=e526]:
+              - generic [ref=e529]: "Udziałowcy: 5"
+              - generic [ref=e532]: "Beneficjenci: 4"
+            - generic [ref=e533]: 💡 Kliknij węzeł drzewa, aby zobaczyć szczegóły. Użyj strzałek, aby rozwinąć/zwinąć gałęzie.
+      - generic [ref=e534]:
+        - heading "Zrodla" [level=2] [ref=e535]
+        - generic [ref=e536]:
+          - generic [ref=e537]:
+            - generic [ref=e538]:
+              - generic [ref=e539]: KRS
+              - link "https://api.krs.pl" [ref=e540] [cursor=pointer]:
+                - /url: https://api.krs.pl
+            - generic [ref=e541]:
+              - generic [ref=e542]: "Pewnosc:"
+              - generic [ref=e543]: 95%
+          - generic [ref=e544]:
+            - generic [ref=e545]:
+              - generic [ref=e546]: e-sprawozdania
+              - link "https://ekrs.ms.gov.pl" [ref=e547] [cursor=pointer]:
+                - /url: https://ekrs.ms.gov.pl
+            - generic [ref=e548]:
+              - generic [ref=e549]: "Pewnosc:"
+              - generic [ref=e550]: 90%
+          - generic [ref=e551]:
+            - generic [ref=e552]:
+              - generic [ref=e553]: Analiza branżowa PZPTS
+              - link "https://pzpts.pl" [ref=e554] [cursor=pointer]:
+                - /url: https://pzpts.pl
+            - generic [ref=e555]:
+              - generic [ref=e556]: "Pewnosc:"
+              - generic [ref=e557]: 85%
+      - generic [ref=e558]:
+        - generic [ref=e559]: Jak dodac adnotacje?
+        - paragraph [ref=e560]: Zaznacz dowolny tekst w raporcie, a pojawi sie opcja dodania komentarza. Twoje adnotacje zostana zapisane i beda widoczne przy kolejnych wizytach.
+```

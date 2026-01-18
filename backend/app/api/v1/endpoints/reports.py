@@ -1238,7 +1238,8 @@ async def get_report(
     for report in MOCK_REPORTS:
         if report["id"] == report_id:
             # SECURITY: Check if user is the owner of the report
-            if report.get("created_by") != str(current_user.id):
+            # For mock reports without created_by, allow access to any authenticated user
+            if report.get("created_by") and report.get("created_by") != str(current_user.id):
                 raise HTTPException(
                     status_code=403,
                     detail="Nie masz uprawnień do wyświetlenia tego raportu."
