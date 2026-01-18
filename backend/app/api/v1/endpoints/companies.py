@@ -501,7 +501,10 @@ PKD_CODES = {
     "69.20.Z": {"name": "Działalność rachunkowo-księgowa; doradztwo podatkowe", "category": "Usługi profesjonalne"},
     "70.22.Z": {"name": "Pozostałe doradztwo w zakresie prowadzenia działalności gospodarczej", "category": "Usługi profesjonalne"},
     "71.12.Z": {"name": "Działalność w zakresie inżynierii i związane z nią doradztwo techniczne", "category": "Usługi profesjonalne"},
+    "16.23.Z": {"name": "Produkcja wyrobów stolarskich i ciesielskich dla budownictwa", "category": "Produkcja"},
+    "31.02.Z": {"name": "Produkcja mebli kuchennych", "category": "Produkcja"},
     "73.11.Z": {"name": "Działalność agencji reklamowych", "category": "Marketing"},
+    "74.10.Z": {"name": "Specjalistyczne projektowanie", "category": "Usługi profesjonalne"},
     "82.99.Z": {"name": "Pozostała działalność wspomagająca prowadzenie działalności gospodarczej", "category": "Usługi"},
 }
 
