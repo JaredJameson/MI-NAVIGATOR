@@ -438,6 +438,236 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # Market trend identification request (MORE SPECIFIC - check before trend_chart)
+    elif (("trend" in user_lower and ("rynek" in user_lower or "market" in user_lower or "branż" in user_lower)) or
+          ("tendencje" in user_lower and "rynek" in user_lower) or
+          ("kierunki rozwoju" in user_lower) or
+          ("trendy" in user_lower)):
+        return json.dumps({
+            "type": "market_trends",
+            "data": {
+                "industry": "Produkcja tworzyw sztucznych - wtrysk",
+                "region": "Polska",
+                "analysis_date": datetime.utcnow().isoformat(),
+                "time_horizon": "2024-2028",
+                "trends": [
+                    {
+                        "id": 1,
+                        "name": "Automatyzacja i Industry 4.0",
+                        "category": "Technology",
+                        "description": "Rosnące wdrożenia robotyzacji, IoT i AI w procesach produkcyjnych. Inteligentne wtryskarki z predykcyjną konserwacją i optymalizacją w czasie rzeczywistym.",
+                        "impact": "high",
+                        "impact_description": "Redukcja kosztów o 20-30%, wzrost wydajności o 25%, poprawa jakości o 15%",
+                        "timeline": "2024-2026",
+                        "stage": "growing",
+                        "adoption_rate": "35% firm już wdraża, 45% planuje w ciągu 2 lat",
+                        "drivers": [
+                            "Niedobór wykwalifikowanej siły roboczej",
+                            "Presja na redukcję kosztów",
+                            "Dostępność technologii Industry 4.0",
+                            "Wymogi jakościowe klientów automotive"
+                        ],
+                        "barriers": [
+                            "Wysokie koszty inwestycji (2-5 mln PLN)",
+                            "Brak kompetencji IT w firmach",
+                            "Opór pracowników przed zmianami"
+                        ],
+                        "opportunities": [
+                            "Przewaga konkurencyjna early adopters",
+                            "Możliwość obsługi bardziej złożonych zleceń",
+                            "Niższe koszty operacyjne w długim terminie"
+                        ],
+                        "data_sources": [
+                            {"name": "Industry 4.0 Adoption Report 2024", "confidence": 90},
+                            {"name": "Polish Manufacturing Survey 2024", "confidence": 85}
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "name": "Zrównoważony rozwój i gospodarka cyrkularna",
+                        "category": "Environmental",
+                        "description": "Przejście na bioplastyki, recykling mechaniczny i chemiczny, redukcja śladu węglowego. Wymogi ESG od klientów korporacyjnych.",
+                        "impact": "high",
+                        "impact_description": "Nowe wymagania certyfikacyjne, presja na recykling min. 30% surowca, potencjał wzrostu marż o 5-10% na produktach eco",
+                        "timeline": "2024-2028",
+                        "stage": "accelerating",
+                        "adoption_rate": "20% firm już wdrożyło, 60% pod presją klientów",
+                        "drivers": [
+                            "Dyrektywa UE o opakowaniach (min. 30% recyclatu do 2030)",
+                            "Wymogi ESG od klientów automotive i FMCG",
+                            "Rosnąca świadomość konsumentów",
+                            "Podatek od plastiku (0.80 EUR/kg)"
+                        ],
+                        "barriers": [
+                            "Wyższa cena bioplastyków (30-50% droższe)",
+                            "Ograniczona dostępność recyclatu dobrej jakości",
+                            "Konieczność certyfikacji (ISO 14001, Cradle to Cradle)"
+                        ],
+                        "opportunities": [
+                            "Premium pricing dla produktów eco (marża +5-10%)",
+                            "Dostęp do zamówień od firm z celami ESG",
+                            "Subsydia i dofinansowania UE (do 50% kosztów)"
+                        ],
+                        "data_sources": [
+                            {"name": "EU Circular Economy Report 2024", "confidence": 95},
+                            {"name": "Plastics Recycling Market Study", "confidence": 85}
+                        ]
+                    },
+                    {
+                        "id": 3,
+                        "name": "Nearshoring i reshoring produkcji",
+                        "category": "Economic",
+                        "description": "Przenoszenie produkcji bliżej rynków docelowych w UE. Polska jako hub produkcyjny dla Europy Zachodniej - alternatywa dla Chin.",
+                        "impact": "medium",
+                        "impact_description": "Wzrost zapytań o produkcję dla klientów z DE, FR, UK o 40-60%. Większe wolumeny, ale presja cenowa.",
+                        "timeline": "2024-2027",
+                        "stage": "growing",
+                        "adoption_rate": "30% firm odnotowało wzrost zleceń z Zachodu",
+                        "drivers": [
+                            "Ryzyka geopolityczne (Chiny-Taiwan, Rosja)",
+                            "Koszty transportu i ślad węglowy",
+                            "Krótsze łańcuchy dostaw",
+                            "Dostęp do wykwalifikowanej siły roboczej"
+                        ],
+                        "barriers": [
+                            "Konkurencja cenowa z Europą Wschodnią",
+                            "Wymagania jakościowe i certyfikacyjne",
+                            "Potrzeba inwestycji w nowe moce (5-15 mln PLN)"
+                        ],
+                        "opportunities": [
+                            "Długoterminowe kontrakty z zachodnimi OEM",
+                            "Stabilne wolumeny i wyższa przewidywalność",
+                            "Transfer know-how i dostęp do nowych technologii"
+                        ],
+                        "data_sources": [
+                            {"name": "Nearshoring Trends Europe 2024", "confidence": 85},
+                            {"name": "PAIH Investment Report", "confidence": 90}
+                        ]
+                    },
+                    {
+                        "id": 4,
+                        "name": "Druk 3D i produkcja addytywna",
+                        "category": "Technology",
+                        "description": "Komplementarność druku 3D do wtrysku - prototypowanie, małe serie, personalizacja. Hybrydowe modele produkcji.",
+                        "impact": "low",
+                        "impact_description": "5-10% firm oferuje druk 3D jako usługę dodatkową. Skrócenie czasu prototypowania o 60%.",
+                        "timeline": "2025-2028",
+                        "stage": "emerging",
+                        "adoption_rate": "10% firm posiada drukarki przemysłowe, 25% planuje",
+                        "drivers": [
+                            "Zapotrzebowanie na szybkie prototypowanie",
+                            "Personalizacja produktów (mass customization)",
+                            "Małe serie nieopłacalne w wtrysku (< 100 szt.)",
+                            "Redukcja waste material (90% vs 50% w wtrysku)"
+                        ],
+                        "barriers": [
+                            "Wysokie koszty materiałów (10x droższe niż granulat)",
+                            "Wolna produkcja (niekonkurencyjna dla > 1000 szt.)",
+                            "Ograniczone właściwości mechaniczne"
+                        ],
+                        "opportunities": [
+                            "Nowy strumień przychodów z prototypowania",
+                            "Wyższe marże na małych seriach (40-50%)",
+                            "Przewaga konkurencyjna - kompleksowa oferta"
+                        ],
+                        "data_sources": [
+                            {"name": "3D Printing Market Report 2024", "confidence": 80},
+                            {"name": "Additive Manufacturing Trends", "confidence": 75}
+                        ]
+                    },
+                    {
+                        "id": 5,
+                        "name": "Konsolidacja rynku i M&A",
+                        "category": "Market Structure",
+                        "description": "Przejmowanie mniejszych graczy przez średnie firmy i fundusze PE. Cel: skala, synergize, dywersyfikacja klientów.",
+                        "impact": "medium",
+                        "impact_description": "20+ transakcji M&A w sektorze w latach 2022-2024. Wyceny 0.8-1.2x przychodów lub 5-7x EBITDA.",
+                        "timeline": "2024-2026",
+                        "stage": "accelerating",
+                        "adoption_rate": "15% rynku przeszło przez M&A w ostatnich 3 latach",
+                        "drivers": [
+                            "Presja cenowa i spadające marże",
+                            "Potrzeba skali do negocjacji z dostawcami",
+                            "Sukcesja w firmach rodzinnych",
+                            "Fundusze PE szukające aktywów w manufacturing"
+                        ],
+                        "barriers": [
+                            "Wyceny nie zawsze atrakcyjne dla sprzedających",
+                            "Trudności integracyjne (kultura, systemy IT)",
+                            "Obawa przed utratą kluczowych pracowników"
+                        ],
+                        "opportunities": [
+                            "Buy-and-build strategy - budowa platformy 100-200 mln PLN",
+                            "Synergize operacyjne (5-15% redukcji kosztów)",
+                            "Wejście na nowe rynki geograficzne lub segmenty"
+                        ],
+                        "data_sources": [
+                            {"name": "Polish M&A Report 2023-2024", "confidence": 90},
+                            {"name": "Manufacturing Consolidation Study", "confidence": 85}
+                        ]
+                    },
+                    {
+                        "id": 6,
+                        "name": "Elektryfikacja automotive",
+                        "category": "Market Demand",
+                        "description": "Przejście na pojazdy elektryczne zmienia mix komponentów - mniej elementów silnika, więcej obudów baterii, systemów chłodzenia.",
+                        "impact": "high",
+                        "impact_description": "30% spadek zapotrzebowania na komponenty ICE do 2030, wzrost o 200% dla EV components.",
+                        "timeline": "2024-2030",
+                        "stage": "accelerating",
+                        "adoption_rate": "25% produkcji automotive już dla EV (cel: 50% w 2027)",
+                        "drivers": [
+                            "Cel UE: 100% nowych aut zero-emission od 2035",
+                            "Inwestycje OEM w EV (VW 180 mld EUR, Tesla 150 mld USD)",
+                            "Spadające ceny baterii (80% drop od 2010)",
+                            "Bodźce fiskalne dla kupujących EV"
+                        ],
+                        "barriers": [
+                            "Wymagania nowych certyfikacji (UN R100, ISO 26262)",
+                            "Inwestycje w nowe formy i tooling (3-8 mln PLN)",
+                            "Konkurencja z producentami bliżej gigafactories"
+                        ],
+                        "opportunities": [
+                            "Wejście w high-margin segment (obudowy baterii marża 25-35%)",
+                            "Długoterminowe partnerstwa z OEM i Tier 1",
+                            "Dywersyfikacja od spadającego ICE"
+                        ],
+                        "data_sources": [
+                            {"name": "EV Market Outlook 2024-2030", "confidence": 95},
+                            {"name": "Automotive Supplier Trends Report", "confidence": 90}
+                        ]
+                    }
+                ],
+                "summary": {
+                    "total_trends": 6,
+                    "high_impact": 3,
+                    "medium_impact": 2,
+                    "low_impact": 1,
+                    "categories": {
+                        "Technology": 2,
+                        "Environmental": 1,
+                        "Economic": 1,
+                        "Market Structure": 1,
+                        "Market Demand": 1
+                    },
+                    "key_takeaways": [
+                        "Automatyzacja i zrównoważony rozwój to kluczowe trendy high-impact wymagające działania już teraz",
+                        "Elektryfikacja automotive to największa szansa i zagrożenie - wymaga pivot strategii produktowej",
+                        "Nearshoring otwiera możliwości wzrostu, ale wymaga podniesienia standardów jakości",
+                        "Konsolidacja rynku przyspiesza - firmy muszą zdecydować: buy, sell, or build scale organically",
+                        "Druk 3D to emerging trend - warto pilotować, ale nie kluczowy short-term"
+                    ],
+                    "recommended_actions": [
+                        "Priorytet 1: Ocenić gotowość do automatyzacji i zbudować roadmap Industry 4.0 (Q1 2025)",
+                        "Priorytet 2: Rozpocząć certyfikację ESG i testować recyklat (Q2 2025)",
+                        "Priorytet 3: Zbudować ofertę dla EV components i nawiązać kontakty z Tier 1 EV (Q2-Q3 2025)",
+                        "Priorytet 4: Rozważyć M&A - czy jesteś kupującym czy sprzedającym? (H2 2025)",
+                        "Priorytet 5: Pilotować druk 3D dla prototypowania (Q3-Q4 2025)"
+                    ]
+                }
+            }
+        }, ensure_ascii=False)
+
     # Trend analysis request (check BEFORE financial data to avoid "revenue trend" matching "revenue")
     elif "trend" in user_lower or "wykres" in user_lower or "chart" in user_lower or "wzrost" in user_lower or "growth" in user_lower:
         return json.dumps({
