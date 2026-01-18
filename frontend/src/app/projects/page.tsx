@@ -106,6 +106,12 @@ export default function ProjectsPage() {
           <nav className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
             <Link href="/reports" className="text-gray-600 hover:text-gray-900">Raporty</Link>
+            <Link
+              href="/projects/new"
+              className="rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 transition-colors"
+            >
+              + Nowy projekt
+            </Link>
           </nav>
         </div>
       </header>
