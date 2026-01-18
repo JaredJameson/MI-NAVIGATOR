@@ -93,6 +93,14 @@ async function fetchApi<T>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
 
+  // Add CSRF token for non-safe methods
+  if (options.method && !['GET', 'HEAD', 'OPTIONS'].includes(options.method.toUpperCase())) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      (headers as Record<string, string>)['X-CSRF-Token'] = csrfToken;
+    }
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -203,6 +211,9 @@ export const authApi = {
 
     // Normal login - store tokens
     setTokens(data.access_token, data.refresh_token);
+
+    // Fetch CSRF token after successful login
+    await fetchCsrfToken();
 
     return { data };
   },

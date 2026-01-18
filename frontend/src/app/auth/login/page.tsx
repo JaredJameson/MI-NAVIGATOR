@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { authApi } from '@/services/api'
+import { authApi, fetchCsrfToken } from '@/services/api'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -147,6 +147,9 @@ export default function LoginPage() {
         // Store tokens
         localStorage.setItem('mi_navigator_token', data.access_token)
         localStorage.setItem('mi_navigator_refresh_token', data.refresh_token)
+
+        // Fetch CSRF token after successful login
+        await fetchCsrfToken()
 
         // Successfully logged in, redirect to dashboard
         router.push('/dashboard')
