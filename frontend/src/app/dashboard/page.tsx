@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { authApi, searchApi, SearchSuggestion } from '@/services/api'
+import { authApi, searchApi, SearchSuggestion, getStoredToken } from '@/services/api'
 import { DashboardSkeleton } from '@/components/Skeleton'
 
 // Widget type definition
@@ -701,20 +701,74 @@ function ActiveResearchWidget() {
 }
 
 function RecentActivityWidget() {
+  const [activities, setActivities] = useState<{ id: string; title: string; timestamp: string }[]>([])
+  const [userTimezone, setUserTimezone] = useState('Europe/Warsaw')
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRecentActivities = async () => {
+      try {
+        const token = getStoredToken()
+        if (!token) return
+
+        // Fetch user profile to get timezone
+        const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/users/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (profileResponse.ok) {
+          const profile = await profileResponse.json()
+          if (profile.timezone) {
+            setUserTimezone(profile.timezone)
+          }
+        }
+
+        // Fetch recent activities (limit 3)
+        const activitiesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/activity?limit=3`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (activitiesResponse.ok) {
+          const data = await activitiesResponse.json()
+          setActivities(data.items || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch activities:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchRecentActivities()
+  }, [])
+
+  const formatTimeOnly = (timestamp: string, timezone: string) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString('pl-PL', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: timezone
+    })
+  }
+
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm h-full">
       <h3 className="mb-4 font-semibold text-gray-900">Recent Activity</h3>
-      <ul className="space-y-3">
-        <li className="text-sm">
-          <span className="text-gray-500">14:32</span> - Raport FADO zakończony
-        </li>
-        <li className="text-sm">
-          <span className="text-gray-500">12:15</span> - Nowy alert: Konkurent X
-        </li>
-        <li className="text-sm">
-          <span className="text-gray-500">11:45</span> - Upload: raport_q3.pdf
-        </li>
-      </ul>
+      {isLoading ? (
+        <div className="space-y-3">
+          <div className="h-4 bg-gray-200 rounded animate-pulse" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse" />
+          <div className="h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+      ) : activities.length > 0 ? (
+        <ul className="space-y-3">
+          {activities.map((activity) => (
+            <li key={activity.id} className="text-sm">
+              <span className="text-gray-500">{formatTimeOnly(activity.timestamp, userTimezone)}</span> - {activity.title}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-gray-500">Brak ostatniej aktywności</p>
+      )}
       <Link href="/activity" className="mt-4 inline-block text-sm text-blue-600 hover:underline">
         Zobacz wszystkie →
       </Link>

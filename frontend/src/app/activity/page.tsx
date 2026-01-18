@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getStoredToken } from '@/services/api'
+import { formatDateInTimezone } from '@/utils/date'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -65,6 +66,7 @@ export default function ActivityPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [userTimezone, setUserTimezone] = useState('Europe/Warsaw')
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false)
@@ -80,11 +82,37 @@ export default function ActivityPage() {
 
   useEffect(() => {
     fetchActivityTypes()
+    fetchUserTimezone()
   }, [])
 
   useEffect(() => {
     fetchActivities()
   }, [filterType, currentPage])
+
+  const fetchUserTimezone = async () => {
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const user = await response.json()
+        if (user.timezone) {
+          setUserTimezone(user.timezone)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user timezone:', err)
+    }
+  }
 
   const fetchActivityTypes = async () => {
     const token = getStoredToken()
@@ -167,13 +195,8 @@ export default function ActivityPage() {
     } else if (diffDays < 7) {
       return `${diffDays} dni temu`
     } else {
-      return date.toLocaleDateString('pl-PL', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      // Use timezone-aware formatting for older dates
+      return formatDateInTimezone(timestamp, userTimezone, 'pl-PL')
     }
   }
 
