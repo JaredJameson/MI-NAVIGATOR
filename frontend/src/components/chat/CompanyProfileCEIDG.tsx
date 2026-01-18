@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 
 interface PKDCode {
   code: string
@@ -33,6 +33,20 @@ interface CompanyProfileCEIDGProps {
 
 export function CompanyProfileCEIDG({ data }: CompanyProfileCEIDGProps) {
   const { basic_info, pkd_codes, source, fetched_at, lookup_type, identifier } = data
+
+  // State for expandable sections
+  const [expandedSections, setExpandedSections] = useState({
+    registration: true,
+    address: true,
+    pkd: true
+  })
+
+  const toggleSection = (section: 'registration' | 'address' | 'pkd') => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
+  }
 
   return (
     <div className="rounded-lg border bg-white shadow-sm">
@@ -67,56 +81,101 @@ export function CompanyProfileCEIDG({ data }: CompanyProfileCEIDGProps) {
 
         {/* Registration Data */}
         <div className="mb-4">
-          <h5 className="mb-2 text-xs font-semibold uppercase text-gray-700">Dane rejestrowe</h5>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-md bg-gray-50 p-2">
-              <p className="text-xs font-medium text-gray-500">NIP</p>
-              <p className="mt-0.5 font-mono text-sm font-semibold text-gray-900">{basic_info.nip}</p>
+          <button
+            onClick={() => toggleSection('registration')}
+            className="flex w-full items-center justify-between text-left hover:bg-gray-50 rounded px-1 py-1 transition-colors"
+          >
+            <h5 className="text-xs font-semibold uppercase text-gray-700">Dane rejestrowe</h5>
+            <svg
+              className={`h-4 w-4 text-gray-500 transition-transform ${expandedSections.registration ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {expandedSections.registration && (
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <div className="rounded-md bg-gray-50 p-2">
+                <p className="text-xs font-medium text-gray-500">NIP</p>
+                <p className="mt-0.5 font-mono text-sm font-semibold text-gray-900">{basic_info.nip}</p>
+              </div>
+              <div className="rounded-md bg-gray-50 p-2">
+                <p className="text-xs font-medium text-gray-500">REGON</p>
+                <p className="mt-0.5 font-mono text-sm font-semibold text-gray-900">{basic_info.regon}</p>
+              </div>
+              <div className="rounded-md bg-gray-50 p-2 col-span-2">
+                <p className="text-xs font-medium text-gray-500">Data rozpoczęcia działalności</p>
+                <p className="mt-0.5 text-sm font-semibold text-gray-900">{basic_info.founded}</p>
+              </div>
             </div>
-            <div className="rounded-md bg-gray-50 p-2">
-              <p className="text-xs font-medium text-gray-500">REGON</p>
-              <p className="mt-0.5 font-mono text-sm font-semibold text-gray-900">{basic_info.regon}</p>
-            </div>
-            <div className="rounded-md bg-gray-50 p-2 col-span-2">
-              <p className="text-xs font-medium text-gray-500">Data rozpoczęcia działalności</p>
-              <p className="mt-0.5 text-sm font-semibold text-gray-900">{basic_info.founded}</p>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Address */}
         <div className="mb-4">
-          <h5 className="mb-2 text-xs font-semibold uppercase text-gray-700">Adres prowadzenia działalności</h5>
-          <div className="rounded-md bg-gray-50 p-2">
-            <p className="text-sm text-gray-900">{basic_info.address}</p>
-          </div>
+          <button
+            onClick={() => toggleSection('address')}
+            className="flex w-full items-center justify-between text-left hover:bg-gray-50 rounded px-1 py-1 transition-colors"
+          >
+            <h5 className="text-xs font-semibold uppercase text-gray-700">Adres prowadzenia działalności</h5>
+            <svg
+              className={`h-4 w-4 text-gray-500 transition-transform ${expandedSections.address ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {expandedSections.address && (
+            <div className="mt-2 rounded-md bg-gray-50 p-2">
+              <p className="text-sm text-gray-900">{basic_info.address}</p>
+            </div>
+          )}
         </div>
 
         {/* PKD Codes */}
         {pkd_codes && pkd_codes.length > 0 && (
           <div className="mb-4">
-            <h5 className="mb-2 text-xs font-semibold uppercase text-gray-700">
-              Przedmiot przeważającej działalności (PKD)
-            </h5>
-            <div className="space-y-2">
-              {pkd_codes.map((pkd, index) => (
-                <div key={index} className="rounded-md border border-gray-200 bg-white p-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="rounded bg-green-100 px-2 py-0.5 font-mono text-xs font-semibold text-green-800">
-                          {pkd.code}
-                        </span>
-                        <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                          {pkd.category}
-                        </span>
+            <button
+              onClick={() => toggleSection('pkd')}
+              className="flex w-full items-center justify-between text-left hover:bg-gray-50 rounded px-1 py-1 transition-colors"
+            >
+              <h5 className="text-xs font-semibold uppercase text-gray-700">
+                Przedmiot przeważającej działalności (PKD)
+              </h5>
+              <svg
+                className={`h-4 w-4 text-gray-500 transition-transform ${expandedSections.pkd ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {expandedSections.pkd && (
+              <div className="mt-2 space-y-2">
+                {pkd_codes.map((pkd, index) => (
+                  <div key={index} className="rounded-md border border-gray-200 bg-white p-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-green-100 px-2 py-0.5 font-mono text-xs font-semibold text-green-800">
+                            {pkd.code}
+                          </span>
+                          <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                            {pkd.category}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-700">{pkd.name}</p>
                       </div>
-                      <p className="mt-1 text-sm text-gray-700">{pkd.name}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
