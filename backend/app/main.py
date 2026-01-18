@@ -133,6 +133,8 @@ app.add_middleware(
         "/api/v1/auth/login",
         "/api/v1/auth/register",
         "/api/v1/auth/refresh",
+        "/api/v1/auth/forgot-password",  # Allow password reset request without CSRF token
+        "/api/v1/auth/reset-password",  # Allow password reset confirmation without CSRF token
         "/api/v1/csrf-token",
         "/api/v1/errors/log",  # Allow error logging without CSRF token
         "/api/v1/reports",  # Allow report operations without CSRF token (auth handled at endpoint level)
