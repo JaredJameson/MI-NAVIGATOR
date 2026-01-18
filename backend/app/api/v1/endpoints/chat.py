@@ -950,6 +950,16 @@ async def websocket_endpoint(
                 }
                 conv["messages"].append(ai_message)
 
-            await websocket.send_text(response)
+            # Check if response is JSON (structured message)
+            try:
+                response_data = json.loads(response)
+                # If it's a dict with 'type' and 'data', send as JSON
+                if isinstance(response_data, dict) and 'type' in response_data and 'data' in response_data:
+                    await websocket.send_json(response_data)
+                else:
+                    await websocket.send_text(response)
+            except (json.JSONDecodeError, ValueError):
+                # Not JSON, send as plain text
+                await websocket.send_text(response)
     except WebSocketDisconnect:
         pass
