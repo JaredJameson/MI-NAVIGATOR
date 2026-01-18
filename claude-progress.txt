@@ -1,3 +1,101 @@
+# Session 116 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature completed + 2 regression tests
+**Features Completed:** 1 feature
+- Feature #22: Chat NIP/KRS auto-detection ✅ (PASSED - Full auto-detection with visual badges and lookup)
+
+**Regression Tests:** 2
+- Feature #323: Report viewer visual design ✅ (PASSED)
+- Feature #370: Offline indicator ⚠️ (Could not test - requires browser permissions)
+
+**Current Progress:** 191/380 features passing (50.3%) - **OVER 50% MILESTONE!** 🎉
+
+**Key Achievements:**
+- **Implemented NIP/KRS auto-detection** - Automatic recognition of Polish company identifiers
+- **Smart regex logic** - Prevents false positives between NIP and KRS
+- **Visual badges** - Green for NIP, purple for KRS with company icons
+- **One-click lookup** - Instant company lookup via WebSocket
+- Zero console errors during testing
+
+## Feature #22 Implementation Details
+
+**Chat NIP/KRS Auto-detection - Automatic Company Identifier Recognition**
+
+**Implementation:**
+
+1. **Added State Variables:**
+   - `detectedNIP: string | null` - Stores detected NIP number
+   - `detectedKRS: string | null` - Stores detected KRS number
+
+2. **Detection Logic (useEffect):**
+   ```typescript
+   // KRS regex: Must have "KRS" prefix OR start with 0000
+   const krsRegex = /\b(?:KRS\s*\d{10})\b|\b0{4}\d{6}\b/gi
+
+   // NIP regex: 10 digits with optional dashes/spaces, excluding 0000 prefix
+   const nipRegex = /\b(?!0{4})\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}\b|\b(?!0{4})\d{10}\b/g
+   ```
+
+3. **Detection Priority:**
+   - KRS checked first (higher priority)
+   - NIP excludes numbers already detected as KRS
+   - Prevents false positives (e.g., 0000145732 is KRS, not NIP)
+
+4. **UI Indicators:**
+   - **NIP Badge:** Green background (bg-green-50), building icon, "NIP Detected: {number}"
+   - **KRS Badge:** Purple background (bg-purple-50), document icon, "KRS Detected: {number}"
+   - One-click "Lookup Company" button per badge
+
+5. **Company Lookup Function:**
+   ```typescript
+   const startCompanyLookup = async (type: 'NIP' | 'KRS') => {
+     const messageContent = `Lookup company with ${type}: ${number}`
+     // Creates conversation if needed
+     // Waits for WebSocket connection
+     // Sends lookup message via WebSocket
+     // Clears detected number and input
+   }
+   ```
+
+**Testing Results:**
+
+✅ **Step 1-4: NIP Detection**
+- Typed: "Proszę o informacje o firmie NIP 5260016831"
+- NIP detected: 5260016831 (green badge)
+- Clicked "Lookup Company"
+- Message sent: "Lookup company with NIP: 5260016831"
+- AI responded with analysis options
+
+✅ **Step 5-7: KRS Detection**
+- Typed: "Potrzebuję danych firmy KRS 0000145732"
+- KRS detected: 0000145732 (purple badge)
+- No false positive NIP detection
+- Clicked "Lookup Company"
+- Message sent: "Lookup company with KRS: 0000145732"
+- AI responded with analysis options
+
+**Regex Improvements:**
+- Initial version had false positive: NIP regex caught KRS numbers
+- Fixed by adding negative lookahead `(?!0{4})` to NIP regex
+- KRS prioritized in detection order
+- Cross-check to prevent dual detection
+
+**Files Modified:**
+- `frontend/src/app/chat/page.tsx`
+  - Added 152 lines (detection logic + UI + lookup function)
+  - Zero breaking changes to existing functionality
+  - Clean integration with existing URL detection pattern
+
+**Screenshots:**
+- `.playwright-mcp/feature_22_nip_detected.png` - NIP detection with green badge
+- `.playwright-mcp/feature_22_krs_detected.png` - KRS detection with purple badge
+
+**Result:** Feature #22 PASSED ✅
+
+---
+
 # Session 113 - Date: 2026-01-18
 
 ## Session Summary
