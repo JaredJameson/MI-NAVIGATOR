@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { authApi, searchApi, SearchSuggestion, getStoredToken } from '@/services/api'
 import { DashboardSkeleton } from '@/components/Skeleton'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
 // Widget type definition
 interface Widget {
   id: string
@@ -859,6 +861,49 @@ function UsageStatsWidget() {
 }
 
 function ProjectsWidget() {
+  const [projects, setProjects] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (typeof window === 'undefined') return
+
+      const token = localStorage.getItem('mi_navigator_token')
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/projects/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setProjects(data.items || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch projects:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProjects()
+  }, [])
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (diffInDays === 0) return 'Today'
+    if (diffInDays === 1) return 'Yesterday'
+    if (diffInDays < 7) return `${diffInDays} days ago`
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
@@ -870,28 +915,35 @@ function ProjectsWidget() {
           + New
         </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {['Due Diligence - ACME Corp', 'Market Entry - Germany', 'Competitive Watch'].map(
-          (project) => (
-            <div
-              key={project}
-              className="cursor-pointer rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+      {isLoading ? (
+        <div className="text-center py-8 text-gray-500">Loading projects...</div>
+      ) : projects.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">No projects yet</div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.slice(0, 3).map((project) => (
+            <Link
+              key={project.id}
+              href={`/projects/${project.id}`}
+              className="block rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-start gap-3">
                 <span className="text-2xl">📁</span>
                 <div>
-                  <h3 className="font-medium text-gray-900">{project}</h3>
+                  <h3 className="font-medium text-gray-900">{project.name}</h3>
                   <div className="mt-2 flex gap-4 text-sm text-gray-500">
-                    <span>📄 5 reports</span>
-                    <span>🔔 3 alerts</span>
+                    <span>📄 {project.report_ids?.length || 0} reports</span>
+                    <span>🔔 {project.alert_count || 0} alerts</span>
                   </div>
-                  <div className="mt-2 text-xs text-gray-400">Updated: 2 days ago</div>
+                  <div className="mt-2 text-xs text-gray-400">
+                    Updated: {formatDate(project.updated_at)}
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        )}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

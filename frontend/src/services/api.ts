@@ -18,6 +18,7 @@ interface TokenResponse {
 // Token storage
 const TOKEN_KEY = 'mi_navigator_token';
 const REFRESH_TOKEN_KEY = 'mi_navigator_refresh_token';
+const CSRF_TOKEN_KEY = 'mi_navigator_csrf_token';
 
 export function getStoredToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -39,6 +40,34 @@ export function clearTokens(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(CSRF_TOKEN_KEY);
+}
+
+// CSRF Token management
+export function getCsrfToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(CSRF_TOKEN_KEY);
+}
+
+export function setCsrfToken(token: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(CSRF_TOKEN_KEY, token);
+}
+
+export async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/csrf-token`);
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (data.csrf_token) {
+      setCsrfToken(data.csrf_token);
+      return data.csrf_token;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 // Flag to prevent infinite refresh loops
