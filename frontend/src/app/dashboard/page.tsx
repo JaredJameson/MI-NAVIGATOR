@@ -238,7 +238,52 @@ export default function DashboardPage() {
     router.push(item.url)
   }
 
+  const handleDirectSearch = (query: string) => {
+    setShowSuggestions(false)
+
+    // Detect input type and navigate to chat with appropriate parameter
+    // URL detection: starts with http:// or https:// or www.
+    const isUrl = /^(https?:\/\/|www\.)/i.test(query)
+
+    // NIP detection: 10 digits, optionally with dashes
+    const nipPattern = /^\d{3}-?\d{3}-?\d{2}-?\d{2}$|^\d{10}$/
+    const isNIP = nipPattern.test(query.replace(/\s/g, ''))
+
+    let chatUrl = '/chat'
+
+    if (isUrl) {
+      // Navigate with URL parameter
+      chatUrl = `/chat?url=${encodeURIComponent(query)}`
+    } else if (isNIP) {
+      // Navigate with company_id parameter (NIP)
+      chatUrl = `/chat?company_id=${encodeURIComponent(query.replace(/\s|-/g, ''))}`
+    } else {
+      // Navigate with query parameter (company name or general query)
+      chatUrl = `/chat?query=${encodeURIComponent(query)}`
+    }
+
+    router.push(chatUrl)
+  }
+
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle Enter key - navigate to chat with query
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      // If a suggestion is selected, use it
+      if (showSuggestions && selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
+        handleSuggestionClick(suggestions[selectedSuggestionIndex])
+        return
+      }
+
+      // If no suggestion selected but we have text, navigate to chat with query
+      if (searchQuery.trim().length > 0) {
+        handleDirectSearch(searchQuery.trim())
+        return
+      }
+    }
+
+    // Handle other navigation keys only when suggestions are visible
     if (!showSuggestions || suggestions.length === 0) return
 
     switch (e.key) {
@@ -251,12 +296,6 @@ export default function DashboardPage() {
       case 'ArrowUp':
         e.preventDefault()
         setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1)
-        break
-      case 'Enter':
-        e.preventDefault()
-        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
-          handleSuggestionClick(suggestions[selectedSuggestionIndex])
-        }
         break
       case 'Escape':
         setShowSuggestions(false)
