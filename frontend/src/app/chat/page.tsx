@@ -245,7 +245,7 @@ export default function ChatPage() {
   }
 
   const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return
+    if ((!inputValue.trim() && uploadedFiles.length === 0) || isLoading) return
 
     const token = getStoredToken()
     if (!token) {
@@ -264,6 +264,14 @@ export default function ChatPage() {
         if (!conv) return
       }
 
+      // Upload files first (if any)
+      let fileIds: string[] = []
+      if (uploadedFiles.length > 0) {
+        console.log('[Files] Uploading', uploadedFiles.length, 'files...')
+        fileIds = await uploadFiles(uploadedFiles, conv.id)
+        console.log('[Files] Uploaded file IDs:', fileIds)
+      }
+
       // Wait for WebSocket connection (up to 5 seconds)
       console.log('[WS] Waiting for connection...')
       const isConnected = await waitForWebSocketConnection(5000)
@@ -274,11 +282,18 @@ export default function ChatPage() {
 
       console.log('[WS] Connection ready')
 
+      // Prepare message content
+      let messageContent = inputValue.trim()
+      if (fileIds.length > 0) {
+        // Add file information to message
+        messageContent += `\n\n[Attached ${fileIds.length} file(s): ${uploadedFiles.map(f => f.name).join(', ')}]`
+      }
+
       // Add user message optimistically
       const userMessage: Message = {
         id: `user-${Date.now()}`,
         role: 'user',
-        content: inputValue,
+        content: messageContent || '[File upload]',
         created_at: new Date().toISOString(),
       }
 
@@ -287,11 +302,16 @@ export default function ChatPage() {
         messages: [...prev.messages, userMessage],
       } : null)
 
-      // Send via WebSocket
-      console.log('[WS] Sending message:', inputValue)
-      wsRef.current.send(inputValue)
+      // Send via WebSocket (include file IDs in message)
+      const messagePayload = JSON.stringify({
+        content: inputValue.trim() || '[File upload]',
+        file_ids: fileIds
+      })
+      console.log('[WS] Sending message with files:', messagePayload)
+      wsRef.current.send(messagePayload)
 
       setInputValue('')
+      setUploadedFiles([]) // Clear uploaded files after sending
 
     } catch (err) {
       console.error('[WS] Send error:', err)
@@ -340,6 +360,41 @@ export default function ChatPage() {
 
   const removeFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const uploadFiles = async (files: File[], conversationId: string): Promise<string[]> => {
+    const token = getStoredToken()
+    if (!token) return []
+
+    const uploadedFileIds: string[] = []
+
+    for (const file of files) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('conversation_id', conversationId)
+
+        const response = await fetch(`${API_BASE_URL}/files/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to upload ${file.name}`)
+        }
+
+        const data = await response.json()
+        uploadedFileIds.push(data.id)
+      } catch (err) {
+        console.error(`Error uploading ${file.name}:`, err)
+        setError(`Failed to upload ${file.name}`)
+      }
+    }
+
+    return uploadedFileIds
   }
 
   return (

@@ -9,6 +9,7 @@ from app.models.report_template import ReportTemplate
 from app.models.audit_log import AuditLog
 from app.models.analytics_event import AnalyticsEvent, EventType
 from app.models.error_log import ErrorLog
+from app.models.uploaded_file import UploadedFile
 
 __all__ = [
     "User",
@@ -23,5 +24,6 @@ __all__ = [
     "AuditLog",
     "AnalyticsEvent",
     "EventType",
-    "ErrorLog"
+    "ErrorLog",
+    "UploadedFile"
 ]

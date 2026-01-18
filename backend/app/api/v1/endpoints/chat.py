@@ -179,6 +179,17 @@ async def websocket_endpoint(
         while True:
             data = await websocket.receive_text()
 
+            # Parse message (supports both plain text and JSON format)
+            try:
+                import json
+                message_data = json.loads(data)
+                content = message_data.get("content", "")
+                file_ids = message_data.get("file_ids", [])
+            except (json.JSONDecodeError, AttributeError):
+                # Fallback to plain text
+                content = data
+                file_ids = []
+
             # Save user message to conversation store
             conv = conversations_store.get(conversation_id)
             if conv:
@@ -187,18 +198,24 @@ async def websocket_endpoint(
                 user_message = {
                     "id": user_msg_id,
                     "role": "user",
-                    "content": data,
-                    "created_at": now.isoformat()
+                    "content": content,
+                    "created_at": now.isoformat(),
+                    "file_ids": file_ids if file_ids else None
                 }
                 conv["messages"].append(user_message)
                 conv["updated_at"] = now.isoformat()
 
                 # Update conversation title if first message
                 if conv["title"] is None:
-                    conv["title"] = data[:50] + ("..." if len(data) > 50 else "")
+                    conv["title"] = content[:50] + ("..." if len(content) > 50 else "")
 
-            # Generate mock response
-            response = generate_mock_response(data)
+            # Generate mock response (mention files if present)
+            if file_ids:
+                response = f"Otrzymałem Twoją wiadomość z {len(file_ids)} załączonym plikiem/plikami.\n\n"
+                response += generate_mock_response(content)
+                response += f"\n\n[Uwaga: Przetwarzanie plików jest w trakcie implementacji. ID plików: {', '.join(file_ids[:3])}...]"
+            else:
+                response = generate_mock_response(content)
 
             # Save AI response to conversation store
             if conv:
