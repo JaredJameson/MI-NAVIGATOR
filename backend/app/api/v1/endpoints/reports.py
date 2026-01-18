@@ -62,7 +62,7 @@ MOCK_REPORTS = [
         "updated_at": "2026-01-14T14:22:00Z",
         "status": "completed",
         "is_archived": False,
-        "created_by": "user_001",
+        "created_by": "dde243d1-a7a9-44c5-b28a-772ece7d500e",
         "summary": "Kompleksowa analiza profilu firmy FADO Sp. z o.o. - lidera w produkcji tworzyw sztucznych.",
         "sections": [
             {
@@ -293,7 +293,7 @@ Opis: Współzałożycielka, odpowiedzialna za rozwój biznesu
         "updated_at": "2026-01-13T16:45:00Z",
         "status": "completed",
         "is_archived": False,
-        "created_by": "user_001",
+        "created_by": "dde243d1-a7a9-44c5-b28a-772ece7d500e",
         "summary": "Kompleksowa analiza rynku produkcji tworzyw sztucznych w Polsce - trendy, gracze, prognozy.",
         "sections": [
             {
@@ -468,7 +468,7 @@ Punkty czasowe:
         "updated_at": "2026-01-12T18:30:00Z",
         "status": "completed",
         "is_archived": False,
-        "created_by": "user_001",
+        "created_by": "dde243d1-a7a9-44c5-b28a-772ece7d500e",
         "summary": "Raport due diligence dla TechSoft Sp. z o.o. - firmy IT specjalizującej się w rozwoju oprogramowania.",
         "sections": [
             {
