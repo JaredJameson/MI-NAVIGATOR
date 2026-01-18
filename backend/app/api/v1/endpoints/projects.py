@@ -103,7 +103,9 @@ async def list_projects(
     current_user: User = Depends(get_current_user)
 ):
     """List user's research projects."""
-    projects = list(MOCK_PROJECTS.values())
+    # SECURITY: Only show projects belonging to the current user
+    user_id = str(current_user.id)
+    projects = [p for p in MOCK_PROJECTS.values() if p.get("owner_id") == user_id]
 
     # Paginate
     start = (page - 1) * limit
