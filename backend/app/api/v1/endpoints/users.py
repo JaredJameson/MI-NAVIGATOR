@@ -12,7 +12,7 @@ from datetime import datetime
 
 from app.db.session import get_db
 from app.api.v1.endpoints.auth import get_current_user
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.audit_log import AuditLog
 from app.models.report_template import ReportTemplate
 from app.services.auth import AuthService
@@ -485,4 +485,113 @@ async def delete_user_account(
     return AccountDeletionResponse(
         message=f"Account {user_email} and all associated data have been permanently deleted",
         deleted_at=deletion_time.isoformat()
+    )
+
+
+class UserUsageStatsResponse(BaseModel):
+    """User usage statistics response."""
+    analyses_count: int
+    analyses_limit: int
+    analyses_percentage: float
+    storage_used_bytes: int
+    storage_limit_bytes: int
+    storage_used_gb: float
+    storage_limit_gb: float
+    storage_percentage: float
+    api_calls_count: int
+    reports_count: int
+    projects_count: int
+    period: str  # e.g., "month", "all_time"
+
+
+@router.get("/usage", response_model=UserUsageStatsResponse)
+async def get_user_usage_stats(
+    period: str = "month",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get current user's usage statistics.
+
+    Args:
+        period: "month" for current month, "all_time" for all time stats
+
+    Returns:
+        Usage statistics including analyses count, storage, API calls
+    """
+    from datetime import datetime
+    from sqlalchemy import func, and_
+    from app.models.analytics_event import AnalyticsEvent
+
+    user_id = current_user.id
+
+    # Calculate date range based on period
+    if period == "month":
+        # Current month
+        now = datetime.utcnow()
+        start_date = datetime(now.year, now.month, 1)
+    else:
+        # All time
+        start_date = datetime(2020, 1, 1)  # Arbitrary old date
+
+    # Count analyses based on analytics events
+    # Count events of type 'analysis', 'search', 'chat' as analyses
+    analyses_result = await db.execute(
+        select(func.count(AnalyticsEvent.id))
+        .where(
+            and_(
+                AnalyticsEvent.user_id == str(user_id),
+                AnalyticsEvent.created_at >= start_date,
+                AnalyticsEvent.event_type.in_(['analysis', 'search', 'chat'])
+            )
+        )
+    )
+    analyses_count = analyses_result.scalar() or 0
+
+    # Count API calls (all analytics events in period)
+    api_calls_result = await db.execute(
+        select(func.count(AnalyticsEvent.id))
+        .where(
+            and_(
+                AnalyticsEvent.user_id == str(user_id),
+                AnalyticsEvent.created_at >= start_date
+            )
+        )
+    )
+    api_calls_count = api_calls_result.scalar() or 0
+
+    # For now, set reports and projects count to 0 (models not implemented yet)
+    reports_count = 0
+    projects_count = 0
+    storage_used_bytes = 0
+
+    # Set limits based on user role
+    if current_user.role == UserRole.ADMIN:
+        analyses_limit = 1000
+        storage_limit_bytes = 100 * 1024 * 1024 * 1024  # 100 GB
+    else:
+        analyses_limit = 100
+        storage_limit_bytes = 10 * 1024 * 1024 * 1024  # 10 GB
+
+    # Calculate percentages
+    analyses_percentage = (analyses_count / analyses_limit * 100) if analyses_limit > 0 else 0
+    storage_percentage = (storage_used_bytes / storage_limit_bytes * 100) if storage_limit_bytes > 0 else 0
+
+    # Convert bytes to GB
+    storage_used_gb = storage_used_bytes / (1024 * 1024 * 1024)
+    storage_limit_gb = storage_limit_bytes / (1024 * 1024 * 1024)
+
+    return UserUsageStatsResponse(
+        analyses_count=analyses_count,
+        analyses_limit=analyses_limit,
+        analyses_percentage=round(analyses_percentage, 1),
+        storage_used_bytes=storage_used_bytes,
+        storage_limit_bytes=storage_limit_bytes,
+        storage_used_gb=round(storage_used_gb, 2),
+        storage_limit_gb=round(storage_limit_gb, 0),
+        storage_percentage=round(storage_percentage, 1),
+        api_calls_count=api_calls_count,
+        reports_count=reports_count,
+        projects_count=projects_count,
+        period=period
     )

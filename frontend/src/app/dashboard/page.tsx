@@ -830,6 +830,56 @@ function RecentActivityWidget() {
 }
 
 function UsageStatsWidget() {
+  const [usageStats, setUsageStats] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUsageStats = async () => {
+      if (typeof window === 'undefined') return
+
+      const token = localStorage.getItem('mi_navigator_token')
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/usage?period=month`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setUsageStats(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch usage stats:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUsageStats()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl bg-white p-6 shadow-sm h-full">
+        <h3 className="mb-4 font-semibold text-gray-900">Usage Stats</h3>
+        <div className="text-center py-4 text-gray-500">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!usageStats) {
+    return (
+      <div className="rounded-xl bg-white p-6 shadow-sm h-full">
+        <h3 className="mb-4 font-semibold text-gray-900">Usage Stats</h3>
+        <div className="text-center py-4 text-gray-500">Unable to load stats</div>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm h-full">
       <h3 className="mb-4 font-semibold text-gray-900">Usage Stats</h3>
@@ -837,23 +887,29 @@ function UsageStatsWidget() {
         <div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Analyses this month</span>
-            <span className="font-medium">42/100</span>
+            <span className="font-medium">{usageStats.analyses_count}/{usageStats.analyses_limit}</span>
           </div>
           <div className="mt-1 h-2 rounded-full bg-gray-200">
-            <div className="h-full w-[42%] rounded-full bg-blue-500" />
+            <div
+              className="h-full rounded-full bg-blue-500"
+              style={{ width: `${Math.min(usageStats.analyses_percentage, 100)}%` }}
+            />
           </div>
         </div>
         <div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Storage</span>
-            <span className="font-medium">2.4 GB / 10 GB</span>
+            <span className="font-medium">{usageStats.storage_used_gb} GB / {usageStats.storage_limit_gb} GB</span>
           </div>
           <div className="mt-1 h-2 rounded-full bg-gray-200">
-            <div className="h-full w-[24%] rounded-full bg-green-500" />
+            <div
+              className="h-full rounded-full bg-green-500"
+              style={{ width: `${Math.min(usageStats.storage_percentage, 100)}%` }}
+            />
           </div>
         </div>
         <div className="text-sm text-gray-600">
-          API calls: <span className="font-medium">8,432</span>
+          API calls: <span className="font-medium">{usageStats.api_calls_count.toLocaleString()}</span>
         </div>
       </div>
     </div>
