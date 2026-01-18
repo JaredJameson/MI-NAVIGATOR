@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 
+interface RatioData {
+  value: number;
+  benchmark: number;
+  explanation: string;
+}
+
 interface FinancialStatementsData {
   company_name: string;
   year: number;
@@ -80,6 +86,25 @@ interface FinancialStatementsData {
     total_assets: number[];
     equity: number[];
   };
+  financial_ratios?: {
+    liquidity: {
+      current_ratio: RatioData;
+      quick_ratio: RatioData;
+    };
+    profitability: {
+      roe: RatioData;
+      roa: RatioData;
+      ros: RatioData;
+    };
+    leverage: {
+      debt_ratio: RatioData;
+      debt_to_equity: RatioData;
+    };
+    efficiency: {
+      inventory_turnover: RatioData;
+      asset_turnover: RatioData;
+    };
+  };
   fetched_at: string;
 }
 
@@ -101,7 +126,7 @@ const formatPercent = (value: number): string => {
 };
 
 export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }) => {
-  const [activeTab, setActiveTab] = useState<'balance' | 'income' | 'summary'>('balance');
+  const [activeTab, setActiveTab] = useState<'balance' | 'income' | 'summary' | 'ratios'>('balance');
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -164,6 +189,18 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }
             }`}
           >
             Podsumowanie wieloletnie
+          </button>
+        )}
+        {data.financial_ratios && (
+          <button
+            onClick={() => setActiveTab('ratios')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'ratios'
+                ? 'border-b-2 border-purple-600 text-purple-900 bg-white'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            Wskaźniki finansowe
           </button>
         )}
       </div>
@@ -459,6 +496,254 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Financial Ratios Tab */}
+        {activeTab === 'ratios' && data.financial_ratios && (
+          <div className="space-y-8">
+            {/* Liquidity Ratios */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                <span className="text-blue-600">💧</span>
+                Wskaźniki płynności
+              </h3>
+              <div className="space-y-4">
+                {/* Current Ratio */}
+                <div className="bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Wskaźnik płynności bieżącej (Current Ratio)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.liquidity.current_ratio.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-blue-700">{data.financial_ratios.liquidity.current_ratio.value.toFixed(2)}</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.liquidity.current_ratio.benchmark.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.liquidity.current_ratio.value >= data.financial_ratios.liquidity.current_ratio.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Powyżej benchmarku</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Poniżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Ratio */}
+                <div className="bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Wskaźnik płynności szybkiej (Quick Ratio)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.liquidity.quick_ratio.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-blue-700">{data.financial_ratios.liquidity.quick_ratio.value.toFixed(2)}</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.liquidity.quick_ratio.benchmark.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.liquidity.quick_ratio.value >= data.financial_ratios.liquidity.quick_ratio.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Powyżej benchmarku</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Poniżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Profitability Ratios */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                <span className="text-green-600">📈</span>
+                Wskaźniki rentowności
+              </h3>
+              <div className="space-y-4">
+                {/* ROE */}
+                <div className="bg-gradient-to-r from-green-50 to-white border border-green-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">ROE (Return on Equity)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.profitability.roe.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-green-700">{data.financial_ratios.profitability.roe.value.toFixed(1)}%</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.profitability.roe.benchmark.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.profitability.roe.value >= data.financial_ratios.profitability.roe.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Powyżej benchmarku</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Poniżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROA */}
+                <div className="bg-gradient-to-r from-green-50 to-white border border-green-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">ROA (Return on Assets)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.profitability.roa.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-green-700">{data.financial_ratios.profitability.roa.value.toFixed(1)}%</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.profitability.roa.benchmark.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.profitability.roa.value >= data.financial_ratios.profitability.roa.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Powyżej benchmarku</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Poniżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROS */}
+                <div className="bg-gradient-to-r from-green-50 to-white border border-green-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">ROS (Return on Sales)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.profitability.ros.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-green-700">{data.financial_ratios.profitability.ros.value.toFixed(1)}%</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.profitability.ros.benchmark.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.profitability.ros.value >= data.financial_ratios.profitability.ros.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Powyżej benchmarku</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Poniżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Leverage Ratios */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                <span className="text-red-600">⚖️</span>
+                Wskaźniki zadłużenia
+              </h3>
+              <div className="space-y-4">
+                {/* Debt Ratio */}
+                <div className="bg-gradient-to-r from-red-50 to-white border border-red-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Wskaźnik zadłużenia ogólnego (Debt Ratio)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.leverage.debt_ratio.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-red-700">{data.financial_ratios.leverage.debt_ratio.value.toFixed(1)}%</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.leverage.debt_ratio.benchmark.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.leverage.debt_ratio.value <= data.financial_ratios.leverage.debt_ratio.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Poniżej benchmarku (lepiej)</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Powyżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Debt to Equity */}
+                <div className="bg-gradient-to-r from-red-50 to-white border border-red-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Wskaźnik zadłużenia kapitału własnego (D/E)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.leverage.debt_to_equity.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-red-700">{data.financial_ratios.leverage.debt_to_equity.value.toFixed(2)}</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.leverage.debt_to_equity.benchmark.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.leverage.debt_to_equity.value <= data.financial_ratios.leverage.debt_to_equity.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Poniżej benchmarku (lepiej)</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Powyżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Efficiency Ratios */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                <span className="text-purple-600">⚡</span>
+                Wskaźniki efektywności
+              </h3>
+              <div className="space-y-4">
+                {/* Inventory Turnover */}
+                <div className="bg-gradient-to-r from-purple-50 to-white border border-purple-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Rotacja zapasów (Inventory Turnover)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.efficiency.inventory_turnover.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-purple-700">{data.financial_ratios.efficiency.inventory_turnover.value.toFixed(1)}x</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.efficiency.inventory_turnover.benchmark.toFixed(1)}x</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.efficiency.inventory_turnover.value >= data.financial_ratios.efficiency.inventory_turnover.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Powyżej benchmarku</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Poniżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Asset Turnover */}
+                <div className="bg-gradient-to-r from-purple-50 to-white border border-purple-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Rotacja aktywów (Asset Turnover)</h4>
+                      <p className="text-sm text-gray-600 mt-1">{data.financial_ratios.efficiency.asset_turnover.explanation}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-purple-700">{data.financial_ratios.efficiency.asset_turnover.value.toFixed(2)}x</div>
+                      <div className="text-xs text-gray-500">Benchmark: {data.financial_ratios.efficiency.asset_turnover.benchmark.toFixed(2)}x</div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      {data.financial_ratios.efficiency.asset_turnover.value >= data.financial_ratios.efficiency.asset_turnover.benchmark ? (
+                        <span className="text-green-600 font-semibold">✓ Powyżej benchmarku</span>
+                      ) : (
+                        <span className="text-orange-600 font-semibold">⚠ Poniżej benchmarku</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

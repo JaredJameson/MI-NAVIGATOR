@@ -363,6 +363,61 @@ def generate_mock_response(user_message: str) -> str:
                     "total_assets": [48000000, 54000000, 59000000, 64300000],
                     "equity": [28000000, 31000000, 33500000, 35900000]
                 },
+                "financial_ratios": {
+                    "liquidity": {
+                        "current_ratio": {
+                            "value": 1.93,
+                            "benchmark": 1.5,
+                            "explanation": "Zdolność do pokrycia zobowiązań krótkoterminowych aktywami obrotowymi. Wartość powyżej 1.5 uznawana jest za bezpieczną."
+                        },
+                        "quick_ratio": {
+                            "value": 1.55,
+                            "benchmark": 1.0,
+                            "explanation": "Płynność szybka (bez zapasów). Wskaźnik powyżej 1.0 oznacza dobrą zdolność do szybkiego regulowania zobowiązań."
+                        }
+                    },
+                    "profitability": {
+                        "roe": {
+                            "value": 17.0,
+                            "benchmark": 15.0,
+                            "explanation": "ROE (Return on Equity) - zwrot z kapitału własnego. Pokazuje efektywność wykorzystania kapitału właścicieli."
+                        },
+                        "roa": {
+                            "value": 9.5,
+                            "benchmark": 7.5,
+                            "explanation": "ROA (Return on Assets) - zwrot z aktywów. Mierzy jak efektywnie firma wykorzystuje swoje aktywa do generowania zysku."
+                        },
+                        "ros": {
+                            "value": 8.8,
+                            "benchmark": 6.0,
+                            "explanation": "ROS (Return on Sales) - marża zysku netto. Procent zysku z każdej złotówki przychodu."
+                        }
+                    },
+                    "leverage": {
+                        "debt_ratio": {
+                            "value": 44.2,
+                            "benchmark": 50.0,
+                            "explanation": "Wskaźnik zadłużenia ogólnego. Udział zobowiązań w finansowaniu aktywów. Niższy oznacza mniejsze ryzyko."
+                        },
+                        "debt_to_equity": {
+                            "value": 0.79,
+                            "benchmark": 1.0,
+                            "explanation": "Stosunek długu do kapitału własnego. Wartość poniżej 1.0 oznacza przewagę finansowania kapitałem własnym."
+                        }
+                    },
+                    "efficiency": {
+                        "inventory_turnover": {
+                            "value": 7.8,
+                            "benchmark": 6.0,
+                            "explanation": "Rotacja zapasów. Pokazuje ile razy w roku firma odnawia zapasy. Wyższa wartość oznacza lepsze zarządzanie."
+                        },
+                        "asset_turnover": {
+                            "value": 1.08,
+                            "benchmark": 0.9,
+                            "explanation": "Rotacja aktywów. Efektywność wykorzystania aktywów do generowania przychodów."
+                        }
+                    }
+                },
                 "fetched_at": datetime.utcnow().isoformat()
             }
         }, ensure_ascii=False)
