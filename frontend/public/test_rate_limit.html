@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limit Test - Feature #84</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4ec9b0;
+        }
+        .test-section {
+            background: #2d2d30;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .request-log {
+            background: #1e1e1e;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status-200 { color: #4ec9b0; }
+        .status-429 { color: #f48771; }
+        .header { color: #9cdcfe; }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+        .passed { color: #4ec9b0; }
+        .failed { color: #f48771; }
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Feature #84 - API Rate Limiting Test</h1>
+
+        <div class="test-section">
+            <h2>Rate Limit Configuration</h2>
+            <p>Endpoint: <code>/api/v1/test/rate-limit</code></p>
+            <p>Limit: <strong>5 requests per 60 seconds</strong></p>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Controls</h2>
+            <button onclick="resetRateLimit()">Reset Rate Limit</button>
+            <button onclick="runAllTests()">Run All Tests</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8000/api/v1/test/rate-limit';
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = 'request-log';
+            div.innerHTML = message;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function resetRateLimit() {
+            log('<strong>Resetting rate limit...</strong>');
+            try {
+                const response = await fetch(BASE_URL + '/reset', { method: 'POST' });
+                const data = await response.json();
+                log(`✓ Reset successful: ${JSON.stringify(data)}`, 'info');
+                testResults = [];
+            } catch (error) {
+                log(`✗ Reset failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function makeRequest(num) {
+            try {
+                const response = await fetch(BASE_URL);
+                const data = await response.json();
+                const headers = {
+                    'X-RateLimit-Limit': response.headers.get('X-RateLimit-Limit'),
+                    'X-RateLimit-Remaining': response.headers.get('X-RateLimit-Remaining'),
+                    'X-RateLimit-Reset': response.headers.get('X-RateLimit-Reset'),
+                    'Retry-After': response.headers.get('Retry-After')
+                };
+
+                testResults.push({
+                    num,
+                    status: response.status,
+                    data,
+                    headers
+                });
+
+                const statusClass = response.status === 200 ? 'status-200' : 'status-429';
+                let logMsg = `<strong>Request #${num}</strong><br>`;
+                logMsg += `<span class="${statusClass}">Status: ${response.status}</span><br>`;
+                logMsg += `Response: ${JSON.stringify(data, null, 2)}<br>`;
+                logMsg += `<span class="header">Headers:</span><br>`;
+                logMsg += `  X-RateLimit-Limit: ${headers['X-RateLimit-Limit']}<br>`;
+                logMsg += `  X-RateLimit-Remaining: ${headers['X-RateLimit-Remaining']}<br>`;
+                logMsg += `  X-RateLimit-Reset: ${headers['X-RateLimit-Reset']}<br>`;
+                if (headers['Retry-After']) {
+                    logMsg += `  <span class="status-429">Retry-After: ${headers['Retry-After']} seconds</span><br>`;
+                }
+
+                log(logMsg);
+
+                return { status: response.status, headers, data };
+            } catch (error) {
+                log(`✗ Request #${num} failed: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function runAllTests() {
+            log('<h2>Starting Feature #84 Test Suite</h2>');
+
+            // Reset first
+            await resetRateLimit();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Step 1 & 2: Make multiple rapid requests
+            log('<h3>Step 1 & 2: Making 7 rapid API requests...</h3>');
+
+            for (let i = 1; i <= 7; i++) {
+                await makeRequest(i);
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Analyze results
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            log('<h2>Test Results Analysis</h2>');
+
+            const successful = testResults.filter(r => r.status === 200);
+            const rateLimited = testResults.filter(r => r.status === 429);
+
+            log(`<strong>Successful requests (200):</strong> ${successful.length}`);
+            log(`<strong>Rate-limited requests (429):</strong> ${rateLimited.length}`);
+
+            // Step 3: Verify 429 after threshold
+            log('<h3>Step 3: Verify rate limit (429) after threshold</h3>');
+            if (successful.length === 5 && rateLimited.length === 2) {
+                log('<span class="passed">✅ PASSED: Exactly 5 requests succeeded, 2 were rate-limited</span>');
+            } else {
+                log(`<span class="failed">❌ FAILED: Expected 5/2, got ${successful.length}/${rateLimited.length}</span>`);
+            }
+
+            // Step 4: Verify Retry-After header
+            log('<h3>Step 4: Verify Retry-After header present</h3>');
+            if (rateLimited.length > 0) {
+                const retryAfter = rateLimited[0].headers['Retry-After'];
+                if (retryAfter) {
+                    log(`<span class="passed">✅ PASSED: Retry-After header present (${retryAfter} seconds)</span>`);
+                } else {
+                    log('<span class="failed">❌ FAILED: Retry-After header missing</span>');
+                }
+            } else {
+                log('<span class="failed">❌ FAILED: No 429 responses to verify</span>');
+            }
+
+            // Step 5: Reset and verify requests succeed again
+            log('<h3>Step 5: Reset and verify requests succeed again</h3>');
+            await resetRateLimit();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const afterReset = await makeRequest('AFTER_RESET');
+            if (afterReset && afterReset.status === 200) {
+                log('<span class="passed">✅ PASSED: Request succeeded after reset</span>');
+            } else {
+                log('<span class="failed">❌ FAILED: Request still blocked after reset</span>');
+            }
+
+            log('<h2 class="passed">✅ Feature #84 Test Complete</h2>');
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            testResults = [];
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            log('<p>Ready to test. Click "Run All Tests" to start.</p>');
+        });
+    </script>
+</body>
+</html>

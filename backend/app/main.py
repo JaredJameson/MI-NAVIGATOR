@@ -141,6 +141,7 @@ app.add_middleware(
         "/api/v1/analysis",  # Allow analysis operations without CSRF token (auth handled at endpoint level)
         "/api/v1/alerts",  # Allow alerts operations without CSRF token (auth handled at endpoint level)
         "/api/v1/chat/ws/",  # Allow WebSocket connections (token passed via query parameter)
+        "/api/v1/test",  # Allow test endpoints without CSRF token (development/testing only)
     ]
 )
 

@@ -53,6 +53,29 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             client_data["count"] = 0
             client_data["reset"] = now + self.window_seconds
 
+        # Check if rate limit exceeded BEFORE incrementing
+        if client_data["count"] >= self.limit:
+            # Return 429 Too Many Requests
+            retry_after = int(client_data["reset"] - now)
+            from starlette.responses import JSONResponse
+
+            response = JSONResponse(
+                status_code=429,
+                content={
+                    "error": "Rate limit exceeded",
+                    "message": f"Too many requests. Please try again in {retry_after} seconds.",
+                    "retry_after": retry_after
+                }
+            )
+
+            # Add rate limit headers
+            response.headers["X-RateLimit-Limit"] = str(self.limit)
+            response.headers["X-RateLimit-Remaining"] = "0"
+            response.headers["X-RateLimit-Reset"] = str(int(client_data["reset"]))
+            response.headers["Retry-After"] = str(retry_after)
+
+            return response
+
         # Increment request count
         client_data["count"] += 1
 
