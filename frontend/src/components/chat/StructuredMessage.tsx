@@ -16,6 +16,7 @@ import CompetitorBenchmarking from './CompetitorBenchmarking'
 import SwotAnalysis from './SwotAnalysis'
 import PorterAnalysis from './PorterAnalysis'
 import PestleAnalysis from './PestleAnalysis'
+import MarketSizing from './MarketSizing'
 
 interface Source {
   id: string
@@ -28,7 +29,7 @@ interface Source {
 }
 
 export interface StructuredMessageData {
-  type: 'company_card' | 'company_profile_krs' | 'company_profile_ceidg' | 'data_table' | 'trend_chart' | 'financial_statements' | 'ownership_structure' | 'key_people' | 'website_analysis' | 'competitor_mapping' | 'competitor_benchmarking' | 'swot_analysis' | 'porter_analysis' | 'pestle_analysis' | 'text' | 'text_with_sources' | 'error'
+  type: 'company_card' | 'company_profile_krs' | 'company_profile_ceidg' | 'data_table' | 'trend_chart' | 'financial_statements' | 'ownership_structure' | 'key_people' | 'website_analysis' | 'competitor_mapping' | 'competitor_benchmarking' | 'swot_analysis' | 'porter_analysis' | 'pestle_analysis' | 'market_sizing' | 'text' | 'text_with_sources' | 'error'
   data: CompanyCardData | CompanyProfileKRSData | CompanyProfileCEIDGData | DataTableData | TrendChartData | OwnershipStructureData | WebsiteAnalysisData | any | { text: string } | { text: string; sources: Source[] } | { message: string; suggestion?: string }
 }
 
@@ -111,6 +112,9 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
 
     case 'pestle_analysis':
       return <PestleAnalysis data={structuredData.data as any} />
+
+    case 'market_sizing':
+      return <MarketSizing data={structuredData.data as any} />
 
     case 'text_with_sources': {
       const messageData = structuredData.data as { text: string; sources: Source[] }

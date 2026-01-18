@@ -1544,6 +1544,141 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # Market sizing TAM/SAM/SOM request
+    elif (("tam" in user_lower and "sam" in user_lower) or
+          ("market" in user_lower and "sizing" in user_lower) or
+          ("wielkość" in user_lower and ("rynek" in user_lower or "rynku" in user_lower)) or
+          ("addressable market" in user_lower)):
+        return json.dumps({
+            "type": "market_sizing",
+            "data": {
+                "industry": "Produkcja tworzyw sztucznych - wtrysk",
+                "region": "Polska",
+                "year": 2026,
+                "analysis_date": datetime.utcnow().isoformat(),
+                "tam": {
+                    "value": 12500000000,
+                    "value_formatted": "12.5 mld PLN",
+                    "description": "Całkowity rynek produkcji tworzyw sztucznych w Polsce",
+                    "methodology": "Top-down",
+                    "calculation_steps": [
+                        "Całkowita produkcja tworzyw w Polsce: 2.5 mln ton rocznie",
+                        "Średnia cena granulatu: 5000 PLN/ton",
+                        "TAM = 2,500,000 ton × 5,000 PLN/ton = 12.5 mld PLN"
+                    ],
+                    "growth_rate": 0.025,
+                    "growth_rate_formatted": "2.5% CAGR (2024-2028)",
+                    "market_segments": [
+                        {"name": "Opakowania", "share": 0.35, "value": "4.4 mld PLN"},
+                        {"name": "Automotive", "share": 0.25, "value": "3.1 mld PLN"},
+                        {"name": "Budownictwo", "share": 0.20, "value": "2.5 mld PLN"},
+                        {"name": "Elektronika", "share": 0.10, "value": "1.25 mld PLN"},
+                        {"name": "Inne", "share": 0.10, "value": "1.25 mld PLN"}
+                    ],
+                    "data_sources": [
+                        "Plastics Europe Market Report 2024",
+                        "GUS Statistics - Manufacturing Sector",
+                        "Polish Chamber of Chemical Industry"
+                    ]
+                },
+                "sam": {
+                    "value": 3750000000,
+                    "value_formatted": "3.75 mld PLN",
+                    "description": "Rynek możliwy do obsłużenia (wtrysk specjalistyczny)",
+                    "methodology": "Bottom-up + Market filtering",
+                    "calculation_steps": [
+                        "Segment automotive + elektronika: 4.35 mld PLN",
+                        "Technologia wtrysku specjalistycznego: 60% segmentu",
+                        "Obszar geograficzny: Polska Centralna i Południowa (70%)",
+                        "SAM = 4.35 mld × 0.60 × 0.70 ≈ 3.75 mld PLN"
+                    ],
+                    "filters_applied": [
+                        "Geografia: Polska Centralna i Południowa (dostawa < 500 km)",
+                        "Technologia: Wtrysk wysokiej precyzji",
+                        "Segmenty: Automotive, Electronics (high-margin)",
+                        "Wielkość serii: Średnie i małe serie (100-50,000 szt.)"
+                    ],
+                    "target_customers": [
+                        "Tier 1 i Tier 2 dostawcy automotive (250+ firm)",
+                        "Producenci elektroniki użytkowej (120+ firm)",
+                        "Medical devices manufacturers (40+ firm)",
+                        "Producenci AGD (80+ firm)"
+                    ],
+                    "competitive_landscape": "150-200 firm w SAM, rozdrobniony rynek"
+                },
+                "som": {
+                    "value": 187500000,
+                    "value_formatted": "187.5 mln PLN",
+                    "description": "Realny rynek do zdobycia w 3 lata",
+                    "methodology": "Realistic market penetration model",
+                    "calculation_steps": [
+                        "SAM: 3.75 mld PLN",
+                        "Docelowy udział rynkowy: 5% (realistyczny dla nowego gracza)",
+                        "SOM = 3.75 mld × 0.05 = 187.5 mln PLN",
+                        "Timeline: 3 lata (Year 1: 1%, Year 2: 3%, Year 3: 5%)"
+                    ],
+                    "market_share_target": 0.05,
+                    "market_share_formatted": "5% SAM",
+                    "timeline": "3 lata",
+                    "year_breakdown": [
+                        {"year": 1, "revenue": "37.5 mln PLN", "share": "1% SAM", "customers": "15-20 klientów"},
+                        {"year": 2, "revenue": "112.5 mln PLN", "share": "3% SAM", "customers": "40-50 klientów"},
+                        {"year": 3, "revenue": "187.5 mln PLN", "share": "5% SAM", "customers": "70-80 klientów"}
+                    ],
+                    "key_assumptions": [
+                        "Zespół sprzedaży: 5 osób (rok 1) → 12 osób (rok 3)",
+                        "Średnia wartość kontraktu: 2.5 mln PLN rocznie",
+                        "Conversion rate: 20% (1 na 5 leadów)",
+                        "Customer acquisition cost: 50k PLN",
+                        "Churn rate: 10% rocznie",
+                        "Przewaga konkurencyjna: jakość + czas dostawy (20% szybciej)"
+                    ],
+                    "barriers_to_entry": [
+                        "Kapitał początkowy: 15-25 mln PLN (maszyny, certyfikaty)",
+                        "Czas na certyfikacje: 12-18 miesięcy",
+                        "Budowa zespołu: 6-12 miesięcy",
+                        "Pierwsi klienci referencyjni: 12 miesięcy"
+                    ]
+                },
+                "funnel_visualization": {
+                    "tam_percentage": 100,
+                    "sam_percentage": 30,
+                    "som_percentage": 1.5,
+                    "tam_to_sam_ratio": 0.30,
+                    "sam_to_som_ratio": 0.05,
+                    "tam_to_som_ratio": 0.015
+                },
+                "strategic_insights": [
+                    "SAM stanowi 30% TAM - segment specjalistyczny z wyższymi marżami (15-25% vs 8-12% w commodity)",
+                    "Realistic SOM na poziomie 5% SAM - wymaga 3 lat budowy pozycji i zespołu 12 osób",
+                    "Kluczowe segmenty: automotive (60% SOM) i electronics (30% SOM)",
+                    "Go-to-market: focus na Tier 2 dostawców (mniejsza konkurencja niż Tier 1)",
+                    "Break-even przy 2.5-3% SAM (~100 mln PLN przychodów) w roku 2"
+                ],
+                "risks_and_challenges": [
+                    "Wysoka kapitałochłonność początkowa (15-25 mln PLN)",
+                    "Długi cykl sprzedaży (6-12 miesięcy na pierwszą umowę)",
+                    "Silna konkurencja od etablowanych graczy z 15+ lat doświadczenia",
+                    "Wahania cen surowców (+/- 30%) wpływające na marże",
+                    "Zależność od koniunktury w automotive (60% przychodów)"
+                ],
+                "next_steps": [
+                    "Deep dive w 2-3 kluczowe nisze w SAM (np. medical devices, premium automotive)",
+                    "Build vs buy analysis (zakup istniejącej firmy vs greenfield)",
+                    "Szczegółowa analiza 20 top potencjalnych klientów",
+                    "Benchmarking 5-10 głównych konkurentów w SAM",
+                    "Financial modeling: 5-year P&L, cash flow, capex plan"
+                ],
+                "data_sources": [
+                    {"name": "Plastics Europe Market Report 2024", "confidence": 0.90},
+                    {"name": "GUS Manufacturing Statistics 2023-2024", "confidence": 0.95},
+                    {"name": "Polish Chamber of Chemical Industry Database", "confidence": 0.90},
+                    {"name": "Automotive Tier 1/2 Suppliers Directory", "confidence": 0.85},
+                    {"name": "Market penetration benchmarks (similar industries)", "confidence": 0.80}
+                ]
+            }
+        }, ensure_ascii=False)
+
     # SWOT analysis request
     elif ("swot" in user_lower or
           ("analiza" in user_lower and ("mocne" in user_lower or "słabe" in user_lower or "szanse" in user_lower or "zagrożenia" in user_lower)) or
