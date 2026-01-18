@@ -1,3 +1,172 @@
+# Session 138 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature completed (Company profile structured data display with expandable sections)
+**Features Completed:** 1 feature
+- Feature #52: Company profile structured data display ✅ (FULLY IMPLEMENTED AND TESTED)
+
+**Regression Tests:** 1 feature verified
+- Feature #22: Chat NIP/KRS auto-detection ✅ (PASSED)
+
+**Current Progress:** 220/380 features passing (57.9%)
+
+**Key Achievements:**
+- ✅ Added expandable/collapsible sections to company profile cards
+- ✅ Implemented toggle buttons with chevron indicators
+- ✅ Applied to both KRS and CEIDG profile components
+- ✅ All 6 test steps completed successfully
+- ✅ Smooth CSS transitions for better UX
+- ✅ Regression test passed - no breaking changes
+
+## Feature #52 - Company profile structured data display ✅
+
+**Implementation Status:** Complete (expandable sections added and tested end-to-end)
+
+**What Was Implemented:**
+
+The feature required verifying that company profiles display in a structured card format with expandable sections. While the basic structure existed, the expandable functionality (Step 5) was missing.
+
+### Frontend Changes:
+
+**1. CompanyProfileKRS.tsx:**
+- Added `useState` hook for managing section expand/collapse state
+- Default state: all sections expanded (`registration: true, address: true, pkd: true`)
+- Added `toggleSection()` function to handle expand/collapse
+- Converted section headers to clickable buttons
+- Added chevron SVG icons that rotate based on state (↑ expanded, ↓ collapsed)
+- Wrapped section content in conditional rendering based on expanded state
+- Added hover effects to section buttons for better UX
+
+**2. CompanyProfileCEIDG.tsx:**
+- Applied identical expandable functionality for consistency
+- Same three sections: Registration Data, Address, PKD Codes
+- Maintains green color theme (vs blue for KRS)
+- All expand/collapse behavior identical to KRS component
+
+### Visual Design:
+
+**Section Headers:**
+- Full-width clickable buttons
+- Left-aligned heading text (uppercase, small font)
+- Right-aligned chevron icon
+- Hover state: light gray background
+- Smooth transitions for chevron rotation
+
+**Expandable Behavior:**
+- Click header to toggle section
+- Chevron rotates 180° (up when expanded, down when collapsed)
+- Content slides in/out smoothly
+- State persists until page refresh
+- Independent state for each section
+
+### Test Results - All 6 Steps Verified:
+
+✅ **Step 1: Request company profile**
+- Typed NIP: 5260016831
+- NIP detection banner appeared
+- Clicked "Lookup Company" button
+- Company profile fetched successfully
+
+✅ **Step 2: Verify CompanyCard component renders**
+- Structured card displayed with proper layout
+- Blue header with "Dane z KRS API" source attribution
+- Clean border and shadow styling
+- Professional appearance
+
+✅ **Step 3: Verify company name is prominent**
+- Company name "FADO Sp. z o.o." displayed in large bold font
+- Clearly visible at top of card
+- Status badge "active" in green below name
+
+✅ **Step 4: Verify NIP/REGON/KRS are displayed**
+- All registration data visible in 2x2 grid:
+  * NIP: 5260016831 ✓
+  * KRS: 0000145732 ✓
+  * REGON: 012567834 ✓
+  * Data założenia: 1998 ✓
+- Monospace font for registration numbers
+- Gray background boxes for each field
+
+✅ **Step 5: Verify sections are expandable**
+- "DANE REJESTROWE" section - clickable header with chevron ✓
+- "ADRES" section - clickable header with chevron ✓
+- "PRZEDMIOT DZIAŁALNOŚCI (PKD)" section - clickable header with chevron ✓
+- Tested collapse: Address section collapsed successfully, content hidden
+- Tested expand: Address section expanded again, content visible
+- Chevron icon rotates correctly (↑ expanded, ↓ collapsed)
+- All three sections work independently
+
+✅ **Step 6: Verify all required data fields present**
+- Company name ✓
+- Status badge ✓
+- NIP, KRS, REGON ✓
+- Founded date ✓
+- Complete address ✓
+- All 3 PKD codes with categories and descriptions ✓
+- Source attribution in header ✓
+- Timestamp in footer ✓
+
+**Code Quality:**
+- No breaking changes to existing functionality
+- Reusable state management pattern
+- Clean separation of concerns
+- Type-safe TypeScript interfaces
+- Consistent implementation across KRS and CEIDG components
+- Accessible button elements
+- Smooth CSS transitions
+
+**Files Modified:**
+- frontend/src/components/chat/CompanyProfileKRS.tsx (+47 lines)
+- frontend/src/components/chat/CompanyProfileCEIDG.tsx (+47 lines)
+
+**Screenshots:**
+- feature52_step1_chat_page_fresh.png
+- feature52_step2_company_profile_with_expandable_sections.png
+- feature52_step5_address_section_collapsed.png
+- feature52_step5_address_section_expanded_again.png
+- feature52_step6_full_profile_all_fields.png
+- feature52_complete_profile_view.png
+
+**Commit:** 922d064 "feat: Add expandable sections to company profile cards - Feature #52"
+
+---
+
+## Regression Test Results
+
+### Feature #22: Chat NIP/KRS auto-detection ✅
+**Test Type:** Core functionality - Company lookup
+**Result:** PASSED
+
+Test sequence:
+1. ✅ Navigated to /chat
+2. ✅ Typed NIP number: 5260016831
+3. ✅ Verified NIP detected - green banner appeared
+4. ✅ Clicked "Lookup Company" button
+5. ✅ Verified company lookup triggered via WebSocket
+6. ✅ Company profile displayed correctly
+7. ✅ Typed KRS number: 0000145732
+8. ✅ Verified KRS detected - purple banner appeared
+9. ✅ Clicked "Lookup Company" button
+10. ✅ Verified KRS lookup triggered
+11. ✅ Company profile displayed with "Wyszukano po KRS" label
+
+**Validation:**
+- NIP detection works correctly ✅
+- KRS detection works correctly ✅
+- Both trigger company lookup via WebSocket ✅
+- Company profiles render with proper data ✅
+- Different colors for NIP (green) vs KRS (purple) banners ✅
+- No visual artifacts or console errors ✅
+
+**Screenshots:**
+- regression_feature22_step1_chat_page.png
+- regression_feature22_step3_nip_detected.png
+- regression_feature22_step6_krs_detected.png
+- regression_feature22_step7_krs_lookup_complete.png
+
+---
+
 # Session 137 - Date: 2026-01-18
 
 ## Session Summary
