@@ -1,3 +1,206 @@
+# Session 117 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature completed + 1 regression test
+**Features Completed:** 1 feature
+- Feature #24: Chat structured response rendering ✅ (PASSED - CompanyCard, DataTable, TrendChart components)
+
+**Regression Tests:** 1
+- Feature #19: Chat conversation history persistence ✅ (PASSED - All messages preserved after navigation)
+
+**Current Progress:** 192/380 features passing (50.5%)
+
+**Key Achievements:**
+- **Implemented structured message rendering system** - 3 component types (cards, tables, charts)
+- **Created CompanyCard component** - Professional company profile display
+- **Created DataTable component** - Financial tables with Polish formatting
+- **Created TrendChart component** - Interactive line/bar charts using Recharts
+- **Smart JSON parser** - Automatically detects and renders structured responses
+- **Backend structured responses** - Mock AI generates JSON for different data types
+- Zero functional errors (only Recharts deprecation warnings)
+
+## Feature #24 Implementation Details
+
+**Chat Structured Response Rendering - Professional Data Visualization**
+
+**Problem:** Chat only displayed plain text responses. Need to render structured data (company profiles, financial tables, trend charts) in professional UI components.
+
+**Solution:**
+
+### 1. Frontend Components Created
+
+**CompanyCard.tsx** (96 lines):
+- Displays company profile with header (name, industry, status badge)
+- 2-column grid layout for key data (NIP, KRS, Founded, Employees, Capital, Address)
+- Description section below
+- Color-coded status badge (green for Active)
+- Responsive design
+
+**DataTable.tsx** (97 lines):
+- Flexible table component with configurable columns
+- Alignment support (left/center/right)
+- Format support: currency, percent, number, text
+- Polish number formatting: `new Intl.NumberFormat('pl-PL')`
+- Currency: "45 000 000,00 zł"
+- Percent: "7.11%"
+- Hover effects on rows
+
+**TrendChart.tsx** (99 lines):
+- Uses Recharts library (ResponsiveContainer, LineChart, BarChart)
+- Supports line and bar chart types
+- Configurable axes with labels
+- Custom colors
+- Interactive tooltips
+- Legend display
+- Responsive 100% width, 300px height
+
+**StructuredMessage.tsx** (60 lines):
+- Smart parser for AI responses
+- Detects JSON in markdown code blocks (```json ... ```)
+- Detects plain JSON objects
+- Routes to appropriate component based on `type` field
+- Falls back to plain text if no structure detected
+
+### 2. Backend Changes
+
+**chat.py - generate_mock_response()** extended with structured responses:
+
+**Company Profile Response:**
+```python
+if ("profil" in user_lower or "profile" in user_lower) and ("firma" in user_lower or "company" in user_lower):
+    return json.dumps({
+        "type": "company_card",
+        "data": {
+            "name": "FADO Sp. z o.o.",
+            "nip": "5260016831",
+            "krs": "0000145732",
+            "address": "ul. Fabryczna 10, 62-065 Grodzisk Wielkopolski",
+            "industry": "Manufacturing of plastic products",
+            "status": "Active",
+            "capital": "500,000 PLN",
+            "founded": "1995",
+            "employees": "150-200",
+            "description": "FADO is a leading Polish manufacturer..."
+        }
+    }, ensure_ascii=False)
+```
+
+**Financial Data Response:**
+```python
+elif "finansow" in user_lower or "financial" in user_lower:
+    return json.dumps({
+        "type": "data_table",
+        "data": {
+            "title": "Financial Performance (2020-2023)",
+            "columns": [
+                {"key": "year", "label": "Year", "align": "left"},
+                {"key": "revenue", "label": "Revenue (PLN)", "align": "right", "format": "currency"},
+                {"key": "profit", "label": "Net Profit (PLN)", "align": "right", "format": "currency"},
+                {"key": "margin", "label": "Margin (%)", "align": "right", "format": "percent"}
+            ],
+            "rows": [
+                {"year": "2020", "revenue": 45000000, "profit": 3200000, "margin": 7.11},
+                {"year": "2021", "revenue": 52000000, "profit": 4100000, "margin": 7.88},
+                ...
+            ]
+        }
+    })
+```
+
+**Trend Chart Response:**
+```python
+elif "trend" in user_lower or "chart" in user_lower:
+    return json.dumps({
+        "type": "trend_chart",
+        "data": {
+            "title": "Revenue Growth Trend (2020-2023)",
+            "type": "line",
+            "data": [
+                {"label": "2020", "value": 45000000},
+                {"label": "2021", "value": 52000000},
+                ...
+            ],
+            "xKey": "label",
+            "yKey": "value",
+            "yLabel": "Revenue (PLN)",
+            "color": "#3b82f6"
+        }
+    })
+```
+
+**Important Fix:** Moved trend condition BEFORE financial condition to prevent "revenue trend" from matching "revenue" first.
+
+### 3. Integration
+
+**chat/page.tsx**:
+```typescript
+import { StructuredMessage } from '@/components/chat/StructuredMessage'
+
+// In message rendering:
+{message.role === 'user' ? (
+  <div className="whitespace-pre-wrap text-sm">
+    {message.content}
+  </div>
+) : (
+  <StructuredMessage content={message.content} />
+)}
+```
+
+### 4. Testing Results
+
+**Step 1-3: Company Profile ✅**
+- Sent: "Company profile of FADO"
+- Received: JSON with type=company_card
+- CompanyCard rendered perfectly with all fields
+- Professional card layout with status badge
+
+**Step 4-5: Financial Data ✅**
+- Sent: "Show me financial data for FADO"
+- Received: JSON with type=data_table
+- DataTable rendered with 4 years of data
+- Polish formatting: "45 000 000,00 zł", "7.11%"
+- Clean table design with hover effects
+
+**Step 6-7: Trend Chart ✅**
+- Sent: "Show me a trend chart"
+- Received: JSON with type=trend_chart
+- TrendChart rendered interactive line chart
+- Blue line showing growth from 45M to 68M PLN
+- Proper axes with labels, legend, grid
+
+**Visual Quality:**
+- All components have professional design
+- Consistent spacing and typography
+- Proper color scheme (blues, grays)
+- Responsive layouts
+- No visual bugs
+
+**Console Errors:**
+- Zero functional errors
+- Only Recharts deprecation warnings about defaultProps (not blocking)
+
+### Files Modified
+
+**Backend:**
+- `backend/app/api/v1/endpoints/chat.py` (+60 lines structured responses)
+
+**Frontend:**
+- `frontend/src/app/chat/page.tsx` (+2 lines import & conditional render)
+- `frontend/src/components/chat/CompanyCard.tsx` (NEW - 96 lines)
+- `frontend/src/components/chat/DataTable.tsx` (NEW - 97 lines)
+- `frontend/src/components/chat/TrendChart.tsx` (NEW - 99 lines)
+- `frontend/src/components/chat/StructuredMessage.tsx` (NEW - 60 lines)
+
+**Screenshots:**
+- `.playwright-mcp/feature_24_step3_company_card_rendered.png` - Company profile card
+- `.playwright-mcp/feature_24_step5_data_table_rendered.png` - Financial table
+- `.playwright-mcp/feature_24_step7_trend_chart_rendered.png` - Revenue trend chart
+
+**Result:** Feature #24 PASSED ✅
+
+---
+
 # Session 116 - Date: 2026-01-18
 
 ## Session Summary
