@@ -46,6 +46,8 @@ export default function ChatPage() {
   const [wsConnected, setWsConnected] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [detectedUrl, setDetectedUrl] = useState<string | null>(null)
+  const [detectedNIP, setDetectedNIP] = useState<string | null>(null)
+  const [detectedKRS, setDetectedKRS] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -68,6 +70,40 @@ export default function ChatPage() {
       setDetectedUrl(matches[0])
     } else {
       setDetectedUrl(null)
+    }
+  }, [inputValue])
+
+  // Detect NIP and KRS numbers in input
+  useEffect(() => {
+    // KRS regex: Must have "KRS" prefix OR start with 0000 (e.g., KRS 0000145732 or 0000145732)
+    const krsRegex = /\b(?:KRS\s*\d{10})\b|\b0{4}\d{6}\b/gi
+    // NIP regex: 10 digits with optional dashes/spaces (e.g., 5260016831 or 526-001-68-31)
+    // Exclude numbers starting with 0000 (those are KRS)
+    const nipRegex = /\b(?!0{4})\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}\b|\b(?!0{4})\d{10}\b/g
+
+    // Check KRS first (higher priority)
+    const krsMatches = inputValue.match(krsRegex)
+    const nipMatches = inputValue.match(nipRegex)
+
+    if (krsMatches && krsMatches.length > 0) {
+      // Clean KRS: remove "KRS" prefix and spaces
+      const cleanKRS = krsMatches[0].replace(/KRS\s*/gi, '').trim()
+      setDetectedKRS(cleanKRS)
+    } else {
+      setDetectedKRS(null)
+    }
+
+    if (nipMatches && nipMatches.length > 0) {
+      // Clean NIP: remove dashes and spaces
+      const cleanNIP = nipMatches[0].replace(/[-\s]/g, '')
+      // Don't detect as NIP if already detected as KRS
+      if (!krsMatches || !krsMatches.some(krs => krs.replace(/KRS\s*/gi, '').trim() === cleanNIP)) {
+        setDetectedNIP(cleanNIP)
+      } else {
+        setDetectedNIP(null)
+      }
+    } else {
+      setDetectedNIP(null)
     }
   }, [inputValue])
 
@@ -405,6 +441,76 @@ export default function ChatPage() {
     }
   }
 
+  const startCompanyLookup = async (type: 'NIP' | 'KRS') => {
+    const number = type === 'NIP' ? detectedNIP : detectedKRS
+    if (!number) return
+
+    const token = getStoredToken()
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    setError('')
+    setIsLoading(true)
+
+    try {
+      // Create conversation if needed
+      let conv = conversation
+      if (!conv) {
+        conv = await createConversation()
+        if (!conv) return
+      }
+
+      // Wait for WebSocket connection
+      console.log('[WS] Waiting for connection...')
+      const isConnected = await waitForWebSocketConnection(5000)
+
+      if (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        throw new Error('WebSocket connection timeout')
+      }
+
+      console.log('[WS] Connection ready')
+
+      // Prepare message with company lookup instruction
+      const messageContent = `Lookup company with ${type}: ${number}`
+
+      // Add user message optimistically
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: messageContent,
+        created_at: new Date().toISOString(),
+      }
+
+      setConversation(prev => prev ? {
+        ...prev,
+        messages: [...prev.messages, userMessage],
+      } : null)
+
+      // Send via WebSocket
+      const messagePayload = JSON.stringify({
+        content: messageContent,
+        file_ids: []
+      })
+      console.log(`[WS] Sending ${type} lookup:`, messagePayload)
+      wsRef.current.send(messagePayload)
+
+      // Clear detected number and input
+      if (type === 'NIP') {
+        setDetectedNIP(null)
+      } else {
+        setDetectedKRS(null)
+      }
+      setInputValue('')
+
+    } catch (err) {
+      console.error('[WS] Send error:', err)
+      setError('Failed to send message. Please try again.')
+      setIsLoading(false)
+    }
+  }
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -604,6 +710,52 @@ export default function ChatPage() {
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
                   Analyze Website
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* NIP Detection Suggestion */}
+          {detectedNIP && (
+            <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-green-900">NIP Detected: {detectedNIP}</p>
+                    <p className="text-xs text-green-700">Would you like to lookup this company?</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => startCompanyLookup('NIP')}
+                  className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                >
+                  Lookup Company
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* KRS Detection Suggestion */}
+          {detectedKRS && (
+            <div className="mb-3 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-purple-900">KRS Detected: {detectedKRS}</p>
+                    <p className="text-xs text-purple-700">Would you like to lookup this company?</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => startCompanyLookup('KRS')}
+                  className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                >
+                  Lookup Company
                 </button>
               </div>
             </div>
