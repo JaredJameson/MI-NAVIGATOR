@@ -9,6 +9,7 @@ import { TrendChart, TrendChartData } from './TrendChart'
 import { SourceCitation } from './SourceCitation'
 import { FinancialStatements } from './FinancialStatements'
 import { OwnershipStructure, OwnershipStructureData } from './OwnershipStructure'
+import KeyPeople from './KeyPeople'
 
 interface Source {
   id: string
@@ -21,7 +22,7 @@ interface Source {
 }
 
 export interface StructuredMessageData {
-  type: 'company_card' | 'company_profile_krs' | 'company_profile_ceidg' | 'data_table' | 'trend_chart' | 'financial_statements' | 'ownership_structure' | 'text' | 'text_with_sources' | 'error'
+  type: 'company_card' | 'company_profile_krs' | 'company_profile_ceidg' | 'data_table' | 'trend_chart' | 'financial_statements' | 'ownership_structure' | 'key_people' | 'text' | 'text_with_sources' | 'error'
   data: CompanyCardData | CompanyProfileKRSData | CompanyProfileCEIDGData | DataTableData | TrendChartData | OwnershipStructureData | any | { text: string } | { text: string; sources: Source[] } | { message: string; suggestion?: string }
 }
 
@@ -83,6 +84,9 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
 
     case 'ownership_structure':
       return <OwnershipStructure data={structuredData.data as OwnershipStructureData} />
+
+    case 'key_people':
+      return <KeyPeople data={structuredData.data as any} />
 
     case 'text_with_sources': {
       const messageData = structuredData.data as { text: string; sources: Source[] }
