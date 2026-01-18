@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface RatioData {
   value: number;
@@ -457,8 +458,97 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }
 
         {/* Multi-Year Summary Tab */}
         {activeTab === 'summary' && data.multi_year_summary && (
-          <div>
+          <div className="space-y-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900">Podsumowanie wieloletnie ({data.multi_year_summary.years[0]}-{data.multi_year_summary.years[data.multi_year_summary.years.length - 1]})</h3>
+
+            {/* Charts Section */}
+            <div className="space-y-6">
+              {/* Revenue & Profit Trend Chart */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-900 mb-4">Trend przychodów i zysków</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart
+                    data={data.multi_year_summary.years.map((year, idx) => ({
+                      year: year.toString(),
+                      revenue: data.multi_year_summary!.revenue[idx] / 1000000, // Convert to millions
+                      net_profit: data.multi_year_summary!.net_profit[idx] / 1000000,
+                    }))}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="year" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" label={{ value: 'Wartość (mln PLN)', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip
+                      formatter={(value: number) => `${value.toFixed(2)} mln PLN`}
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px' }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      name="Przychody"
+                      dot={{ fill: '#3b82f6', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="net_profit"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      name="Zysk netto"
+                      dot={{ fill: '#10b981', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Assets & Equity Trend Chart */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="text-md font-semibold text-gray-900 mb-4">Trend aktywów i kapitału własnego</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart
+                    data={data.multi_year_summary.years.map((year, idx) => ({
+                      year: year.toString(),
+                      total_assets: data.multi_year_summary!.total_assets[idx] / 1000000,
+                      equity: data.multi_year_summary!.equity[idx] / 1000000,
+                    }))}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="year" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" label={{ value: 'Wartość (mln PLN)', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip
+                      formatter={(value: number) => `${value.toFixed(2)} mln PLN`}
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '6px' }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="total_assets"
+                      stroke="#8b5cf6"
+                      strokeWidth={2}
+                      name="Aktywa ogółem"
+                      dot={{ fill: '#8b5cf6', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="equity"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      name="Kapitał własny"
+                      dot={{ fill: '#f59e0b', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Data Table */}
             <div className="bg-gray-50 rounded-lg overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-purple-100">

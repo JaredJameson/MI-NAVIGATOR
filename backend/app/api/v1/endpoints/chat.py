@@ -276,6 +276,172 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # Ownership structure request
+    elif ("własność" in user_lower or "ownership" in user_lower or "wspólnicy" in user_lower or
+          "akcjonariusze" in user_lower or "shareholders" in user_lower or "udziałowcy" in user_lower or
+          "struktura właścicielska" in user_lower or "ownership structure" in user_lower):
+        return json.dumps({
+            "type": "ownership_structure",
+            "data": {
+                "company_name": "FADO Sp. z o.o.",
+                "nip": "5260016831",
+                "krs": "0000145732",
+                "source": "KRS",
+                "shareholders": [
+                    {
+                        "name": "Jan Kowalski",
+                        "type": "person",
+                        "shares_count": 400,
+                        "shares_percentage": 40.0,
+                        "shares_value": 200000,
+                        "voting_rights": 40.0,
+                        "since": "1995-03-15"
+                    },
+                    {
+                        "name": "Invest Capital Sp. z o.o.",
+                        "type": "company",
+                        "nip": "7771234567",
+                        "krs": "0000234567",
+                        "shares_count": 300,
+                        "shares_percentage": 30.0,
+                        "shares_value": 150000,
+                        "voting_rights": 30.0,
+                        "since": "2010-06-20"
+                    },
+                    {
+                        "name": "Anna Nowak",
+                        "type": "person",
+                        "shares_count": 200,
+                        "shares_percentage": 20.0,
+                        "shares_value": 100000,
+                        "voting_rights": 20.0,
+                        "since": "2005-11-10"
+                    },
+                    {
+                        "name": "Piotr Wiśniewski",
+                        "type": "person",
+                        "shares_count": 100,
+                        "shares_percentage": 10.0,
+                        "shares_value": 50000,
+                        "voting_rights": 10.0,
+                        "since": "2015-08-05"
+                    }
+                ],
+                "beneficial_owners": [
+                    {
+                        "name": "Jan Kowalski",
+                        "percentage": 40.0,
+                        "direct": True,
+                        "source": "Direct shareholder"
+                    },
+                    {
+                        "name": "Anna Nowak",
+                        "percentage": 20.0,
+                        "direct": True,
+                        "source": "Direct shareholder"
+                    },
+                    {
+                        "name": "Piotr Wiśniewski",
+                        "percentage": 10.0,
+                        "direct": True,
+                        "source": "Direct shareholder"
+                    },
+                    {
+                        "name": "Fundusz Inwestycyjny PKO",
+                        "percentage": 21.0,
+                        "direct": False,
+                        "source": "Via Invest Capital Sp. z o.o. (70%)"
+                    },
+                    {
+                        "name": "Tomasz Lewandowski",
+                        "percentage": 9.0,
+                        "direct": False,
+                        "source": "Via Invest Capital Sp. z o.o. (30%)"
+                    }
+                ],
+                "related_companies": [
+                    {
+                        "name": "FADO Automotive Sp. z o.o.",
+                        "nip": "5260987654",
+                        "krs": "0000345678",
+                        "relationship": "subsidiary",
+                        "ownership_percentage": 100.0,
+                        "description": "Spółka zależna - produkcja komponentów motoryzacyjnych"
+                    },
+                    {
+                        "name": "Plastics Innovation Sp. z o.o.",
+                        "nip": "5260876543",
+                        "krs": "0000456789",
+                        "relationship": "subsidiary",
+                        "ownership_percentage": 51.0,
+                        "description": "Spółka zależna - badania i rozwój"
+                    },
+                    {
+                        "name": "Invest Capital Sp. z o.o.",
+                        "nip": "7771234567",
+                        "krs": "0000234567",
+                        "relationship": "parent",
+                        "ownership_percentage": 30.0,
+                        "description": "Główny inwestor korporacyjny"
+                    }
+                ],
+                "ownership_chain": [
+                    {
+                        "level": 0,
+                        "entity": "FADO Sp. z o.o.",
+                        "type": "target",
+                        "nip": "5260016831"
+                    },
+                    {
+                        "level": 1,
+                        "entity": "Jan Kowalski",
+                        "type": "person",
+                        "percentage": 40.0
+                    },
+                    {
+                        "level": 1,
+                        "entity": "Invest Capital Sp. z o.o.",
+                        "type": "company",
+                        "percentage": 30.0,
+                        "nip": "7771234567"
+                    },
+                    {
+                        "level": 2,
+                        "entity": "Fundusz Inwestycyjny PKO",
+                        "type": "fund",
+                        "percentage": 70.0,
+                        "via": "Invest Capital Sp. z o.o."
+                    },
+                    {
+                        "level": 2,
+                        "entity": "Tomasz Lewandowski",
+                        "type": "person",
+                        "percentage": 30.0,
+                        "via": "Invest Capital Sp. z o.o."
+                    },
+                    {
+                        "level": 1,
+                        "entity": "Anna Nowak",
+                        "type": "person",
+                        "percentage": 20.0
+                    },
+                    {
+                        "level": 1,
+                        "entity": "Piotr Wiśniewski",
+                        "type": "person",
+                        "percentage": 10.0
+                    }
+                ],
+                "capital_info": {
+                    "share_capital": 500000,
+                    "total_shares": 1000,
+                    "share_value": 500,
+                    "currency": "PLN"
+                },
+                "fetched_at": datetime.utcnow().isoformat()
+            }
+        }, ensure_ascii=False)
+
     # Financial statements request (detailed balance sheet + income statement)
     elif ("sprawozdanie" in user_lower and "finansow" in user_lower) or \
          ("financial" in user_lower and ("statement" in user_lower or "sprawozdanie" in user_lower)) or \
