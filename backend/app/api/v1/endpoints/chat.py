@@ -178,16 +178,58 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
-    # Default text response
+    # Company analysis with sources
     elif "analiz" in user_lower or "firma" in user_lower or "company" in user_lower:
-        return """Rozumiem, ze chcesz przeprowadzic analize firmy. Moge pomoc Ci w nastepujacych obszarach:
+        return json.dumps({
+            "type": "text_with_sources",
+            "data": {
+                "text": """FADO Sp. z o.o. jest wiodącym polskim producentem wyrobów z tworzyw sztucznych [1]. Firma została założona w 1995 roku [2] i specjalizuje się w przetwórstwie tworzyw sztucznych oraz wtrysku form [1].
 
-1. **Analiza finansowa** - przychody, rentownosc, zadluzenie
-2. **Analiza rynkowa** - pozycja konkurencyjna, udzial w rynku
-3. **Due diligence** - kompleksowa ocena przed transakcja
-4. **Monitoring konkurencji** - sledzenie dzialan konkurentow
+Główne obszary działalności:
+- Produkcja podzespołów dla branży motoryzacyjnej [1]
+- Komponenty przemysłowe [3]
+- Wyroby konsumpcyjne [3]
 
-Podaj nazwe firmy lub jej NIP, a rozpoczne analize."""
+Firma zatrudnia obecnie 150-200 pracowników [2] i osiąga przychody rzędu 68 milionów PLN rocznie [4].""",
+                "sources": [
+                    {
+                        "id": "src_1",
+                        "type": "krs",
+                        "title": "KRS - Krajowy Rejestr Sądowy",
+                        "url": "https://ekrs.ms.gov.pl/",
+                        "confidence": 95,
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "excerpt": "FADO Sp. z o.o., KRS 0000145732, przedmiot działalności: produkcja wyrobów z tworzyw sztucznych"
+                    },
+                    {
+                        "id": "src_2",
+                        "type": "website",
+                        "title": "Strona firmowa FADO",
+                        "url": "https://fado.com.pl/o-nas",
+                        "confidence": 90,
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "excerpt": "Firma FADO została założona w 1995 roku i zatrudnia 150-200 pracowników"
+                    },
+                    {
+                        "id": "src_3",
+                        "type": "website",
+                        "title": "Katalog produktów FADO",
+                        "url": "https://fado.com.pl/produkty",
+                        "confidence": 85,
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "excerpt": "Oferujemy komponenty przemysłowe i wyroby konsumpcyjne z tworzyw sztucznych"
+                    },
+                    {
+                        "id": "src_4",
+                        "type": "document",
+                        "title": "Sprawozdanie finansowe 2023",
+                        "confidence": 92,
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "excerpt": "Przychody za 2023 rok: 68 000 000 PLN"
+                    }
+                ]
+            }
+        }, ensure_ascii=False)
 
     elif "raport" in user_lower or "report" in user_lower:
         return """Moge wygenerowac dla Ciebie nastepujace typy raportow:

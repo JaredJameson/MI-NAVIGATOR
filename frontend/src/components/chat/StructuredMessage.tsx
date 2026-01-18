@@ -4,10 +4,21 @@ import React from 'react'
 import { CompanyCard, CompanyCardData } from './CompanyCard'
 import { DataTable, DataTableData } from './DataTable'
 import { TrendChart, TrendChartData } from './TrendChart'
+import { SourceCitation } from './SourceCitation'
+
+interface Source {
+  id: string
+  type: 'krs' | 'website' | 'news' | 'document' | 'database'
+  title: string
+  url?: string
+  confidence: number
+  timestamp?: string
+  excerpt?: string
+}
 
 export interface StructuredMessageData {
-  type: 'company_card' | 'data_table' | 'trend_chart' | 'text'
-  data: CompanyCardData | DataTableData | TrendChartData | { text: string }
+  type: 'company_card' | 'data_table' | 'trend_chart' | 'text' | 'text_with_sources'
+  data: CompanyCardData | DataTableData | TrendChartData | { text: string } | { text: string; sources: Source[] }
 }
 
 interface StructuredMessageProps {
@@ -57,6 +68,11 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
     case 'trend_chart':
       return <TrendChart data={structuredData.data as TrendChartData} />
 
+    case 'text_with_sources': {
+      const messageData = structuredData.data as { text: string; sources: Source[] }
+      return <TextWithSources text={messageData.text} sources={messageData.sources} />
+    }
+
     case 'text':
     default:
       return (
@@ -65,4 +81,27 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
         </div>
       )
   }
+}
+
+// Component to render text with inline source citations
+function TextWithSources({ text, sources }: { text: string; sources: Source[] }) {
+  // Parse text and insert source citations
+  // Format: [1], [2], etc. in the text
+  const parts = text.split(/(\[\d+\])/g)
+
+  return (
+    <div className="text-sm text-gray-900">
+      {parts.map((part, index) => {
+        const match = part.match(/\[(\d+)\]/)
+        if (match) {
+          const sourceNumber = parseInt(match[1])
+          const source = sources[sourceNumber - 1]
+          if (source) {
+            return <SourceCitation key={index} source={source} number={sourceNumber} />
+          }
+        }
+        return <span key={index} className="whitespace-pre-wrap">{part}</span>
+      })}
+    </div>
+  )
 }
