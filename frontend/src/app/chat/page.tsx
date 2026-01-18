@@ -7,6 +7,19 @@ import { getStoredToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
+const getCsrfToken = async (): Promise<string | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/csrf-token`)
+    if (response.ok) {
+      const data = await response.json()
+      return data.csrf_token
+    }
+  } catch (err) {
+    console.error('Failed to get CSRF token:', err)
+  }
+  return null
+}
+
 interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -46,11 +59,17 @@ export default function ChatPage() {
     }
 
     try {
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token')
+      }
+
       const response = await fetch(`${API_BASE_URL}/chat/conversations`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
       })
 
@@ -103,6 +122,11 @@ export default function ChatPage() {
       setInputValue('')
 
       // Send to API
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token')
+      }
+
       const response = await fetch(
         `${API_BASE_URL}/chat/conversations/${conv.id}/messages`,
         {
@@ -110,6 +134,7 @@ export default function ChatPage() {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
           },
           body: JSON.stringify({ content: inputValue }),
         }
