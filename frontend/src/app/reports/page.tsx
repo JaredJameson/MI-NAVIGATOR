@@ -542,12 +542,20 @@ export default function ReportsPage() {
     const hasTag = currentTags.some(t => t.id === tagId)
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        console.error('Failed to get CSRF token')
+        return
+      }
+
       if (hasTag) {
         // Remove tag
         const response = await fetch(`${API_BASE_URL}/tags/reports/${reportId}/tags/${tagId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'X-CSRF-Token': csrfToken,
           },
         })
         if (response.ok) {
@@ -562,6 +570,7 @@ export default function ReportsPage() {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'X-CSRF-Token': csrfToken,
           },
         })
         if (response.ok) {

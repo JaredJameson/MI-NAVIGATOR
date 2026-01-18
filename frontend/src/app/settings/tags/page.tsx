@@ -7,6 +7,20 @@ import { getStoredToken } from '@/services/api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
+// Helper function to get CSRF token
+const getCsrfToken = async (): Promise<string | null> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/csrf-token`)
+    if (response.ok) {
+      const data = await response.json()
+      return data.csrf_token
+    }
+  } catch (err) {
+    console.error('Failed to get CSRF token:', err)
+  }
+  return null
+}
+
 interface Tag {
   id: string
   name: string
@@ -119,6 +133,12 @@ export default function TagManagementPage() {
     setError('')
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token')
+      }
+
       const url = editingTag
         ? `${API_BASE_URL}/tags/${editingTag.id}`
         : `${API_BASE_URL}/tags/`
@@ -130,6 +150,7 @@ export default function TagManagementPage() {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({
           name: formName.trim(),
@@ -180,10 +201,17 @@ export default function TagManagementPage() {
     setError('')
 
     try {
+      // Get CSRF token
+      const csrfToken = await getCsrfToken()
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token')
+      }
+
       const response = await fetch(`${API_BASE_URL}/tags/${tagToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'X-CSRF-Token': csrfToken,
         },
       })
 
