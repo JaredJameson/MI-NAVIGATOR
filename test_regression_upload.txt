@@ -1,0 +1,3 @@
+Test PDF content for file upload regression test
+This is a sample file to verify that file upload functionality works correctly.
+Feature #20: Chat file upload functionality

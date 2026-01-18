@@ -1642,7 +1642,7 @@ async def export_report(
     elif request.format == "pdf":
         return await export_to_pdf(report)
     elif request.format == "docx":
-        return {"message": "DOCX export coming soon", "download_url": f"/exports/report_{report_id}.docx"}
+        return await export_to_docx(report)
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
 
@@ -2017,6 +2017,163 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
     return StreamingResponse(
         output,
         media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+async def export_to_docx(report: dict) -> StreamingResponse:
+    """Generate DOCX file with professional formatting."""
+    from docx import Document
+    from docx.shared import Pt, Inches, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.enum.style import WD_STYLE_TYPE
+
+    # Create new document
+    doc = Document()
+
+    # Set document margins (1 inch top/bottom, 0.75 inch left/right)
+    sections = doc.sections
+    for section in sections:
+        section.top_margin = Inches(1)
+        section.bottom_margin = Inches(1)
+        section.left_margin = Inches(0.75)
+        section.right_margin = Inches(0.75)
+
+    # === Title Page ===
+    title = doc.add_heading(report['title'], 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # Style the title with blue color
+    for run in title.runs:
+        run.font.color.rgb = RGBColor(30, 64, 175)  # #1e40af blue
+        run.font.size = Pt(24)
+
+    doc.add_paragraph()  # Add spacing
+
+    # Report metadata table
+    metadata_table = doc.add_table(rows=4, cols=2)
+    metadata_table.style = 'Light Grid Accent 1'
+
+    metadata_items = [
+        ('Typ raportu:', report.get('type', 'N/A').replace('_', ' ').title()),
+        ('Firma:', report.get('company', 'N/A')),
+        ('Data utworzenia:', report.get('created_at', 'N/A')[:10]),
+        ('Ostatnia aktualizacja:', report.get('updated_at', 'N/A')[:10])
+    ]
+
+    for i, (label, value) in enumerate(metadata_items):
+        row = metadata_table.rows[i]
+        label_cell = row.cells[0]
+        value_cell = row.cells[1]
+
+        label_cell.text = label
+        value_cell.text = value
+
+        # Make labels bold
+        for paragraph in label_cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.bold = True
+                run.font.size = Pt(11)
+
+        for paragraph in value_cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.size = Pt(11)
+
+    doc.add_paragraph()  # Add spacing
+
+    # Summary section
+    if report.get('summary'):
+        summary_heading = doc.add_heading('Podsumowanie', 2)
+        for run in summary_heading.runs:
+            run.font.color.rgb = RGBColor(37, 99, 235)  # #2563eb blue
+
+        summary_para = doc.add_paragraph(report['summary'])
+        summary_para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        for run in summary_para.runs:
+            run.font.size = Pt(11)
+
+    doc.add_page_break()
+
+    # === Report Sections ===
+    for i, section in enumerate(report.get('sections', []), 1):
+        # Section heading
+        section_title = f"{i}. {section.get('title', 'Untitled Section')}"
+        section_heading = doc.add_heading(section_title, 2)
+
+        # Style section headings
+        for run in section_heading.runs:
+            run.font.color.rgb = RGBColor(37, 99, 235)  # #2563eb blue
+            run.font.size = Pt(16)
+            run.font.bold = True
+
+        # Section content
+        content = section.get('content', '')
+
+        # Process markdown-like content
+        lines = content.split('\n')
+        current_list = None
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Handle bold headers (subheadings)
+            if line.startswith('**') and line.endswith('**'):
+                text = line.strip('*')
+                para = doc.add_paragraph()
+                run = para.add_run(text)
+                run.font.bold = True
+                run.font.size = Pt(12)
+                run.font.color.rgb = RGBColor(75, 85, 99)  # #4b5563 gray
+
+            # Handle bullet points
+            elif line.startswith('- '):
+                text = line[2:]
+                para = doc.add_paragraph(text, style='List Bullet')
+                for run in para.runs:
+                    run.font.size = Pt(11)
+
+            # Handle numbered lists
+            elif line[0].isdigit() and line[1:3] in ['. ', ') ']:
+                text = line[3:] if line[2] == ' ' else line[2:]
+                para = doc.add_paragraph(text, style='List Number')
+                for run in para.runs:
+                    run.font.size = Pt(11)
+
+            # Handle markdown tables (basic support)
+            elif '|' in line and line.count('|') >= 2:
+                # Skip markdown table separators (lines with --- )
+                if not line.replace('|', '').replace('-', '').replace(' ', ''):
+                    continue
+                # For actual table rows, just add as regular text
+                # (full table parsing would be complex)
+                para = doc.add_paragraph(line)
+                for run in para.runs:
+                    run.font.size = Pt(10)
+                    run.font.name = 'Courier New'
+
+            # Regular paragraphs
+            else:
+                para = doc.add_paragraph(line)
+                para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                for run in para.runs:
+                    run.font.size = Pt(11)
+
+        # Add spacing after each section
+        doc.add_paragraph()
+
+    # === Save to BytesIO ===
+    output = io.BytesIO()
+    doc.save(output)
+    output.seek(0)
+
+    # Generate filename
+    safe_title = report['title'].replace(' ', '_').replace('/', '_')[:40]
+    filename = f"{report['id']}_{safe_title}.docx"
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
 
