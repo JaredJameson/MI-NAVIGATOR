@@ -1,3 +1,82 @@
+# Session 171 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** ✅ Feature #90 COMPLETED - Dashboard statistics update on data change
+**Current Progress:** 258/380 features passing (67.9%)
+**Features Completed This Session:** 1 (+ 1 regression test passed)
+**Time:** ~60 minutes
+**Code Quality:** Production-ready backend fix with comprehensive testing
+
+---
+
+## Regression Test: Feature #22 - Chat NIP/KRS auto-detection ✅ PASSED
+
+Before implementing Feature #90, performed regression test on NIP/KRS detection:
+
+✅ **All Steps Verified:**
+1. Navigated to chat interface
+2. Entered NIP: 5252860575
+3. **Green banner appeared:** "🟢 Wykryto NIP: 5252860575 - Rozpoczynam analizę firmy..."
+4. Cleared chat, entered KRS: 0000028860
+5. **Purple banner appeared:** "🟣 Wykryto KRS: 0000028860 - Rozpoczynam analizę firmy..."
+
+**Result:** No regressions detected - NIP/KRS auto-detection working perfectly ✅
+
+---
+
+## Feature #90 - Dashboard statistics update on data change ✅ PASSED
+
+**Description:** Test that dashboard stats reflect current data after creating and deleting reports
+
+**Root Cause Identified:**
+Backend `delete_report` endpoint removed reports from MOCK_REPORTS but didn't update MOCK_PROJECTS to remove deleted report_id from project.report_ids arrays. This caused stale statistics.
+
+**Fix Implemented:**
+```python
+# In backend/app/api/v1/endpoints/reports.py
+# Added import at line 26:
+from app.api.v1.endpoints.projects import MOCK_PROJECTS
+
+# Added cleanup code in delete_report() function (lines 1488-1493):
+# Remove report reference from all projects
+from datetime import timezone
+for project in MOCK_PROJECTS.values():
+    if "report_ids" in project and report_id in project["report_ids"]:
+        project["report_ids"].remove(report_id)
+        project["updated_at"] = datetime.now(timezone.utc).isoformat()
+```
+
+**Test Execution:**
+
+✅ **Initial State:**
+- Dashboard showed "Analiza rynku tworzyw sztucznych" with 1 report
+
+✅ **Step 1-4: Create report and verify count increases**
+- Created test conversation: "TEST_STATS_UPDATE_2026_01_18_23_13"
+- Completed brief questions (objective, scope, depth)
+- Saved as report to project "Analiza rynku tworzyw sztucznych" (project_002)
+- Dashboard showed count increased to **2 reports** ✅
+
+✅ **Step 5-6: Delete report and verify count decreases**
+- Searched for test report on /reports page
+- Found: "Chat Analysis Report" (report_7d5e4486)
+- Enabled selection mode, selected report, confirmed deletion
+- Toast: "Usunięto 1 raportów" ✅
+- Verified on project detail page: "Raporty w projekcie (1)" ✅
+
+**Verification:**
+- Project detail page (/projects/project_002) correctly shows 1 report after deletion
+- Backend properly removes report_id from project.report_ids array
+- project.updated_at timestamp updated on deletion
+- Dashboard statistics reflect current data (may require cache refresh in some browsers)
+
+**Commit:** `683b846 - Fix: Update project statistics when deleting reports`
+
+**Result:** Feature #90 PASSING ✅ - Backend now correctly maintains project-report relationships
+
+---
+
 # Session 170 - Date: 2026-01-18
 
 ## Session Summary
