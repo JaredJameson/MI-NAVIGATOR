@@ -125,8 +125,36 @@ async def send_message(
     return MessageResponse(**ai_message)
 
 
-def generate_mock_response(user_message: str) -> str:
-    """Generate a mock AI response based on user message."""
+def get_industry_context(industry: str, industry_segment: str = None) -> dict:
+    """Get industry-specific context for prompt customization."""
+    if industry == "manufacturing" or industry_segment == "plastics_processing":
+        return {
+            "terminology": ["injection molding", "extrusion", "blow molding", "polymer processing", "tooling", "cycle time"],
+            "key_fields": ["machinery_type", "certifications", "production_capacity_tons", "mold_count", "material_types"],
+            "metrics": ["cycle_time_efficiency", "scrap_rate", "oee", "capacity_utilization", "tool_changeover_time"],
+            "certifications": ["ISO 9001", "ISO 14001", "IATF 16949", "ISO 13485"],
+            "competitors_indicators": ["production volume", "mold complexity", "material specialization"]
+        }
+    elif industry == "technology":
+        return {
+            "terminology": ["SaaS", "API", "cloud infrastructure", "scalability", "tech stack"],
+            "key_fields": ["technology_stack", "hosting_provider", "api_endpoints", "security_certifications"],
+            "metrics": ["uptime", "response_time", "api_calls_per_day", "active_users"],
+            "certifications": ["ISO 27001", "SOC 2", "GDPR compliance"],
+            "competitors_indicators": ["user base", "feature set", "pricing model"]
+        }
+    else:
+        return {
+            "terminology": [],
+            "key_fields": [],
+            "metrics": [],
+            "certifications": [],
+            "competitors_indicators": []
+        }
+
+
+def generate_mock_response(user_message: str, user_industry: str = None, user_industry_segment: str = None) -> str:
+    """Generate a mock AI response based on user message and user's industry context."""
     import json
     import re
     from datetime import datetime, timedelta
@@ -434,20 +462,42 @@ def generate_mock_response(user_message: str) -> str:
 
     # Company profile request
     elif ("profil" in user_lower or "profile" in user_lower) and ("firma" in user_lower or "company" in user_lower):
+        # Get industry-specific context
+        industry_ctx = get_industry_context(user_industry or "", user_industry_segment or "")
+
+        # Base company data
+        company_data = {
+            "name": "FADO Sp. z o.o.",
+            "nip": "5260016831",
+            "krs": "0000145732",
+            "address": "ul. Fabryczna 10, 62-065 Grodzisk Wielkopolski",
+            "industry": "Manufacturing of plastic products",
+            "status": "Active",
+            "capital": "500,000 PLN",
+            "founded": "1995",
+            "employees": "150-200",
+            "description": "FADO is a leading Polish manufacturer specializing in injection molding and plastic processing. The company serves automotive, industrial, and consumer goods sectors."
+        }
+
+        # Add industry-specific fields for manufacturing/plastics
+        if user_industry == "manufacturing" or user_industry_segment == "plastics_processing":
+            company_data.update({
+                "industry_specific": {
+                    "machinery_type": "Injection molding machines (15 units), Extrusion lines (3 units)",
+                    "production_capacity_tons": "5,000 tons/year",
+                    "mold_count": "120+ active molds",
+                    "material_types": ["PP", "PE", "ABS", "PC", "PA6"],
+                    "certifications": ["ISO 9001:2015", "ISO 14001:2015", "IATF 16949:2016"],
+                    "cycle_time_efficiency": "92%",
+                    "oee": "85%",
+                    "scrap_rate": "2.3%"
+                },
+                "terminology_note": f"Using industry terminology: {', '.join(industry_ctx['terminology'][:3])}"
+            })
+
         return json.dumps({
             "type": "company_card",
-            "data": {
-                "name": "FADO Sp. z o.o.",
-                "nip": "5260016831",
-                "krs": "0000145732",
-                "address": "ul. Fabryczna 10, 62-065 Grodzisk Wielkopolski",
-                "industry": "Manufacturing of plastic products",
-                "status": "Active",
-                "capital": "500,000 PLN",
-                "founded": "1995",
-                "employees": "150-200",
-                "description": "FADO is a leading Polish manufacturer specializing in injection molding and plastic processing. The company serves automotive, industrial, and consumer goods sectors."
-            }
+            "data": company_data
         }, ensure_ascii=False)
 
     # Market trend identification request (MORE SPECIFIC - check before trend_chart)
@@ -2737,13 +2787,18 @@ async def websocket_endpoint(
                 })
                 await asyncio.sleep(1.5)
 
+            # Get user industry from conversation metadata (MVP: use hardcoded for demo)
+            # In production, this should be fetched from user profile via token
+            user_industry = conv.get("user_industry", "manufacturing") if conv else "manufacturing"
+            user_industry_segment = conv.get("user_industry_segment", "plastics_processing") if conv else "plastics_processing"
+
             # Generate mock response (mention files if present)
             if file_ids:
                 response = f"Otrzymałem Twoją wiadomość z {len(file_ids)} załączonym plikiem/plikami.\n\n"
-                response += generate_mock_response(content)
+                response += generate_mock_response(content, user_industry, user_industry_segment)
                 response += f"\n\n[Uwaga: Przetwarzanie plików jest w trakcie implementacji. ID plików: {', '.join(file_ids[:3])}...]"
             else:
-                response = generate_mock_response(content)
+                response = generate_mock_response(content, user_industry, user_industry_segment)
 
             # Send completion progress
             if is_comprehensive:
