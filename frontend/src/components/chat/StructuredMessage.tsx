@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { CompanyCard, CompanyCardData } from './CompanyCard'
+import { CompanyProfileKRS, CompanyProfileKRSData } from './CompanyProfileKRS'
 import { DataTable, DataTableData } from './DataTable'
 import { TrendChart, TrendChartData } from './TrendChart'
 import { SourceCitation } from './SourceCitation'
@@ -17,8 +18,8 @@ interface Source {
 }
 
 export interface StructuredMessageData {
-  type: 'company_card' | 'data_table' | 'trend_chart' | 'text' | 'text_with_sources'
-  data: CompanyCardData | DataTableData | TrendChartData | { text: string } | { text: string; sources: Source[] }
+  type: 'company_card' | 'company_profile_krs' | 'data_table' | 'trend_chart' | 'text' | 'text_with_sources' | 'error'
+  data: CompanyCardData | CompanyProfileKRSData | DataTableData | TrendChartData | { text: string } | { text: string; sources: Source[] } | { message: string; suggestion?: string }
 }
 
 interface StructuredMessageProps {
@@ -62,6 +63,9 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
     case 'company_card':
       return <CompanyCard data={structuredData.data as CompanyCardData} />
 
+    case 'company_profile_krs':
+      return <CompanyProfileKRS data={structuredData.data as CompanyProfileKRSData} />
+
     case 'data_table':
       return <DataTable data={structuredData.data as DataTableData} />
 
@@ -71,6 +75,25 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
     case 'text_with_sources': {
       const messageData = structuredData.data as { text: string; sources: Source[] }
       return <TextWithSources text={messageData.text} sources={messageData.sources} />
+    }
+
+    case 'error': {
+      const errorData = structuredData.data as { message: string; suggestion?: string }
+      return (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start gap-3">
+            <svg className="h-5 w-5 flex-shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-red-800">{errorData.message}</p>
+              {errorData.suggestion && (
+                <p className="mt-1 text-sm text-red-700">{errorData.suggestion}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )
     }
 
     case 'text':

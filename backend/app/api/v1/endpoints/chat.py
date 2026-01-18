@@ -117,7 +117,80 @@ async def send_message(
 def generate_mock_response(user_message: str) -> str:
     """Generate a mock AI response based on user message."""
     import json
+    import re
     user_lower = user_message.lower()
+
+    # Company lookup by NIP or KRS (from frontend detection)
+    if "lookup company" in user_lower:
+        # Extract NIP or KRS number from message
+        # Format: "Lookup company with NIP: 5260016831" or "Lookup company with KRS: 0000145732"
+        nip_match = re.search(r'nip:\s*(\d{10})', user_message, re.IGNORECASE)
+        krs_match = re.search(r'krs:\s*(\d{10})', user_message, re.IGNORECASE)
+
+        identifier = None
+        lookup_type = None
+
+        if nip_match:
+            identifier = nip_match.group(1)
+            lookup_type = "NIP"
+        elif krs_match:
+            identifier = krs_match.group(1)
+            lookup_type = "KRS"
+
+        if identifier:
+            # Fetch real company data from /companies endpoint
+            from app.api.v1.endpoints.companies import MOCK_COMPANIES, PKD_CODES
+
+            company = None
+            for c in MOCK_COMPANIES:
+                if (c["nip"] == identifier or c.get("krs", "") == identifier):
+                    company = c
+                    break
+
+            if company:
+                # Build PKD descriptions
+                pkd_descriptions = []
+                for pkd in company["pkd_codes"]:
+                    if pkd in PKD_CODES:
+                        pkd_descriptions.append({
+                            "code": pkd,
+                            "name": PKD_CODES[pkd]["name"],
+                            "category": PKD_CODES[pkd]["category"]
+                        })
+
+                # Format address
+                address = company["address"]
+                address_str = f"{address.get('street', '')}, {address.get('postal_code', '')} {address.get('city', '')}"
+
+                # Return structured company profile with KRS data
+                return json.dumps({
+                    "type": "company_profile_krs",
+                    "data": {
+                        "lookup_type": lookup_type,
+                        "identifier": identifier,
+                        "basic_info": {
+                            "name": company["name"],
+                            "nip": company["nip"],
+                            "krs": company.get("krs", ""),
+                            "regon": company.get("regon", ""),
+                            "address": address_str,
+                            "status": company["status"],
+                            "founded": company.get("founded", "N/A")
+                        },
+                        "pkd_codes": pkd_descriptions,
+                        "source": "KRS API",
+                        "fetched_at": datetime.utcnow().isoformat()
+                    }
+                }, ensure_ascii=False)
+            else:
+                # Company not found
+                return json.dumps({
+                    "type": "error",
+                    "data": {
+                        "message": f"Nie znaleziono firmy z {lookup_type}: {identifier}",
+                        "suggestion": "Sprawdź poprawność numeru lub spróbuj wyszukać po nazwie firmy."
+                    }
+                }, ensure_ascii=False)
 
     # Company profile request
     if ("profil" in user_lower or "profile" in user_lower) and ("firma" in user_lower or "company" in user_lower):
