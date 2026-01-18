@@ -949,32 +949,104 @@ function ProjectsWidget() {
 }
 
 function AlertsWidget() {
+  const [alerts, setAlerts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        setIsLoading(true)
+        const token = localStorage.getItem('mi_navigator_token')
+        if (!token) {
+          setIsLoading(false)
+          return
+        }
+
+        const response = await fetch(`${API_BASE_URL}/alerts/?limit=3`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setAlerts(data.items || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch alerts:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchAlerts()
+  }, [])
+
+  // Get severity styling
+  const getSeverityStyles = (severity: string) => {
+    switch (severity) {
+      case 'high':
+        return {
+          indicator: '🔴',
+          bg: 'bg-red-50',
+          border: 'border-red-200',
+          titleColor: 'text-red-800',
+          descColor: 'text-red-600'
+        }
+      case 'medium':
+        return {
+          indicator: '🟡',
+          bg: 'bg-yellow-50',
+          border: 'border-yellow-200',
+          titleColor: 'text-yellow-800',
+          descColor: 'text-yellow-600'
+        }
+      case 'low':
+        return {
+          indicator: '🟢',
+          bg: 'bg-green-50',
+          border: 'border-green-200',
+          titleColor: 'text-green-800',
+          descColor: 'text-green-600'
+        }
+      default:
+        return {
+          indicator: '⚪',
+          bg: 'bg-gray-50',
+          border: 'border-gray-200',
+          titleColor: 'text-gray-800',
+          descColor: 'text-gray-600'
+        }
+    }
+  }
+
   return (
     <section>
       <h2 className="mb-4 text-lg font-semibold text-gray-900">Alerts & Monitoring</h2>
-      <div className="space-y-2">
-        <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
-          <span>🔴</span>
-          <div>
-            <p className="text-sm font-medium text-red-800">Konkurent X: nowy produkt</p>
-            <p className="text-xs text-red-600">Wykryto ogłoszenie nowego produktu</p>
-          </div>
+      {isLoading ? (
+        <div className="py-4 text-center text-sm text-gray-500">Loading alerts...</div>
+      ) : alerts.length === 0 ? (
+        <div className="py-4 text-center text-sm text-gray-500">No alerts</div>
+      ) : (
+        <div className="space-y-2">
+          {alerts.map((alert) => {
+            const styles = getSeverityStyles(alert.severity)
+            return (
+              <Link
+                key={alert.id}
+                href={`/alerts/${alert.id}`}
+                className={`flex items-start gap-2 rounded-lg border ${styles.border} ${styles.bg} p-3 cursor-pointer hover:opacity-80 transition-opacity`}
+              >
+                <span>{styles.indicator}</span>
+                <div>
+                  <p className={`text-sm font-medium ${styles.titleColor}`}>{alert.title}</p>
+                  <p className={`text-xs ${styles.descColor}`}>{alert.description}</p>
+                </div>
+              </Link>
+            )
+          })}
         </div>
-        <div className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-          <span>🟡</span>
-          <div>
-            <p className="text-sm font-medium text-yellow-800">FADO: zmiana w zarządzie</p>
-            <p className="text-xs text-yellow-600">Nowy członek zarządu</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 p-3">
-          <span>🟢</span>
-          <div>
-            <p className="text-sm font-medium text-green-800">Rynek +5% vs prognoza</p>
-            <p className="text-xs text-green-600">Pozytywny trend rynkowy</p>
-          </div>
-        </div>
-      </div>
+      )}
     </section>
   )
 }
