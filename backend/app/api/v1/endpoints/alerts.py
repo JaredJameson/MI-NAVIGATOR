@@ -126,6 +126,37 @@ class MarkReadRequest(BaseModel):
     alert_ids: List[str]
 
 
+class CreateAlertRequest(BaseModel):
+    company_name: Optional[str] = None
+    company_id: Optional[str] = None
+    keyword: Optional[str] = None
+    alert_type: str  # news, financial, competitor
+    conditions: Optional[dict] = None
+
+
+class AlertConfig(BaseModel):
+    id: str
+    user_id: str
+    company_name: Optional[str]
+    company_id: Optional[str]
+    keyword: Optional[str]
+    alert_type: str
+    conditions: Optional[dict]
+    is_active: bool
+    created_at: str
+
+
+# In-memory storage for alert configurations (keyed by user ID)
+USER_ALERT_CONFIGS: dict = {}
+
+
+def get_user_alert_configs(user_id: str) -> List[dict]:
+    """Get alert configurations for a user."""
+    if user_id not in USER_ALERT_CONFIGS:
+        USER_ALERT_CONFIGS[user_id] = []
+    return USER_ALERT_CONFIGS[user_id]
+
+
 @router.get("/")
 async def list_alerts(
     severity: Optional[str] = None,
@@ -165,6 +196,43 @@ async def list_alerts(
         total=len(alerts),
         unread_count=unread_count
     )
+
+
+@router.get("/configs")
+async def list_alert_configs(
+    current_user: User = Depends(get_current_user)
+):
+    """List user's alert configurations."""
+    user_id = str(current_user.id)
+    configs = get_user_alert_configs(user_id)
+
+    # Sort by created_at (most recent first)
+    configs.sort(
+        key=lambda x: datetime.fromisoformat(x["created_at"].replace("Z", "+00:00")),
+        reverse=True
+    )
+
+    return {
+        "items": [AlertConfig(**c) for c in configs],
+        "total": len(configs)
+    }
+
+
+@router.delete("/configs/{config_id}")
+async def delete_alert_config(
+    config_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete an alert configuration."""
+    user_id = str(current_user.id)
+    configs = get_user_alert_configs(user_id)
+
+    for i, config in enumerate(configs):
+        if config["id"] == config_id:
+            del configs[i]
+            return {"success": True, "message": "Alert configuration deleted"}
+
+    raise HTTPException(status_code=404, detail="Alert configuration not found")
 
 
 @router.get("/{alert_id}")
@@ -234,3 +302,49 @@ async def mark_all_alerts_read(current_user: User = Depends(get_current_user)):
         "marked_count": marked_count,
         "unread_count": 0
     }
+
+
+@router.post("/create")
+async def create_alert(
+    request: CreateAlertRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new alert configuration."""
+    import uuid
+
+    user_id = str(current_user.id)
+
+    # Validate alert type
+    valid_types = ["news", "financial", "competitor"]
+    if request.alert_type not in valid_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid alert_type. Must be one of: {', '.join(valid_types)}"
+        )
+
+    # At least one of company_name/company_id or keyword must be provided
+    if not request.company_name and not request.company_id and not request.keyword:
+        raise HTTPException(
+            status_code=400,
+            detail="Must provide at least one of: company_name, company_id, or keyword"
+        )
+
+    # Create new alert configuration
+    alert_config = {
+        "id": f"alert_config_{uuid.uuid4().hex[:12]}",
+        "user_id": user_id,
+        "company_name": request.company_name,
+        "company_id": request.company_id,
+        "keyword": request.keyword,
+        "alert_type": request.alert_type,
+        "conditions": request.conditions or {},
+        "is_active": True,
+        "created_at": datetime.now().isoformat() + "Z"
+    }
+
+    # Add to user's alert configs
+    configs = get_user_alert_configs(user_id)
+    configs.append(alert_config)
+
+    return AlertConfig(**alert_config)
+

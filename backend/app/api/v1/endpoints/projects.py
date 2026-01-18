@@ -291,12 +291,34 @@ async def bulk_assign_reports(
     project = MOCK_PROJECTS[request.project_id]
 
     added_count = 0
+    added_report_ids = []
     for report_id in request.report_ids:
         if report_id not in project["report_ids"]:
             project["report_ids"].append(report_id)
+            added_report_ids.append(report_id)
             added_count += 1
 
     project["updated_at"] = datetime.utcnow().isoformat() + "Z"
+
+    # Add activity for each report added
+    if added_count > 0:
+        # Import MOCK_REPORTS to get report titles
+        from app.api.v1.endpoints.reports import MOCK_REPORTS
+
+        for report_id in added_report_ids:
+            # Find report title
+            report_title = report_id
+            for report in MOCK_REPORTS:
+                if report["id"] == report_id:
+                    report_title = report["title"]
+                    break
+
+            add_activity(
+                project_id=request.project_id,
+                activity_type="report_added",
+                description=f"Dodano raport '{report_title}' do projektu",
+                user_name=current_user.email or "Current User"
+            )
 
     return {
         "message": f"Przypisano {added_count} raportów do projektu",
