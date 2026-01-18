@@ -62,6 +62,12 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Process request and validate CSRF token for unsafe methods."""
 
+        # Skip CSRF check for WebSocket connections
+        if request.url.path.startswith("/api/v1/chat/ws") or request.url.path.startswith("/chat/ws"):
+            print(f"[CSRF] Skipping CSRF check for WebSocket: {request.url.path}")
+            response = await call_next(request)
+            return response
+
         # Skip CSRF check for safe methods
         if request.method in SAFE_METHODS:
             response = await call_next(request)
@@ -77,6 +83,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         csrf_token = get_csrf_token_from_request(request)
 
         if not validate_csrf_token(csrf_token):
+            print(f"[CSRF] Blocking request to {request.url.path} - invalid/missing CSRF token")
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content={"detail": "CSRF token missing or invalid"}
