@@ -102,6 +102,7 @@ export default function ReportsPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [showBulkExportMenu, setShowBulkExportMenu] = useState(false)
   const [isBulkExporting, setIsBulkExporting] = useState(false)
+  const [exportProgress, setExportProgress] = useState<{processed: number, total: number, percentage: number} | null>(null)
   const [allReportIds, setAllReportIds] = useState<string[]>([])
   const [showSelectAllModal, setShowSelectAllModal] = useState(false)
 
@@ -408,18 +409,21 @@ export default function ReportsPage() {
     }
   }
 
-  // Bulk export function
+  // Bulk export function with progress tracking
   const handleBulkExport = async (format: 'xlsx' | 'pdf' | 'docx') => {
     const token = getStoredToken()
     if (!token || selectedReports.size === 0) return
 
     setIsBulkExporting(true)
     setShowBulkExportMenu(false)
+    setExportProgress({processed: 0, total: selectedReports.size, percentage: 0})
 
     try {
       const csrfToken = await getCsrfToken()
-      const response = await fetch(
-        `${API_BASE_URL}/reports/bulk-export`,
+
+      // Start async export
+      const startResponse = await fetch(
+        `${API_BASE_URL}/reports/bulk-export-async`,
         {
           method: 'POST',
           headers: {
@@ -434,47 +438,98 @@ export default function ReportsPage() {
         }
       )
 
-      if (!response.ok) {
-        throw new Error('Bulk export failed')
+      if (!startResponse.ok) {
+        throw new Error('Failed to start bulk export')
       }
 
-      // Check if response is a file download
-      const contentType = response.headers.get('content-type')
+      const { task_id } = await startResponse.json()
 
-      if (contentType?.includes('application/zip') || contentType?.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
-        const blob = await response.blob()
-        const contentDisposition = response.headers.get('content-disposition')
-        let filename = `reports_export_${Date.now()}.${format === 'xlsx' ? 'xlsx' : 'zip'}`
+      // Poll for progress
+      const pollInterval = setInterval(async () => {
+        try {
+          const progressResponse = await fetch(
+            `${API_BASE_URL}/reports/bulk-export-progress/${task_id}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            }
+          )
 
-        if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename="?([^";\n]+)"?/)
-          if (filenameMatch) {
-            filename = filenameMatch[1]
+          if (progressResponse.ok) {
+            const progress = await progressResponse.json()
+            setExportProgress({
+              processed: progress.processed,
+              total: progress.total,
+              percentage: progress.percentage
+            })
+
+            if (progress.status === 'completed') {
+              clearInterval(pollInterval)
+
+              // Now download the actual file
+              const downloadResponse = await fetch(
+                `${API_BASE_URL}/reports/bulk-export`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken || '',
+                  },
+                  body: JSON.stringify({
+                    report_ids: Array.from(selectedReports),
+                    format
+                  }),
+                }
+              )
+
+              if (downloadResponse.ok) {
+                const blob = await downloadResponse.blob()
+                const contentDisposition = downloadResponse.headers.get('content-disposition')
+                let filename = `reports_export_${Date.now()}.${format === 'xlsx' ? 'xlsx' : 'zip'}`
+
+                if (contentDisposition) {
+                  const filenameMatch = contentDisposition.match(/filename="?([^";\n]+)"?/)
+                  if (filenameMatch) {
+                    filename = filenameMatch[1]
+                  }
+                }
+
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = filename
+                document.body.appendChild(a)
+                a.click()
+                window.URL.revokeObjectURL(url)
+                document.body.removeChild(a)
+
+                // Success - exit selection mode
+                exitSelectionMode()
+              }
+
+              setIsBulkExporting(false)
+              setExportProgress(null)
+            } else if (progress.status === 'failed') {
+              clearInterval(pollInterval)
+              throw new Error(progress.error || 'Export failed')
+            }
           }
+        } catch (err) {
+          clearInterval(pollInterval)
+          console.error('Progress polling failed:', err)
+          setError('Nie udało się śledzić postępu eksportu')
+          setIsBulkExporting(false)
+          setExportProgress(null)
         }
+      }, 500) // Poll every 500ms
 
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-
-        // Success - exit selection mode
-        exitSelectionMode()
-      } else {
-        const data = await response.json()
-        if (data.message) {
-          setError(data.message)
-        }
-      }
     } catch (err) {
       console.error('Bulk export failed:', err)
       setError('Nie udało się wyeksportować raportów')
-    } finally {
       setIsBulkExporting(false)
+      setExportProgress(null)
     }
   }
 
@@ -708,7 +763,11 @@ export default function ReportsPage() {
                   {isBulkExporting ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                      Eksportowanie...
+                      {exportProgress ? (
+                        <span>{exportProgress.processed}/{exportProgress.total} ({exportProgress.percentage}%)</span>
+                      ) : (
+                        <span>Eksportowanie...</span>
+                      )}
                     </>
                   ) : (
                     <>
@@ -1457,6 +1516,41 @@ export default function ReportsPage() {
               >
                 Zamknij
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Progress Modal */}
+      {isBulkExporting && exportProgress && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">Eksportowanie raportów</h3>
+
+            {/* Progress bar */}
+            <div className="mb-4">
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span className="text-gray-600">Postęp</span>
+                <span className="font-semibold text-gray-900">
+                  {exportProgress.processed}/{exportProgress.total} raportów
+                </span>
+              </div>
+
+              <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+                <div
+                  className="h-full bg-green-600 transition-all duration-300"
+                  style={{ width: `${exportProgress.percentage}%` }}
+                ></div>
+              </div>
+
+              <div className="mt-2 text-center text-2xl font-bold text-green-600">
+                {exportProgress.percentage}%
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-green-600 border-t-transparent"></div>
+              <span>Przetwarzanie raportów...</span>
             </div>
           </div>
         </div>

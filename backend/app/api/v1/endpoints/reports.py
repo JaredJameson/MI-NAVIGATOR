@@ -2681,8 +2681,8 @@ async def bulk_export_reports_async(
         """Simulate processing with progress updates."""
         try:
             for i in range(len(request.report_ids)):
-                # Simulate processing time per report (0.5-1 second each)
-                await asyncio.sleep(0.5)
+                # Simulate processing time per report (2 seconds each for demo)
+                await asyncio.sleep(2.0)
 
                 # Update progress
                 BATCH_TASKS[task_id]["processed"] = i + 1
