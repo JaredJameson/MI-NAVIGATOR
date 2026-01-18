@@ -1643,6 +1643,8 @@ async def export_report(
         return await export_to_pdf(report)
     elif request.format == "docx":
         return await export_to_docx(report)
+    elif request.format == "pptx":
+        return await export_to_pptx(report)
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
 
@@ -2174,6 +2176,212 @@ async def export_to_docx(report: dict) -> StreamingResponse:
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+async def export_to_pptx(report: dict) -> StreamingResponse:
+    """Generate PowerPoint presentation with professional formatting."""
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+    from pptx.dml.color import RGBColor
+    import re
+
+    # Create presentation
+    prs = Presentation()
+    prs.slide_width = Inches(10)  # Standard 4:3 aspect ratio
+    prs.slide_height = Inches(7.5)
+
+    # Define MI-Navigator brand colors
+    BRAND_BLUE = RGBColor(30, 64, 175)  # #1e40af
+    BRAND_LIGHT_BLUE = RGBColor(37, 99, 235)  # #2563eb
+    DARK_GRAY = RGBColor(75, 85, 99)  # #4b5563
+    LIGHT_GRAY = RGBColor(229, 231, 235)  # #e5e7eb
+
+    # === Slide 1: Title Slide ===
+    title_slide_layout = prs.slide_layouts[6]  # Blank layout
+    slide = prs.slides.add_slide(title_slide_layout)
+
+    # Add background shape
+    background = slide.shapes.add_shape(
+        1,  # Rectangle
+        Inches(0), Inches(0),
+        Inches(10), Inches(7.5)
+    )
+    background.fill.solid()
+    background.fill.fore_color.rgb = RGBColor(240, 242, 245)
+    background.line.color.rgb = RGBColor(240, 242, 245)
+
+    # Title
+    title_box = slide.shapes.add_textbox(Inches(1), Inches(2.5), Inches(8), Inches(1))
+    title_frame = title_box.text_frame
+    title_frame.text = report['title']
+    title_para = title_frame.paragraphs[0]
+    title_para.alignment = PP_ALIGN.CENTER
+    title_para.font.size = Pt(36)
+    title_para.font.bold = True
+    title_para.font.color.rgb = BRAND_BLUE
+
+    # Subtitle with metadata
+    subtitle_text = f"{report.get('type', 'N/A').replace('_', ' ').title()}"
+    if report.get('company'):
+        subtitle_text += f" • {report.get('company')}"
+    subtitle_text += f"\n{report.get('created_at', 'N/A')[:10]}"
+
+    subtitle_box = slide.shapes.add_textbox(Inches(1), Inches(4), Inches(8), Inches(1))
+    subtitle_frame = subtitle_box.text_frame
+    subtitle_frame.text = subtitle_text
+    subtitle_para = subtitle_frame.paragraphs[0]
+    subtitle_para.alignment = PP_ALIGN.CENTER
+    subtitle_para.font.size = Pt(16)
+    subtitle_para.font.color.rgb = DARK_GRAY
+
+    # Logo placeholder (text)
+    logo_box = slide.shapes.add_textbox(Inches(4), Inches(6.5), Inches(2), Inches(0.5))
+    logo_frame = logo_box.text_frame
+    logo_frame.text = "MI-Navigator"
+    logo_para = logo_frame.paragraphs[0]
+    logo_para.alignment = PP_ALIGN.CENTER
+    logo_para.font.size = Pt(14)
+    logo_para.font.bold = True
+    logo_para.font.color.rgb = BRAND_LIGHT_BLUE
+
+    # === Slide 2: Summary ===
+    bullet_slide_layout = prs.slide_layouts[1]  # Title and content
+    slide = prs.slides.add_slide(bullet_slide_layout)
+
+    # Title
+    title = slide.shapes.title
+    title.text = "Podsumowanie"
+    title.text_frame.paragraphs[0].font.size = Pt(28)
+    title.text_frame.paragraphs[0].font.color.rgb = BRAND_BLUE
+
+    # Content
+    content = slide.placeholders[1]
+    tf = content.text_frame
+    tf.word_wrap = True
+
+    # Split summary into paragraphs
+    summary_text = report.get('summary', 'Brak podsumowania')
+    paragraphs = summary_text.split('\n')
+
+    for i, para_text in enumerate(paragraphs[:5]):  # Limit to 5 paragraphs
+        if i == 0:
+            p = tf.paragraphs[0]
+        else:
+            p = tf.add_paragraph()
+        p.text = para_text.strip()
+        p.font.size = Pt(14)
+        p.font.color.rgb = DARK_GRAY
+        p.space_before = Pt(6)
+
+    # === Content Slides: One per section ===
+    sections = report.get('sections', [])
+
+    for idx, section in enumerate(sections[:10]):  # Limit to 10 sections
+        slide = prs.slides.add_slide(bullet_slide_layout)
+
+        # Section title
+        title = slide.shapes.title
+        title.text = f"{idx + 1}. {section.get('title', 'Untitled')}"
+        title.text_frame.paragraphs[0].font.size = Pt(28)
+        title.text_frame.paragraphs[0].font.color.rgb = BRAND_BLUE
+
+        # Section content
+        content = slide.placeholders[1]
+        tf = content.text_frame
+        tf.word_wrap = True
+        tf.clear()  # Clear default content
+
+        section_content = section.get('content', '')
+
+        # Parse markdown-style content
+        lines = section_content.split('\n')
+        current_paragraph = None
+
+        for line in lines[:20]:  # Limit lines per slide
+            line = line.strip()
+            if not line:
+                continue
+
+            # Bullet point
+            if line.startswith('- ') or line.startswith('* '):
+                p = tf.add_paragraph()
+                p.text = line[2:].strip()
+                p.level = 0
+                p.font.size = Pt(12)
+                p.font.color.rgb = DARK_GRAY
+
+            # Numbered list
+            elif re.match(r'^\d+\.\s', line):
+                p = tf.add_paragraph()
+                p.text = re.sub(r'^\d+\.\s', '', line)
+                p.level = 0
+                p.font.size = Pt(12)
+                p.font.color.rgb = DARK_GRAY
+
+            # Bold header (markdown **text**)
+            elif line.startswith('**') and line.endswith('**'):
+                p = tf.add_paragraph()
+                p.text = line.strip('*')
+                p.font.size = Pt(14)
+                p.font.bold = True
+                p.font.color.rgb = BRAND_LIGHT_BLUE
+                p.space_before = Pt(12)
+
+            # Regular paragraph
+            else:
+                p = tf.add_paragraph()
+                p.text = line
+                p.font.size = Pt(12)
+                p.font.color.rgb = DARK_GRAY
+                p.space_before = Pt(6)
+
+    # === Final Slide: Thank You ===
+    slide = prs.slides.add_slide(title_slide_layout)
+
+    # Background
+    background = slide.shapes.add_shape(
+        1,
+        Inches(0), Inches(0),
+        Inches(10), Inches(7.5)
+    )
+    background.fill.solid()
+    background.fill.fore_color.rgb = BRAND_BLUE
+    background.line.color.rgb = BRAND_BLUE
+
+    # Thank you message
+    thanks_box = slide.shapes.add_textbox(Inches(2), Inches(3), Inches(6), Inches(1))
+    thanks_frame = thanks_box.text_frame
+    thanks_frame.text = "Dziękujemy"
+    thanks_para = thanks_frame.paragraphs[0]
+    thanks_para.alignment = PP_ALIGN.CENTER
+    thanks_para.font.size = Pt(40)
+    thanks_para.font.bold = True
+    thanks_para.font.color.rgb = RGBColor(255, 255, 255)
+
+    # Footer
+    footer_box = slide.shapes.add_textbox(Inches(2), Inches(5), Inches(6), Inches(0.5))
+    footer_frame = footer_box.text_frame
+    footer_frame.text = "MI-Navigator | Market Intelligence Platform"
+    footer_para = footer_frame.paragraphs[0]
+    footer_para.alignment = PP_ALIGN.CENTER
+    footer_para.font.size = Pt(14)
+    footer_para.font.color.rgb = RGBColor(200, 210, 230)
+
+    # Save to BytesIO
+    output = io.BytesIO()
+    prs.save(output)
+    output.seek(0)
+
+    # Generate filename
+    safe_title = report['title'].replace(' ', '_').replace('/', '_')[:40]
+    filename = f"{report['id']}_{safe_title}.pptx"
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
 
