@@ -591,6 +591,43 @@ MOCK_COMPANIES = [
     },
 ]
 
+# Mock CEIDG companies (sole proprietorships - jednoosobowe działalności gospodarcze)
+MOCK_CEIDG_COMPANIES = [
+    {
+        "id": "ceidg_1",
+        "business_name": "Zakład Stolarski Jan Kowalski",
+        "owner_name": "Jan Kowalski",
+        "nip": "9876543211",
+        "regon": "123456789",
+        "address": {"city": "Warszawa", "street": "ul. Drewniana 45", "postal_code": "02-123"},
+        "pkd_codes": ["16.23.Z", "31.02.Z"],
+        "status": "active",
+        "founded": "2015",
+    },
+    {
+        "id": "ceidg_2",
+        "business_name": "Studio Graficzne Anna Nowak",
+        "owner_name": "Anna Nowak",
+        "nip": "1234567891",
+        "regon": "987654321",
+        "address": {"city": "Kraków", "street": "ul. Artystyczna 12", "postal_code": "30-050"},
+        "pkd_codes": ["74.10.Z", "73.11.Z"],
+        "status": "active",
+        "founded": "2018",
+    },
+    {
+        "id": "ceidg_3",
+        "business_name": "Usługi IT Piotr Wiśniewski",
+        "owner_name": "Piotr Wiśniewski",
+        "nip": "5551234567",
+        "regon": "111222333",
+        "address": {"city": "Wrocław", "street": "ul. Komputerowa 88", "postal_code": "50-001"},
+        "pkd_codes": ["62.01.Z", "62.02.Z"],
+        "status": "active",
+        "founded": "2020",
+    },
+]
+
 
 class CompanySearchResult(BaseModel):
     id: str

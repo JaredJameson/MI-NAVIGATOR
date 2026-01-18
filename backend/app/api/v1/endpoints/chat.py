@@ -139,16 +139,27 @@ def generate_mock_response(user_message: str) -> str:
 
         if identifier:
             # Fetch real company data from /companies endpoint
-            from app.api.v1.endpoints.companies import MOCK_COMPANIES, PKD_CODES
+            from app.api.v1.endpoints.companies import MOCK_COMPANIES, MOCK_CEIDG_COMPANIES, PKD_CODES
 
             company = None
+            is_ceidg = False
+
+            # First check KRS companies
             for c in MOCK_COMPANIES:
                 if (c["nip"] == identifier or c.get("krs", "") == identifier):
                     company = c
                     break
 
-            if company:
-                # Build PKD descriptions
+            # If not found in KRS, check CEIDG
+            if not company:
+                for c in MOCK_CEIDG_COMPANIES:
+                    if c["nip"] == identifier:
+                        company = c
+                        is_ceidg = True
+                        break
+
+            if company and is_ceidg:
+                # Build PKD descriptions for CEIDG
                 pkd_descriptions = []
                 for pkd in company["pkd_codes"]:
                     if pkd in PKD_CODES:
@@ -158,7 +169,42 @@ def generate_mock_response(user_message: str) -> str:
                             "category": PKD_CODES[pkd]["category"]
                         })
 
-                # Format address
+                # Format address for CEIDG
+                address = company["address"]
+                address_str = f"{address.get('street', '')}, {address.get('postal_code', '')} {address.get('city', '')}"
+
+                # Return structured company profile with CEIDG data
+                return json.dumps({
+                    "type": "company_profile_ceidg",
+                    "data": {
+                        "lookup_type": lookup_type,
+                        "identifier": identifier,
+                        "basic_info": {
+                            "business_name": company["business_name"],
+                            "owner_name": company["owner_name"],
+                            "nip": company["nip"],
+                            "regon": company.get("regon", ""),
+                            "address": address_str,
+                            "status": company["status"],
+                            "founded": company.get("founded", "N/A")
+                        },
+                        "pkd_codes": pkd_descriptions,
+                        "source": "CEIDG API",
+                        "fetched_at": datetime.utcnow().isoformat()
+                    }
+                }, ensure_ascii=False)
+            elif company:
+                # Build PKD descriptions for KRS
+                pkd_descriptions = []
+                for pkd in company["pkd_codes"]:
+                    if pkd in PKD_CODES:
+                        pkd_descriptions.append({
+                            "code": pkd,
+                            "name": PKD_CODES[pkd]["name"],
+                            "category": PKD_CODES[pkd]["category"]
+                        })
+
+                # Format address for KRS
                 address = company["address"]
                 address_str = f"{address.get('street', '')}, {address.get('postal_code', '')} {address.get('city', '')}"
 

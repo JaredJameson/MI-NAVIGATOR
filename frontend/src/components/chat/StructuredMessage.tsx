@@ -3,6 +3,7 @@
 import React from 'react'
 import { CompanyCard, CompanyCardData } from './CompanyCard'
 import { CompanyProfileKRS, CompanyProfileKRSData } from './CompanyProfileKRS'
+import { CompanyProfileCEIDG, CompanyProfileCEIDGData } from './CompanyProfileCEIDG'
 import { DataTable, DataTableData } from './DataTable'
 import { TrendChart, TrendChartData } from './TrendChart'
 import { SourceCitation } from './SourceCitation'
@@ -18,8 +19,8 @@ interface Source {
 }
 
 export interface StructuredMessageData {
-  type: 'company_card' | 'company_profile_krs' | 'data_table' | 'trend_chart' | 'text' | 'text_with_sources' | 'error'
-  data: CompanyCardData | CompanyProfileKRSData | DataTableData | TrendChartData | { text: string } | { text: string; sources: Source[] } | { message: string; suggestion?: string }
+  type: 'company_card' | 'company_profile_krs' | 'company_profile_ceidg' | 'data_table' | 'trend_chart' | 'text' | 'text_with_sources' | 'error'
+  data: CompanyCardData | CompanyProfileKRSData | CompanyProfileCEIDGData | DataTableData | TrendChartData | { text: string } | { text: string; sources: Source[] } | { message: string; suggestion?: string }
 }
 
 interface StructuredMessageProps {
@@ -65,6 +66,9 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
 
     case 'company_profile_krs':
       return <CompanyProfileKRS data={structuredData.data as CompanyProfileKRSData} />
+
+    case 'company_profile_ceidg':
+      return <CompanyProfileCEIDG data={structuredData.data as CompanyProfileCEIDGData} />
 
     case 'data_table':
       return <DataTable data={structuredData.data as DataTableData} />
