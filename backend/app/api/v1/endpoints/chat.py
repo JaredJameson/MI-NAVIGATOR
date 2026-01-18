@@ -1311,6 +1311,239 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # PESTLE analysis request
+    elif ("pestle" in user_lower or
+          "pestel" in user_lower or
+          ("political" in user_lower and "economic" in user_lower) or
+          ("polityczne" in user_lower and "ekonomiczne" in user_lower)):
+        return json.dumps({
+            "type": "pestle_analysis",
+            "data": {
+                "industry_name": "Produkcja tworzyw sztucznych",
+                "region": "Polska",
+                "analysis_date": datetime.utcnow().isoformat(),
+                "political": {
+                    "factors": [
+                        {
+                            "factor": "Polityka klimatyczna UE",
+                            "description": "European Green Deal wymusza redukcję emisji CO2 o 55% do 2030 roku, wpływając na koszty energii i surowców.",
+                            "impact": "high",
+                            "timeline": "short-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Regulacje dotyczące plastiku jednorazowego",
+                            "description": "Dyrektywa SUP (Single-Use Plastics) zakazuje produkcji niektórych produktów plastikowych od 2021.",
+                            "impact": "high",
+                            "timeline": "short-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Stabilność polityczna Polski",
+                            "description": "Względnie stabilna sytuacja polityczna sprzyja inwestycjom długoterminowym w sektor produkcyjny.",
+                            "impact": "medium",
+                            "timeline": "medium-term",
+                            "sentiment": "opportunity"
+                        },
+                        {
+                            "factor": "Dotacje i wsparcie dla przemysłu",
+                            "description": "Fundusze UE na transformację zieloną (REPowerEU, Just Transition Fund) dostępne dla innowacyjnych projektów.",
+                            "impact": "medium",
+                            "timeline": "short-term",
+                            "sentiment": "opportunity"
+                        }
+                    ]
+                },
+                "economic": {
+                    "factors": [
+                        {
+                            "factor": "Wzrost cen surowców petrochemicznych",
+                            "description": "Ceny granulatów plastikowych wzrosły o 35% w latach 2022-2023 z powodu kryzysu energetycznego.",
+                            "impact": "high",
+                            "timeline": "short-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Inflacja i koszty pracy",
+                            "description": "Inflacja 10-15% (2022-2023) i rosnące płace (wzrost 12% r/r) zwiększają koszty operacyjne.",
+                            "impact": "high",
+                            "timeline": "short-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Koszty energii",
+                            "description": "Ceny energii elektrycznej wzrosły o 120% od 2021 roku, znacząco wpływając na rentowność produkcji.",
+                            "impact": "high",
+                            "timeline": "medium-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Wzrost PKB i konsumpcji",
+                            "description": "Przewidywany wzrost PKB Polski 2-3% rocznie do 2026, wspierający popyt na produkty z tworzyw.",
+                            "impact": "medium",
+                            "timeline": "medium-term",
+                            "sentiment": "opportunity"
+                        }
+                    ]
+                },
+                "social": {
+                    "factors": [
+                        {
+                            "factor": "Rosnąca świadomość ekologiczna",
+                            "description": "65% konsumentów preferuje produkty w opakowaniach biodegradowalnych lub wielokrotnego użytku.",
+                            "impact": "high",
+                            "timeline": "medium-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Zmiana nawyków konsumenckich",
+                            "description": "Trend 'zero waste' i redukcja plastiku w gospodarstwach domowych (wzrost 40% w ciągu 3 lat).",
+                            "impact": "medium",
+                            "timeline": "long-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Deficyt wykwalifikowanej kadry",
+                            "description": "Brak 15% wykwalifikowanych operatorów i technologów w branży tworzyw sztucznych.",
+                            "impact": "medium",
+                            "timeline": "short-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Urbanizacja i wzrost klasy średniej",
+                            "description": "Rosnące zapotrzebowanie na produkty konsumenckie i opakowania w miastach.",
+                            "impact": "medium",
+                            "timeline": "long-term",
+                            "sentiment": "opportunity"
+                        }
+                    ]
+                },
+                "technological": {
+                    "factors": [
+                        {
+                            "factor": "Automatyzacja i Industry 4.0",
+                            "description": "Roboty współpracujące i IoT w produkcji mogą zwiększyć efektywność o 25-30%.",
+                            "impact": "high",
+                            "timeline": "medium-term",
+                            "sentiment": "opportunity"
+                        },
+                        {
+                            "factor": "Rozwój bioplastyków",
+                            "description": "Technologie PLA, PHA i innych bioplastyków rozwijają się w tempie 15% rocznie.",
+                            "impact": "high",
+                            "timeline": "medium-term",
+                            "sentiment": "opportunity"
+                        },
+                        {
+                            "factor": "Recykling chemiczny",
+                            "description": "Nowe technologie chemicznego recyklingu tworzyw (pyroliza, depolimeryzacja) zyskują na znaczeniu.",
+                            "impact": "medium",
+                            "timeline": "long-term",
+                            "sentiment": "opportunity"
+                        },
+                        {
+                            "factor": "Druk 3D z tworzyw",
+                            "description": "Addytywne technologie produkcji (FDM, SLS) mogą zastąpić wtrysk w niektórych aplikacjach.",
+                            "impact": "low",
+                            "timeline": "long-term",
+                            "sentiment": "threat"
+                        }
+                    ]
+                },
+                "legal": {
+                    "factors": [
+                        {
+                            "factor": "Rozszerzona Odpowiedzialność Producenta (ROP)",
+                            "description": "Od 2023 producenci muszą finansować zbiórkę i recykling opakowań (0.50-1.50 PLN/kg).",
+                            "impact": "high",
+                            "timeline": "short-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Podatek od plastiku",
+                            "description": "Opłata za nietrzeźwiane opakowania plastikowe 0.80 EUR/kg (3.50 PLN/kg) od 2021.",
+                            "impact": "high",
+                            "timeline": "short-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Normy bezpieczeństwa produktów",
+                            "description": "Zaostrzające się wymagania dla materiałów kontaktujących się z żywnością (REACH, FDA).",
+                            "impact": "medium",
+                            "timeline": "medium-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Prawo pracy i BHP",
+                            "description": "Nowe regulacje dotyczące emisji w miejscu pracy i ochrony zdrowia pracowników.",
+                            "impact": "low",
+                            "timeline": "medium-term",
+                            "sentiment": "threat"
+                        }
+                    ]
+                },
+                "environmental": {
+                    "factors": [
+                        {
+                            "factor": "Zanieczyszczenie plastikiem oceanów",
+                            "description": "8 milionów ton plastiku trafia rocznie do oceanów, rosnąca presja społeczna na redukcję produkcji.",
+                            "impact": "high",
+                            "timeline": "long-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Cel neutralności klimatycznej 2050",
+                            "description": "UE wymaga osiągnięcia neutralności węglowej, wpływając na całą branżę petrochemiczną.",
+                            "impact": "high",
+                            "timeline": "long-term",
+                            "sentiment": "threat"
+                        },
+                        {
+                            "factor": "Gospodarka obiegu zamkniętego (circular economy)",
+                            "description": "Cele UE: 50% recyklingu tworzyw do 2025, 65% do 2030 - wymusza zmiany w modelu biznesowym.",
+                            "impact": "high",
+                            "timeline": "medium-term",
+                            "sentiment": "opportunity"
+                        },
+                        {
+                            "factor": "Efektywność energetyczna",
+                            "description": "Możliwość redukcji zużycia energii o 20-30% przez modernizację procesów i wykorzystanie odnawialnych źródeł.",
+                            "impact": "medium",
+                            "timeline": "medium-term",
+                            "sentiment": "opportunity"
+                        }
+                    ]
+                },
+                "summary": {
+                    "opportunities_count": 8,
+                    "threats_count": 16,
+                    "high_impact_count": 14,
+                    "overall_outlook": "challenging",
+                    "key_insights": [
+                        "Branża tworzyw sztucznych stoi przed znaczącymi wyzwaniami regulacyjnymi i społecznymi",
+                        "Wysokie koszty energii i surowców (wzrost 35-120%) znacząco obniżają marże",
+                        "Transformacja w kierunku bioplastyków i gospodarki obiegu zamkniętego jest konieczna",
+                        "Automatyzacja i Industry 4.0 oferują szanse na poprawę efektywności 25-30%",
+                        "Firmy muszą dostosować się do rosnących wymagań ekologicznych lub stracić udział rynkowy"
+                    ],
+                    "strategic_priorities": [
+                        "Inwestycja w linie do produkcji bioplastyków i materiałów biodegradowalnych",
+                        "Automatyzacja produkcji dla redukcji kosztów pracy i energii",
+                        "Wdrożenie programu circular economy (recykling, upcykling)",
+                        "Dywersyfikacja źródeł energii (fotowoltaika, zakup zielonej energii)",
+                        "Lobbing na rzecz proporcjonalnych regulacji i wsparcia dla transformacji"
+                    ]
+                },
+                "data_sources": [
+                    {"name": "European Green Deal Policy Framework 2024", "confidence": 0.95},
+                    {"name": "Polish Economic Outlook 2024-2026", "confidence": 0.90},
+                    {"name": "Consumer Sustainability Trends Report 2024", "confidence": 0.85},
+                    {"name": "Industry 4.0 in Plastics Manufacturing", "confidence": 0.85},
+                    {"name": "EU Circular Economy Action Plan", "confidence": 0.95}
+                ]
+            }
+        }, ensure_ascii=False)
+
     # SWOT analysis request
     elif ("swot" in user_lower or
           ("analiza" in user_lower and ("mocne" in user_lower or "słabe" in user_lower or "szanse" in user_lower or "zagrożenia" in user_lower)) or
