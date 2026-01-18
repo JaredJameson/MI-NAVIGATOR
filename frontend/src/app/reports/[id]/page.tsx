@@ -3408,6 +3408,7 @@ export default function ReportViewerPage() {
   const [editedTitle, setEditedTitle] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [sortedSections, setSortedSections] = useState<ReportSection[]>([])  // For drag & drop reordering
+  const [editedSectionTitles, setEditedSectionTitles] = useState<{[key: string]: string}>({})  // For section title editing
 
   // Auto-save state
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null)
@@ -3622,6 +3623,18 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Add new section
+  const addNewSection = () => {
+    const newSection: ReportSection = {
+      id: `section_new_${Date.now()}`,
+      title: 'Nowa sekcja',
+      content: 'Wpisz treść sekcji...'
+    }
+
+    setSortedSections([...sortedSections, newSection])
+    setEditedSections({ ...editedSections, [newSection.id]: newSection.content })
+  }
+
   const saveReportChanges = async () => {
     const token = getStoredToken()
     if (!token || !report) return
@@ -3629,9 +3642,10 @@ export default function ReportViewerPage() {
     setIsSaving(true)
 
     try {
-      // Update sections with edited content AND new order from sortedSections
+      // Update sections with edited content, titles AND new order from sortedSections
       const updatedSections = sortedSections.map(section => ({
         ...section,
+        title: editedSectionTitles[section.id] || section.title,
         content: editedSections[section.id] || section.content
       }))
 
@@ -5559,14 +5573,20 @@ export default function ReportViewerPage() {
                         id={`section-${section.id}`}
                         className="rounded-xl bg-white p-6 shadow-sm"
                       >
-                        <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                          {index + 1}. {section.title}
+                        <div className="mb-4 flex items-center gap-2">
+                          <span className="text-xl font-semibold text-gray-600">{index + 1}.</span>
+                          <input
+                            type="text"
+                            value={editedSectionTitles[section.id] || section.title}
+                            onChange={(e) => setEditedSectionTitles({ ...editedSectionTitles, [section.id]: e.target.value })}
+                            className="flex-1 text-xl font-semibold text-gray-900 border-b-2 border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-2 py-1 rounded transition-colors"
+                          />
                           {(swotData || porterData || tamSamSomData || trendTimelineData || ownershipData || positioningMapData || financialRatiosData) && (
-                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                      📊 Diagram interaktywny
-                    </span>
-                  )}
-                </h2>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                              📊 Diagram interaktywny
+                            </span>
+                          )}
+                        </div>
 
                 {/* SWOT Diagram Visualization */}
                 {swotData ? (
@@ -5832,6 +5852,19 @@ export default function ReportViewerPage() {
                     </SortableSectionWrapper>
                   )
                 })}
+
+                {/* Add Section Button */}
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={addNewSection}
+                    className="flex items-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Dodaj sekcję
+                  </button>
+                </div>
               </div>
             </SortableContext>
           </DndContext>
