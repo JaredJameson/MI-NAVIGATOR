@@ -13,6 +13,40 @@ from app.models.user import User
 router = APIRouter()
 
 
+# Financial Data Models
+class FinancialStatement(BaseModel):
+    year: int
+    revenue: float  # PLN
+    net_profit: float  # PLN
+    total_assets: float  # PLN
+    total_equity: float  # PLN
+    total_liabilities: float  # PLN
+    current_assets: float  # PLN
+    current_liabilities: float  # PLN
+    inventory: float  # PLN
+    accounts_receivable: float  # PLN
+
+
+class FinancialRatios(BaseModel):
+    year: int
+    roe: float  # Return on Equity (%)
+    roa: float  # Return on Assets (%)
+    ros: float  # Return on Sales (%)
+    current_ratio: float  # Current Ratio
+    quick_ratio: float  # Quick Ratio
+    debt_ratio: float  # Debt Ratio (%)
+    debt_to_equity: float  # Debt to Equity
+    inventory_turnover: float  # times per year
+    dso: int  # Days Sales Outstanding (days)
+
+
+class CompanyFinancials(BaseModel):
+    company_id: str
+    company_name: str
+    statements: List[FinancialStatement]
+    ratios: List[FinancialRatios]
+
+
 # News Article Model
 class NewsArticle(BaseModel):
     id: str
@@ -846,15 +880,99 @@ async def get_company(
     )
 
 
-@router.get("/{identifier}/financials")
+@router.get("/{identifier}/financials", response_model=CompanyFinancials)
 async def get_company_financials(identifier: str):
-    """Get company financial data."""
-    # TODO: Implement financial data retrieval
-    return {
-        "company_id": identifier,
-        "statements": [],
-        "ratios": {}
-    }
+    """Get company financial data including statements and calculated ratios."""
+    # Mock financial data for FADO Sp. z o.o.
+    if identifier in ["5260016831", "1"]:
+        return CompanyFinancials(
+            company_id=identifier,
+            company_name="FADO Sp. z o.o.",
+            statements=[
+                FinancialStatement(
+                    year=2023,
+                    revenue=45_200_000,
+                    net_profit=4_800_000,
+                    total_assets=51_000_000,
+                    total_equity=26_400_000,
+                    total_liabilities=16_320_000,
+                    current_assets=24_500_000,
+                    current_liabilities=11_700_000,
+                    inventory=7_300_000,
+                    accounts_receivable=5_600_000
+                ),
+                FinancialStatement(
+                    year=2022,
+                    revenue=40_200_000,
+                    net_profit=4_000_000,
+                    total_assets=48_000_000,
+                    total_equity=25_000_000,
+                    total_liabilities=15_360_000,
+                    current_assets=22_000_000,
+                    current_liabilities=10_500_000,
+                    inventory=6_800_000,
+                    accounts_receivable=5_200_000
+                ),
+                FinancialStatement(
+                    year=2021,
+                    revenue=35_800_000,
+                    net_profit=3_200_000,
+                    total_assets=45_000_000,
+                    total_equity=23_500_000,
+                    total_liabilities=14_400_000,
+                    current_assets=20_000_000,
+                    current_liabilities=9_500_000,
+                    inventory=6_200_000,
+                    accounts_receivable=4_800_000
+                )
+            ],
+            ratios=[
+                FinancialRatios(
+                    year=2023,
+                    roe=18.2,  # net_profit / total_equity * 100
+                    roa=9.4,   # net_profit / total_assets * 100
+                    ros=10.6,  # net_profit / revenue * 100
+                    current_ratio=2.1,  # current_assets / current_liabilities
+                    quick_ratio=1.4,    # (current_assets - inventory) / current_liabilities
+                    debt_ratio=32.0,    # total_liabilities / total_assets * 100
+                    debt_to_equity=0.47,  # total_liabilities / total_equity
+                    inventory_turnover=6.2,  # revenue / inventory
+                    dso=45  # (accounts_receivable / revenue) * 365
+                ),
+                FinancialRatios(
+                    year=2022,
+                    roe=16.0,
+                    roa=8.3,
+                    ros=10.0,
+                    current_ratio=2.1,
+                    quick_ratio=1.4,
+                    debt_ratio=32.0,
+                    debt_to_equity=0.61,
+                    inventory_turnover=5.9,
+                    dso=47
+                ),
+                FinancialRatios(
+                    year=2021,
+                    roe=13.6,
+                    roa=7.1,
+                    ros=8.9,
+                    current_ratio=2.1,
+                    quick_ratio=1.5,
+                    debt_ratio=32.0,
+                    debt_to_equity=0.61,
+                    inventory_turnover=5.8,
+                    dso=49
+                )
+            ]
+        )
+
+    # Return empty data for unknown companies
+    return CompanyFinancials(
+        company_id=identifier,
+        company_name="Unknown Company",
+        statements=[],
+        ratios=[]
+    )
 
 
 @router.get("/{identifier}/ownership")
