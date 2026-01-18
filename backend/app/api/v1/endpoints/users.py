@@ -2,7 +2,7 @@
 User API Endpoints
 """
 
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,6 +30,7 @@ class UserProfileResponse(BaseModel):
     industry: Optional[str] = None
     industry_segment: Optional[str] = None
     user_role: Optional[str] = None
+    use_cases: Optional[list[str]] = None
     preferred_language: str = "pl"
     preferred_depth: str = "standard"
     preferred_format: str = "pdf"
@@ -602,6 +603,7 @@ class OnboardingDataRequest(BaseModel):
     industry: str
     industry_segment: Optional[str] = None
     user_role: str
+    use_cases: Optional[list[str]] = None
     preferred_language: Optional[str] = "pl"
     preferred_depth: Optional[str] = "standard"
     preferred_format: Optional[str] = "pdf"
@@ -655,6 +657,7 @@ async def save_onboarding_data(
                 industry=onboarding_data.industry,
                 industry_segment=onboarding_data.industry_segment,
                 user_role=onboarding_data.user_role,
+                use_cases=onboarding_data.use_cases,
                 preferred_language=onboarding_data.preferred_language or "pl",
                 preferred_depth=onboarding_data.preferred_depth or "standard",
                 preferred_format=onboarding_data.preferred_format or "pdf",
@@ -675,6 +678,7 @@ async def save_onboarding_data(
                 industry=onboarding_data.industry,
                 industry_segment=onboarding_data.industry_segment,
                 user_role=onboarding_data.user_role,
+                use_cases=onboarding_data.use_cases,
                 preferred_language=onboarding_data.preferred_language or "pl",
                 preferred_depth=onboarding_data.preferred_depth or "standard",
                 preferred_format=onboarding_data.preferred_format or "pdf",

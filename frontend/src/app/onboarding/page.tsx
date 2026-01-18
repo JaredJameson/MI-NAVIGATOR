@@ -156,6 +156,7 @@ export default function OnboardingPage() {
           industry: formData.industry,
           industry_segment: formData.industry_segment,
           user_role: formData.user_role,
+          use_cases: formData.use_cases,
           preferred_language: formData.preferred_language,
           preferred_depth: formData.preferred_depth,
           preferred_format: formData.preferred_format,
