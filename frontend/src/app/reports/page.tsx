@@ -215,6 +215,20 @@ export default function ReportsPage() {
     fetchReports()
   }
 
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setSearchQuery('')
+    setFilterType('')
+    setFilterTag('')
+    setShowFavoritesOnly(false)
+    setFilterStatus('')
+    setShowArchived(false)
+    setCurrentPage(1)
+  }
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery !== '' || filterType !== '' || filterTag !== '' || showFavoritesOnly || filterStatus !== '' || showArchived
+
   // Format date using user's timezone preference
   const formatDate = (dateString: string) => {
     return formatDateInTimezone(dateString, userTimezone, userLocale)
@@ -1005,6 +1019,16 @@ export default function ReportsPage() {
             >
               Szukaj
             </button>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="rounded-lg bg-gray-100 px-6 py-2 text-gray-700 hover:bg-gray-200 transition-colors"
+                title="Wyczyść wszystkie filtry"
+              >
+                Wyczyść wszystkie
+              </button>
+            )}
           </form>
         </div>
 
