@@ -322,9 +322,9 @@ export default function SearchPage() {
                       <h3 className="font-medium text-gray-900">{search.name}</h3>
                       <p className="text-sm text-gray-600">
                         Kod PKD: <span className="font-mono">{search.query}</span>
-                        {search.filters?.pkd_description && (
+                        {search.filters?.pkd_description ? (
                           <span className="ml-2 text-gray-400">- {String(search.filters.pkd_description).slice(0, 50)}...</span>
-                        )}
+                        ) : null}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
                         Zapisano: {formatDate(search.created_at)}

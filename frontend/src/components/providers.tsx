@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { setupGlobalErrorHandlers } from '@/services/errorTracking'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { SyncManager } from '@/components/SyncManager'
+import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -31,6 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <FeatureFlagProvider>
+          <ServiceWorkerRegister />
           <OfflineIndicator />
           <SyncManager />
           <AuthGuard>

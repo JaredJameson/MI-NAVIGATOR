@@ -1131,8 +1131,8 @@ export default function CompanyProfilePage() {
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-sm font-medium text-slate-700">{detail.source}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              detail.status === 'fresh' ? 'bg-green-100 text-green-700' :
-                              detail.status === 'stale' ? 'bg-amber-100 text-amber-700' :
+                              (detail as any).status === 'fresh' ? 'bg-green-100 text-green-700' :
+                              (detail as any).status === 'stale' ? 'bg-amber-100 text-amber-700' :
                               'bg-red-100 text-red-700'
                             }`}>
                               {detail.days_ago} dni temu
