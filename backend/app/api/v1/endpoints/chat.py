@@ -760,6 +760,194 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # Competitor mapping request
+    elif ("konkurencja" in user_lower or "competitor" in user_lower or "konkurenci" in user_lower or
+          "konkurent" in user_lower or "analiza konkurencyjna" in user_lower or
+          "competitive analysis" in user_lower or "rywale" in user_lower):
+        return json.dumps({
+            "type": "competitor_mapping",
+            "data": {
+                "target_company": {
+                    "name": "FADO Sp. z o.o.",
+                    "nip": "5260016831",
+                    "krs": "0000145732",
+                    "pkd_main": "22.29.Z",
+                    "pkd_description": "Produkcja pozostałych wyrobów z tworzyw sztucznych",
+                    "industry": "Manufacturing - Plastic Products"
+                },
+                "search_criteria": {
+                    "method": "PKD-based search",
+                    "pkd_codes": ["22.29.Z", "22.21.Z", "22.22.Z"],
+                    "geographic_scope": "Poland",
+                    "filters_applied": ["Active companies", "Similar size (50-300 employees)"]
+                },
+                "competitors": [
+                    {
+                        "id": 1,
+                        "name": "PLAST-MET S.A.",
+                        "nip": "5261234567",
+                        "krs": "0000098765",
+                        "category": "direct",
+                        "category_description": "Direct competitor - same PKD, same products",
+                        "location": "Poznań, wielkopolskie",
+                        "employees": "200-250",
+                        "revenue_estimate": "75M PLN",
+                        "pkd_main": "22.29.Z",
+                        "products": ["Injection molding", "Plastic parts for automotive"],
+                        "market_position": "Strong regional player",
+                        "competitive_advantage": "ISO certifications, modern machinery",
+                        "website": "https://plast-met.pl"
+                    },
+                    {
+                        "id": 2,
+                        "name": "POLIMER Sp. z o.o.",
+                        "nip": "7771122334",
+                        "krs": "0000112233",
+                        "category": "direct",
+                        "category_description": "Direct competitor - identical product portfolio",
+                        "location": "Wrocław, dolnośląskie",
+                        "employees": "150-200",
+                        "revenue_estimate": "60M PLN",
+                        "pkd_main": "22.29.Z",
+                        "products": ["Plastic components", "Technical plastics"],
+                        "market_position": "Mid-tier player",
+                        "competitive_advantage": "Fast delivery times, flexible production",
+                        "website": "https://polimer.com.pl"
+                    },
+                    {
+                        "id": 3,
+                        "name": "TECHNOPLAST Sp. z o.o.",
+                        "nip": "9991234567",
+                        "krs": "0000223344",
+                        "category": "direct",
+                        "category_description": "Direct competitor - same target market",
+                        "location": "Łódź, łódzkie",
+                        "employees": "100-150",
+                        "revenue_estimate": "45M PLN",
+                        "pkd_main": "22.29.Z",
+                        "products": ["Injection molding services", "Plastic tooling"],
+                        "market_position": "Growing competitor",
+                        "competitive_advantage": "Competitive pricing, good customer service",
+                        "website": "https://technoplast.pl"
+                    },
+                    {
+                        "id": 4,
+                        "name": "FORMA S.A.",
+                        "nip": "8881122334",
+                        "krs": "0000334455",
+                        "category": "indirect",
+                        "category_description": "Indirect competitor - focuses on tooling, not final products",
+                        "location": "Kraków, małopolskie",
+                        "employees": "80-100",
+                        "revenue_estimate": "35M PLN",
+                        "pkd_main": "22.21.Z",
+                        "products": ["Plastic molds", "Tool design"],
+                        "market_position": "Niche specialist",
+                        "competitive_advantage": "Technical expertise, custom solutions",
+                        "website": "https://forma.com.pl"
+                    },
+                    {
+                        "id": 5,
+                        "name": "PLASTIK-TECH Sp. z o.o.",
+                        "nip": "6661234567",
+                        "krs": "0000445566",
+                        "category": "direct",
+                        "category_description": "Direct competitor - similar scale and market",
+                        "location": "Gdańsk, pomorskie",
+                        "employees": "120-150",
+                        "revenue_estimate": "50M PLN",
+                        "pkd_main": "22.29.Z",
+                        "products": ["Plastic packaging", "Industrial plastics"],
+                        "market_position": "Regional leader in northern Poland",
+                        "competitive_advantage": "Export capabilities, EU clients",
+                        "website": "https://plastik-tech.pl"
+                    },
+                    {
+                        "id": 6,
+                        "name": "EURO-PLAST Sp. z o.o.",
+                        "nip": "7771234568",
+                        "krs": "0000556677",
+                        "category": "direct",
+                        "category_description": "Direct competitor - automotive focus",
+                        "location": "Gliwice, śląskie",
+                        "employees": "180-220",
+                        "revenue_estimate": "70M PLN",
+                        "pkd_main": "22.29.Z",
+                        "products": ["Automotive plastics", "Technical components"],
+                        "market_position": "Strong competitor with German partnerships",
+                        "competitive_advantage": "Tier 1 automotive supplier status",
+                        "website": "https://europlast.com.pl"
+                    },
+                    {
+                        "id": 7,
+                        "name": "RECYCLING PLAST S.A.",
+                        "nip": "5551234567",
+                        "krs": "0000667788",
+                        "category": "substitute",
+                        "category_description": "Substitute competitor - recycled plastics alternative",
+                        "location": "Katowice, śląskie",
+                        "employees": "90-110",
+                        "revenue_estimate": "40M PLN",
+                        "pkd_main": "22.22.Z",
+                        "products": ["Recycled plastic products", "Eco-friendly alternatives"],
+                        "market_position": "Emerging green alternative",
+                        "competitive_advantage": "Sustainability focus, lower prices",
+                        "website": "https://recyclingplast.pl"
+                    },
+                    {
+                        "id": 8,
+                        "name": "INJECTION MOLDERS Sp. z o.o.",
+                        "nip": "4441234567",
+                        "krs": "0000778899",
+                        "category": "direct",
+                        "category_description": "Direct competitor - specialized in injection",
+                        "location": "Bydgoszcz, kujawsko-pomorskie",
+                        "employees": "100-120",
+                        "revenue_estimate": "42M PLN",
+                        "pkd_main": "22.29.Z",
+                        "products": ["Injection molding", "Precision plastic parts"],
+                        "market_position": "Mid-market player",
+                        "competitive_advantage": "High precision capabilities, quick prototyping",
+                        "website": "https://injection-molders.pl"
+                    }
+                ],
+                "summary": {
+                    "total_competitors": 8,
+                    "direct_competitors": 6,
+                    "indirect_competitors": 1,
+                    "substitute_competitors": 1,
+                    "geographic_distribution": {
+                        "wielkopolskie": 1,
+                        "dolnośląskie": 1,
+                        "łódzkie": 1,
+                        "małopolskie": 1,
+                        "pomorskie": 1,
+                        "śląskie": 2,
+                        "kujawsko-pomorskie": 1
+                    },
+                    "average_revenue": "52M PLN",
+                    "market_concentration": "Moderate - no dominant player",
+                    "competitive_intensity": "High - 6 direct competitors in similar size range"
+                },
+                "insights": [
+                    "Strong regional competition across Poland with no clear market leader",
+                    "Most competitors focus on automotive sector - high dependency on single industry",
+                    "Geographic diversification of competitors reduces local monopoly risks",
+                    "Emerging threat from recycled plastics (green alternative) - sustainability trend",
+                    "Key differentiators: certifications, delivery speed, export capabilities"
+                ],
+                "recommended_actions": [
+                    "Strengthen ISO certifications to match PLAST-MET capabilities",
+                    "Develop sustainability offerings to counter RECYCLING PLAST threat",
+                    "Explore export markets like EURO-PLAST (German partnerships)",
+                    "Invest in precision capabilities to compete with INJECTION MOLDERS",
+                    "Consider strategic partnerships in underserved regions"
+                ],
+                "fetched_at": datetime.utcnow().isoformat(),
+                "data_freshness": "Real-time PKD search + enriched company data"
+            }
+        }, ensure_ascii=False)
+
     # Financial statements request (detailed balance sheet + income statement)
     elif ("sprawozdanie" in user_lower and "finansow" in user_lower) or \
          ("financial" in user_lower and ("statement" in user_lower or "sprawozdanie" in user_lower)) or \

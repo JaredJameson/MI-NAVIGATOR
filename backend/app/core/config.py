@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     ASYNC_DATABASE_URL: str = "sqlite+aiosqlite:///./mi_navigator.db"
 
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://localhost:6381/0"
 
     # Claude AI
     ANTHROPIC_API_KEY: str = ""

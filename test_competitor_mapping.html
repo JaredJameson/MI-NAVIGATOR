@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Competitor Mapping - Feature #61</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        iframe {
+            width: 100%;
+            height: 800px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Feature #61: Competitor Mapping Identification - Test</h1>
+
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <ol>
+            <li>This page tests the competitor mapping component with mock data</li>
+            <li>Expected: Display of 8 competitors (6 direct, 1 indirect, 1 substitute)</li>
+            <li>Expected: PKD-based search methodology visible</li>
+            <li>Expected: Categorization of competitors</li>
+            <li>Expected: Basic competitor info (name, location, revenue, products)</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Component Test (Opening in iframe)</h2>
+        <p>Navigate to: <a href="http://localhost:3000/test-competitor" target="_blank">http://localhost:3000/test-competitor</a></p>
+        <iframe src="http://localhost:3000/test-competitor"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h2>Alternative: Backend Direct Test</h2>
+        <p>Test backend response directly:</p>
+        <button onclick="testBackend()">Test Backend Endpoint</button>
+        <pre id="backend-result" style="background:#f5f5f5;padding:10px;overflow:auto;max-height:400px;"></pre>
+    </div>
+
+    <script>
+        async function testBackend() {
+            const resultEl = document.getElementById('backend-result');
+            resultEl.textContent = 'Testing...';
+
+            try {
+                // Simulate sending "konkurencja FADO" to chat
+                const response = await fetch('http://localhost:8000/ws/chat/test-conversation-id', {
+                    method: 'GET',
+                });
+
+                resultEl.textContent = 'WebSocket endpoint - use browser developer tools Network tab to see WebSocket messages\n\n';
+                resultEl.textContent += 'To test: Send "konkurencja FADO" message through chat interface';
+
+            } catch (error) {
+                resultEl.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
