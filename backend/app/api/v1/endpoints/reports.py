@@ -1814,9 +1814,138 @@ async def bulk_export_reports(
         )
 
     elif request.format == "pdf":
-        # For PDF, we'd create a ZIP with individual PDFs
-        # For now, return a placeholder
-        return {"message": "PDF bulk export coming soon"}
+        # Create a ZIP file with individual PDFs for each report
+        from reportlab.lib.pagesizes import A4, letter
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle
+        from reportlab.lib import colors
+        from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+        import zipfile
+
+        # Create a temporary directory for PDFs
+        pdf_buffers = []
+
+        for report in reports_to_export:
+            # Create PDF for this report
+            buffer = io.BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4,
+                                   topMargin=0.75*inch, bottomMargin=0.75*inch,
+                                   leftMargin=0.75*inch, rightMargin=0.75*inch)
+
+            # Container for the 'Flowable' objects
+            elements = []
+
+            # Styles
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=18,
+                textColor=colors.HexColor('#1e40af'),
+                spaceAfter=12,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold'
+            )
+            heading_style = ParagraphStyle(
+                'CustomHeading',
+                parent=styles['Heading2'],
+                fontSize=14,
+                textColor=colors.HexColor('#1e40af'),
+                spaceAfter=10,
+                spaceBefore=14,
+                fontName='Helvetica-Bold'
+            )
+            body_style = ParagraphStyle(
+                'CustomBody',
+                parent=styles['BodyText'],
+                fontSize=10,
+                leading=14,
+                alignment=TA_JUSTIFY,
+                spaceAfter=6
+            )
+
+            # Title
+            title = Paragraph(report['title'], title_style)
+            elements.append(title)
+            elements.append(Spacer(1, 0.2*inch))
+
+            # Metadata table
+            metadata = [
+                ['Typ:', report['type']],
+                ['Firma:', report.get('company', 'N/A')],
+                ['Data utworzenia:', report['created_at']],
+                ['Status:', report['status']]
+            ]
+            metadata_table = Table(metadata, colWidths=[1.5*inch, 4*inch])
+            metadata_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#374151')),
+                ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#6b7280')),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ]))
+            elements.append(metadata_table)
+            elements.append(Spacer(1, 0.3*inch))
+
+            # Summary section
+            summary_heading = Paragraph("Podsumowanie", heading_style)
+            elements.append(summary_heading)
+            summary_text = Paragraph(report['summary'], body_style)
+            elements.append(summary_text)
+            elements.append(Spacer(1, 0.2*inch))
+
+            # Sections
+            for i, section in enumerate(report.get('sections', [])):
+                section_title = Paragraph(f"{i+1}. {section['title']}", heading_style)
+                elements.append(section_title)
+
+                # Process content - split by newlines and create paragraphs
+                content_lines = section['content'].split('\n')
+                for line in content_lines:
+                    if line.strip():
+                        para = Paragraph(line.strip(), body_style)
+                        elements.append(para)
+
+                elements.append(Spacer(1, 0.15*inch))
+
+            # Sources section (if any)
+            if report.get('sources'):
+                sources_heading = Paragraph("Źródła", heading_style)
+                elements.append(sources_heading)
+
+                for source in report['sources']:
+                    source_text = f"• {source['name']} - Wiarygodność: {int(source['confidence']*100)}%"
+                    if source.get('url'):
+                        source_text += f" ({source['url']})"
+                    source_para = Paragraph(source_text, body_style)
+                    elements.append(source_para)
+
+            # Build PDF
+            doc.build(elements)
+            buffer.seek(0)
+
+            # Store buffer with filename
+            safe_filename = "".join(c for c in report['title'] if c.isalnum() or c in (' ', '-', '_')).strip()
+            safe_filename = safe_filename[:50]  # Limit length
+            pdf_buffers.append((f"{safe_filename}.pdf", buffer))
+
+        # Create ZIP file
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for filename, pdf_buffer in pdf_buffers:
+                zip_file.writestr(filename, pdf_buffer.getvalue())
+
+        zip_buffer.seek(0)
+
+        zip_filename = f"raporty_pdf_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{zip_filename}"'}
+        )
 
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
