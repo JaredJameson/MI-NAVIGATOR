@@ -1,3 +1,65 @@
+# Session 95 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** Incomplete - Infrastructure issue (Playwright MCP disconnected)
+
+**Features Attempted:**
+- Feature #373: Browser compatibility Chrome (NOT STARTED - blocked by Playwright issue)
+
+**Regression Tests Attempted:**
+- Feature #261: Feedback submission (BLOCKED - Playwright MCP disconnected after Node.js restart)
+- Feature #286: Tag filtering (NOT TESTED - blocked by same issue)
+
+**Current Progress:** 171/380 features passing (45.0%)
+
+**Session Activities:**
+1. ✅ Completed orientation (KROK 1)
+   - Reviewed app_spec.txt and claude-progress.txt
+   - Retrieved feature statistics: 171/380 passing (45.0%)
+   - Retrieved next feature: #373 (Browser compatibility Chrome)
+   - Retrieved regression test features: #261 (Feedback), #286 (Tag filtering)
+
+2. ✅ Verified servers running (KROK 2)
+   - Backend: Running on port 8000 ✅
+   - Frontend: Initially on port 3000, then restarted on port 3001 ✅
+
+3. ⚠️ BLOCKED on KROK 3 (Regression tests)
+   - Attempted to test Feature #261 (Feedback submission)
+   - Found `/feedback` page exists in code but had loading issues
+   - Cleared Next.js cache and restarted frontend
+   - Frontend now running on port 3001 (rebuilt from scratch)
+   - **CRITICAL ISSUE:** Playwright MCP disconnected after Node.js restart
+   - Cannot continue UI testing without Playwright connection
+
+**Technical Issues Encountered:**
+1. **Next.js Routing Issue:** `/feedback` page showed MIME type errors and wouldn't load
+   - Solution attempted: Cleared `.next` cache directory
+   - Restarted frontend - now on port 3001
+
+2. **Playwright MCP Disconnection:** After killing old Node.js process (PID 28760), Playwright MCP lost connection
+   - All browser automation tools return "Not connected" error
+   - Cannot test through UI as required by methodology
+   - No direct way to restart Playwright MCP from within session
+
+**Files Modified:**
+- Deleted `frontend/.next/` directory (cache clear)
+
+**Next Session Priorities:**
+1. **CRITICAL:** Restart Playwright MCP or Claude session to restore browser automation
+2. Complete regression tests (Features #261, #286) before starting new work
+3. Only after regression tests pass, proceed with Feature #373 (Browser compatibility Chrome)
+4. Frontend is now on port 3001 - update any hardcoded references if needed
+
+**Important Notes:**
+- Application servers are healthy and running
+- Frontend successfully rebuilt with clean cache
+- The blocker is purely infrastructure (Playwright MCP), not application code
+- Per methodology: "Napraw zepsute testy przed implementacją nowych funkcji"
+- Cannot mark any features as passing/failing without UI verification
+
+---
+
 # Session 93 - Date: 2026-01-18
 
 ## Session Summary
