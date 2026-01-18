@@ -3,14 +3,20 @@ Analysis API Endpoints
 """
 
 from fastapi import APIRouter, Depends, HTTPException
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, HttpUrl
 from enum import Enum
+import uuid
+import asyncio
+from datetime import datetime
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
 
 router = APIRouter()
+
+# In-memory job storage (in production, use Redis or database)
+analysis_jobs: Dict[str, Dict[str, Any]] = {}
 
 
 class GeographyType(str, Enum):
@@ -18,6 +24,49 @@ class GeographyType(str, Enum):
     EUROPE = "europe"
     CEE = "cee"
     GLOBAL = "global"
+
+
+class WebsiteAnalysisRequest(BaseModel):
+    url: HttpUrl
+
+
+class WebsiteAnalysisJobResponse(BaseModel):
+    job_id: str
+    status: str
+    url: str
+    created_at: str
+
+
+class WebsiteContentData(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    company_name: Optional[str] = None
+    industry: Optional[str] = None
+    products: List[str] = []
+    services: List[str] = []
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    address: Optional[str] = None
+    social_links: Dict[str, str] = {}
+
+
+class TechStackData(BaseModel):
+    cms: Optional[str] = None
+    frameworks: List[str] = []
+    analytics: List[str] = []
+    hosting: Optional[str] = None
+    ssl_enabled: bool = False
+
+
+class WebsiteAnalysisResult(BaseModel):
+    job_id: str
+    status: str
+    url: str
+    content: Optional[WebsiteContentData] = None
+    tech_stack: Optional[TechStackData] = None
+    screenshot_url: Optional[str] = None
+    error: Optional[str] = None
+    completed_at: Optional[str] = None
 
 
 class MarketAnalysisRequest(BaseModel):
@@ -134,24 +183,131 @@ def get_market_trends(industry: str, geography: str) -> List[dict]:
     return base_trends
 
 
-@router.post("/website")
-async def analyze_website(url: str):
-    """Analyze website and extract information."""
-    return {
-        "url": url,
-        "status": "processing",
-        "job_id": "job_123"
-    }
+async def perform_website_analysis(job_id: str, url: str):
+    """Background task to perform website analysis."""
+    await asyncio.sleep(2)  # Simulate analysis time
 
+    # Mock analysis results based on URL
+    url_lower = url.lower()
 
-@router.get("/website/{job_id}")
-async def get_website_analysis(job_id: str):
-    """Get website analysis results."""
-    return {
-        "job_id": job_id,
+    if "fado" in url_lower:
+        content = WebsiteContentData(
+            title="FADO Sp. z o.o. - Producent tworzyw sztucznych",
+            description="Wiodący producent komponentów z tworzyw sztucznych dla przemysłu motoryzacyjnego i AGD",
+            company_name="FADO Sp. z o.o.",
+            industry="Manufacturing - Plastics Processing",
+            products=["Komponenty wtryskowe", "Formy wtryskowe", "Produkty z tworzyw technicznych"],
+            services=["Wtrysk tworzyw", "Projektowanie form", "Montaż podzespołów"],
+            contact_email="kontakt@fado.pl",
+            contact_phone="+48 22 123 45 67",
+            address="ul. Przemysłowa 15, 00-001 Warszawa",
+            social_links={
+                "linkedin": "https://linkedin.com/company/fado",
+                "facebook": "https://facebook.com/fadopolska"
+            }
+        )
+        tech_stack = TechStackData(
+            cms="WordPress",
+            frameworks=["React", "Next.js"],
+            analytics=["Google Analytics", "Hotjar"],
+            hosting="AWS",
+            ssl_enabled=True
+        )
+    else:
+        # Generic website analysis
+        domain = url.split("//")[-1].split("/")[0]
+        content = WebsiteContentData(
+            title=f"Website Analysis - {domain}",
+            description="Company website with business information",
+            company_name=domain.split(".")[0].capitalize(),
+            industry="General Business",
+            products=["Product 1", "Product 2"],
+            services=["Service 1", "Service 2"],
+            contact_email=f"contact@{domain}",
+            social_links={}
+        )
+        tech_stack = TechStackData(
+            cms="Unknown",
+            frameworks=["JavaScript"],
+            analytics=["Google Analytics"],
+            ssl_enabled=True
+        )
+
+    # Update job status
+    analysis_jobs[job_id].update({
         "status": "completed",
-        "results": {}
+        "content": content.model_dump(),
+        "tech_stack": tech_stack.model_dump(),
+        "screenshot_url": f"/screenshots/{job_id}.png",
+        "completed_at": datetime.utcnow().isoformat()
+    })
+
+
+@router.post("/website", response_model=WebsiteAnalysisJobResponse)
+async def analyze_website(request: WebsiteAnalysisRequest):
+    """
+    Create a website analysis job.
+
+    The analysis runs asynchronously. Use the returned job_id to poll for results.
+    """
+    job_id = str(uuid.uuid4())
+    url = str(request.url)
+
+    # Create job entry
+    analysis_jobs[job_id] = {
+        "job_id": job_id,
+        "status": "processing",
+        "url": url,
+        "created_at": datetime.utcnow().isoformat(),
+        "content": None,
+        "tech_stack": None,
+        "screenshot_url": None,
+        "error": None,
+        "completed_at": None
     }
+
+    # Start background analysis
+    asyncio.create_task(perform_website_analysis(job_id, url))
+
+    return WebsiteAnalysisJobResponse(
+        job_id=job_id,
+        status="processing",
+        url=url,
+        created_at=analysis_jobs[job_id]["created_at"]
+    )
+
+
+@router.get("/website/{job_id}", response_model=WebsiteAnalysisResult)
+async def get_website_analysis(job_id: str):
+    """
+    Get website analysis results by job ID.
+
+    Returns the analysis results if completed, or status if still processing.
+    """
+    if job_id not in analysis_jobs:
+        raise HTTPException(status_code=404, detail="Analysis job not found")
+
+    job_data = analysis_jobs[job_id]
+
+    # Convert dict to Pydantic models if present
+    content = None
+    tech_stack = None
+
+    if job_data["content"]:
+        content = WebsiteContentData(**job_data["content"])
+    if job_data["tech_stack"]:
+        tech_stack = TechStackData(**job_data["tech_stack"])
+
+    return WebsiteAnalysisResult(
+        job_id=job_data["job_id"],
+        status=job_data["status"],
+        url=job_data["url"],
+        content=content,
+        tech_stack=tech_stack,
+        screenshot_url=job_data["screenshot_url"],
+        error=job_data["error"],
+        completed_at=job_data["completed_at"]
+    )
 
 
 @router.post("/market", response_model=MarketAnalysisResponse)
