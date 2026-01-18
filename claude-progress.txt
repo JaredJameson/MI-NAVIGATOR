@@ -1,3 +1,122 @@
+# Session 113 - Date: 2026-01-18
+
+## Session Summary
+
+**Status:** 1 feature implemented + WebSocket race condition fixed
+**Features Completed:** 1 feature
+- Feature #19: Chat conversation history persistence ✅ (PASSED - Full persistence with navigation)
+
+**Regression Tests:** 0 (discovered and fixed WebSocket bug during testing)
+
+**Current Progress:** 188/380 features passing (49.5%)
+
+**Key Achievements:**
+- **Fixed WebSocket race condition** - Messages now wait for connection before sending
+- **Implemented waitForWebSocketConnection()** - Polls connection state up to 5 seconds
+- **Chat history persistence verified** - All messages preserved across navigation
+- **Conversation title auto-set** - First message becomes conversation title
+- Zero console errors during testing
+
+## Feature #19 Implementation Details
+
+**Problem Discovered:**
+While testing chat history, discovered a critical race condition bug:
+- User clicks Send → creates new conversation → WebSocket connects asynchronously
+- But sendMessage() immediately checks if WebSocket is open
+- Result: "WebSocket not connected" error on first message send
+
+**Solution Implemented:**
+
+Added `waitForWebSocketConnection()` helper function in `frontend/src/app/chat/page.tsx`:
+
+```typescript
+const waitForWebSocketConnection = (maxWait = 5000): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const startTime = Date.now()
+
+    const checkConnection = () => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        resolve(true)
+        return
+      }
+
+      if (Date.now() - startTime > maxWait) {
+        resolve(false)
+        return
+      }
+
+      setTimeout(checkConnection, 100)
+    }
+
+    checkConnection()
+  })
+}
+```
+
+Updated `sendMessage()` to wait for connection:
+```typescript
+// Wait for WebSocket connection (up to 5 seconds)
+console.log('[WS] Waiting for connection...')
+const isConnected = await waitForWebSocketConnection(5000)
+
+if (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+  throw new Error('WebSocket connection timeout')
+}
+
+console.log('[WS] Connection ready')
+```
+
+**Benefits:**
+- Eliminates race condition completely
+- Graceful 5-second timeout with error message
+- Polls every 100ms (low CPU overhead)
+- Works for both new conversations and reconnections
+
+**Verification Steps:**
+
+✅ **Step 1-2:** Started new chat, sent 2 test messages
+- "Test WebSocket after fix - hello"
+- "Second test message"
+
+✅ **Step 3:** Noted conversation ID: `f82c40a9-efe3-44d5-91dd-60ccbcec5d3b`
+
+✅ **Step 4:** Navigated to dashboard (away from chat)
+
+✅ **Step 5:** Navigated back to `/chat?conversation_id=f82c40a9-efe3-44d5-91dd-60ccbcec5d3b`
+
+✅ **Step 6:** All previous messages displayed correctly:
+- User message 1: "Test WebSocket after fix - hello"
+- AI response 1: Full Polish response
+- User message 2: "Second test message"
+- AI response 2: Full Polish response
+
+✅ **Step 7:** Message order verified - chronological (LIFO)
+
+**Console Logs Verified:**
+```
+[Chat] Loading conversation: f82c40a9-efe3-44d5-91dd-60ccbcec5d3b
+[WS] Connecting to: ws://localhost:8000/api/v1/chat/ws/f82c40a9-efe3-44d5-91dd-60ccbcec5d3b?token=***
+[WS] Connected
+```
+
+**Backend Persistence:**
+- User messages saved to `conversations_store`
+- AI responses saved to `conversations_store`
+- Conversation title auto-set from first message
+- `updated_at` timestamp updated on each message
+
+**Files Modified:**
+- `frontend/src/app/chat/page.tsx` - Added waitForWebSocketConnection() function
+- `backend/app/api/v1/endpoints/chat.py` - Message persistence (from Session 112)
+
+**Result:** Feature #19 PASSED ✅
+
+**Screenshots:**
+- `.playwright-mcp/websocket_fix_success.png` - Messages sending successfully
+- `.playwright-mcp/feature_19_chat_history_persistence_success.png` - History loaded after navigation
+
+---
+
 # Session 112 - Date: 2026-01-18
 
 ## Session Summary
