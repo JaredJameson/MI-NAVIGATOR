@@ -6101,13 +6101,30 @@ export default function ReportViewerPage() {
                   id={`section-${section.id}`}
                   className="rounded-xl bg-white p-6 shadow-sm"
                 >
-                  {/* View mode section content - minimal version for testing */}
+                  {/* View mode section content */}
                   <h2 className="mb-4 text-xl font-semibold text-gray-900">
                     {index + 1}. {section.title}
                   </h2>
-                  <div className="prose max-w-none">
-                    <ReactMarkdown>{section.content}</ReactMarkdown>
-                  </div>
+                  {/* Conditional rendering based on section type */}
+                  {swotData ? (
+                    <SWOTDiagram data={swotData} />
+                  ) : porterData ? (
+                    <PorterDiagram data={porterData} />
+                  ) : tamSamSomData ? (
+                    <TAMSAMSOMDiagram data={tamSamSomData} />
+                  ) : trendTimelineData ? (
+                    <TrendTimelineDiagram data={trendTimelineData} />
+                  ) : ownershipData ? (
+                    <OwnershipTreeDiagram data={ownershipData} />
+                  ) : positioningMapData ? (
+                    <CompetitorPositioningMap data={positioningMapData} />
+                  ) : financialRatiosData ? (
+                    <FinancialRatioRadarChart data={financialRatiosData} />
+                  ) : (
+                    <div className="prose max-w-none">
+                      <ReactMarkdown>{section.content}</ReactMarkdown>
+                    </div>
+                  )}
                 </section>
               )
             })}
