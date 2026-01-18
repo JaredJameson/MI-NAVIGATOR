@@ -7,6 +7,7 @@ import { CompanyProfileCEIDG, CompanyProfileCEIDGData } from './CompanyProfileCE
 import { DataTable, DataTableData } from './DataTable'
 import { TrendChart, TrendChartData } from './TrendChart'
 import { SourceCitation } from './SourceCitation'
+import { FinancialStatements } from './FinancialStatements'
 
 interface Source {
   id: string
@@ -19,8 +20,8 @@ interface Source {
 }
 
 export interface StructuredMessageData {
-  type: 'company_card' | 'company_profile_krs' | 'company_profile_ceidg' | 'data_table' | 'trend_chart' | 'text' | 'text_with_sources' | 'error'
-  data: CompanyCardData | CompanyProfileKRSData | CompanyProfileCEIDGData | DataTableData | TrendChartData | { text: string } | { text: string; sources: Source[] } | { message: string; suggestion?: string }
+  type: 'company_card' | 'company_profile_krs' | 'company_profile_ceidg' | 'data_table' | 'trend_chart' | 'financial_statements' | 'text' | 'text_with_sources' | 'error'
+  data: CompanyCardData | CompanyProfileKRSData | CompanyProfileCEIDGData | DataTableData | TrendChartData | any | { text: string } | { text: string; sources: Source[] } | { message: string; suggestion?: string }
 }
 
 interface StructuredMessageProps {
@@ -75,6 +76,9 @@ export function StructuredMessage({ content }: StructuredMessageProps) {
 
     case 'trend_chart':
       return <TrendChart data={structuredData.data as TrendChartData} />
+
+    case 'financial_statements':
+      return <FinancialStatements data={structuredData.data as any} />
 
     case 'text_with_sources': {
       const messageData = structuredData.data as { text: string; sources: Source[] }

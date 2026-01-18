@@ -276,6 +276,97 @@ def generate_mock_response(user_message: str) -> str:
             }
         }, ensure_ascii=False)
 
+    # Financial statements request (detailed balance sheet + income statement)
+    elif ("sprawozdanie" in user_lower and "finansow" in user_lower) or \
+         ("financial" in user_lower and ("statement" in user_lower or "sprawozdanie" in user_lower)) or \
+         ("bilans" in user_lower or "balance sheet" in user_lower) or \
+         ("rachunek zysk" in user_lower or "income statement" in user_lower):
+        return json.dumps({
+            "type": "financial_statements",
+            "data": {
+                "company_name": "FADO Sp. z o.o.",
+                "year": 2023,
+                "source": "e-KRS",
+                "balance_sheet": {
+                    "assets": {
+                        "current_assets": {
+                            "cash": 12500000,
+                            "receivables": 8200000,
+                            "inventory": 5400000,
+                            "other": 1100000,
+                            "total": 27200000
+                        },
+                        "fixed_assets": {
+                            "property_plant_equipment": 32000000,
+                            "intangible_assets": 2800000,
+                            "long_term_investments": 1500000,
+                            "other": 800000,
+                            "total": 37100000
+                        },
+                        "total_assets": 64300000
+                    },
+                    "liabilities": {
+                        "current_liabilities": {
+                            "short_term_debt": 4200000,
+                            "accounts_payable": 7800000,
+                            "accrued_expenses": 1200000,
+                            "other": 900000,
+                            "total": 14100000
+                        },
+                        "long_term_liabilities": {
+                            "long_term_debt": 12000000,
+                            "deferred_tax": 1700000,
+                            "other": 600000,
+                            "total": 14300000
+                        },
+                        "total_liabilities": 28400000
+                    },
+                    "equity": {
+                        "share_capital": 5000000,
+                        "retained_earnings": 28900000,
+                        "reserves": 2000000,
+                        "total_equity": 35900000
+                    },
+                    "total_liabilities_and_equity": 64300000
+                },
+                "income_statement": {
+                    "revenue": {
+                        "sales_revenue": 68000000,
+                        "other_revenue": 1200000,
+                        "total_revenue": 69200000
+                    },
+                    "costs": {
+                        "cost_of_goods_sold": 42000000,
+                        "gross_profit": 27200000,
+                        "operating_expenses": {
+                            "selling_expenses": 8500000,
+                            "administrative_expenses": 6200000,
+                            "rd_expenses": 2100000,
+                            "total": 16800000
+                        },
+                        "operating_profit": 10400000,
+                        "financial_costs": 1800000,
+                        "profit_before_tax": 8600000,
+                        "income_tax": 2500000,
+                        "net_profit": 6100000
+                    },
+                    "margins": {
+                        "gross_margin": 39.3,
+                        "operating_margin": 15.0,
+                        "net_margin": 8.8
+                    }
+                },
+                "multi_year_summary": {
+                    "years": [2020, 2021, 2022, 2023],
+                    "revenue": [45000000, 52000000, 61000000, 68000000],
+                    "net_profit": [3200000, 4100000, 5200000, 6100000],
+                    "total_assets": [48000000, 54000000, 59000000, 64300000],
+                    "equity": [28000000, 31000000, 33500000, 35900000]
+                },
+                "fetched_at": datetime.utcnow().isoformat()
+            }
+        }, ensure_ascii=False)
+
     # Financial data request
     elif "finansow" in user_lower or "financial" in user_lower or "przychod" in user_lower or "revenue" in user_lower:
         return json.dumps({
