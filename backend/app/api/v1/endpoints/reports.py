@@ -3665,9 +3665,10 @@ async def verify_share_password(
     share_link = SHARE_LINKS[share_token]
 
     # Check if link has expired
-    from datetime import datetime
+    from datetime import datetime, timezone
     expires_at = datetime.fromisoformat(share_link["expires_at"].replace("Z", "+00:00"))
-    if datetime.now(expires_at.tzinfo) > expires_at:
+    current_time = datetime.now(timezone.utc)
+    if current_time > expires_at:
         raise HTTPException(status_code=410, detail="Share link has expired")
 
     # Check if link is password protected
@@ -3702,9 +3703,10 @@ async def access_shared_report(
     share_link = SHARE_LINKS[share_token]
 
     # Check if link has expired
-    from datetime import datetime
+    from datetime import datetime, timezone
     expires_at = datetime.fromisoformat(share_link["expires_at"].replace("Z", "+00:00"))
-    if datetime.now(expires_at.tzinfo) > expires_at:
+    current_time = datetime.now(timezone.utc)
+    if current_time > expires_at:
         raise HTTPException(status_code=410, detail="Share link has expired")
 
     # If password protected and not verified yet, return metadata only
@@ -4213,4 +4215,34 @@ async def get_retry_task_status(
         "max_attempts": task["max_attempts"],
         "error": task["error"],
         "result": task["result"]
+    }
+
+
+# ==================== TEST ENDPOINTS FOR SHARE LINK EXPIRATION ====================
+
+@router.post("/test/share/expire-link/{share_token}")
+async def test_expire_share_link(
+    share_token: str,
+    seconds_until_expiry: int = Query(default=5, description="Seconds until link expires")
+):
+    """
+    TEST ENDPOINT: Manually set expiration time for a share link.
+    Used for testing expiration functionality.
+
+    Feature #48: Report sharing expiration
+    """
+    if share_token not in SHARE_LINKS:
+        raise HTTPException(status_code=404, detail="Share token not found")
+
+    # Set expiration to N seconds from now
+    from datetime import timedelta
+    new_expires_at = datetime.now() + timedelta(seconds=seconds_until_expiry)
+
+    SHARE_LINKS[share_token]["expires_at"] = new_expires_at.isoformat() + "Z"
+
+    return {
+        "message": f"Share link will expire in {seconds_until_expiry} seconds",
+        "share_token": share_token,
+        "expires_at": new_expires_at.isoformat() + "Z",
+        "current_time": datetime.now().isoformat() + "Z"
     }
