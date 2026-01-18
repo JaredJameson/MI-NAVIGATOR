@@ -887,6 +887,119 @@ Opis: Wiodący software house Python/JavaScript
         "sources": [
             {"name": "CEIDG", "confidence": 0.75, "url": "https://dane.biznes.gov.pl"}
         ]
+    },
+    # Test reports for pagination filter testing - user 7bc534ce-42ba-4192-ba13-7e710879e290
+    {
+        "id": "report_test_draft_001",
+        "title": "TEST DRAFT 1 - Analiza w trakcie",
+        "type": "market_analysis",
+        "company": None,
+        "created_at": "2026-01-19T00:01:00Z",
+        "updated_at": "2026-01-19T00:01:00Z",
+        "status": "draft",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Szkic raportu testowego dla paginacji z filtrem",
+        "sections": [],
+        "sources": []
+    },
+    {
+        "id": "report_test_draft_002",
+        "title": "TEST DRAFT 2 - Kolejny szkic",
+        "type": "company_profile",
+        "company": "Test Company",
+        "created_at": "2026-01-19T00:02:00Z",
+        "updated_at": "2026-01-19T00:02:00Z",
+        "status": "draft",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Drugi szkic raportu testowego",
+        "sections": [],
+        "sources": []
+    },
+    {
+        "id": "report_test_inprogress_001",
+        "title": "TEST IN PROGRESS 1 - Raport w trakcie",
+        "type": "due_diligence",
+        "company": "Progress Corp",
+        "created_at": "2026-01-19T00:03:00Z",
+        "updated_at": "2026-01-19T00:03:00Z",
+        "status": "in_progress",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Raport w trakcie opracowania",
+        "sections": [],
+        "sources": []
+    },
+    {
+        "id": "report_test_inprogress_002",
+        "title": "TEST IN PROGRESS 2 - Kolejny w trakcie",
+        "type": "competitive",
+        "company": None,
+        "created_at": "2026-01-19T00:04:00Z",
+        "updated_at": "2026-01-19T00:04:00Z",
+        "status": "in_progress",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Drugi raport w trakcie",
+        "sections": [],
+        "sources": []
+    },
+    {
+        "id": "report_test_inprogress_003",
+        "title": "TEST IN PROGRESS 3 - Trzeci w trakcie",
+        "type": "market_analysis",
+        "company": None,
+        "created_at": "2026-01-19T00:05:00Z",
+        "updated_at": "2026-01-19T00:05:00Z",
+        "status": "in_progress",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Trzeci raport w trakcie",
+        "sections": [],
+        "sources": []
+    },
+    {
+        "id": "report_test_inprogress_004",
+        "title": "TEST IN PROGRESS 4 - Czwarty w trakcie",
+        "type": "company_profile",
+        "company": "Test 4 Inc",
+        "created_at": "2026-01-19T00:06:00Z",
+        "updated_at": "2026-01-19T00:06:00Z",
+        "status": "in_progress",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Czwarty raport w trakcie",
+        "sections": [],
+        "sources": []
+    },
+    {
+        "id": "report_test_inprogress_005",
+        "title": "TEST IN PROGRESS 5 - Piąty w trakcie",
+        "type": "due_diligence",
+        "company": "Five Corp",
+        "created_at": "2026-01-19T00:07:00Z",
+        "updated_at": "2026-01-19T00:07:00Z",
+        "status": "in_progress",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Piąty raport w trakcie",
+        "sections": [],
+        "sources": []
+    },
+    {
+        "id": "report_test_inprogress_006",
+        "title": "TEST IN PROGRESS 6 - Szósty w trakcie",
+        "type": "competitive",
+        "company": None,
+        "created_at": "2026-01-19T00:08:00Z",
+        "updated_at": "2026-01-19T00:08:00Z",
+        "status": "in_progress",
+        "is_archived": False,
+        "created_by": "7bc534ce-42ba-4192-ba13-7e710879e290",
+        "summary": "Szósty raport w trakcie",
+        "sections": [],
+        "sources": []
     }
 ]
 
