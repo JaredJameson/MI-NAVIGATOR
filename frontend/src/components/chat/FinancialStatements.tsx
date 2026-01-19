@@ -128,6 +128,7 @@ const formatPercent = (value: number): string => {
 
 export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }) => {
   const [activeTab, setActiveTab] = useState<'balance' | 'income' | 'summary' | 'ratios'>('balance');
+  const [showDataTable, setShowDataTable] = useState(false);
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -461,13 +462,36 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }
           <div className="space-y-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900">Podsumowanie wieloletnie ({data.multi_year_summary.years[0]}-{data.multi_year_summary.years[data.multi_year_summary.years.length - 1]})</h3>
 
+            {/* Toggle button for data table */}
+            <div className="flex justify-end mb-3">
+              <button
+                onClick={() => setShowDataTable(!showDataTable)}
+                className="text-sm text-blue-600 hover:text-blue-800 underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-2 py-1"
+                aria-expanded={showDataTable}
+                aria-controls="multi-year-data-table"
+              >
+                {showDataTable ? 'Ukryj tabelę danych' : 'Pokaż tabelę danych'}
+              </button>
+            </div>
+
             {/* Charts Section */}
             <div className="space-y-6">
               {/* Revenue & Profit Trend Chart */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h4 className="text-md font-semibold text-gray-900 mb-4">Trend przychodów i zysków</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart
+                <div className="sr-only">
+                  Wykres liniowy przedstawiający trend przychodów i zysków netto dla lat {data.multi_year_summary.years[0]}-{data.multi_year_summary.years[data.multi_year_summary.years.length - 1]}.
+                  Szczegółowe dane znajdują się w tabeli poniżej wykresu.
+                </div>
+                <div
+                  role="img"
+                  aria-label={`Wykres liniowy trendu przychodów i zysków dla lat ${data.multi_year_summary.years[0]}-${data.multi_year_summary.years[data.multi_year_summary.years.length - 1]}`}
+                >
+                  <ResponsiveContainer
+                    width="100%"
+                    height={300}
+                  >
+                    <LineChart
                     data={data.multi_year_summary.years.map((year, idx) => ({
                       year: year.toString(),
                       revenue: data.multi_year_summary!.revenue[idx] / 1000000, // Convert to millions
@@ -503,13 +527,25 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }
                     />
                   </LineChart>
                 </ResponsiveContainer>
+                </div>
               </div>
 
               {/* Assets & Equity Trend Chart */}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h4 className="text-md font-semibold text-gray-900 mb-4">Trend aktywów i kapitału własnego</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart
+                <div className="sr-only">
+                  Wykres liniowy przedstawiający trend aktywów ogółem i kapitału własnego dla lat {data.multi_year_summary.years[0]}-{data.multi_year_summary.years[data.multi_year_summary.years.length - 1]}.
+                  Szczegółowe dane znajdują się w tabeli poniżej wykresu.
+                </div>
+                <div
+                  role="img"
+                  aria-label={`Wykres liniowy trendu aktywów i kapitału własnego dla lat ${data.multi_year_summary.years[0]}-${data.multi_year_summary.years[data.multi_year_summary.years.length - 1]}`}
+                >
+                  <ResponsiveContainer
+                    width="100%"
+                    height={300}
+                  >
+                    <LineChart
                     data={data.multi_year_summary.years.map((year, idx) => ({
                       year: year.toString(),
                       total_assets: data.multi_year_summary!.total_assets[idx] / 1000000,
@@ -545,11 +581,14 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }
                     />
                   </LineChart>
                 </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
             {/* Data Table */}
-            <div className="bg-gray-50 rounded-lg overflow-hidden">
+            {showDataTable && (
+            <div id="multi-year-data-table" className="bg-gray-50 rounded-lg overflow-hidden">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2 px-4 pt-4">Dane wykresów</h4>
               <table className="w-full text-sm">
                 <thead className="bg-purple-100">
                   <tr>
@@ -587,6 +626,7 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({ data }
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         )}
 
