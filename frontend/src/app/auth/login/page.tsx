@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authApi, fetchCsrfToken } from '@/services/api'
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [focusField, setFocusField] = useState<string | null>(null)
 
   // 2FA state
   const [requires2FA, setRequires2FA] = useState(false)
@@ -30,6 +31,24 @@ export default function LoginPage() {
     password?: boolean
     twoFactorCode?: boolean
   }>({})
+
+  // Refs for form fields
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
+  const twoFactorCodeRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus first invalid field when errors change
+  useEffect(() => {
+    if (focusField) {
+      const refs: Record<string, React.RefObject<HTMLInputElement>> = {
+        email: emailRef,
+        password: passwordRef,
+        twoFactorCode: twoFactorCodeRef,
+      }
+      refs[focusField]?.current?.focus()
+      setFocusField(null)
+    }
+  }, [focusField])
 
   // Validate individual fields
   const validateField = (name: string, value: string) => {
@@ -89,6 +108,12 @@ export default function LoginPage() {
     const passwordValid = validateField('password', password)
 
     if (!emailValid || !passwordValid) {
+      // Focus first invalid field
+      if (!emailValid) {
+        setFocusField('email')
+      } else if (!passwordValid) {
+        setFocusField('password')
+      }
       return
     }
 
@@ -122,6 +147,7 @@ export default function LoginPage() {
     const codeValid = validateField('twoFactorCode', twoFactorCode)
 
     if (!codeValid) {
+      setFocusField('twoFactorCode')
       return
     }
 
@@ -172,7 +198,11 @@ export default function LoginPage() {
         {!requires2FA ? (
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             {error && (
-              <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="rounded-md bg-red-50 p-4 text-sm text-red-700"
+              >
                 <div className="flex items-center">
                   <svg className="mr-2 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -189,6 +219,7 @@ export default function LoginPage() {
                 </label>
                 <div className="relative mt-1">
                   <input
+                    ref={emailRef}
                     id="email"
                     type="email"
                     value={email}
@@ -226,7 +257,7 @@ export default function LoginPage() {
                   )}
                 </div>
                 {fieldErrors.email && (
-                  <p className="mt-1 text-sm text-red-600" id="email-error">
+                  <p className="mt-1 text-sm text-red-600" id="email-error" role="alert" aria-live="assertive">
                     {fieldErrors.email}
                   </p>
                 )}
@@ -238,6 +269,7 @@ export default function LoginPage() {
                 </label>
                 <div className="relative mt-1">
                   <input
+                    ref={passwordRef}
                     id="password"
                     type="password"
                     value={password}
@@ -275,7 +307,7 @@ export default function LoginPage() {
                   )}
                 </div>
                 {fieldErrors.password && (
-                  <p className="mt-1 text-sm text-red-600" id="password-error">
+                  <p className="mt-1 text-sm text-red-600" id="password-error" role="alert" aria-live="assertive">
                     {fieldErrors.password}
                   </p>
                 )}
@@ -339,7 +371,11 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="rounded-md bg-red-50 p-4 text-sm text-red-700"
+              >
                 <div className="flex items-center">
                   <svg className="mr-2 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -355,6 +391,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <input
+                  ref={twoFactorCodeRef}
                   id="2faCode"
                   type="text"
                   inputMode="numeric"
@@ -388,7 +425,7 @@ export default function LoginPage() {
                 )}
               </div>
               {fieldErrors.twoFactorCode && (
-                <p className="mt-1 text-sm text-red-600" id="2fa-error">
+                <p className="mt-1 text-sm text-red-600" id="2fa-error" role="alert" aria-live="assertive">
                   {fieldErrors.twoFactorCode}
                 </p>
               )}

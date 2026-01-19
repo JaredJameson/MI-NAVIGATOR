@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authApi } from '@/services/api'
@@ -18,6 +18,25 @@ export default function RegisterPage() {
   const [generalError, setGeneralError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [focusField, setFocusField] = useState<string | null>(null)
+
+  // Refs for form fields
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
+  const confirmPasswordRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus first invalid field when errors change
+  useEffect(() => {
+    if (focusField) {
+      const refs: Record<string, React.RefObject<HTMLInputElement>> = {
+        email: emailRef,
+        password: passwordRef,
+        confirmPassword: confirmPasswordRef,
+      }
+      refs[focusField]?.current?.focus()
+      setFocusField(null)
+    }
+  }, [focusField])
 
   const validateField = (name: string, value: string): boolean => {
     const newErrors = { ...errors }
@@ -102,6 +121,13 @@ export default function RegisterPage() {
     }
 
     setErrors(newErrors)
+
+    // Focus first invalid field
+    if (Object.keys(newErrors).length > 0) {
+      const firstError = Object.keys(newErrors)[0]
+      setFocusField(firstError)
+    }
+
     return Object.keys(newErrors).length === 0
   }
 
@@ -169,7 +195,11 @@ export default function RegisterPage() {
         )}
 
         {generalError && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="rounded-md bg-red-50 p-4 text-sm text-red-700"
+          >
             <div className="flex items-center">
               <svg className="mr-2 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -204,6 +234,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative mt-1">
                 <input
+                  ref={emailRef}
                   id="email"
                   name="email"
                   type="email"
@@ -237,7 +268,9 @@ export default function RegisterPage() {
                 )}
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600" id="email-error">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-600" id="email-error" role="alert" aria-live="assertive">
+                  {errors.email}
+                </p>
               )}
             </div>
 
@@ -248,6 +281,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative mt-1">
                 <input
+                  ref={passwordRef}
                   id="password"
                   name="password"
                   type="password"
@@ -281,7 +315,9 @@ export default function RegisterPage() {
                 )}
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600" id="password-error">{errors.password}</p>
+                <p className="mt-1 text-sm text-red-600" id="password-error" role="alert" aria-live="assertive">
+                  {errors.password}
+                </p>
               )}
               {!errors.password && (
                 <p className="mt-1 text-xs text-gray-500" id="password-help">
@@ -297,6 +333,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative mt-1">
                 <input
+                  ref={confirmPasswordRef}
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
@@ -330,7 +367,9 @@ export default function RegisterPage() {
                 )}
               </div>
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600" id="confirm-password-error">{errors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-red-600" id="confirm-password-error" role="alert" aria-live="assertive">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
           </div>
