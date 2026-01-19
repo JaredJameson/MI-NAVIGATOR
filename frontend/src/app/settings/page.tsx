@@ -552,17 +552,17 @@ export default function SettingsPage() {
               </button>
               <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
             </div>
-            <nav className="flex items-center space-x-4">
-              <button onClick={() => handleNavigateAway('/dashboard')} className="text-gray-600 hover:text-gray-900">
+            <nav className="flex items-center gap-2 sm:gap-4">
+              <button onClick={() => handleNavigateAway('/dashboard')} className="hidden sm:inline text-gray-600 hover:text-gray-900">
                 Dashboard
               </button>
-              <button onClick={() => handleNavigateAway('/chat')} className="text-gray-600 hover:text-gray-900">
+              <button onClick={() => handleNavigateAway('/chat')} className="hidden sm:inline text-gray-600 hover:text-gray-900">
                 Chat
               </button>
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50 whitespace-nowrap"
               >
                 {isLoggingOut ? 'Logging out...' : 'Logout'}
               </button>

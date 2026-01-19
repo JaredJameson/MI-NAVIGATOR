@@ -891,8 +891,8 @@ export default function ReportsPage() {
               </>
             )}
 
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-            <Link href="/search" className="text-gray-600 hover:text-gray-900">PKD Search</Link>
+            <Link href="/dashboard" className="hidden sm:inline text-gray-600 hover:text-gray-900">Dashboard</Link>
+            <Link href="/search" className="hidden sm:inline text-gray-600 hover:text-gray-900">PKD Search</Link>
           </nav>
         </div>
       </header>
@@ -972,9 +972,9 @@ export default function ReportsPage() {
 
       <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Search and Filters */}
-        <div className="mb-6 rounded-xl bg-white p-6 shadow-sm">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <div className="flex-1">
+        <div className="mb-6 rounded-xl bg-white p-4 sm:p-6 shadow-sm">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0">
               <input
                 type="text"
                 value={searchQuery}
@@ -983,13 +983,14 @@ export default function ReportsPage() {
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
+            <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => {
                 setShowFavoritesOnly(!showFavoritesOnly)
                 setCurrentPage(1)
               }}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
+              className={`flex items-center gap-2 rounded-lg px-3 sm:px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                 showFavoritesOnly
                   ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-500'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -1008,7 +1009,7 @@ export default function ReportsPage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Wszystkie typy</option>
               <option value="company_profile">Profil firmy</option>
@@ -1022,7 +1023,7 @@ export default function ReportsPage() {
                 setFilterTag(e.target.value)
                 setCurrentPage(1)
               }}
-              className="rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Wszystkie tagi</option>
               {allTags.map((tag) => (
@@ -1033,7 +1034,7 @@ export default function ReportsPage() {
             </select>
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
+              className="rounded-lg bg-blue-600 px-4 sm:px-6 py-2 text-sm sm:text-base text-white hover:bg-blue-700 whitespace-nowrap"
             >
               Szukaj
             </button>
@@ -1041,25 +1042,26 @@ export default function ReportsPage() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="rounded-lg bg-gray-100 px-6 py-2 text-gray-700 hover:bg-gray-200 transition-colors"
+                className="rounded-lg bg-gray-100 px-4 sm:px-6 py-2 text-sm sm:text-base text-gray-700 hover:bg-gray-200 transition-colors whitespace-nowrap"
                 title="Wyczyść wszystkie filtry"
               >
                 Wyczyść wszystkie
               </button>
             )}
+            </div>
           </form>
         </div>
 
         {/* Quick Status Filters and View Toggle */}
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <div className="flex gap-3">
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
           <button
             onClick={() => {
               setFilterStatus('')
               setShowArchived(false)
               setCurrentPage(1)
             }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filterStatus === '' && !showArchived
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -1073,7 +1075,7 @@ export default function ReportsPage() {
               setShowArchived(false)
               setCurrentPage(1)
             }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filterStatus === 'draft' && !showArchived
                 ? 'bg-yellow-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -1087,7 +1089,7 @@ export default function ReportsPage() {
               setShowArchived(false)
               setCurrentPage(1)
             }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filterStatus === 'in_progress' && !showArchived
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -1101,7 +1103,7 @@ export default function ReportsPage() {
               setShowArchived(false)
               setCurrentPage(1)
             }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filterStatus === 'completed' && !showArchived
                 ? 'bg-green-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -1114,7 +1116,7 @@ export default function ReportsPage() {
               setShowArchived(!showArchived)
               setCurrentPage(1)
             }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               showArchived
                 ? 'bg-gray-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'

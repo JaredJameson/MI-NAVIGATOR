@@ -103,12 +103,12 @@ export default function ProjectsPage() {
             </Link>
             <h1 className="text-xl font-semibold text-gray-900">Projekty</h1>
           </div>
-          <nav className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-            <Link href="/reports" className="text-gray-600 hover:text-gray-900">Raporty</Link>
+          <nav className="flex items-center gap-2 sm:gap-4">
+            <Link href="/dashboard" className="hidden sm:inline text-gray-600 hover:text-gray-900">Dashboard</Link>
+            <Link href="/reports" className="hidden sm:inline text-gray-600 hover:text-gray-900">Raporty</Link>
             <Link
               href="/projects/new"
-              className="rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 transition-colors"
+              className="rounded-lg bg-purple-600 px-3 sm:px-4 py-2 text-sm sm:text-base text-white hover:bg-purple-700 transition-colors whitespace-nowrap"
             >
               + Nowy projekt
             </Link>
