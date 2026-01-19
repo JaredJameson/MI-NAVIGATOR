@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getStoredToken, authApi } from '@/services/api'
+import { useLocale } from '@/hooks/useLocale'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -118,6 +119,7 @@ const FIELD_TYPES = [
 
 export default function SettingsPage() {
   const router = useRouter()
+  const { t, isLoading: isLocaleLoading } = useLocale()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -497,7 +499,15 @@ export default function SettingsPage() {
       setHasUnsavedChanges(false)
 
       setSuccess('Settings saved successfully!')
-      setTimeout(() => setSuccess(''), 3000)
+
+      // If language changed, reload page to apply new translations
+      if (language !== initialValues?.language) {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      } else {
+        setTimeout(() => setSuccess(''), 3000)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save settings')
     } finally {
@@ -550,7 +560,7 @@ export default function SettingsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('settings.title', 'Settings')}</h1>
             </div>
             <nav className="flex items-center gap-2 sm:gap-4">
               <button onClick={() => handleNavigateAway('/dashboard')} className="hidden sm:inline text-gray-600 hover:text-gray-900">
@@ -593,7 +603,7 @@ export default function SettingsPage() {
 
         {/* Profile Section */}
         <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">Profile Information</h2>
+          <h2 className="mb-6 text-lg font-semibold text-gray-900">{t('settings.profileInformation', 'Profile Information')}</h2>
 
           <div className="space-y-6">
             <div>
@@ -668,7 +678,7 @@ export default function SettingsPage() {
 
         {/* Preferences Section */}
         <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">Preferences</h2>
+          <h2 className="mb-6 text-lg font-semibold text-gray-900">{t('settings.preferences', 'Preferences')}</h2>
 
           <div className="space-y-6">
             <div>
@@ -774,7 +784,7 @@ export default function SettingsPage() {
 
         {/* Notifications Section */}
         <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">Notifications</h2>
+          <h2 className="mb-6 text-lg font-semibold text-gray-900">{t('settings.notifications', 'Notifications')}</h2>
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
