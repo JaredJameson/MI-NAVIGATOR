@@ -195,6 +195,7 @@ export default function ReportsPage() {
   }
 
   // Fetch all report IDs for "select all across pages"
+  // CRITICAL: Must send ALL filter parameters to match what user sees in the list
   const fetchAllReportIds = async () => {
     const token = getStoredToken()
     if (!token) return
@@ -205,6 +206,8 @@ export default function ReportsPage() {
       if (searchQuery) params.append('search', searchQuery)
       if (filterTag) params.append('tag_id', filterTag)
       if (showFavoritesOnly) params.append('favorites_only', 'true')
+      if (filterStatus) params.append('status', filterStatus)  // ADDED: status filter
+      if (showArchived) params.append('archived', 'true')       // ADDED: archived filter
 
       const response = await fetch(
         `${API_BASE_URL}/reports/ids?${params.toString()}`,

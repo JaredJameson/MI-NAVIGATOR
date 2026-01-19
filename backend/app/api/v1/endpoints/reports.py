@@ -1161,18 +1161,48 @@ async def get_all_report_ids(
     type: Optional[str] = None,
     search: Optional[str] = None,
     tag_id: Optional[str] = None,
+    favorites_only: bool = False,
+    status: Optional[str] = None,
+    archived: Optional[bool] = None,
     # TODO: Re-enable auth after testing - temporarily disabled for development
     # current_user: User = Depends(get_current_user)
 ):
-    """Get all report IDs (for select all across pages functionality)."""
+    """Get all report IDs (for select all across pages functionality).
+
+    CRITICAL: This endpoint MUST apply the SAME filters as GET /reports
+    to ensure "Export Filtered" exports only what the user sees.
+    """
     # Import REPORT_TAGS from tags module
     from app.api.v1.endpoints.tags import REPORT_TAGS
 
     filtered_reports = MOCK_REPORTS
 
+    # Filter by archived status (default: show only non-archived)
+    # MUST match behavior of GET /reports endpoint
+    if archived is None:
+        # Default: only show non-archived reports
+        filtered_reports = [r for r in filtered_reports if not r.get("is_archived", False)]
+    elif archived is True:
+        # Show only archived reports
+        filtered_reports = [r for r in filtered_reports if r.get("is_archived", False)]
+    elif archived is False:
+        # Explicitly show only non-archived
+        filtered_reports = [r for r in filtered_reports if not r.get("is_archived", False)]
+
+    # Filter by favorites
+    # Note: favorites_only requires user context, currently using all reports
+    # TODO: Add current_user dependency and filter by actual user favorites
+    if favorites_only:
+        # For now, skip favorites filtering until auth is re-enabled
+        pass
+
     # Filter by type
     if type:
         filtered_reports = [r for r in filtered_reports if r["type"] == type]
+
+    # Filter by status
+    if status:
+        filtered_reports = [r for r in filtered_reports if r["status"] == status]
 
     # Filter by search query
     if search:
