@@ -70,8 +70,15 @@ export default function ActivityPage() {
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false)
-  const [exportDateFrom, setExportDateFrom] = useState('')
-  const [exportDateTo, setExportDateTo] = useState('')
+  // Set sensible date defaults: 30 days ago to today
+  const [exportDateFrom, setExportDateFrom] = useState(() => {
+    const date = new Date()
+    date.setDate(date.getDate() - 30)
+    return date.toISOString().split('T')[0]
+  })
+  const [exportDateTo, setExportDateTo] = useState(() => {
+    return new Date().toISOString().split('T')[0]
+  })
   const [isExporting, setIsExporting] = useState(false)
 
   // Pagination state
@@ -316,6 +323,7 @@ export default function ActivityPage() {
                   type="date"
                   value={exportDateFrom}
                   onChange={(e) => setExportDateFrom(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -327,6 +335,7 @@ export default function ActivityPage() {
                   type="date"
                   value={exportDateTo}
                   onChange={(e) => setExportDateTo(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
