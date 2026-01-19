@@ -66,6 +66,7 @@ export default function ActivityPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [filterDateRange, setFilterDateRange] = useState('all') // all, today, yesterday, last7days, last30days, thisMonth, lastMonth
   const [userTimezone, setUserTimezone] = useState('Europe/Warsaw')
 
   // Export state
@@ -94,7 +95,7 @@ export default function ActivityPage() {
 
   useEffect(() => {
     fetchActivities()
-  }, [filterType, currentPage])
+  }, [filterType, filterDateRange, currentPage])
 
   const fetchUserTimezone = async () => {
     const token = getStoredToken()
@@ -162,6 +163,15 @@ export default function ActivityPage() {
         params.append('type', filterType)
       }
 
+      // Add date range parameters
+      const dateRange = getDateRangeParams()
+      if (dateRange.date_from) {
+        params.append('date_from', dateRange.date_from)
+      }
+      if (dateRange.date_to) {
+        params.append('date_to', dateRange.date_to)
+      }
+
       const response = await fetch(`${API_BASE_URL}/activity/?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -195,8 +205,50 @@ export default function ActivityPage() {
     return activityTypes.find(t => t.type === type)
   }
 
+  const getDateRangeParams = (): { date_from?: string; date_to?: string } => {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+    switch (filterDateRange) {
+      case 'today': {
+        const startOfToday = today.toISOString()
+        const endOfToday = new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString()
+        return { date_from: startOfToday, date_to: endOfToday }
+      }
+      case 'yesterday': {
+        const startOfYesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString()
+        const endOfYesterday = today.toISOString()
+        return { date_from: startOfYesterday, date_to: endOfYesterday }
+      }
+      case 'last7days': {
+        const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        return { date_from: sevenDaysAgo }
+      }
+      case 'last30days': {
+        const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
+        return { date_from: thirtyDaysAgo }
+      }
+      case 'thisMonth': {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+        return { date_from: startOfMonth }
+      }
+      case 'lastMonth': {
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
+        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+        return { date_from: startOfLastMonth, date_to: startOfThisMonth }
+      }
+      default:
+        return {}
+    }
+  }
+
   const handleFilterChange = (type: string) => {
     setFilterType(type)
+    setCurrentPage(1)
+  }
+
+  const handleDateRangeChange = (range: string) => {
+    setFilterDateRange(range)
     setCurrentPage(1)
   }
 
@@ -401,6 +453,83 @@ export default function ActivityPage() {
                     </span>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Date Range Filter */}
+            <div className="bg-white rounded-lg shadow-sm p-4 mt-4">
+              <h3 className="font-semibold text-gray-900 mb-4">Filtruj po dacie</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleDateRangeChange('all')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'all'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Wszystkie daty
+                </button>
+                <button
+                  onClick={() => handleDateRangeChange('today')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'today'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Dzisiaj
+                </button>
+                <button
+                  onClick={() => handleDateRangeChange('yesterday')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'yesterday'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Wczoraj
+                </button>
+                <button
+                  onClick={() => handleDateRangeChange('last7days')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'last7days'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Ostatnie 7 dni
+                </button>
+                <button
+                  onClick={() => handleDateRangeChange('last30days')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'last30days'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Ostatnie 30 dni
+                </button>
+                <button
+                  onClick={() => handleDateRangeChange('thisMonth')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'thisMonth'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Ten miesiąc
+                </button>
+                <button
+                  onClick={() => handleDateRangeChange('lastMonth')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'lastMonth'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Ostatni miesiąc
+                </button>
               </div>
             </div>
           </div>
