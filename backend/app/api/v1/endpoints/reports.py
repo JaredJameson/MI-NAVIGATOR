@@ -49,6 +49,23 @@ MOCK_TEMPLATES = [
             {"id": "section_3", "title": "Pozycja rynkowa", "content": "[Do uzupełnienia: udział w rynku, konkurenci, przewagi]"},
             {"id": "section_4", "title": "Analiza SWOT", "content": "[Do uzupełnienia: mocne/słabe strony, szanse/zagrożenia]"}
         ]
+    },
+    {
+        "id": "template_test002",
+        "name": "Szablon analizy rynku",
+        "type": "market_analysis",
+        "created_at": "2026-01-16T22:00:00Z",
+        "created_by": "user_001",
+        "use_count": 0,
+        "last_used": None,
+        "original_report_title": "Analiza rynku tworzyw sztucznych w Polsce",
+        "sections": [
+            {"id": "section_1", "title": "Wielkość rynku", "content": "[Do uzupełnienia: TAM, SAM, SOM, wzrost rynku]"},
+            {"id": "section_2", "title": "Segmentacja rynku", "content": "[Do uzupełnienia: kluczowe segmenty, wielkość, trendy]"},
+            {"id": "section_3", "title": "Analiza konkurencji", "content": "[Do uzupełnienia: główni gracze, udziały rynkowe]"},
+            {"id": "section_4", "title": "Trendy i prognozy", "content": "[Do uzupełnienia: trendy technologiczne, prognozy wzrostu]"},
+            {"id": "section_5", "title": "Bariery wejścia", "content": "[Do uzupełnienia: regulacje, kapitał, technologia]"}
+        ]
     }
 ]
 
