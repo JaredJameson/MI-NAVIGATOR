@@ -357,12 +357,35 @@ async def export_user_data(
 ):
     """
     Export all user data for GDPR compliance.
-    Returns a JSON file with all user information.
+    Returns a JSON file with all user information including reports.
     """
+    # Import MOCK_REPORTS from reports endpoint
+    from app.api.v1.endpoints.reports import MOCK_REPORTS
+
     # Fetch user's audit logs
     audit_stmt = select(AuditLog).where(AuditLog.user_id == current_user.id).order_by(AuditLog.created_at.desc())
     audit_result = await db.execute(audit_stmt)
     audit_logs = audit_result.scalars().all()
+
+    # Filter user's reports
+    user_id = str(current_user.id)
+    user_reports = [
+        {
+            "id": report["id"],
+            "title": report["title"],
+            "type": report["type"],
+            "company": report.get("company"),
+            "language": report.get("language", "pl"),
+            "summary": report.get("summary"),
+            "created_at": report.get("created_at"),
+            "updated_at": report.get("updated_at"),
+            "sections": report.get("sections", []),
+            "sources": report.get("sources", []),
+            "is_archived": report.get("is_archived", False),
+        }
+        for report in MOCK_REPORTS
+        if report.get("created_by") == user_id
+    ]
 
     # Build comprehensive data export
     export_data = {
@@ -383,6 +406,8 @@ async def export_user_data(
             "preferred_language": current_user.preferred_language,
             "preferred_depth": current_user.preferred_depth,
             "preferred_format": current_user.preferred_format,
+            "preferred_currency": current_user.preferred_currency,
+            "timezone": current_user.timezone,
             "onboarding_completed": current_user.onboarding_completed,
             "email_verified": current_user.email_verified,
         },
@@ -390,6 +415,7 @@ async def export_user_data(
             "two_factor_enabled": current_user.two_factor_enabled,
             "account_locked": current_user.account_locked_until.isoformat() if current_user.account_locked_until else None,
         },
+        "reports": user_reports,
         "activity_log": [
             {
                 "action": log.action,
@@ -404,6 +430,7 @@ async def export_user_data(
             "exported_at": datetime.utcnow().isoformat(),
             "export_format": "JSON",
             "data_version": "1.0",
+            "total_reports": len(user_reports),
         }
     }
 
