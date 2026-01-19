@@ -2796,16 +2796,185 @@ async def websocket_endpoint(
             user_industry = conv.get("user_industry", "manufacturing") if conv else "manufacturing"
             user_industry_segment = conv.get("user_industry_segment", "plastics_processing") if conv else "plastics_processing"
 
-            # Generate mock response (mention files if present)
-            if file_ids:
-                response = f"Otrzymałem Twoją wiadomość z {len(file_ids)} załączonym plikiem/plikami.\n\n"
-                response += generate_mock_response(content, user_industry, user_industry_segment)
-                response += f"\n\n[Uwaga: Przetwarzanie plików jest w trakcie implementacji. ID plików: {', '.join(file_ids[:3])}...]"
-            else:
-                response = generate_mock_response(content, user_industry, user_industry_segment)
+            # Check if this is a "standard analysis" (from brief collection)
+            is_standard_analysis = False
+            if conv and conv.get("brief") and conv.get("brief").get("depth") == "standard":
+                is_standard_analysis = True
 
-            # Send completion progress
-            if is_comprehensive:
+            # For standard analysis, send multiple sections progressively
+            if is_comprehensive and is_standard_analysis:
+                # Section 1: Data Collection (sent after Phase 1)
+                section1_response = generate_mock_response(content, user_industry, user_industry_segment)
+                await websocket.send_json(json.loads(section1_response))
+                if conv:
+                    ai_msg_id = str(uuid.uuid4())
+                    conv["messages"].append({
+                        "id": ai_msg_id,
+                        "role": "assistant",
+                        "content": section1_response,
+                        "created_at": datetime.utcnow().isoformat()
+                    })
+                await asyncio.sleep(0.5)
+
+                # Section 2: Market Analysis (sent after Phase 3 - Market Research at 60%)
+                section2_text = """
+## Analiza Rynku
+
+### Wielkość rynku tworzyw sztucznych w Polsce
+Rynek przetwórstwa tworzyw sztucznych w Polsce jest wyceniany na około **8,5 mld EUR rocznie** [1]. Sektor ten zatrudnia ponad 180 tys. osób w około 3 200 firmach [2].
+
+**Kluczowe segmenty:**
+- Branża motoryzacyjna: 35% rynku (największy odbiorca)
+- Przemysł budowlany: 25% rynku
+- Opakowania: 20% rynku
+- Elektronika i AGD: 12% rynku
+- Pozostałe: 8% rynku
+
+### Trendy wzrostowe
+- **Wzrost CAGR:** 4,2% rocznie (2020-2025) [1]
+- **Driverzy wzrostu:**
+  - Rosnące zapotrzebowanie sektora automotive (elektromobilność)
+  - Rozwój e-commerce → więcej opakowań
+  - Inwestycje w automatyzację produkcji
+  - Green plastics i recykling (regulacje UE)
+
+### Pozycja konkurencyjna
+FADO znajduje się w **TOP 20% producentów** pod względem wielkości produkcji [3]. Główni konkurenci:
+- **POLIMER SA** - przychody 85M PLN, 220 pracowników
+- **TECHNOPLAST Sp. z o.o.** - przychody 62M PLN, 180 pracowników
+- **SPLAST Group** - przychody 120M PLN, 300 pracowników
+
+**Przewaga konkurencyjna FADO:**
+- Specjalizacja w branży automotive (stabilny popyt)
+- Certyfikaty ISO 9001, IATF 16949, ISO 14001
+- Nowoczesny park maszynowy (ostatnia modernizacja: 2024)
+- Lokalizacja blisko głównych odbiorców (Volkswagen Poznań, Stellantis Gliwice)
+
+**Źródła:**
+[1] Raport Polskiej Izby Przemysłu Chemicznego 2024
+[2] GUS - Rocznik Statystyczny Przemysłu 2024
+[3] Ranking Polityki Insight "Producenci tworzyw sztucznych 2024"
+"""
+                section2_response = {
+                    "type": "text_with_sources",
+                    "data": {
+                        "text": section2_text.strip(),
+                        "sources": [
+                            {
+                                "id": "src_market_1",
+                                "type": "report",
+                                "title": "Raport Polskiej Izby Przemysłu Chemicznego 2024",
+                                "url": "https://pipc.org.pl/raporty/rynek-tworzyw-2024",
+                                "confidence": 92,
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "excerpt": "Rynek przetwórstwa tworzyw sztucznych w Polsce - 8,5 mld EUR, wzrost CAGR 4,2%"
+                            },
+                            {
+                                "id": "src_market_2",
+                                "type": "government",
+                                "title": "GUS - Rocznik Statystyczny Przemysłu 2024",
+                                "url": "https://stat.gov.pl/",
+                                "confidence": 95,
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "excerpt": "Sektor tworzyw sztucznych: 180 tys. pracowników, 3 200 firm"
+                            },
+                            {
+                                "id": "src_market_3",
+                                "type": "media",
+                                "title": "Ranking Polityki Insight - Producenci tworzyw 2024",
+                                "url": "https://polityka-insight.pl/rankings/plastics-2024",
+                                "confidence": 88,
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "excerpt": "TOP 100 producentów tworzyw sztucznych w Polsce"
+                            }
+                        ]
+                    }
+                }
+                await websocket.send_json(section2_response)
+                if conv:
+                    ai_msg_id = str(uuid.uuid4())
+                    conv["messages"].append({
+                        "id": ai_msg_id,
+                        "role": "assistant",
+                        "content": json.dumps(section2_response, ensure_ascii=False),
+                        "created_at": datetime.utcnow().isoformat()
+                    })
+                await asyncio.sleep(0.5)
+
+                # Section 3: Analysis & Synthesis (sent after Phase 4 - Report Generation at 85%)
+                section3_text = """
+## Analiza i Synteza
+
+### Kluczowe wnioski
+1. **Silna pozycja rynkowa:** FADO należy do TOP 20% producentów w Polsce, z przychodami 68M PLN i rosnącym udziałem w rynku automotive
+2. **Stabilność finansowa:** Marża zysku netto 8,2%, niskie zadłużenie (32%), wysoki ROE (18,2%) - wszystkie wskaźniki powyżej średniej branżowej
+3. **Certyfikacje i jakość:** Pełny zestaw certyfikatów dla branży automotive (IATF 16949) i środowiskowych (ISO 14001)
+4. **Nowoczesna infrastruktura:** Ostatnia modernizacja parku maszynowego w 2024 roku (inwestycja 5M PLN)
+
+### Szanse (Opportunities)
+- **Elektromobilność:** Rosnący popyt na komponenty do pojazdów elektrycznych (baterie, systemy chłodzenia)
+- **Ekspansja geograficzna:** Potencjał rozwoju w CEE (Czechy, Słowacja, Węgry)
+- **Recykling i green plastics:** Rosnące wymagania UE = nowe modele biznesowe
+- **Automatyzacja:** Dalsze inwestycje w Industry 4.0 → większa efektywność
+
+### Ryzyka (Threats)
+- **Ceny surowców:** Wahania cen polipropylenu i ABS (zależność od cen ropy)
+- **Presja kosztowa:** Rosnące koszty energii i pracy
+- **Konkurencja międzynarodowa:** Producenci z Azji (Chiny, Indie) z niższymi kosztami
+- **Regulacje środowiskowe:** Coraz bardziej restrykcyjne przepisy UE dotyczące plastiku
+
+### Rekomendacje strategiczne
+
+**1. Dywersyfikacja portfolio (Priorytet: WYSOKI)**
+- Rozwój produktów z recyklingu (r-PP, r-ABS)
+- Wejście w segment bio-plastików
+- Cel: 20% przychodów z "green products" do 2027
+
+**2. Ekspansja na rynki CEE (Priorytet: ŚREDNI)**
+- Otworzenie biura sprzedaży w Czechach (2026)
+- Partnerstwa z lokalnymi dystrybutorami
+- Cel: +15% przychodów z eksportu do 2028
+
+**3. Automatyzacja i digitalizacja (Priorytet: WYSOKI)**
+- Implementacja systemu MES (Manufacturing Execution System)
+- Predykcyjna konserwacja maszyn (AI/IoT)
+- Cel: +10% efektywności OEE do 2026
+
+**4. Hedging surowcowy (Priorytet: ŚREDNI)**
+- Kontrakty forward na kluczowe surowce
+- Dywersyfikacja dostawców (obecnie 3 głównych)
+- Cel: stabilizacja marży przy wahaniach cen ±15%
+
+### Ocena ogólna
+**Rating:** 7.8/10
+
+**Uzasadnienie:**
+FADO to solidny, dobrze zarządzany producent z silną pozycją w automotive. Firma ma zdrowe finanse, nowoczesną infrastrukturę i odpowiednie certyfikaty. Główne ryzyka to presja kosztowa i rosnąca konkurencja, ale szanse związane z elektromobilnością i green plastics mogą je zrównoważyć.
+
+**Rekomendacja:**
+- **Dla inwestorów:** Stabilna opcja z umiarkowanym potencjałem wzrostu (15-20% w 3 lata)
+- **Dla partnerów biznesowych:** Wiarygodny dostawca z udokumentowaną jakością
+- **Dla konkurentów:** Godny przeciwnik - nie lekceważyć, ale możliwe obszary współpracy (np. recykling)
+"""
+                section3_response = {
+                    "type": "text_with_sources",
+                    "data": {
+                        "text": section3_text.strip(),
+                        "sources": []
+                    }
+                }
+                await websocket.send_json(section3_response)
+                if conv:
+                    ai_msg_id = str(uuid.uuid4())
+                    conv["messages"].append({
+                        "id": ai_msg_id,
+                        "role": "assistant",
+                        "content": json.dumps(section3_response, ensure_ascii=False),
+                        "created_at": datetime.utcnow().isoformat()
+                    })
+                await asyncio.sleep(0.3)
+
+                # Send completion progress
                 await websocket.send_json({
                     "type": "progress",
                     "data": {
@@ -2815,29 +2984,51 @@ async def websocket_endpoint(
                         "estimated_time_remaining": "0 seconds"
                     }
                 })
-                await asyncio.sleep(0.2)
 
-            # Save AI response to conversation store
-            if conv:
-                ai_msg_id = str(uuid.uuid4())
-                ai_message = {
-                    "id": ai_msg_id,
-                    "role": "assistant",
-                    "content": response,
-                    "created_at": datetime.utcnow().isoformat()
-                }
-                conv["messages"].append(ai_message)
-
-            # Check if response is JSON (structured message)
-            try:
-                response_data = json.loads(response)
-                # If it's a dict with 'type' and 'data', send as JSON
-                if isinstance(response_data, dict) and 'type' in response_data and 'data' in response_data:
-                    await websocket.send_json(response_data)
+            else:
+                # Non-standard analysis OR non-comprehensive - original single response behavior
+                # Generate mock response (mention files if present)
+                if file_ids:
+                    response = f"Otrzymałem Twoją wiadomość z {len(file_ids)} załączonym plikiem/plikami.\n\n"
+                    response += generate_mock_response(content, user_industry, user_industry_segment)
+                    response += f"\n\n[Uwaga: Przetwarzanie plików jest w trakcie implementacji. ID plików: {', '.join(file_ids[:3])}...]"
                 else:
+                    response = generate_mock_response(content, user_industry, user_industry_segment)
+
+                # Send completion progress
+                if is_comprehensive:
+                    await websocket.send_json({
+                        "type": "progress",
+                        "data": {
+                            "percentage": 100,
+                            "phase": "Complete",
+                            "message": "Analysis complete!",
+                            "estimated_time_remaining": "0 seconds"
+                        }
+                    })
+                    await asyncio.sleep(0.2)
+
+                # Save AI response to conversation store
+                if conv:
+                    ai_msg_id = str(uuid.uuid4())
+                    ai_message = {
+                        "id": ai_msg_id,
+                        "role": "assistant",
+                        "content": response,
+                        "created_at": datetime.utcnow().isoformat()
+                    }
+                    conv["messages"].append(ai_message)
+
+                # Check if response is JSON (structured message)
+                try:
+                    response_data = json.loads(response)
+                    # If it's a dict with 'type' and 'data', send as JSON
+                    if isinstance(response_data, dict) and 'type' in response_data and 'data' in response_data:
+                        await websocket.send_json(response_data)
+                    else:
+                        await websocket.send_text(response)
+                except (json.JSONDecodeError, ValueError):
+                    # Not JSON, send as plain text
                     await websocket.send_text(response)
-            except (json.JSONDecodeError, ValueError):
-                # Not JSON, send as plain text
-                await websocket.send_text(response)
     except WebSocketDisconnect:
         pass
