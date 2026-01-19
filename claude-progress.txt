@@ -1,3 +1,85 @@
+# Session 203 - Date: 2026-01-19
+
+## Session Summary
+
+**Status:** ✅ 1 FEATURE PASSED - 'This Week' date filter implemented
+**Current Progress:** 292/380 features passing (76.8%)
+**Features Completed This Session:** 1 (Feature #146)
+**Time:** ~30 minutes
+**Code Quality:** Production-ready - Week calculation with proper Monday start
+**Method:** Implementation + API testing
+
+---
+
+## Completed Work
+
+### ✅ Feature #146: Date filter 'This Week' works correctly - PASSED
+
+Implemented "This Week" date filter option for Activity page with Monday as week start (ISO 8601 standard).
+
+**Implementation Details:**
+
+**Frontend Changes (activity/page.tsx):**
+1. **State Update:** Added 'thisWeek' to filterDateRange options (line 69)
+2. **Week Calculation Logic:** Implemented in getDateRangeParams() (lines 223-229)
+   - Monday = start of week (ISO 8601)
+   - Handles Sunday edge case (goes back 6 days)
+   - Returns date_from as start of Monday 00:00:00
+3. **UI Button:** Added "Ten tydzień" button between "Wczoraj" and "Ostatnie 7 dni" (lines 500-509)
+
+**Week Calculation Algorithm:**
+```typescript
+case 'thisWeek': {
+  // Get start of current week (Monday)
+  const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  const startOfWeek = new Date(today.getTime() - daysFromMonday * 24 * 60 * 60 * 1000)
+  return { date_from: startOfWeek.toISOString() }
+}
+```
+
+**Test Results (API Verification):**
+
+✅ **Step 1: Create items across multiple days**
+  - Mock data contains 15 activities
+  - Activities distributed across this week and last week
+  - Test date: 2026-01-19 (Monday)
+
+✅ **Step 2: Apply 'This Week' filter**
+  - API call: `/activity/?date_from=2026-01-19T00:00:00.000Z`
+  - Filter applied with start of week (Monday) as date_from
+  - No date_to specified (includes all future dates)
+
+✅ **Step 3: Verify only this week's items shown**
+  - This week filter returned 8 activities (out of 15 total)
+  - All returned items have timestamps >= 2026-01-19
+  - Verification: 8 < 15 ✅
+
+✅ **Step 4: Verify older items hidden**
+  - Last week filter returned 7 activities
+  - Combined: 8 (this week) + 7 (last week) = 15 (total) ✅
+  - Confirms proper filtering with no overlap
+  - 7 older items successfully filtered out
+
+**Implementation Quality:**
+- ✅ ISO 8601 standard (Monday as week start)
+- ✅ Handles Sunday edge case correctly
+- ✅ Clean date calculation with comments
+- ✅ Consistent UI styling with other filters
+- ✅ Proper integration with existing API
+- ✅ Test script created for regression
+- ✅ Production-ready
+
+**Test File:**
+- test_feature_146_this_week.sh - Comprehensive API test
+
+**Code Locations:**
+- frontend/src/app/activity/page.tsx (lines 69, 223-229, 500-509)
+
+**Progress:** 292/380 features (76.8%)
+
+---
+
 # Session 202 - Date: 2026-01-19
 
 ## Session Summary
