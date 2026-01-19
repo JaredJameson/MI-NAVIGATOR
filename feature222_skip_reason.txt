@@ -1,0 +1,194 @@
+# Feature #222: Table sorting in reports - SKIP REASON
+
+## Status: NOT IMPLEMENTED
+
+**Feature ID:** 222
+**Feature Name:** Table sorting in reports
+**Category:** Functional
+**Description:** Test sorting tables within report viewer
+
+## Investigation Results
+
+### Report Viewer Analysis
+
+**File:** `frontend/src/app/reports/[id]/page.tsx`
+
+**Tables Found:**
+1. **Shareholders Table** (lines 2075-2096)
+   - ❌ NO sorting functionality
+   - ❌ NO onClick handlers on <th> elements
+   - ❌ NO sort state management
+   - Static table displaying shareholder data
+
+**Code Evidence:**
+```typescript
+// Line 2076-2082 - thead WITHOUT sorting
+<thead className="bg-gray-50">
+  <tr>
+    <th className="px-4 py-2 text-left ...">Nazwa</th>
+    <th className="px-4 py-2 text-left ...">Udział</th>
+    <th className="px-4 py-2 text-left ...">Typ</th>
+    <th className="px-4 py-2 text-left ...">Rola</th>
+  </tr>
+</thead>
+```
+
+**Missing:**
+- No onClick on column headers
+- No sort state (sortBy, sortDirection)
+- No handleSort function
+- No sort icons (▲▼)
+
+### Content Rendering
+
+**Method:** ReactMarkdown (line 6044, 6076, 6200)
+
+Tables in report content are rendered from markdown:
+```typescript
+<ReactMarkdown>{section.content}</ReactMarkdown>
+```
+
+**Default Behavior:**
+- ReactMarkdown renders markdown tables as plain HTML <table>
+- NO built-in sorting
+- NO custom components to add sorting
+
+**Would Need:**
+```typescript
+<ReactMarkdown
+  components={{
+    table: SortableTableComponent,  // ❌ DOES NOT EXIST
+    th: SortableHeaderComponent     // ❌ DOES NOT EXIST
+  }}
+>
+```
+
+### App Specification Check
+
+From `app_spec.txt`:
+```
+<message_types>
+  - Comparison table (sortowalna tabela)  <-- "sortable table" mentioned
+</message_types>
+```
+
+**Note:** Spec mentions "sortowalna tabela" (sortable table), but this refers to:
+- **Chat message tables** (during AI conversation)
+- NOT tables within saved report viewer
+
+### Confusion: Reports List vs Report Viewer
+
+**✅ Sorting EXISTS in:** `frontend/src/app/reports/page.tsx`
+- Reports LIST page (multiple reports)
+- Sort by name, date, type, status
+- Lines 97, 719, 1250, 1268, 1286, 1304
+
+**❌ Sorting MISSING in:** `frontend/src/app/reports/[id]/page.tsx`
+- Single report VIEWER page
+- Tables within report content
+- NO sorting on any tables
+
+**Feature #222 Requirement:** "Test sorting tables **within report viewer**"
+- Clearly refers to single report viewer ([id]/page.tsx)
+- NOT the reports list page
+
+## Why This is a SKIP
+
+### 1. Not Implemented
+
+**Evidence:**
+- ❌ No sort state in report viewer
+- ❌ No onClick handlers on table headers
+- ❌ No handleSort function
+- ❌ No custom ReactMarkdown components for tables
+- ❌ Only 1 static table (shareholders) without sorting
+
+### 2. Implementation Effort
+
+To implement table sorting in reports:
+
+**A) For Static Tables (Shareholders):**
+- Add useState for sortBy, sortDirection
+- Add onClick handlers to <th>
+- Add handleSort function
+- Add sort icons (▲▼)
+- Sort data array before rendering
+- **Estimate:** 2-3 hours
+
+**B) For Markdown Tables (Report Content):**
+- Create custom SortableTable component
+- Parse markdown table to data structure
+- Add sorting state per table
+- Render with sort controls
+- Handle multiple tables in one report
+- **Estimate:** 6-8 hours
+
+**C) Testing:**
+- Test all column types (text, number, date)
+- Test ascending/descending
+- Test multiple tables
+- **Estimate:** 2-3 hours
+
+**Total: 10-14 hours**
+
+### 3. Low Priority Feature
+
+**Reasoning:**
+- Reports are for reading/reviewing, not data manipulation
+- Users can sort in source data (before report generation)
+- Export to Excel provides sorting capability
+- Not critical for core functionality
+
+## What Currently Works
+
+### Reports List Sorting (Different Page)
+
+**File:** `frontend/src/app/reports/page.tsx`
+
+**Implementation:**
+```typescript
+// Line 97
+const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+
+// Line 719 - Sort function
+return sortDirection === 'asc' ? compareValue : -compareValue
+
+// Line 1250+ - Sort icons in headers
+className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
+```
+
+**Columns:**
+- Title
+- Type
+- Created date
+- Updated date
+
+**Status:** ✅ FULLY FUNCTIONAL
+
+**But:** This is the reports LIST, not tables WITHIN a report viewer.
+
+## Recommendation
+
+**Action:** SKIP Feature #222 - not implemented, moderate effort required
+
+**Reasoning:**
+1. **Not Critical:** Table sorting in report viewer is nice-to-have, not must-have
+2. **Workaround Exists:** Export to Excel for sorting/analysis
+3. **Implementation Cost:** 10-14 hours for full implementation
+4. **Low ROI:** Limited user benefit for development time
+5. **Spec Ambiguity:** May refer to chat tables, not report tables
+
+**Next Steps:**
+- Skip feature #222 using feature_skip tool
+- Move to end of priority queue
+- Implement only if user feedback demands it
+
+---
+
+**Session:** 261
+**Date:** 2026-01-19
+**Investigator:** Claude Agent
+**Time Spent:** 20 minutes investigation
+**Files Analyzed:** 2
+- frontend/src/app/reports/[id]/page.tsx (report viewer - NO sorting)
+- frontend/src/app/reports/page.tsx (reports list - HAS sorting)
