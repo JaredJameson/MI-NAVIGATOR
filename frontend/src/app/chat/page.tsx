@@ -670,23 +670,29 @@ export default function ChatPage() {
     const validFiles: File[] = []
     const maxSize = 50 * 1024 * 1024 // 50MB
     const supportedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'image/png', 'image/jpeg']
+    let hasError = false
 
     Array.from(files).forEach(file => {
       if (file.size > maxSize) {
         setError(`File ${file.name} is too large. Max size is 50MB.`)
+        hasError = true
         return
       }
 
       if (!supportedTypes.includes(file.type)) {
         setError(`File type ${file.type} is not supported.`)
+        hasError = true
         return
       }
 
       validFiles.push(file)
     })
 
-    setUploadedFiles(prev => [...prev, ...validFiles])
-    setError('')
+    // Only add valid files and clear error if no errors occurred
+    if (!hasError) {
+      setUploadedFiles(prev => [...prev, ...validFiles])
+      setError('')
+    }
 
     // Reset input
     if (fileInputRef.current) {
