@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature #135 Test - Copy to Clipboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 2px solid #e5e7eb;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .share-link-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background-color: #f9fafb;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        button.success {
+            background-color: #10b981;
+        }
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .feedback.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .feedback.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .test-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .test-result.pass {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .test-result.fail {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        h1 {
+            color: #1f2937;
+        }
+        h2 {
+            color: #374151;
+            margin-top: 30px;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f3f4f6;
+            border-left: 4px solid #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <h1>Feature #135: Copy to Clipboard Functionality Test</h1>
+
+    <div class="test-section">
+        <h2>Simulated Share Link</h2>
+        <p>This simulates the share link generation interface with copy functionality.</p>
+
+        <div class="share-link-container">
+            <input
+                type="text"
+                id="shareLink"
+                value="http://localhost:3000/share/test_token_abc123"
+                readonly
+            />
+            <button id="copyButton" onclick="handleCopyLink()">
+                <span id="buttonText">Kopiuj</span>
+            </button>
+        </div>
+
+        <div id="feedback" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Steps</h2>
+        <div class="step">✅ Step 1: Navigate to report with share link - SIMULATED</div>
+        <div class="step">⏳ Step 2: Click copy button - Click "Kopiuj" above</div>
+        <div class="step">⏳ Step 3: Verify success feedback</div>
+        <div class="step">⏳ Step 4: Paste clipboard content - Use Ctrl+V in box below</div>
+        <div class="step">⏳ Step 5: Verify correct content copied</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Paste Test Area</h2>
+        <p>After clicking "Kopiuj", paste here with Ctrl+V to verify clipboard content:</p>
+        <input
+            type="text"
+            id="pasteArea"
+            placeholder="Paste here (Ctrl+V)..."
+            style="width: 100%;"
+        />
+        <button onclick="verifyPaste()" style="margin-top: 10px;">Verify Pasted Content</button>
+    </div>
+
+    <div id="testResult"></div>
+
+    <script>
+        let linkCopied = false;
+        let copiedContent = '';
+
+        async function handleCopyLink() {
+            const shareLink = document.getElementById('shareLink').value;
+            const button = document.getElementById('copyButton');
+            const buttonText = document.getElementById('buttonText');
+            const feedback = document.getElementById('feedback');
+
+            try {
+                // Copy to clipboard using navigator.clipboard API
+                await navigator.clipboard.writeText(shareLink);
+
+                // Store what was copied for verification
+                copiedContent = shareLink;
+                linkCopied = true;
+
+                // Success feedback - change button to checkmark
+                buttonText.innerHTML = '✓';
+                button.classList.add('success');
+
+                // Show success message
+                feedback.style.display = 'block';
+                feedback.className = 'feedback success';
+                feedback.textContent = '✓ Link skopiowany do schowka!';
+
+                // Update test steps
+                updateTestStep(2, '✅ Step 2: Click copy button - PASSED');
+                updateTestStep(3, '✅ Step 3: Verify success feedback - PASSED (button shows checkmark)');
+
+                // Reset after 2 seconds (like in real app)
+                setTimeout(() => {
+                    buttonText.textContent = 'Kopiuj';
+                    button.classList.remove('success');
+                    feedback.style.display = 'none';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                feedback.style.display = 'block';
+                feedback.className = 'feedback error';
+                feedback.textContent = '✗ Nie udało się skopiować linku';
+
+                updateTestStep(2, '❌ Step 2: FAILED - ' + err.message);
+            }
+        }
+
+        function verifyPaste() {
+            const pasteArea = document.getElementById('pasteArea');
+            const pastedValue = pasteArea.value;
+            const expectedValue = document.getElementById('shareLink').value;
+            const testResult = document.getElementById('testResult');
+
+            if (!linkCopied) {
+                testResult.className = 'test-result fail';
+                testResult.textContent = '❌ TEST FAILED: Copy button was not clicked yet!';
+                return;
+            }
+
+            if (pastedValue === expectedValue) {
+                updateTestStep(4, '✅ Step 4: Paste clipboard content - PASSED');
+                updateTestStep(5, '✅ Step 5: Verify correct content copied - PASSED');
+
+                testResult.className = 'test-result pass';
+                testResult.innerHTML = `
+                    <div>✅ FEATURE #135 TEST PASSED!</div>
+                    <div style="margin-top: 10px; font-size: 14px; font-weight: normal;">
+                        Expected: ${expectedValue}<br>
+                        Got: ${pastedValue}<br>
+                        Match: ✓ Perfect match
+                    </div>
+                `;
+            } else {
+                updateTestStep(4, '❌ Step 4: FAILED - Content mismatch');
+                updateTestStep(5, '❌ Step 5: FAILED');
+
+                testResult.className = 'test-result fail';
+                testResult.innerHTML = `
+                    <div>❌ TEST FAILED: Clipboard content does not match!</div>
+                    <div style="margin-top: 10px; font-size: 14px; font-weight: normal;">
+                        Expected: ${expectedValue}<br>
+                        Got: ${pastedValue}<br>
+                        Match: ✗ Mismatch
+                    </div>
+                `;
+            }
+        }
+
+        function updateTestStep(stepNumber, newText) {
+            const steps = document.querySelectorAll('.step');
+            if (steps[stepNumber - 1]) {
+                steps[stepNumber - 1].textContent = newText;
+
+                // Update border color based on status
+                if (newText.includes('✅')) {
+                    steps[stepNumber - 1].style.borderLeftColor = '#10b981';
+                    steps[stepNumber - 1].style.backgroundColor = '#d1fae5';
+                } else if (newText.includes('❌')) {
+                    steps[stepNumber - 1].style.borderLeftColor = '#ef4444';
+                    steps[stepNumber - 1].style.backgroundColor = '#fee2e2';
+                }
+            }
+        }
+
+        // Log to console for debugging
+        console.log('Feature #135 test page loaded');
+        console.log('navigator.clipboard available:', !!navigator.clipboard);
+    </script>
+</body>
+</html>
