@@ -35,7 +35,7 @@ export default function CompanyProfilePage() {
   const [customFields, setCustomFields] = useState<CompanyCustomField[]>([]);
   const [customFieldsLoading, setCustomFieldsLoading] = useState(false);
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
-  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [fieldValues, setFieldValues] = useState<Record<string, string | string[]>>({});
 
   // Load company profile
   useEffect(() => {
@@ -122,9 +122,12 @@ export default function CompanyProfilePage() {
       if (result.data) {
         setCustomFields(result.data);
         // Initialize field values from existing data
-        const values: Record<string, string> = {};
+        const values: Record<string, string | string[]> = {};
         result.data.forEach((field) => {
-          if (field.value) {
+          // For multiselect, use value_json (array), otherwise use value (string)
+          if (field.field_definition.field_type === 'multiselect' && field.value_json) {
+            values[field.field_definition.id] = field.value_json;
+          } else if (field.value) {
             values[field.field_definition.id] = field.value;
           }
         });
@@ -170,12 +173,16 @@ export default function CompanyProfilePage() {
 
   // Handle custom field value save
   const handleSaveFieldValue = async (fieldId: string) => {
-    const value = fieldValues[fieldId] || '';
+    const fieldValue = fieldValues[fieldId];
+
+    // Determine if this is a multiselect field
+    const field = customFields.find(f => f.field_definition.id === fieldId);
+    const isMultiselect = field?.field_definition.field_type === 'multiselect';
 
     const result = await customFieldsApi.setFieldValue(companyId, {
       field_definition_id: fieldId,
-      value: value,
-      value_json: null,
+      value: isMultiselect ? null : (fieldValue as string || ''),
+      value_json: isMultiselect ? (fieldValue as string[] || []) : null,
     });
 
     if (result.data) {
@@ -551,6 +558,52 @@ export default function CompanyProfilePage() {
                                 </button>
                               )}
                             </div>
+                          ) : field.field_definition.field_type === 'multiselect' ? (
+                            <div className="space-y-2">
+                              <div className="border border-slate-300 rounded-lg p-3 space-y-2 bg-slate-50">
+                                {field.field_definition.options?.map((option) => {
+                                  const currentValues = (fieldValues[field.field_definition.id] as string[]) || [];
+                                  const isChecked = currentValues.includes(option);
+
+                                  return (
+                                    <label
+                                      key={option}
+                                      className="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-2 rounded transition-colors"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={(e) => {
+                                          let newValues: string[];
+                                          if (e.target.checked) {
+                                            // Add option
+                                            newValues = [...currentValues, option];
+                                          } else {
+                                            // Remove option
+                                            newValues = currentValues.filter(v => v !== option);
+                                          }
+                                          setFieldValues({
+                                            ...fieldValues,
+                                            [field.field_definition.id]: newValues,
+                                          });
+                                          setEditingFieldId(field.field_definition.id);
+                                        }}
+                                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                                      />
+                                      <span className="text-sm text-slate-700">{option}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                              {editingFieldId === field.field_definition.id && (
+                                <button
+                                  onClick={() => handleSaveFieldValue(field.field_definition.id)}
+                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                >
+                                  Save
+                                </button>
+                              )}
+                            </div>
                           ) : field.field_definition.field_type === 'number' ? (
                             <div className="flex gap-2">
                               <input
@@ -601,9 +654,15 @@ export default function CompanyProfilePage() {
                             </div>
                           )}
 
-                          {field.value && !editingFieldId && (
+                          {((field.value && field.field_definition.field_type !== 'multiselect') ||
+                            (field.value_json && field.field_definition.field_type === 'multiselect')) &&
+                            !editingFieldId && (
                             <div className="text-sm text-slate-600">
-                              Current: <span className="font-medium">{field.value}</span>
+                              Current: <span className="font-medium">
+                                {field.field_definition.field_type === 'multiselect' && field.value_json
+                                  ? field.value_json.join(', ')
+                                  : field.value}
+                              </span>
                             </div>
                           )}
                         </div>
