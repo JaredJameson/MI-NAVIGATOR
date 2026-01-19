@@ -465,3 +465,60 @@ async def get_analysis_job(job_id: str):
         "progress": 100,
         "results": {}
     }
+
+
+class FactSource(BaseModel):
+    name: str
+    type: str
+    value: Any
+    date: Optional[str] = None
+
+
+class FactCheckRequest(BaseModel):
+    company_name: str
+    facts: Dict[str, Dict[str, Any]]
+
+
+class FactCheckResponse(BaseModel):
+    fact_check_report: Dict[str, Any]
+
+
+@router.post("/fact-check", response_model=FactCheckResponse)
+async def check_facts(
+    request: FactCheckRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Verify data accuracy through cross-referencing multiple sources.
+
+    Assigns confidence scores (HIGH/MEDIUM/LOW/UNVERIFIED) and detects conflicts.
+
+    Example request:
+    {
+        "company_name": "FADO Sp. z o.o.",
+        "facts": {
+            "employee_count": {
+                "sources": [
+                    {"name": "LinkedIn", "type": "social_media", "value": "245", "date": "2024-01-15"},
+                    {"name": "Website", "type": "company_website", "value": "250+", "date": "2024-01-10"},
+                    {"name": "GUS estimate", "type": "official_registry", "value": "200-300", "date": "2023-12-01"}
+                ]
+            },
+            "revenue_2023": {
+                "sources": [
+                    {"name": "KRS Financial Report", "type": "official_registry", "value": "50.2M PLN", "date": "2024-03-15"}
+                ]
+            }
+        }
+    }
+    """
+    from app.services.fact_checker import fact_checker
+
+    # Add company name to request data
+    company_data = request.facts.copy()
+    company_data["company_name"] = request.company_name
+
+    # Run fact checking
+    result = fact_checker.check_company_profile(company_data)
+
+    return FactCheckResponse(**result)

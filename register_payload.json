@@ -1,0 +1,6 @@
+{
+  "email": "factcheck@example.com",
+  "password": "Test123!",
+  "confirm_password": "Test123!",
+  "name": "Fact Checker Test"
+}
