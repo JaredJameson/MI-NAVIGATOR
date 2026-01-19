@@ -18,8 +18,8 @@ const shortcuts: Shortcut[] = [
   { keys: ['g', 's'], description: 'Go to Settings', category: 'Navigation' },
 
   // Actions
-  { keys: ['Ctrl', 'K'], description: 'Open command palette / Search', category: 'Actions' },
-  { keys: ['Ctrl', 'N'], description: 'New report', category: 'Actions' },
+  { keys: ['Ctrl', 'K'], description: 'New Search (PKD Search)', category: 'Actions' },
+  { keys: ['Ctrl', 'N'], description: 'New Project', category: 'Actions' },
   { keys: ['Ctrl', 'S'], description: 'Save current work', category: 'Actions' },
   { keys: ['Ctrl', '/'], description: 'Toggle sidebar', category: 'Actions' },
   { keys: ['Escape'], description: 'Close modal / Cancel', category: 'Actions' },

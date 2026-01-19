@@ -131,3 +131,89 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Print Stylesheet - Feature #330 */
+@media print {
+  /* Hide navigation and non-essential UI elements */
+  nav,
+  aside,
+  header button,
+  [role="complementary"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure content is readable */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Prevent content cut-off */
+  * {
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Use appropriate colors for print */
+  a {
+    color: #0000EE !important;
+    text-decoration: underline;
+  }
+
+  /* Show link URLs after the text */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666;
+  }
+
+  /* Don't show URLs for internal navigation links */
+  a[href^="#"]:after,
+  a[href^="/"]:after {
+    content: "";
+  }
+
+  /* Ensure tables fit on page */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  table, th, td {
+    border: 1px solid #333;
+  }
+
+  th, td {
+    padding: 8px;
+    text-align: left;
+  }
+
+  /* Remove shadows and unnecessary decorations */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Optimize main content area */
+  main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+
+  /* Page margins for comfortable reading */
+  @page {
+    margin: 2cm;
+  }
+}

@@ -58,11 +58,16 @@ export function useKeyboardShortcuts() {
         }
       }
 
-      // Ctrl+K - Search/Command Palette (placeholder for now)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      // Ctrl+K - New Search (Feature #226)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && !isTyping) {
         e.preventDefault();
-        // In future: open command palette
-        console.log('Ctrl+K pressed - Command palette (not implemented yet)');
+        router.push('/search');
+      }
+
+      // Ctrl+N - New Project (Feature #226)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !isTyping) {
+        e.preventDefault();
+        router.push('/projects/new');
       }
 
       // Ctrl+/ - Toggle sidebar (placeholder)
