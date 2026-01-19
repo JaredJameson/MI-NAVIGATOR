@@ -545,7 +545,7 @@ export default function SettingsPage() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button onClick={() => handleNavigateAway('/dashboard')} className="text-gray-600 hover:text-gray-900">
+              <button onClick={() => handleNavigateAway('/dashboard')} className="text-gray-600 hover:text-gray-900" aria-label="Wróć do dashboardu">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
