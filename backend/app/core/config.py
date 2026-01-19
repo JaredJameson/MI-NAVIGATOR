@@ -40,7 +40,9 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
+        "http://localhost:3001",
         "ws://localhost:3000",
+        "ws://localhost:3001",
         "http://localhost:8000",
         "ws://localhost:8000"
     ]
