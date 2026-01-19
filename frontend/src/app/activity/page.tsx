@@ -66,7 +66,7 @@ export default function ActivityPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [filterType, setFilterType] = useState('')
-  const [filterDateRange, setFilterDateRange] = useState('all') // all, today, yesterday, last7days, last30days, thisMonth, lastMonth
+  const [filterDateRange, setFilterDateRange] = useState('all') // all, today, yesterday, thisWeek, last7days, last30days, thisMonth, lastMonth
   const [userTimezone, setUserTimezone] = useState('Europe/Warsaw')
 
   // Export state
@@ -219,6 +219,13 @@ export default function ActivityPage() {
         const startOfYesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString()
         const endOfYesterday = today.toISOString()
         return { date_from: startOfYesterday, date_to: endOfYesterday }
+      }
+      case 'thisWeek': {
+        // Get start of current week (Monday)
+        const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // If Sunday, go back 6 days; otherwise go back (dayOfWeek - 1) days
+        const startOfWeek = new Date(today.getTime() - daysFromMonday * 24 * 60 * 60 * 1000)
+        return { date_from: startOfWeek.toISOString() }
       }
       case 'last7days': {
         const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -489,6 +496,16 @@ export default function ActivityPage() {
                   }`}
                 >
                   Wczoraj
+                </button>
+                <button
+                  onClick={() => handleDateRangeChange('thisWeek')}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    filterDateRange === 'thisWeek'
+                      ? 'bg-blue-100 text-blue-800 font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Ten tydzień
                 </button>
                 <button
                   onClick={() => handleDateRangeChange('last7days')}
