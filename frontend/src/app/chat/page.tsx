@@ -46,6 +46,8 @@ export default function ChatPage() {
   const [error, setError] = useState('')
   const [wsConnected, setWsConnected] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({})
+  const [isUploading, setIsUploading] = useState(false)
   const [detectedUrl, setDetectedUrl] = useState<string | null>(null)
   const [detectedNIP, setDetectedNIP] = useState<string | null>(null)
   const [detectedKRS, setDetectedKRS] = useState<string | null>(null)
@@ -700,35 +702,64 @@ export default function ChatPage() {
     const token = getStoredToken()
     if (!token) return []
 
+    setIsUploading(true)
     const uploadedFileIds: string[] = []
 
     for (const file of files) {
       try {
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('conversation_id', conversationId)
-
-        const response = await fetch(`${API_BASE_URL}/files/upload`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formData,
-        })
-
-        if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`)
-        }
-
-        const data = await response.json()
-        uploadedFileIds.push(data.id)
+        const fileId = await uploadSingleFile(file, conversationId, token)
+        uploadedFileIds.push(fileId)
       } catch (err) {
         console.error(`Error uploading ${file.name}:`, err)
         setError(`Failed to upload ${file.name}`)
       }
     }
 
+    setIsUploading(false)
+    setUploadProgress({})
     return uploadedFileIds
+  }
+
+  const uploadSingleFile = (file: File, conversationId: string, token: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('conversation_id', conversationId)
+
+      const xhr = new XMLHttpRequest()
+
+      // Track upload progress
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentage = Math.round((e.loaded / e.total) * 100)
+          setUploadProgress(prev => ({
+            ...prev,
+            [file.name]: percentage
+          }))
+        }
+      })
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText)
+            resolve(data.id)
+          } catch (err) {
+            reject(new Error(`Failed to parse response for ${file.name}`))
+          }
+        } else {
+          reject(new Error(`Failed to upload ${file.name}: ${xhr.statusText}`))
+        }
+      })
+
+      xhr.addEventListener('error', () => {
+        reject(new Error(`Network error uploading ${file.name}`))
+      })
+
+      xhr.open('POST', `${API_BASE_URL}/files/upload`)
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.send(formData)
+    })
   }
 
   const handleSaveAsReport = async () => {
@@ -1275,26 +1306,61 @@ export default function ChatPage() {
           {/* Uploaded Files Preview */}
           {uploadedFiles.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
-              {uploadedFiles.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 rounded-lg border bg-gray-50 px-3 py-2"
-                >
-                  <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="text-sm text-gray-700">{file.name}</span>
-                  <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(0)} KB)</span>
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="ml-2 text-gray-400 hover:text-red-500"
+              {uploadedFiles.map((file, index) => {
+                const progress = uploadProgress[file.name]
+                const hasProgress = typeof progress === 'number'
+
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col gap-1 rounded-lg border bg-gray-50 px-3 py-2 min-w-[200px]"
                   >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-2">
+                      <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-sm text-gray-700 flex-1 truncate">{file.name}</span>
+                      <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(0)} KB)</span>
+                      {!isUploading && (
+                        <button
+                          onClick={() => removeFile(index)}
+                          className="ml-2 text-gray-400 hover:text-red-500"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Progress bar */}
+                    {hasProgress && (
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-600 transition-all duration-300"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-blue-600 min-w-[45px] text-right">
+                          {progress}%
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Success indicator */}
+                    {!hasProgress && isUploading && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Waiting...</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )}
 
