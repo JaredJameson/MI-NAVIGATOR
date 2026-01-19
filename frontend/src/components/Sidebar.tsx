@@ -35,7 +35,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
         }
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/users/me`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/auth/me`,
           {
             headers: { 'Authorization': `Bearer ${token}` }
           }
