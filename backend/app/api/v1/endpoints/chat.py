@@ -2620,8 +2620,10 @@ async def websocket_endpoint(
             # Handle plan confirmation
             if conv and plan_action:
                 if plan_action == "confirm":
-                    # User confirmed plan - proceed with research using brief parameters
-                    content = conv["brief"].get("objective", content)
+                    # User confirmed plan - proceed with research using ORIGINAL user message
+                    # NOT the brief objective, because we need the original query (with NIP, URL, etc.)
+                    if conv.get("original_query"):
+                        content = conv["original_query"]
                     # Set flag to start research
                     conv["research_confirmed"] = True
                 elif plan_action == "modify":
@@ -2661,6 +2663,8 @@ async def websocket_endpoint(
                 if is_new_research and "brief" not in conv or (conv and not conv.get("brief")):
                     # Start brief collection flow
                     conv["brief"] = {}
+                    # Save original query for later use (after plan confirmation)
+                    conv["original_query"] = content
                     await websocket.send_json({
                         "type": "brief_question",
                         "data": {
