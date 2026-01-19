@@ -1,0 +1,5 @@
+{
+  "target": "TestRegression Sp. z o.o.",
+  "analysis_type": "company",
+  "simulate_failures": ["company_profile"]
+}

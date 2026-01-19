@@ -92,7 +92,9 @@ class OrchestratorService:
         target: str,
         context: Optional[Dict[str, Any]] = None,
         simulate_failures: Optional[List[str]] = None,
-        simulate_transient_failures: Optional[List[str]] = None
+        simulate_transient_failures: Optional[List[str]] = None,
+        simulate_slow: Optional[List[str]] = None,
+        phase_timeout: Optional[int] = None
     ) -> Dict[str, Any]:
         """
         Execute a complete analysis with multiple agents.
@@ -103,6 +105,8 @@ class OrchestratorService:
             context: Additional context (user preferences, filters, etc.)
             simulate_failures: List of agent types to simulate failure (for testing)
             simulate_transient_failures: List of agent types to simulate transient failure (Feature #162)
+            simulate_slow: List of agent types to simulate slow execution (Feature #163)
+            phase_timeout: Override default phase timeout in seconds (Feature #163)
 
         Returns:
             Aggregated results from all agents
@@ -111,6 +115,12 @@ class OrchestratorService:
 
         # Create execution plan based on analysis type
         plan = self._create_execution_plan(analysis_type, target, context)
+
+        # Feature #163: Override phase timeouts if specified
+        if phase_timeout is not None:
+            for phase in plan:
+                phase.timeout = phase_timeout
+                logger.info(f"Phase {phase.name} timeout overridden to {phase_timeout}s")
 
         # Feature #161: Mark agents for simulated failure
         if simulate_failures:
@@ -126,6 +136,19 @@ class OrchestratorService:
                 for agent_config in phase.agents:
                     if agent_config["type"] in simulate_transient_failures:
                         agent_config["simulate_transient_error"] = True
+
+        # Feature #163: Mark agents for simulated slow execution (timeout testing)
+        if simulate_slow:
+            # Calculate slow duration based on phase timeout
+            timeout_to_use = phase_timeout if phase_timeout is not None else 120
+            slow_duration = int(timeout_to_use * 1.5)  # 150% of timeout to ensure timeout triggers
+
+            for phase in plan:
+                for agent_config in phase.agents:
+                    if agent_config["type"] in simulate_slow:
+                        agent_config["simulate_slow"] = True
+                        agent_config["slow_duration"] = slow_duration
+                        logger.info(f"Agent {agent_config['type']} will simulate {slow_duration}s delay (timeout: {timeout_to_use}s)")
 
         # Store job info
         self.active_jobs[job_id] = {
@@ -221,7 +244,7 @@ class OrchestratorService:
         previous_results: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Execute all agents in a phase in parallel using asyncio.gather.
+        Execute all agents in a phase in parallel using asyncio.gather with timeout.
 
         Args:
             phase: Phase to execute
@@ -229,22 +252,48 @@ class OrchestratorService:
 
         Returns:
             Combined results from all agents in phase
-        """
-        logger.info(f"Executing phase {phase.name} in PARALLEL mode with {len(phase.agents)} agents")
 
-        # Create tasks for all agents
-        tasks = []
+        Feature #163: Timeout handling
+        - Enforces phase timeout (default 120s)
+        - Returns partial results if timeout occurs
+        - Includes timeout information in errors
+        """
+        logger.info(f"Executing phase {phase.name} in PARALLEL mode with {len(phase.agents)} agents (timeout: {phase.timeout}s)")
+
+        # Create coroutines for all agents
+        coroutines = []
         for agent_config in phase.agents:
-            task = self._execute_agent(
+            coro = self._execute_agent(
                 agent_type=agent_config["type"],
                 agent_config=agent_config,
                 context=previous_results
             )
-            tasks.append(task)
+            coroutines.append(coro)
 
-        # Execute all tasks in parallel
+        # Execute all coroutines in parallel with timeout
         try:
-            results_list = await asyncio.gather(*tasks, return_exceptions=True)
+            results_list = await asyncio.wait_for(
+                asyncio.gather(*coroutines, return_exceptions=True),
+                timeout=phase.timeout
+            )
+        except asyncio.TimeoutError:
+            # Timeout occurred - collect partial results
+            logger.error(f"Phase {phase.name} TIMEOUT after {phase.timeout}s")
+            phase.errors.append(f"Phase timed out after {phase.timeout}s")
+
+            # Return partial results with timeout error for all agents
+            combined_results = {}
+            for agent_config in phase.agents:
+                agent_type = agent_config["type"]
+                combined_results[agent_type] = {
+                    "error": f"Agent timed out (phase timeout: {phase.timeout}s)",
+                    "status": "timeout",
+                    "partial": True
+                }
+
+            logger.warning(f"Phase {phase.name} timeout - returning partial results")
+            return combined_results
+
         except Exception as e:
             logger.error(f"Error in parallel execution: {str(e)}")
             raise
@@ -270,7 +319,7 @@ class OrchestratorService:
         previous_results: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Execute agents in a phase sequentially (one after another).
+        Execute agents in a phase sequentially (one after another) with timeout.
 
         Args:
             phase: Phase to execute
@@ -278,20 +327,46 @@ class OrchestratorService:
 
         Returns:
             Combined results from all agents in phase
+
+        Feature #163: Timeout handling
+        - Enforces phase timeout across all sequential agents
+        - Returns partial results if timeout occurs
+        - Includes timeout information in errors
         """
-        logger.info(f"Executing phase {phase.name} in SEQUENTIAL mode with {len(phase.agents)} agents")
+        logger.info(f"Executing phase {phase.name} in SEQUENTIAL mode with {len(phase.agents)} agents (timeout: {phase.timeout}s)")
 
         combined_results = {}
         cumulative_context = {**previous_results}
+        phase_start_time = asyncio.get_event_loop().time()
 
         for agent_config in phase.agents:
             agent_type = agent_config["type"]
 
+            # Check if we've exceeded phase timeout
+            elapsed_time = asyncio.get_event_loop().time() - phase_start_time
+            remaining_time = phase.timeout - elapsed_time
+
+            if remaining_time <= 0:
+                # Phase timeout exceeded
+                error_msg = f"Phase timeout exceeded ({phase.timeout}s) - agent {agent_type} not executed"
+                logger.error(error_msg)
+                phase.errors.append(error_msg)
+                combined_results[agent_type] = {
+                    "error": f"Phase timeout exceeded (timeout: {phase.timeout}s)",
+                    "status": "timeout",
+                    "partial": True
+                }
+                continue
+
             try:
-                result = await self._execute_agent(
-                    agent_type=agent_type,
-                    agent_config=agent_config,
-                    context=cumulative_context
+                # Execute agent with remaining time as timeout
+                result = await asyncio.wait_for(
+                    self._execute_agent(
+                        agent_type=agent_type,
+                        agent_config=agent_config,
+                        context=cumulative_context
+                    ),
+                    timeout=remaining_time
                 )
                 combined_results[agent_type] = result
 
@@ -299,6 +374,18 @@ class OrchestratorService:
                 cumulative_context[agent_type] = result
 
                 logger.info(f"Agent {agent_type} completed successfully (sequential)")
+
+            except asyncio.TimeoutError:
+                # Agent timeout
+                error_msg = f"Agent {agent_type} timed out after {remaining_time:.1f}s"
+                logger.error(error_msg)
+                phase.errors.append(error_msg)
+                combined_results[agent_type] = {
+                    "error": f"Agent timed out (timeout: {remaining_time:.1f}s)",
+                    "status": "timeout",
+                    "partial": True
+                }
+                # Continue with next agent (graceful degradation)
 
             except Exception as e:
                 logger.error(f"Agent {agent_type} failed: {str(e)}")
@@ -407,7 +494,21 @@ class OrchestratorService:
 
         Returns:
             Agent execution result
+
+        Feature #163: Supports simulate_slow flag for testing timeout handling
         """
+
+        # Feature #163: Simulate slow agent for timeout testing
+        if agent_config.get("simulate_slow"):
+            slow_duration = agent_config.get("slow_duration", 150)  # Default 150s (exceeds 120s timeout)
+            logger.warning(f"Agent {agent_type} simulating slow execution ({slow_duration}s)")
+            await asyncio.sleep(slow_duration)
+            return {
+                "agent_type": agent_type,
+                "status": "completed_after_delay",
+                "execution_time_ms": slow_duration * 1000,
+                "simulated_slow": True
+            }
 
         # Simulate agent execution with delay
         # In real implementation, this would call actual agent services

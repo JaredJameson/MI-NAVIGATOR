@@ -1,0 +1,6 @@
+{
+  "target": "Timeout Test Company",
+  "analysis_type": "company",
+  "simulate_slow": ["company_profile"],
+  "phase_timeout": 10
+}

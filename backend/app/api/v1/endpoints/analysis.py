@@ -910,6 +910,8 @@ class ComprehensiveAnalysisRequest(BaseModel):
     context: Optional[Dict[str, Any]] = None
     simulate_failures: Optional[List[str]] = None  # Feature #161: List of agents to simulate failure
     simulate_transient_failures: Optional[List[str]] = None  # Feature #162: List of agents to simulate transient failure (will succeed on retry)
+    simulate_slow: Optional[List[str]] = None  # Feature #163: List of agents to simulate slow execution (timeout testing)
+    phase_timeout: Optional[int] = None  # Feature #163: Override default phase timeout (for testing)
 
     class Config:
         json_schema_extra = {
@@ -1001,7 +1003,9 @@ async def run_comprehensive_analysis(
         target=request.target,
         context=request.context,
         simulate_failures=request.simulate_failures,  # Feature #161
-        simulate_transient_failures=request.simulate_transient_failures  # Feature #162
+        simulate_transient_failures=request.simulate_transient_failures,  # Feature #162
+        simulate_slow=request.simulate_slow,  # Feature #163
+        phase_timeout=request.phase_timeout  # Feature #163
     )
 
     return ComprehensiveAnalysisResponse(**result)
