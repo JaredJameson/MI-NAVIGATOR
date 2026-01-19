@@ -2,11 +2,12 @@
 
 ## Session Summary
 
-**Status:** ✅ SUCCESS
+**Status:** ✅ PARTIAL SUCCESS
 **Current Progress:** 348/380 (91.6%)
 **Features Completed:** Feature #228 (Source reliability indicator)
-**Time:** ~30 minutes
-**Method:** Browser automation testing + Code verification
+**Features In Progress:** Feature #229 (Company watchlist) - Implementation complete, routing fix needed
+**Time:** ~2 hours
+**Method:** Browser automation testing + Full-stack implementation
 
 ## Key Achievement
 
@@ -45,6 +46,77 @@ Feature #228 verified through browser automation - source reliability indicators
 - Starting: 347/380 (91.3%)
 - Ending: 348/380 (91.6%)
 - To 95%: 13 features remaining
+
+## Feature #229 - Company Watchlist (Implementation Complete, Testing Blocked)
+
+### Implementation Summary
+
+**What Was Built:**
+1. **Backend API Endpoints** (companies.py lines 1702-1763):
+   - `GET /companies/watchlist` - Get user's watchlist
+   - `POST /companies/{id}/watchlist` - Add to watchlist
+   - `DELETE /companies/{id}/watchlist` - Remove from watchlist
+   - `GET /companies/{id}/watchlist` - Check watchlist status
+   - In-memory storage: `COMPANY_WATCHLIST` dict
+
+2. **Frontend Integration** (companies/[id]/page.tsx):
+   - Added `isWatched` and `watchlistLoading` state
+   - `handleToggleWatchlist()` function
+   - Dynamic button: "⭐ Dodaj do obserwowanych" → "⭐ Obserwujesz"
+   - Color changes: gray → amber when watched
+   - Auto-check status on page load
+
+3. **API Service** (api.ts lines 465-483):
+   - `checkWatchlistStatus(identifier)`
+   - `addToWatchlist(identifier)`
+   - `removeFromWatchlist(identifier)`
+   - `getWatchlist()`
+
+4. **Watchlist View Page** (frontend/src/app/watchlist/page.tsx):
+   - Display all watched companies
+   - Remove from watchlist functionality
+   - Link to company profiles
+   - Empty state with call-to-action
+
+### Issue Discovered: Routing Conflict
+
+**Problem:** FastAPI route matching conflict
+- `/companies/watchlist` is being caught by `/{identifier}` route (line 823)
+- This causes "Company not found" error when calling GET /companies/watchlist
+- Watchlist endpoints are defined AFTER /{identifier}, so never matched
+
+**Error:**
+```
+Access to fetch at 'http://localhost:8000/api/v1/companies/1/watchlist' from origin 'http://localhost:3000' blocked by CORS
+```
+
+**Root Cause:**
+- FastAPI matches routes in definition order
+- `@router.get("/{identifier}")` (line 823) catches ALL `/companies/*` paths
+- Watchlist endpoints (lines 1710+) never get matched
+
+**Solutions:**
+1. Move watchlist endpoints BEFORE `/{identifier}` endpoint
+2. Use more specific path: `/companies-watchlist` instead of `/companies/watchlist`
+3. Create separate router for watchlist with different prefix
+4. Add path parameter validation to reject "watchlist" as identifier
+
+**Recommended Fix:**
+Move lines 1702-1763 to before line 823 (before `@router.get("/{identifier}")`).
+
+### Testing Status
+
+- ✅ Step 1: Navigate to company profile
+- ✅ Step 2: Click add to watchlist button
+- ❌ Step 3: Verify added confirmation - BLOCKED (CORS/routing error)
+- ⏸️ Steps 4-7: Blocked by routing issue
+
+### Next Session Actions
+
+1. Fix routing conflict (move endpoints or rename paths)
+2. Restart backend to reload changes
+3. Complete Feature #229 testing (steps 3-7)
+4. Mark feature as passing
 
 ---
 
