@@ -1,0 +1,4 @@
+title,type,company,summary,status
+TEST_INTEGRITY_A,company_profile,Company A,Summary A,completed
+TEST_INTEGRITY_B,market_analysis,Company B,Summary B,draft
+TEST_INTEGRITY_C,competitive_analysis,,Summary C,in_progress
