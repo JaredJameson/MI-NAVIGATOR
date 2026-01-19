@@ -3631,13 +3631,20 @@ export default function ReportViewerPage() {
       )
 
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Raport nie został znaleziony. Mógł zostać usunięty.')
+        }
         throw new Error('Failed to fetch report')
       }
 
       const data = await response.json()
       setReport(data)
     } catch (err) {
-      setError('Nie udalo sie zaladowac raportu')
+      if (err instanceof Error && err.message.includes('znaleziony')) {
+        setError(err.message)
+      } else {
+        setError('Nie udalo sie zaladowac raportu')
+      }
     } finally {
       setIsLoading(false)
     }
