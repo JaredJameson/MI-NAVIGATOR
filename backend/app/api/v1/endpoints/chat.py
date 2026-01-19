@@ -2660,7 +2660,7 @@ async def websocket_endpoint(
                     'analyze', 'research', 'due diligence', 'investigate', 'report', 'analysis'
                 ])
 
-                if is_new_research and "brief" not in conv or (conv and not conv.get("brief")):
+                if is_new_research and ("brief" not in conv or not conv.get("brief")):
                     # Start brief collection flow
                     conv["brief"] = {}
                     # Save original query for later use (after plan confirmation)
