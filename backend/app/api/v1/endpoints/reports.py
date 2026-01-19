@@ -1450,6 +1450,7 @@ class ReportUpdateRequest(BaseModel):
     title: Optional[str] = None
     summary: Optional[str] = None
     sections: Optional[List[ReportSection]] = None
+    last_known_updated_at: Optional[str] = None  # For conflict detection
 
 
 @router.put("/{report_id}")
@@ -1472,6 +1473,20 @@ async def update_report(
     # DEV MODE: Skip auth check for development
     # if current_user and str(report.get("created_by")) != str(current_user.id):
     #     raise HTTPException(status_code=403, detail="Not authorized to edit this report")
+
+    # CONFLICT DETECTION: Check if report was modified since client last loaded it
+    if update_data.last_known_updated_at:
+        current_updated_at = report.get("updated_at")
+        if current_updated_at != update_data.last_known_updated_at:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "error": "Edit conflict detected",
+                    "message": "This report was modified by another user. Please refresh and try again.",
+                    "current_version": current_updated_at,
+                    "your_version": update_data.last_known_updated_at
+                }
+            )
 
     # Track changes for audit log
     changes = []

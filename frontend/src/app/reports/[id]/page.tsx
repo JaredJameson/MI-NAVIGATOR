@@ -3701,7 +3701,8 @@ export default function ReportViewerPage() {
 
       // Prepare update payload
       const updatePayload: any = {
-        sections: updatedSections
+        sections: updatedSections,
+        last_known_updated_at: report.updated_at  // For conflict detection
       }
 
       // Include title if it was edited
@@ -3729,6 +3730,19 @@ export default function ReportViewerPage() {
         setIsEditing(false)
         setEditedSections({})
         setEditedTitle('')
+      } else if (response.status === 409) {
+        // Edit conflict detected
+        const errorData = await response.json()
+        const conflictMessage = errorData.detail?.message || 'This report was modified by another user.'
+        if (confirm(`${conflictMessage}\n\nClick OK to refresh and see the latest version (your changes will be lost), or Cancel to keep editing.`)) {
+          // User chose to refresh - reload the report
+          await fetchReport()
+          setIsEditing(false)
+          setEditedSections({})
+          setEditedTitle('')
+          clearAutoSaveDraft()
+        }
+        // If user cancelled, they stay in edit mode with their changes
       } else {
         alert('Failed to save changes')
       }
