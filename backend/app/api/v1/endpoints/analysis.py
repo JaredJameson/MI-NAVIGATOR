@@ -10,7 +10,7 @@ import uuid
 import asyncio
 from datetime import datetime
 
-from app.api.v1.endpoints.auth import get_current_user
+from app.api.v1.endpoints.auth import get_current_user, get_current_user_optional
 from app.models.user import User
 
 router = APIRouter()
@@ -736,3 +736,164 @@ async def compose_report(
     )
 
     return ReportComposeResponse(**report)
+
+
+# ========================================
+# QUERY ROUTER ENDPOINTS
+# ========================================
+
+class QueryClassifyRequest(BaseModel):
+    """Request model for query classification"""
+    query: str
+    context: Optional[Dict[str, Any]] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "Jaka jest sytuacja finansowa firmy XYZ?",
+                "context": {
+                    "last_route": "company_profile",
+                    "user_industry": "manufacturing"
+                }
+            }
+        }
+
+
+class AlternativeRoute(BaseModel):
+    """Alternative route suggestion"""
+    route: str
+    confidence: float
+    description: str
+
+
+class QueryClassifyResponse(BaseModel):
+    """Response model for query classification"""
+    query: str
+    primary_route: str
+    confidence: float
+    description: str
+    alternative_routes: List[AlternativeRoute] = []
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "Jaka jest sytuacja finansowa firmy XYZ?",
+                "primary_route": "financial_analysis",
+                "confidence": 0.85,
+                "description": "Analiza finansowa - bilans, wyniki, wskaźniki",
+                "alternative_routes": [
+                    {
+                        "route": "company_profile",
+                        "confidence": 0.65,
+                        "description": "Analiza profilu firmy - podstawowe dane, zarząd, struktura"
+                    }
+                ]
+            }
+        }
+
+
+@router.post(
+    "/classify-query",
+    response_model=QueryClassifyResponse,
+    summary="Classify user query and route to appropriate agent",
+    description="""
+    Classify a user query to determine which analysis agent should handle it.
+
+    **Test Steps:**
+    1. Submit company profile query
+    2. Verify routed to company_profile route
+    3. Submit market analysis query
+    4. Verify routed to market_analysis route
+    5. Verify confidence scores provided
+
+    **Available Routes:**
+    - company_profile: Basic company information, management, structure
+    - financial_analysis: Financial statements, ratios, profitability
+    - market_analysis: Market size, trends, segments
+    - competitive_analysis: Competitors, benchmarking, positioning
+    - ownership_mapping: Shareholders, beneficial owners
+    - digital_presence: Website, social media
+    - news_sentiment: News articles, sentiment analysis
+    - swot_analysis: Strengths, weaknesses, opportunities, threats
+    - porter_analysis: Five forces framework
+    - pestle_analysis: Political, economic, social, technological, legal, environmental
+    - bcg_analysis: BCG matrix portfolio analysis
+    - website_analysis: Technical analysis of websites
+    - general_inquiry: General questions needing clarification
+
+    **Confidence Scores:**
+    - 0.9-1.0: Very high confidence (pattern match)
+    - 0.7-0.9: High confidence (multiple keyword matches)
+    - 0.5-0.7: Medium confidence (some keyword matches)
+    - 0.3-0.5: Low confidence (weak signals or context-based)
+    - 0.0-0.3: Very low confidence (fallback to general inquiry)
+
+    Example queries:
+    ```python
+    # Company profile
+    {"query": "Podaj informacje o firmie ABC Sp. z o.o."}
+    # Result: company_profile (0.85)
+
+    # Financial analysis
+    {"query": "Jaka jest rentowność firmy XYZ?"}
+    # Result: financial_analysis (0.9)
+
+    # Market analysis
+    {"query": "Ile jest wart rynek opakowań w Polsce?"}
+    # Result: market_analysis (0.95)
+
+    # Competitive analysis
+    {"query": "Kim są główni konkurenci firmy DEF?"}
+    # Result: competitive_analysis (0.88)
+    ```
+    """
+)
+async def classify_query(
+    request: QueryClassifyRequest,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """
+    Classify user query and return routing recommendations.
+
+    This endpoint uses the Query Router service to analyze user queries
+    and determine which analysis agent(s) should process them.
+
+    Args:
+        request: Query classification request with query text and optional context
+        current_user: Authenticated user (optional)
+
+    Returns:
+        Classification result with primary route, confidence, and alternatives
+    """
+    from app.services.query_router import query_router_service
+
+    # Classify the query
+    primary_route, confidence, alternatives = query_router_service.classify_query(
+        query=request.query,
+        context=request.context
+    )
+
+    # Get route description
+    language = request.context.get("language", "pl") if request.context else "pl"
+    primary_description = query_router_service.get_route_description(
+        primary_route,
+        language=language
+    )
+
+    # Build alternative routes with descriptions
+    alternative_routes = [
+        AlternativeRoute(
+            route=route.value,
+            confidence=conf,
+            description=query_router_service.get_route_description(route, language=language)
+        )
+        for route, conf in alternatives
+    ]
+
+    return QueryClassifyResponse(
+        query=request.query,
+        primary_route=primary_route.value,
+        confidence=confidence,
+        description=primary_description,
+        alternative_routes=alternative_routes
+    )
