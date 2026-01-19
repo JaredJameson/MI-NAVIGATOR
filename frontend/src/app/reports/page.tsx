@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
 import { useUserTimezone, useUserLocale } from '@/hooks/useUserTimezone'
@@ -78,17 +78,18 @@ const REPORT_TYPE_LABELS: Record<string, { label: string; color: string; icon: s
 
 export default function ReportsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const userTimezone = useUserTimezone()
   const userLocale = useUserLocale()
   const [reports, setReports] = useState<ReportSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filterType, setFilterType] = useState('')
-  const [filterTag, setFilterTag] = useState('')
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
-  const [filterStatus, setFilterStatus] = useState('')
-  const [showArchived, setShowArchived] = useState(false)
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [filterType, setFilterType] = useState(searchParams.get('type') || '')
+  const [filterTag, setFilterTag] = useState(searchParams.get('tag_id') || '')
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(searchParams.get('favorites_only') === 'true')
+  const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || '')
+  const [showArchived, setShowArchived] = useState(searchParams.get('archived') === 'true')
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'table'>('list')
 
   // Sorting state
@@ -128,6 +129,20 @@ export default function ReportsPage() {
   const [showTagModal, setShowTagModal] = useState(false)
   const [selectedReportForTags, setSelectedReportForTags] = useState<string | null>(null)
   const [isLoadingTags, setIsLoadingTags] = useState(false)
+
+  // Sync filters to URL
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (searchQuery) params.set('search', searchQuery)
+    if (filterType) params.set('type', filterType)
+    if (filterTag) params.set('tag_id', filterTag)
+    if (filterStatus) params.set('status', filterStatus)
+    if (showFavoritesOnly) params.set('favorites_only', 'true')
+    if (showArchived) params.set('archived', 'true')
+
+    const newUrl = params.toString() ? `/reports?${params.toString()}` : '/reports'
+    router.push(newUrl, { scroll: false })
+  }, [searchQuery, filterType, filterTag, filterStatus, showFavoritesOnly, showArchived, router])
 
   useEffect(() => {
     fetchReports()
