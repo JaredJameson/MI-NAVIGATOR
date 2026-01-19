@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feature 180 - Loading State Visual Indicators Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+
+    .test-section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .test-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .test-status {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-ready {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .status-loading {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+
+    /* Loading State 1: Bouncing Dots */
+    .dots-loader {
+      display: flex;
+      gap: 8px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px dashed #dee2e6;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #6c757d;
+      animation: bounce 0.6s infinite alternate;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .dot:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes bounce {
+      to {
+        transform: translateY(-12px);
+        opacity: 0.5;
+      }
+    }
+
+    /* Loading State 2: Circular Spinner */
+    .spinner-loader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px dashed #dee2e6;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e9ecef;
+      border-top-color: #0d6efd;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Loading State 3: Progress Bar */
+    .progress-loader {
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px dashed #dee2e6;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .progress-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0d6efd;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    .progress-percentage {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0d6efd;
+    }
+
+    .progress-bar-container {
+      height: 8px;
+      background: #e9ecef;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #0d6efd;
+      border-radius: 4px;
+      transition: width 0.5s ease-out;
+    }
+
+    .progress-message {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #6c757d;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Loading State 4: Skeleton Screen */
+    .skeleton-loader {
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px dashed #dee2e6;
+    }
+
+    .skeleton-item {
+      height: 16px;
+      background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
+      background-size: 200% 100%;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      animation: skeleton-loading 1.5s ease-in-out infinite;
+    }
+
+    .skeleton-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .skeleton-item.short {
+      width: 60%;
+    }
+
+    .skeleton-item.medium {
+      width: 80%;
+    }
+
+    @keyframes skeleton-loading {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* Control Buttons */
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #0d6efd;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0b5ed7;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5c636a;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Accessibility Info */
+    .a11y-info {
+      background: #e7f3ff;
+      border-left: 4px solid #0d6efd;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+
+    .a11y-info h4 {
+      margin: 0 0 10px 0;
+      color: #0d6efd;
+      font-size: 14px;
+    }
+
+    .a11y-info ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #495057;
+      font-size: 13px;
+    }
+
+    .a11y-info li {
+      margin-bottom: 5px;
+    }
+
+    .code {
+      font-family: 'Courier New', monospace;
+      background: #f1f3f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Feature 180: Loading State Visual Indicators</h1>
+  <p class="subtitle">Testing loading states for clear visual indicators and screen reader accessibility</p>
+
+  <!-- Test 1: Bouncing Dots Loader -->
+  <div class="test-section">
+    <div class="test-header">
+      <h2 class="test-title">1. Bouncing Dots Loader</h2>
+      <span class="test-status status-ready" id="dots-status">Ready</span>
+    </div>
+
+    <div
+      class="dots-loader"
+      id="dots-loader"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading content, please wait"
+    >
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <span class="sr-only">Loading...</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="triggerDotsLoading()">Trigger Loading</button>
+      <button class="btn btn-secondary" onclick="stopDotsLoading()">Stop Loading</button>
+    </div>
+
+    <div class="a11y-info">
+      <h4>Accessibility Features:</h4>
+      <ul>
+        <li><span class="code">role="status"</span> - Identifies loading region</li>
+        <li><span class="code">aria-live="polite"</span> - Screen reader announces state changes</li>
+        <li><span class="code">aria-label</span> - Descriptive text for screen readers</li>
+        <li><span class="code">aria-busy</span> - Dynamically set when loading</li>
+        <li>Visual animation clearly indicates loading state</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Test 2: Circular Spinner -->
+  <div class="test-section">
+    <div class="test-header">
+      <h2 class="test-title">2. Circular Spinner</h2>
+      <span class="test-status status-ready" id="spinner-status">Ready</span>
+    </div>
+
+    <div
+      class="spinner-loader"
+      id="spinner-loader"
+      role="status"
+      aria-live="polite"
+      aria-label="Processing request, please wait"
+    >
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="sr-only">Processing...</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="triggerSpinnerLoading()">Trigger Loading</button>
+      <button class="btn btn-secondary" onclick="stopSpinnerLoading()">Stop Loading</button>
+    </div>
+
+    <div class="a11y-info">
+      <h4>Accessibility Features:</h4>
+      <ul>
+        <li><span class="code">role="status"</span> - Loading status container</li>
+        <li><span class="code">aria-live="polite"</span> - Announces state changes</li>
+        <li><span class="code">aria-hidden="true"</span> on spinner - Hides decorative animation</li>
+        <li>Screen reader text provides context</li>
+        <li>High contrast spinner visible to all users</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Test 3: Progress Bar -->
+  <div class="test-section">
+    <div class="test-header">
+      <h2 class="test-title">3. Progress Bar with Percentage</h2>
+      <span class="test-status status-ready" id="progress-status">Ready</span>
+    </div>
+
+    <div
+      class="progress-loader"
+      id="progress-loader"
+      role="status"
+      aria-live="polite"
+      aria-label="Analyzing data"
+    >
+      <div class="progress-info">
+        <div class="progress-label">
+          <div class="pulse-dot"></div>
+          <span id="progress-phase">Initializing...</span>
+        </div>
+        <div class="progress-percentage" id="progress-percentage">0%</div>
+      </div>
+      <div class="progress-bar-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+      </div>
+      <div class="progress-message">
+        <span id="progress-message">Preparing analysis...</span>
+        <span id="progress-time">⏱️ 2 min remaining</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="triggerProgressLoading()">Start Progress</button>
+      <button class="btn btn-secondary" onclick="stopProgressLoading()">Stop Progress</button>
+    </div>
+
+    <div class="a11y-info">
+      <h4>Accessibility Features:</h4>
+      <ul>
+        <li><span class="code">role="progressbar"</span> - Identifies progress element</li>
+        <li><span class="code">aria-valuenow</span> - Current progress value</li>
+        <li><span class="code">aria-valuemin/max</span> - Progress range</li>
+        <li><span class="code">aria-live="polite"</span> - Updates announced to screen readers</li>
+        <li>Visual percentage and time remaining for all users</li>
+        <li>Animated pulse dot indicates active processing</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Test 4: Skeleton Screen -->
+  <div class="test-section">
+    <div class="test-header">
+      <h2 class="test-title">4. Skeleton Screen Loader</h2>
+      <span class="test-status status-ready" id="skeleton-status">Ready</span>
+    </div>
+
+    <div
+      class="skeleton-loader"
+      id="skeleton-loader"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading content"
+      aria-busy="false"
+    >
+      <div class="skeleton-item"></div>
+      <div class="skeleton-item medium"></div>
+      <div class="skeleton-item"></div>
+      <div class="skeleton-item short"></div>
+      <span class="sr-only">Loading content, please wait...</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="triggerSkeletonLoading()">Trigger Loading</button>
+      <button class="btn btn-secondary" onclick="stopSkeletonLoading()">Stop Loading</button>
+    </div>
+
+    <div class="a11y-info">
+      <h4>Accessibility Features:</h4>
+      <ul>
+        <li><span class="code">role="status"</span> - Loading status region</li>
+        <li><span class="code">aria-busy="true"</span> - Indicates content is loading</li>
+        <li><span class="code">aria-live="polite"</span> - State changes announced</li>
+        <li>Screen reader text describes loading state</li>
+        <li>Skeleton animation shows expected content structure</li>
+        <li>Smooth shimmer effect indicates progress</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Hidden screen reader-only class -->
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  </style>
+
+  <script>
+    // Test 1: Bouncing Dots
+    let dotsInterval = null;
+    function triggerDotsLoading() {
+      const loader = document.getElementById('dots-loader');
+      const status = document.getElementById('dots-status');
+
+      loader.setAttribute('aria-busy', 'true');
+      status.textContent = 'Loading';
+      status.className = 'test-status status-loading';
+
+      console.log('[Test 1] Loading started - aria-busy=true');
+    }
+
+    function stopDotsLoading() {
+      const loader = document.getElementById('dots-loader');
+      const status = document.getElementById('dots-status');
+
+      loader.setAttribute('aria-busy', 'false');
+      status.textContent = 'Ready';
+      status.className = 'test-status status-ready';
+
+      console.log('[Test 1] Loading stopped - aria-busy=false');
+    }
+
+    // Test 2: Circular Spinner
+    function triggerSpinnerLoading() {
+      const loader = document.getElementById('spinner-loader');
+      const status = document.getElementById('spinner-status');
+
+      loader.setAttribute('aria-busy', 'true');
+      status.textContent = 'Loading';
+      status.className = 'test-status status-loading';
+
+      console.log('[Test 2] Loading started - aria-busy=true');
+    }
+
+    function stopSpinnerLoading() {
+      const loader = document.getElementById('spinner-loader');
+      const status = document.getElementById('spinner-status');
+
+      loader.setAttribute('aria-busy', 'false');
+      status.textContent = 'Ready';
+      status.className = 'test-status status-ready';
+
+      console.log('[Test 2] Loading stopped - aria-busy=false');
+    }
+
+    // Test 3: Progress Bar
+    let progressInterval = null;
+    let currentProgress = 0;
+
+    function triggerProgressLoading() {
+      const loader = document.getElementById('progress-loader');
+      const status = document.getElementById('progress-status');
+      const progressBar = document.getElementById('progress-bar-fill');
+      const progressPercent = document.getElementById('progress-percentage');
+      const progressPhase = document.getElementById('progress-phase');
+      const progressMessage = document.getElementById('progress-message');
+      const progressTime = document.getElementById('progress-time');
+      const progressBarElement = loader.querySelector('[role="progressbar"]');
+
+      currentProgress = 0;
+      loader.setAttribute('aria-busy', 'true');
+      status.textContent = 'Loading';
+      status.className = 'test-status status-loading';
+
+      console.log('[Test 3] Progress started - aria-busy=true');
+
+      progressInterval = setInterval(() => {
+        currentProgress += 5;
+
+        if (currentProgress <= 100) {
+          progressBar.style.width = currentProgress + '%';
+          progressPercent.textContent = currentProgress + '%';
+          progressBarElement.setAttribute('aria-valuenow', currentProgress);
+
+          // Update phase and messages
+          if (currentProgress < 30) {
+            progressPhase.textContent = 'Collecting data...';
+            progressMessage.textContent = 'Fetching company information';
+            progressTime.textContent = '⏱️ 2 min remaining';
+          } else if (currentProgress < 60) {
+            progressPhase.textContent = 'Analyzing...';
+            progressMessage.textContent = 'Processing market data';
+            progressTime.textContent = '⏱️ 1 min remaining';
+          } else if (currentProgress < 90) {
+            progressPhase.textContent = 'Finalizing...';
+            progressMessage.textContent = 'Generating insights';
+            progressTime.textContent = '⏱️ 30 sec remaining';
+          } else {
+            progressPhase.textContent = 'Complete';
+            progressMessage.textContent = 'Analysis ready';
+            progressTime.textContent = '⏱️ Done';
+          }
+
+          console.log(`[Test 3] Progress: ${currentProgress}%`);
+        }
+
+        if (currentProgress >= 100) {
+          clearInterval(progressInterval);
+          setTimeout(() => stopProgressLoading(), 1000);
+        }
+      }, 500);
+    }
+
+    function stopProgressLoading() {
+      const loader = document.getElementById('progress-loader');
+      const status = document.getElementById('progress-status');
+
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+
+      loader.setAttribute('aria-busy', 'false');
+      status.textContent = 'Ready';
+      status.className = 'test-status status-ready';
+
+      // Reset progress
+      document.getElementById('progress-bar-fill').style.width = '0%';
+      document.getElementById('progress-percentage').textContent = '0%';
+      document.getElementById('progress-phase').textContent = 'Initializing...';
+      document.getElementById('progress-message').textContent = 'Preparing analysis...';
+      document.getElementById('progress-time').textContent = '⏱️ 2 min remaining';
+      loader.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', '0');
+      currentProgress = 0;
+
+      console.log('[Test 3] Progress stopped - aria-busy=false');
+    }
+
+    // Test 4: Skeleton Screen
+    function triggerSkeletonLoading() {
+      const loader = document.getElementById('skeleton-loader');
+      const status = document.getElementById('skeleton-status');
+
+      loader.setAttribute('aria-busy', 'true');
+      status.textContent = 'Loading';
+      status.className = 'test-status status-loading';
+
+      console.log('[Test 4] Loading started - aria-busy=true');
+    }
+
+    function stopSkeletonLoading() {
+      const loader = document.getElementById('skeleton-loader');
+      const status = document.getElementById('skeleton-status');
+
+      loader.setAttribute('aria-busy', 'false');
+      status.textContent = 'Ready';
+      status.className = 'test-status status-ready';
+
+      console.log('[Test 4] Loading stopped - aria-busy=false');
+    }
+
+    // Log initial state
+    console.log('Feature 180 Test Page Loaded');
+    console.log('All loading states initialized with aria-busy=false');
+  </script>
+</body>
+</html>

@@ -981,30 +981,50 @@ export default function ChatPage() {
               ))}
               {isLoading && !researchProgress && (
                 <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-2xl bg-white px-4 py-3 shadow-sm border">
+                  <div
+                    className="max-w-[80%] rounded-2xl bg-white px-4 py-3 shadow-sm border"
+                    role="status"
+                    aria-live="polite"
+                    aria-busy="true"
+                    aria-label="Loading response, please wait"
+                  >
                     <div className="flex items-center gap-2 text-gray-500">
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }}></div>
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }}></div>
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }}></div>
+                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }} aria-hidden="true"></div>
+                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }} aria-hidden="true"></div>
+                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }} aria-hidden="true"></div>
                     </div>
+                    <span className="sr-only">Loading response...</span>
                   </div>
                 </div>
               )}
               {researchProgress && (
                 <div className="flex justify-start">
-                  <div className="w-full max-w-md rounded-2xl bg-white px-6 py-4 shadow-sm border">
+                  <div
+                    className="w-full max-w-md rounded-2xl bg-white px-6 py-4 shadow-sm border"
+                    role="status"
+                    aria-live="polite"
+                    aria-busy="true"
+                    aria-label={`Research in progress: ${researchProgress.phase}`}
+                  >
                     <div className="space-y-3">
                       {/* Phase and Message */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" aria-hidden="true"></div>
                           <span className="text-sm font-medium text-gray-900">{researchProgress.phase}</span>
                         </div>
                         <span className="text-sm font-semibold text-blue-600">{researchProgress.percentage}%</span>
                       </div>
 
                       {/* Progress Bar */}
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div
+                        className="h-2 w-full overflow-hidden rounded-full bg-gray-200"
+                        role="progressbar"
+                        aria-valuenow={researchProgress.percentage}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`Research progress: ${researchProgress.percentage}%`}
+                      >
                         <div
                           className="h-full bg-blue-600 transition-all duration-500 ease-out"
                           style={{ width: `${researchProgress.percentage}%` }}
