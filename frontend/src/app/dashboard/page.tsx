@@ -679,7 +679,7 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-sm text-blue-200">Ostatnie:</span>
+            <span className="text-sm text-white">Ostatnie:</span>
             {searchHistory.slice(0, 3).map((item) => (
               <button
                 key={`recent-${item.id}`}
@@ -1041,24 +1041,24 @@ function AlertsWidget() {
           indicator: '🔴',
           bg: 'bg-red-50',
           border: 'border-red-200',
-          titleColor: 'text-red-800',
-          descColor: 'text-red-600'
+          titleColor: 'text-red-900',
+          descColor: 'text-red-800'
         }
       case 'medium':
         return {
           indicator: '🟡',
           bg: 'bg-yellow-50',
           border: 'border-yellow-200',
-          titleColor: 'text-yellow-800',
-          descColor: 'text-yellow-600'
+          titleColor: 'text-yellow-900',
+          descColor: 'text-yellow-800'
         }
       case 'low':
         return {
           indicator: '🟢',
           bg: 'bg-green-50',
           border: 'border-green-200',
-          titleColor: 'text-green-800',
-          descColor: 'text-green-600'
+          titleColor: 'text-green-900',
+          descColor: 'text-green-800'
         }
       default:
         return {
