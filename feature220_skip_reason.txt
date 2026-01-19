@@ -1,0 +1,115 @@
+# Feature #220: Report branding options - SKIP REASON
+
+## Status: NOT IMPLEMENTED
+
+**Feature ID:** 220
+**Feature Name:** Report branding options
+**Category:** Functional
+**Description:** Test report branding customization
+
+## Investigation Results
+
+### Frontend Analysis
+- ✅ Reports page exists (/reports)
+- ✅ Export menu exists (Excel, PDF, Word, PowerPoint)
+- ❌ NO branding options in export menu
+- ❌ NO toggle for "no branding" vs "company branding"
+- ❌ NO logo upload in Settings
+
+**Files Checked:**
+- frontend/src/app/reports/[id]/page.tsx - export menu (no branding options)
+- frontend/src/app/settings/page.tsx - settings (no logo/branding fields)
+- frontend/src/components/* - no branding components found
+
+### Backend Analysis
+- ✅ Export functions exist (export_to_pdf, export_to_docx)
+- ❌ NO branding parameters in export functions
+- ❌ NO logo field in User model
+- ❌ NO branding_options in schemas
+
+**Files Checked:**
+- backend/app/api/v1/endpoints/reports.py:2121 - export_to_pdf() function
+- backend/app/api/v1/endpoints/reports.py:2269 - export_to_docx() function
+- backend/app/models/* - no logo fields
+- backend/app/schemas/* - no branding schemas
+
+**Code Evidence:**
+```python
+# backend/app/api/v1/endpoints/reports.py line 2177-2203
+# PDF export creates title page with metadata, but NO logo
+elements.append(Spacer(1, 0.5*inch))
+elements.append(Paragraph(report['title'], title_style))
+# ... metadata table ...
+# NO logo image insertion code
+```
+
+### App Specification Check
+From `app_spec.txt`:
+```
+<export_system>
+  - Export to PDF (professional formatting)
+  - Export to DOCX (editable)
+  - Export to PPTX (presentation slides)
+  - Custom branding (logo, colors) - future   <-- MARKED AS FUTURE
+  - Batch export
+</export_system>
+```
+
+**Result:** Specification explicitly states "Custom branding (logo, colors) - future"
+
+## Why This is a SKIP (Not a Bug)
+
+This is **NOT a missing feature** but a **planned future enhancement**:
+
+1. ✅ Specification marks it as "future"
+2. ✅ Export functionality works (PDF, DOCX, PPTX)
+3. ✅ Core export features are complete
+4. ❌ Branding is intentionally not implemented yet
+
+## What Would Need to Be Implemented
+
+To implement Feature #220, the following would be required:
+
+### 1. Database Schema
+- Add `company_logo` field to User/Organization model
+- Add `branding_enabled` boolean preference
+
+### 2. Frontend
+- Logo upload component in Settings
+- Branding toggle in export menu
+- Preview with/without logo
+
+### 3. Backend
+- Logo storage (filesystem or S3)
+- Modify export_to_pdf() to include logo if branding_enabled
+- Modify export_to_docx() to include logo if branding_enabled
+- Add watermark/footer with logo
+
+### 4. Implementation Time Estimate
+- Database: 1 hour (migration + model)
+- Frontend: 3-4 hours (upload, settings, export toggle)
+- Backend: 4-5 hours (logo storage, PDF/DOCX integration)
+- Testing: 2-3 hours
+- **Total: 10-13 hours**
+
+## Recommendation
+
+**Action:** SKIP Feature #220 - external blocker (not implemented, marked as future)
+
+**Reasoning:**
+- Feature is explicitly marked "future" in specification
+- Not a bug - intentionally not implemented
+- Requires 10+ hours of development work
+- No branding infrastructure exists (no logo storage, no UI, no backend logic)
+
+**Next Steps:**
+- Skip feature #220 using feature_skip tool
+- Move to end of priority queue
+- Implement in future when branding infrastructure is built
+
+---
+
+**Session:** 261
+**Date:** 2026-01-19
+**Investigator:** Claude Agent
+**Time Spent:** 30 minutes investigation
