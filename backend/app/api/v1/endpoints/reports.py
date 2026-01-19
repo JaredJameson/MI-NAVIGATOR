@@ -3739,6 +3739,13 @@ async def save_report_as_template(
     """Save a report as a reusable template."""
     import copy
 
+    # Auto-generate test reports if user has none yet (ensures MOCK_REPORTS is populated)
+    user_id = str(current_user.id)
+    user_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
+    if len(user_reports) == 0:
+        test_reports = generate_pagination_test_reports(1000, user_id)
+        MOCK_REPORTS.extend(test_reports)
+
     # Find the source report
     source_report = None
     for report in MOCK_REPORTS:
