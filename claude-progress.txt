@@ -719,3 +719,37 @@ Commit: Done
 
 ## Continuing work on Feature #210...
 
+
+## Feature #210 Testing - BLOCKED
+
+### Progress:
+✅ Step 1: Login as basic user (test210@test.com)
+✅ Step 2: Verify advanced features hidden - PASSED
+  - Confirmed: User with user role does NOT see Admin menu option
+  - Screenshot: feature210_step2_user_menu.png
+  
+❌ Step 3-5: BLOCKED - Cannot test admin features
+
+### Root Cause Analysis:
+Backend Bug Found:
+- Frontend Sidebar.tsx (line 38) calls /users/me endpoint
+- Endpoint does not exist - returns 404
+- Tried /auth/me - exists but response does not include role field
+- Response: {"id":2,"email":"test210@test.com",...} - NO ROLE!
+- Frontend code (line 151): checks userRole !== admin
+- userRole stays null because backend never sends it
+
+Impact:
+- Role-based menu filtering CANNOT work without role field
+- Admin menu item defined (line 127-135) with requiresAdmin: true
+- But filter logic fails silently - all users see same menu
+
+Implementation Status:
+- Frontend: ✅ CORRECT (Sidebar.tsx has proper role filtering)
+- Backend: ❌ BROKEN (/auth/me missing role field in response)
+
+### Required Fix:
+Backend endpoint /api/v1/auth/me must include role field in response.
+
+Feature #210 marked as IN PROGRESS but BLOCKED pending backend fix.
+
