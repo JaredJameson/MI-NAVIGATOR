@@ -1,0 +1,125 @@
+### Page state
+- Page URL: http://localhost:3000/dashboard
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e4]: MI-Navigator | Market Intelligence Platform
+  - generic [ref=e109]:
+    - complementary [ref=e110]:
+      - generic [ref=e111]:
+        - link "MI-Navigator" [ref=e112] [cursor=pointer]:
+          - /url: /dashboard
+        - button "Collapse sidebar" [ref=e113] [cursor=pointer]:
+          - img [ref=e114]
+      - navigation [ref=e116]:
+        - link "Dashboard" [ref=e117] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e118]
+          - generic [ref=e120]: Dashboard
+        - link "Chat" [ref=e121] [cursor=pointer]:
+          - /url: /chat
+          - img [ref=e122]
+          - generic [ref=e124]: Chat
+        - link "Research" [ref=e125] [cursor=pointer]:
+          - /url: /research
+          - img [ref=e126]
+          - generic [ref=e128]: Research
+        - link "Reports" [ref=e129] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e130]
+          - generic [ref=e132]: Reports
+        - link "Projects" [ref=e133] [cursor=pointer]:
+          - /url: /projects
+          - img [ref=e134]
+          - generic [ref=e136]: Projects
+        - link "Settings" [ref=e137] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e138]
+          - generic [ref=e141]: Settings
+      - generic [ref=e143]:
+        - generic [ref=e144]: U
+        - generic [ref=e145]:
+          - paragraph [ref=e146]: User
+          - paragraph [ref=e147]: user@example.com
+    - generic [ref=e148]:
+      - banner [ref=e149]:
+        - generic [ref=e151]:
+          - heading "Dashboard" [level=1] [ref=e152]
+          - button "Logout" [ref=e154] [cursor=pointer]
+      - main [ref=e155]:
+        - button "Dostosuj układ" [ref=e157] [cursor=pointer]:
+          - img [ref=e158]
+          - text: Dostosuj układ
+        - generic [ref=e160]:
+          - heading "Rozpocznij badanie" [level=2] [ref=e161]
+          - generic [ref=e162]:
+            - textbox "Szukaj firmy, osoby, wklej URL do analizy..." [ref=e163]
+            - img [ref=e164]
+          - generic [ref=e167]: "Ostatnie:"
+        - generic [ref=e168]:
+          - generic [ref=e170]:
+            - heading "Active Research" [level=3] [ref=e171]
+            - generic [ref=e172]:
+              - generic [ref=e175]: Analiza FADO
+              - generic [ref=e177]: "Progress: 67%"
+            - generic [ref=e180]:
+              - link "Start New Research" [ref=e181] [cursor=pointer]:
+                - /url: /chat
+              - link "Market Analysis" [ref=e182] [cursor=pointer]:
+                - /url: /analysis
+              - link "PKD Search" [ref=e183] [cursor=pointer]:
+                - /url: /search
+          - generic [ref=e185]:
+            - heading "Recent Activity" [level=3] [ref=e186]
+            - list [ref=e187]:
+              - listitem [ref=e188]:
+                - text: 16:13 -
+                - generic "Utworzono raport" [ref=e189]
+              - listitem [ref=e190]:
+                - text: 15:13 -
+                - generic "Wyszukiwanie PKD" [ref=e191]
+              - listitem [ref=e192]:
+                - text: 14:13 -
+                - generic "Wyeksportowano raport" [ref=e193]
+            - link "Zobacz wszystkie →" [ref=e194] [cursor=pointer]:
+              - /url: /activity
+          - generic [ref=e196]:
+            - heading "Usage Stats" [level=3] [ref=e197]
+            - generic [ref=e198]:
+              - generic [ref=e200]:
+                - generic [ref=e201]: Analyses this month
+                - generic [ref=e202]: 0/100
+              - generic [ref=e205]:
+                - generic [ref=e206]: Storage
+                - generic [ref=e207]: 0 GB / 10 GB
+              - generic [ref=e209]: "API calls: 2"
+        - generic [ref=e210]:
+          - generic [ref=e212]:
+            - generic [ref=e213]:
+              - heading "My Projects" [level=2] [ref=e214]
+              - link "+ New" [ref=e215] [cursor=pointer]:
+                - /url: /projects/new
+            - generic [ref=e216]: No projects yet
+          - generic [ref=e218]:
+            - heading "Alerts & Monitoring" [level=2] [ref=e219]
+            - generic [ref=e220]:
+              - 'link "🔴 Konkurent X: nowy produkt Wykryto ogłoszenie nowego produktu" [ref=e221] [cursor=pointer]':
+                - /url: /alerts/alert_001
+                - generic [ref=e222]: 🔴
+                - generic [ref=e223]:
+                  - paragraph [ref=e224]: "Konkurent X: nowy produkt"
+                  - paragraph [ref=e225]: Wykryto ogłoszenie nowego produktu
+              - 'link "🟡 FADO: zmiana w zarządzie Nowy członek zarządu" [ref=e226] [cursor=pointer]':
+                - /url: /alerts/alert_002
+                - generic [ref=e227]: 🟡
+                - generic [ref=e228]:
+                  - paragraph [ref=e229]: "FADO: zmiana w zarządzie"
+                  - paragraph [ref=e230]: Nowy członek zarządu
+              - link "🟢 Rynek +5% vs prognoza Pozytywny trend rynkowy" [ref=e231] [cursor=pointer]:
+                - /url: /alerts/alert_003
+                - generic [ref=e232]: 🟢
+                - generic [ref=e233]:
+                  - paragraph [ref=e234]: Rynek +5% vs prognoza
+                  - paragraph [ref=e235]: Pozytywny trend rynkowy
+```
