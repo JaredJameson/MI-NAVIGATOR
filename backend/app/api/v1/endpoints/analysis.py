@@ -897,3 +897,143 @@ async def classify_query(
         description=primary_description,
         alternative_routes=alternative_routes
     )
+
+
+# ========================================
+# ORCHESTRATOR ENDPOINTS
+# ========================================
+
+class ComprehensiveAnalysisRequest(BaseModel):
+    """Request for comprehensive analysis using orchestrator"""
+    target: str
+    analysis_type: str = "comprehensive"
+    context: Optional[Dict[str, Any]] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "target": "FADO Sp. z o.o.",
+                "analysis_type": "comprehensive",
+                "context": {
+                    "industry": "manufacturing",
+                    "depth": "standard"
+                }
+            }
+        }
+
+
+class ComprehensiveAnalysisResponse(BaseModel):
+    """Response from comprehensive analysis"""
+    job_id: str
+    status: str
+    results: Dict[str, Any]
+    execution_plan: List[Dict[str, Any]]
+
+
+@router.post(
+    "/comprehensive",
+    response_model=ComprehensiveAnalysisResponse,
+    summary="Run comprehensive analysis with parallel agents",
+    description="""
+    Execute a comprehensive analysis using the orchestrator.
+
+    This endpoint demonstrates parallel agent execution:
+    - Phase 1: Runs company_profile, financial_analysis, digital_presence IN PARALLEL
+    - Phase 2: Runs competitor_mapping (after Phase 1 completes)
+    - Phase 3: Runs fact_checker, insight_generator IN PARALLEL
+    - Phase 4: Runs report_composer sequentially
+
+    **Test Steps (Feature #160):**
+    1. Submit comprehensive analysis request
+    2. Monitor agent execution (check logs or status endpoint)
+    3. Verify parallel agents run simultaneously (Phase 1 agents start at same time)
+    4. Verify sequential agents wait for dependencies (Phase 2 waits for Phase 1)
+    5. Verify results aggregated correctly (all agent outputs in response)
+
+    **Expected Behavior:**
+    - Phase 1 agents execute in parallel (asyncio.gather)
+    - Total execution time ~= slowest agent, NOT sum of all agents
+    - Results from all agents aggregated in response
+    - If one agent fails, others continue (graceful degradation)
+    """
+)
+async def run_comprehensive_analysis(
+    request: ComprehensiveAnalysisRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Run a comprehensive analysis with multiple agents executing in parallel.
+
+    This demonstrates the orchestrator's ability to:
+    1. Execute independent agents in parallel (using asyncio.gather)
+    2. Execute dependent agents sequentially
+    3. Aggregate results from all agents
+    4. Handle errors gracefully
+
+    Example:
+    ```python
+    response = requests.post("/api/v1/analysis/comprehensive", json={
+        "target": "ACME Corp",
+        "analysis_type": "comprehensive"
+    })
+    ```
+    """
+    from app.services.orchestrator import orchestrator_service
+
+    # Execute analysis with orchestrator
+    result = await orchestrator_service.execute_analysis(
+        analysis_type=request.analysis_type,
+        target=request.target,
+        context=request.context
+    )
+
+    return ComprehensiveAnalysisResponse(**result)
+
+
+class JobStatusResponse(BaseModel):
+    """Job status response"""
+    job_id: str
+    status: str
+    analysis_type: str
+    target: str
+    current_phase: Optional[str] = None
+    progress_percent: int
+    created_at: str
+    completed_at: Optional[str] = None
+    results: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+
+
+@router.get(
+    "/comprehensive/{job_id}",
+    response_model=JobStatusResponse,
+    summary="Get comprehensive analysis job status"
+)
+async def get_comprehensive_analysis_status(
+    job_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get status of a comprehensive analysis job.
+
+    Useful for monitoring long-running analyses.
+    """
+    from app.services.orchestrator import orchestrator_service
+
+    job = orchestrator_service.get_job_status(job_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return JobStatusResponse(
+        job_id=job["job_id"],
+        status=job["status"].value if hasattr(job["status"], "value") else job["status"],
+        analysis_type=job["analysis_type"],
+        target=job["target"],
+        current_phase=job.get("current_phase"),
+        progress_percent=job.get("progress_percent", 0),
+        created_at=job["created_at"].isoformat(),
+        completed_at=job.get("completed_at").isoformat() if job.get("completed_at") else None,
+        results=job.get("results"),
+        error=job.get("error")
+    )
