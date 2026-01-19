@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface SidebarProps {
   className?: string
@@ -10,7 +10,26 @@ interface SidebarProps {
 
 export function Sidebar({ className = '' }: SidebarProps) {
   const pathname = usePathname()
+
+  // Auto-collapse sidebar on tablet and mobile (< 1024px)
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsCollapsed(true)
+      } else {
+        setIsCollapsed(false)
+      }
+    }
+
+    // Set initial state
+    handleResize()
+
+    // Listen for window resize
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const navigation = [
     {
