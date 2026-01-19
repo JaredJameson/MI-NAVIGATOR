@@ -55,6 +55,20 @@ MOCK_TEMPLATES = [
 # Mock reports database
 MOCK_REPORTS = [
     {
+        "id": "report_test113",
+        "title": "TestReport",
+        "type": "market_analysis",
+        "company": None,
+        "created_at": "2026-01-19T01:25:00Z",
+        "updated_at": "2026-01-19T01:25:00Z",
+        "status": "completed",
+        "is_archived": False,
+        "created_by": "dde243d1-a7a9-44c5-b28a-772ece7d500e",
+        "summary": "Test report for case-insensitive search - Feature 113",
+        "sections": [],
+        "sources": []
+    },
+    {
         "id": "report_001",
         "title": "Analiza profilu FADO Sp. z o.o.",
         "type": "company_profile",
