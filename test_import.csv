@@ -1,0 +1,6 @@
+title,type,company,summary,status
+"Test Import Report 1",company_profile,"FADO Sp. z o.o.","First test report imported via CSV",draft
+"Test Import Report 2",market_analysis,"TechCorp","Market analysis for technology sector",completed
+"Test Import Report 3",competitive_analysis,"PlasticCo","Competitive landscape analysis",in_progress
+"Test Import Report 4",due_diligence,"InvestCo","Due diligence report for investment",draft
+"Test Import Report 5",company_profile,"ManufacturingLtd","Profile of manufacturing company",completed

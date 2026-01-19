@@ -4426,3 +4426,269 @@ async def test_expire_share_link(
         "expires_at": new_expires_at.isoformat() + "Z",
         "current_time": datetime.now().isoformat() + "Z"
     }
+
+
+# ==================== BULK IMPORT ENDPOINTS ====================
+
+class BulkImportPreview(BaseModel):
+    """Preview of data to be imported"""
+    total_rows: int
+    valid_rows: int
+    invalid_rows: int
+    preview_data: List[dict]
+    errors: List[dict]
+
+
+class BulkImportResult(BaseModel):
+    """Result of bulk import operation"""
+    total_rows: int
+    imported_count: int
+    failed_count: int
+    imported_ids: List[str]
+    errors: List[dict]
+
+
+@router.post("/bulk-import-preview")
+async def bulk_import_preview(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Preview CSV/Excel file before importing.
+
+    Expected columns:
+    - title (required)
+    - type (required: company_profile, market_analysis, competitive_analysis, due_diligence)
+    - company (optional)
+    - summary (optional)
+    - status (optional: draft, in_progress, completed - default: draft)
+
+    Feature #152: Import valid data creates records
+    """
+    import csv
+    from openpyxl import load_workbook
+
+    # Check file extension
+    filename = file.filename.lower()
+    if not (filename.endswith('.csv') or filename.endswith('.xlsx') or filename.endswith('.xls')):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file format. Only CSV and Excel files are supported."
+        )
+
+    # Read file content
+    content = await file.read()
+
+    rows = []
+    valid_rows = []
+    invalid_rows = []
+    errors = []
+
+    try:
+        if filename.endswith('.csv'):
+            # Parse CSV
+            content_str = content.decode('utf-8')
+            csv_reader = csv.DictReader(io.StringIO(content_str))
+            rows = list(csv_reader)
+        else:
+            # Parse Excel
+            wb = load_workbook(filename=io.BytesIO(content))
+            ws = wb.active
+
+            # Get headers from first row
+            headers = [cell.value for cell in ws[1]]
+
+            # Get data rows
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                row_dict = {headers[i]: row[i] for i in range(len(headers)) if i < len(row)}
+                rows.append(row_dict)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to parse file: {str(e)}"
+        )
+
+    # Validate rows
+    valid_types = ["company_profile", "market_analysis", "competitive_analysis", "due_diligence"]
+    valid_statuses = ["draft", "in_progress", "completed"]
+
+    for idx, row in enumerate(rows, start=2):
+        row_errors = []
+
+        # Validate required fields
+        if not row.get('title') or not str(row.get('title')).strip():
+            row_errors.append("Missing or empty 'title' field")
+
+        if not row.get('type') or not str(row.get('type')).strip():
+            row_errors.append("Missing or empty 'type' field")
+        elif row.get('type') not in valid_types:
+            row_errors.append(f"Invalid type '{row.get('type')}'. Must be one of: {', '.join(valid_types)}")
+
+        # Validate optional status field
+        if row.get('status') and row.get('status') not in valid_statuses:
+            row_errors.append(f"Invalid status '{row.get('status')}'. Must be one of: {', '.join(valid_statuses)}")
+
+        if row_errors:
+            invalid_rows.append(idx)
+            errors.append({
+                "row": idx,
+                "data": row,
+                "errors": row_errors
+            })
+        else:
+            valid_rows.append(row)
+
+    # Return preview
+    preview_data = valid_rows[:10]  # Show first 10 valid rows
+
+    return BulkImportPreview(
+        total_rows=len(rows),
+        valid_rows=len(valid_rows),
+        invalid_rows=len(invalid_rows),
+        preview_data=preview_data,
+        errors=errors[:20]  # Show first 20 errors
+    )
+
+
+@router.post("/bulk-import")
+async def bulk_import_reports(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Import reports from CSV/Excel file.
+
+    Expected columns:
+    - title (required)
+    - type (required: company_profile, market_analysis, competitive_analysis, due_diligence)
+    - company (optional)
+    - summary (optional)
+    - status (optional: draft, in_progress, completed - default: draft)
+
+    Feature #152: Import valid data creates records
+    """
+    import csv
+    from openpyxl import load_workbook
+
+    # Check file extension
+    filename = file.filename.lower()
+    if not (filename.endswith('.csv') or filename.endswith('.xlsx') or filename.endswith('.xls')):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file format. Only CSV and Excel files are supported."
+        )
+
+    # Read file content
+    content = await file.read()
+
+    rows = []
+
+    try:
+        if filename.endswith('.csv'):
+            # Parse CSV
+            content_str = content.decode('utf-8')
+            csv_reader = csv.DictReader(io.StringIO(content_str))
+            rows = list(csv_reader)
+        else:
+            # Parse Excel
+            wb = load_workbook(filename=io.BytesIO(content))
+            ws = wb.active
+
+            # Get headers from first row
+            headers = [cell.value for cell in ws[1]]
+
+            # Get data rows
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                row_dict = {headers[i]: row[i] for i in range(len(headers)) if i < len(row)}
+                rows.append(row_dict)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to parse file: {str(e)}"
+        )
+
+    # Validate and import rows
+    valid_types = ["company_profile", "market_analysis", "competitive_analysis", "due_diligence"]
+    valid_statuses = ["draft", "in_progress", "completed"]
+
+    imported_ids = []
+    errors = []
+
+    for idx, row in enumerate(rows, start=2):
+        row_errors = []
+
+        # Validate required fields
+        if not row.get('title') or not str(row.get('title')).strip():
+            row_errors.append("Missing or empty 'title' field")
+
+        if not row.get('type') or not str(row.get('type')).strip():
+            row_errors.append("Missing or empty 'type' field")
+        elif row.get('type') not in valid_types:
+            row_errors.append(f"Invalid type '{row.get('type')}'. Must be one of: {', '.join(valid_types)}")
+
+        # Validate optional status field
+        status = row.get('status', 'draft').strip() if row.get('status') else 'draft'
+        if status not in valid_statuses:
+            row_errors.append(f"Invalid status '{status}'. Must be one of: {', '.join(valid_statuses)}")
+
+        if row_errors:
+            errors.append({
+                "row": idx,
+                "data": row,
+                "errors": row_errors
+            })
+            continue
+
+        # Create report
+        report_id = f"report_import_{uuid.uuid4().hex[:8]}"
+        now = datetime.now().isoformat() + "Z"
+
+        new_report = {
+            "id": report_id,
+            "title": str(row.get('title')).strip(),
+            "type": str(row.get('type')).strip(),
+            "company": str(row.get('company')).strip() if row.get('company') else None,
+            "summary": str(row.get('summary')).strip() if row.get('summary') else f"Imported from {filename}",
+            "status": status,
+            "created_at": now,
+            "updated_at": now,
+            "created_by": str(current_user.id),
+            "is_archived": False,
+            "sections": [],
+            "sources": []
+        }
+
+        # Add to mock database
+        MOCK_REPORTS.append(new_report)
+        imported_ids.append(report_id)
+
+        # Log audit
+        await log_audit(
+            db=db,
+            user=current_user,
+            action_type=AuditAction.REPORT_CREATE,
+            resource_type=ResourceType.REPORT,
+            resource_id=report_id,
+            description=f"Imported report from {filename}",
+            extra_data={"imported_from": filename, "row": idx}
+        )
+
+    # Track analytics
+    await track_event(
+        db=db,
+        event_type=EventType.REPORT_CREATED,
+        event_name="bulk_import",
+        user=current_user,
+        metadata={"method": "bulk_import", "count": len(imported_ids), "filename": filename}
+    )
+
+    return BulkImportResult(
+        total_rows=len(rows),
+        imported_count=len(imported_ids),
+        failed_count=len(errors),
+        imported_ids=imported_ids,
+        errors=errors[:50]  # Show first 50 errors
+    )
