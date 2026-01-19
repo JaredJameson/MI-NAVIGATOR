@@ -1107,6 +1107,12 @@ async def list_reports(
     user_id = str(current_user.id)
     filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
 
+    # AUTO-GENERATE TEST DATA: If user has no reports, generate 1000 test reports for testing
+    if len(filtered_reports) == 0:
+        test_reports = generate_pagination_test_reports(1000, user_id)
+        MOCK_REPORTS.extend(test_reports)
+        filtered_reports = test_reports
+
     # Filter by archived status (default: show only non-archived)
     if archived is None:
         # Default: only show non-archived reports
