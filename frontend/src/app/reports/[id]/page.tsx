@@ -3432,6 +3432,9 @@ export default function ReportViewerPage() {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const [sectionToDelete, setSectionToDelete] = useState<{ id: string, title: string } | null>(null)
 
+  // Collapse/expand sections state
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
+
   useEffect(() => {
     fetchReport()
     fetchAnnotations()
@@ -4475,6 +4478,19 @@ export default function ReportViewerPage() {
     } else {
       setSelectedSections(report?.sections.map(s => s.id) || [])
     }
+  }
+
+  // Toggle section collapse/expand
+  const toggleSectionCollapse = (sectionId: string) => {
+    setCollapsedSections(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId)
+      } else {
+        newSet.add(sectionId)
+      }
+      return newSet
+    })
   }
 
   // Export functionality
@@ -6177,28 +6193,45 @@ export default function ReportViewerPage() {
                   className="rounded-xl bg-white p-6 shadow-sm"
                 >
                   {/* View mode section content */}
-                  <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                    {index + 1}. {section.title}
-                  </h2>
-                  {/* Conditional rendering based on section type */}
-                  {swotData ? (
-                    <SWOTDiagram data={swotData} />
-                  ) : porterData ? (
-                    <PorterDiagram data={porterData} />
-                  ) : tamSamSomData ? (
-                    <TAMSAMSOMDiagram data={tamSamSomData} />
-                  ) : trendTimelineData ? (
-                    <TrendTimelineDiagram data={trendTimelineData} />
-                  ) : ownershipData ? (
-                    <OwnershipTreeDiagram data={ownershipData} />
-                  ) : positioningMapData ? (
-                    <CompetitorPositioningMap data={positioningMapData} />
-                  ) : financialRatiosData ? (
-                    <FinancialRatioRadarChart data={financialRatiosData} />
-                  ) : (
-                    <div className="prose max-w-none">
-                      <ReactMarkdown>{section.content}</ReactMarkdown>
-                    </div>
+                  <button
+                    onClick={() => toggleSectionCollapse(section.id)}
+                    className="w-full flex items-center justify-between mb-4 text-left hover:bg-gray-50 rounded-lg p-2 -ml-2 transition-colors"
+                  >
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {index + 1}. {section.title}
+                    </h2>
+                    <svg
+                      className={`h-5 w-5 text-gray-500 transition-transform flex-shrink-0 ml-2 ${collapsedSections.has(section.id) ? '' : 'rotate-180'}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {/* Conditional rendering based on section type - only if not collapsed */}
+                  {!collapsedSections.has(section.id) && (
+                    <>
+                      {swotData ? (
+                        <SWOTDiagram data={swotData} />
+                      ) : porterData ? (
+                        <PorterDiagram data={porterData} />
+                      ) : tamSamSomData ? (
+                        <TAMSAMSOMDiagram data={tamSamSomData} />
+                      ) : trendTimelineData ? (
+                        <TrendTimelineDiagram data={trendTimelineData} />
+                      ) : ownershipData ? (
+                        <OwnershipTreeDiagram data={ownershipData} />
+                      ) : positioningMapData ? (
+                        <CompetitorPositioningMap data={positioningMapData} />
+                      ) : financialRatiosData ? (
+                        <FinancialRatioRadarChart data={financialRatiosData} />
+                      ) : (
+                        <div className="prose max-w-none">
+                          <ReactMarkdown>{section.content}</ReactMarkdown>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
               )

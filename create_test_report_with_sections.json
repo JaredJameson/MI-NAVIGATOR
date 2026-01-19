@@ -1,0 +1,29 @@
+{
+  "title": "Test Report with Collapsible Sections",
+  "type": "company_profile",
+  "description": "Test report for section collapse/expand functionality",
+  "sections": [
+    {
+      "title": "Executive Summary",
+      "content": "This is the executive summary section with detailed information about the company analysis. It contains multiple paragraphs of content to demonstrate the collapse functionality.\n\nThe company shows strong growth potential in the market with innovative products and services."
+    },
+    {
+      "title": "Company Overview",
+      "content": "## Company Background\n\nFounded in 2020, the company has grown rapidly.\n\n## Mission and Vision\n\nOur mission is to provide excellent service to customers worldwide."
+    },
+    {
+      "title": "Financial Analysis",
+      "content": "### Revenue Trends\n\nRevenue has increased by 45% year over year.\n\n### Profitability\n\nNet profit margin stands at 12%, which is above industry average."
+    },
+    {
+      "title": "Market Position",
+      "content": "The company holds a 15% market share in its primary segment.\n\n**Key Competitors:**\n- Competitor A (25% share)\n- Competitor B (20% share)\n- Competitor C (18% share)"
+    },
+    {
+      "title": "Conclusions",
+      "content": "Based on the analysis, the company demonstrates:\n\n1. Strong financial performance\n2. Growing market presence\n3. Competitive advantages in innovation\n4. Positive outlook for future growth"
+    }
+  ],
+  "tags": ["test", "collapse-expand"],
+  "status": "completed"
+}
