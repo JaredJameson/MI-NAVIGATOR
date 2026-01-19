@@ -10,6 +10,8 @@ import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { SyncManager } from '@/components/SyncManager'
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
 import { CSRFTokenInitializer } from '@/components/CSRFTokenInitializer'
+import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -29,6 +31,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setupGlobalErrorHandlers();
   }, []);
 
+  // Setup global keyboard shortcuts
+  useKeyboardShortcuts();
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -37,6 +42,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <ServiceWorkerRegister />
           <OfflineIndicator />
           <SyncManager />
+          <KeyboardShortcutsHelp />
           <AuthGuard>
             {children}
           </AuthGuard>
