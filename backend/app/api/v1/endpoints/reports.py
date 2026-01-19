@@ -4492,6 +4492,24 @@ async def bulk_import_preview(
             content_str = content.decode('utf-8')
             csv_reader = csv.DictReader(io.StringIO(content_str))
             rows = list(csv_reader)
+
+            # Feature #154: Validate CSV structure
+            # Check if required headers are present
+            if csv_reader.fieldnames:
+                fieldnames_lower = [f.lower() if f else '' for f in csv_reader.fieldnames]
+                if 'title' not in fieldnames_lower or 'type' not in fieldnames_lower:
+                    raise ValueError("CSV must contain 'title' and 'type' columns")
+
+            # Detect malformed CSV by checking for suspicious newlines in field values
+            for idx, row in enumerate(rows, start=2):
+                for field_name, field_value in row.items():
+                    if field_value and isinstance(field_value, str):
+                        # If field contains unescaped newlines, likely malformed
+                        if '\n' in field_value or '\r' in field_value:
+                            raise ValueError(
+                                f"Malformed CSV detected: Row {idx}, field '{field_name}' contains unexpected line breaks. "
+                                f"This usually indicates unclosed quotes or improperly escaped data."
+                            )
         else:
             # Parse Excel
             wb = load_workbook(filename=io.BytesIO(content))
@@ -4499,6 +4517,11 @@ async def bulk_import_preview(
 
             # Get headers from first row
             headers = [cell.value for cell in ws[1]]
+
+            # Feature #154: Validate Excel has required headers
+            headers_lower = [h.lower() if h else '' for h in headers]
+            if 'title' not in headers_lower or 'type' not in headers_lower:
+                raise ValueError("Excel file must contain 'title' and 'type' columns")
 
             # Get data rows
             for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
@@ -4593,6 +4616,24 @@ async def bulk_import_reports(
             content_str = content.decode('utf-8')
             csv_reader = csv.DictReader(io.StringIO(content_str))
             rows = list(csv_reader)
+
+            # Feature #154: Validate CSV structure
+            # Check if required headers are present
+            if csv_reader.fieldnames:
+                fieldnames_lower = [f.lower() if f else '' for f in csv_reader.fieldnames]
+                if 'title' not in fieldnames_lower or 'type' not in fieldnames_lower:
+                    raise ValueError("CSV must contain 'title' and 'type' columns")
+
+            # Detect malformed CSV by checking for suspicious newlines in field values
+            for idx, row in enumerate(rows, start=2):
+                for field_name, field_value in row.items():
+                    if field_value and isinstance(field_value, str):
+                        # If field contains unescaped newlines, likely malformed
+                        if '\n' in field_value or '\r' in field_value:
+                            raise ValueError(
+                                f"Malformed CSV detected: Row {idx}, field '{field_name}' contains unexpected line breaks. "
+                                f"This usually indicates unclosed quotes or improperly escaped data."
+                            )
         else:
             # Parse Excel
             wb = load_workbook(filename=io.BytesIO(content))
@@ -4600,6 +4641,11 @@ async def bulk_import_reports(
 
             # Get headers from first row
             headers = [cell.value for cell in ws[1]]
+
+            # Feature #154: Validate Excel has required headers
+            headers_lower = [h.lower() if h else '' for h in headers]
+            if 'title' not in headers_lower or 'type' not in headers_lower:
+                raise ValueError("Excel file must contain 'title' and 'type' columns")
 
             # Get data rows
             for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
