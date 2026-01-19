@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.rate_limit import RateLimitMiddleware
 from app.core.csrf import CSRFMiddleware
 from app.core.maintenance import MaintenanceMiddleware
+from app.core.cache import cache_manager
 from app.api.v1.router import api_router
 
 async def run_scheduler():
@@ -79,6 +80,9 @@ async def lifespan(app: FastAPI):
     # Startup
     print(f"Starting {settings.APP_NAME}...")
 
+    # Initialize cache manager
+    await cache_manager.connect()
+
     # Start background scheduler
     scheduler_task = asyncio.create_task(run_scheduler())
     print("[Scheduler] Background scheduler started")
@@ -92,6 +96,9 @@ async def lifespan(app: FastAPI):
         await scheduler_task
     except asyncio.CancelledError:
         print("[Scheduler] Background scheduler stopped")
+
+    # Disconnect cache
+    await cache_manager.disconnect()
 
 app = FastAPI(
     title=settings.APP_NAME,

@@ -2,7 +2,7 @@
 Companies API Endpoints
 """
 
-from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi import APIRouter, Query, Depends, HTTPException, Response
 from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -686,10 +686,24 @@ class PKDSearchResponse(BaseModel):
 
 @router.get("/search")
 async def search_companies(
+    response: Response,
     q: str = Query(..., min_length=2),
     limit: int = Query(10, ge=1, le=50)
 ):
-    """Search companies by name, NIP, or KRS."""
+    """Search companies by name, NIP, or KRS. Cached for 5 minutes."""
+    from app.core.cache import cache_manager
+
+    # Generate cache key
+    cache_key = cache_manager.generate_cache_key("companies_search", q=q, limit=limit)
+
+    # Try cache first
+    cached_result = await cache_manager.get(cache_key)
+    if cached_result is not None:
+        if response:
+            response.headers["X-Cache-Hit"] = "true"
+        return cached_result
+
+    # Cache miss - perform search
     q_lower = q.lower()
     results = []
 
@@ -715,7 +729,15 @@ async def search_companies(
                 status=company["status"]
             ))
 
-    return {"results": results[:limit], "total": len(results)}
+    result = {"results": results[:limit], "total": len(results)}
+
+    # Store in cache (5 minutes TTL)
+    await cache_manager.set(cache_key, result, ttl=300)
+
+    if response:
+        response.headers["X-Cache-Hit"] = "false"
+
+    return result
 
 
 @router.get("/search/pkd", response_model=PKDSearchResponse)
