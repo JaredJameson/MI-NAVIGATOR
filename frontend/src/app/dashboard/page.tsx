@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { authApi, searchApi, SearchSuggestion, getStoredToken } from '@/services/api'
 import { DashboardSkeleton } from '@/components/Skeleton'
 import { formatRelativeTime } from '@/utils/date'
+import { Sidebar } from '@/components/Sidebar'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -467,35 +468,32 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">MI-Navigator</h1>
-            <nav className="flex items-center space-x-4">
-              <Link href="/reports" className="text-gray-600 transition-colors hover:text-gray-900">
-                Reports
-              </Link>
-              <Link href="/projects" className="text-gray-600 transition-colors hover:text-gray-900">
-                Projects
-              </Link>
-              <Link href="/settings" className="text-gray-600 transition-colors hover:text-gray-900">
-                Settings
-              </Link>
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 disabled:opacity-50"
-              >
-                {isLoggingOut ? 'Logging out...' : 'Logout'}
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <Sidebar className="h-full" />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200">
+          <div className="px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Scrollable main content */}
+        <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Customize Mode Banner */}
         {isCustomizeMode && (
           <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
@@ -710,7 +708,8 @@ export default function DashboardPage() {
             return renderWidget(widget, globalIndex)
           })}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }
