@@ -37,6 +37,8 @@ class UserProfileResponse(BaseModel):
     preferred_currency: str = "PLN"
     timezone: str = "Europe/Warsaw"
     onboarding_completed: bool = False
+    created_at: datetime
+    last_login_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -139,7 +141,9 @@ async def get_user_profile(
         preferred_format=current_user.preferred_format or "pdf",
         preferred_currency=current_user.preferred_currency or "PLN",
         timezone=current_user.timezone or "Europe/Warsaw",
-        onboarding_completed=current_user.onboarding_completed or False
+        onboarding_completed=current_user.onboarding_completed or False,
+        created_at=current_user.created_at,
+        last_login_at=current_user.last_login_at
     )
 
 
@@ -175,7 +179,9 @@ async def update_user_profile(
         preferred_format=current_user.preferred_format or "pdf",
         preferred_currency=current_user.preferred_currency or "PLN",
         timezone=current_user.timezone or "Europe/Warsaw",
-        onboarding_completed=current_user.onboarding_completed or False
+        onboarding_completed=current_user.onboarding_completed or False,
+        created_at=current_user.created_at,
+        last_login_at=current_user.last_login_at
     )
 
 
