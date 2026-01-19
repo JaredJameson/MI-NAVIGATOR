@@ -165,7 +165,7 @@ export default function ProjectsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
         {/* Error Display */}
         {error && (
           <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-red-700">

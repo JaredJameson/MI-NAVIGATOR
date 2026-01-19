@@ -493,7 +493,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Scrollable main content */}
-        <main className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
+        <main id="main-content" className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Customize Mode Banner */}
         {isCustomizeMode && (
           <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 p-4">

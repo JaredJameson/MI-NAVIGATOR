@@ -58,6 +58,34 @@
   }
 }
 
+/* Skip to main content link - Feature #177 */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-to-content:focus {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 16px;
+  background: #2563eb;
+  color: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  text-decoration: none;
+  font-weight: 500;
+}
+
 /* Mobile Touch Target Optimization - Feature #166 */
 @media (max-width: 640px) {
   /* Ensure all interactive elements have adequate touch targets on mobile */

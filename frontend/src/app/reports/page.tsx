@@ -970,7 +970,7 @@ export default function ReportsPage() {
         </div>
       )}
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-6xl px-4 py-8">
         {/* Search and Filters */}
         <div className="mb-6 rounded-xl bg-white p-4 sm:p-6 shadow-sm">
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4">

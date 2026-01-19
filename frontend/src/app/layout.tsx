@@ -21,6 +21,13 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <body className={inter.className}>
+        {/* Skip to main content link for keyboard accessibility */}
+        <a
+          href="#main-content"
+          className="skip-to-content"
+        >
+          Skip to main content
+        </a>
         <Providers>
           {children}
         </Providers>
