@@ -1697,3 +1697,67 @@ async def get_company_data_quality(
         improvement_suggestions=improvement_suggestions,
         last_assessment=datetime.now().isoformat()
     )
+
+
+# ============================================================================
+# WATCHLIST ENDPOINTS
+# ============================================================================
+
+# In-memory watchlist storage: { "user_id": ["company_id1", "company_id2", ...] }
+COMPANY_WATCHLIST: dict = {}
+
+
+@router.get("/watchlist")
+async def get_watchlist_companies(
+    current_user: User = Depends(get_current_user)
+):
+    """Get list of user's watchlisted company IDs."""
+    user_id = str(current_user.id)
+    watchlist = COMPANY_WATCHLIST.get(user_id, [])
+    return {"watchlist": watchlist, "count": len(watchlist)}
+
+
+@router.post("/{identifier}/watchlist")
+async def add_to_watchlist(
+    identifier: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Add a company to user's watchlist."""
+    user_id = str(current_user.id)
+
+    # Initialize user's watchlist if it doesn't exist
+    if user_id not in COMPANY_WATCHLIST:
+        COMPANY_WATCHLIST[user_id] = []
+
+    # Add to watchlist if not already there
+    if identifier not in COMPANY_WATCHLIST[user_id]:
+        COMPANY_WATCHLIST[user_id].append(identifier)
+        return {"message": "Company added to watchlist", "is_watched": True}
+
+    return {"message": "Company already in watchlist", "is_watched": True}
+
+
+@router.delete("/{identifier}/watchlist")
+async def remove_from_watchlist(
+    identifier: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Remove a company from user's watchlist."""
+    user_id = str(current_user.id)
+
+    if user_id in COMPANY_WATCHLIST and identifier in COMPANY_WATCHLIST[user_id]:
+        COMPANY_WATCHLIST[user_id].remove(identifier)
+        return {"message": "Company removed from watchlist", "is_watched": False}
+
+    return {"message": "Company not in watchlist", "is_watched": False}
+
+
+@router.get("/{identifier}/watchlist")
+async def check_watchlist_status(
+    identifier: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Check if a company is in user's watchlist."""
+    user_id = str(current_user.id)
+    is_watched = user_id in COMPANY_WATCHLIST and identifier in COMPANY_WATCHLIST[user_id]
+    return {"is_watched": is_watched}

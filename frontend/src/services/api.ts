@@ -461,6 +461,26 @@ export const companyApi = {
   async getDataQuality(identifier: string): Promise<ApiResponse<DataQualityDashboard>> {
     return fetchApi(`/companies/${encodeURIComponent(identifier)}/data-quality`);
   },
+
+  async checkWatchlistStatus(identifier: string): Promise<ApiResponse<{is_watched: boolean}>> {
+    return fetchApi(`/companies/${encodeURIComponent(identifier)}/watchlist`);
+  },
+
+  async addToWatchlist(identifier: string): Promise<ApiResponse<{message: string, is_watched: boolean}>> {
+    return fetchApi(`/companies/${encodeURIComponent(identifier)}/watchlist`, {
+      method: 'POST',
+    });
+  },
+
+  async removeFromWatchlist(identifier: string): Promise<ApiResponse<{message: string, is_watched: boolean}>> {
+    return fetchApi(`/companies/${encodeURIComponent(identifier)}/watchlist`, {
+      method: 'DELETE',
+    });
+  },
+
+  async getWatchlist(): Promise<ApiResponse<{watchlist: string[], count: number}>> {
+    return fetchApi('/companies/watchlist');
+  },
 };
 
 // Custom Fields API Types

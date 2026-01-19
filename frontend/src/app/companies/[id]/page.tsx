@@ -37,6 +37,8 @@ export default function CompanyProfilePage() {
   const [customFieldsLoading, setCustomFieldsLoading] = useState(false);
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string | string[]>>({});
+  const [isWatched, setIsWatched] = useState(false);
+  const [watchlistLoading, setWatchlistLoading] = useState(false);
 
   // Load company profile
   useEffect(() => {
@@ -54,6 +56,18 @@ export default function CompanyProfilePage() {
     }
 
     loadCompany();
+  }, [companyId]);
+
+  // Check watchlist status
+  useEffect(() => {
+    async function checkWatchlistStatus() {
+      const result = await companyApi.checkWatchlistStatus(companyId);
+      if (result.data) {
+        setIsWatched(result.data.is_watched);
+      }
+    }
+
+    checkWatchlistStatus();
   }, [companyId]);
 
   // Load news when switching to news tab or filters change
@@ -170,6 +184,20 @@ export default function CompanyProfilePage() {
     }
 
     setRefreshing(false);
+  };
+
+  const handleToggleWatchlist = async () => {
+    setWatchlistLoading(true);
+
+    const result = isWatched
+      ? await companyApi.removeFromWatchlist(companyId)
+      : await companyApi.addToWatchlist(companyId);
+
+    if (result.data) {
+      setIsWatched(result.data.is_watched);
+    }
+
+    setWatchlistLoading(false);
   };
 
   // Handle custom field value save
@@ -660,8 +688,16 @@ export default function CompanyProfilePage() {
                   <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
                     📊 Generuj raport
                   </button>
-                  <button className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm">
-                    ⭐ Dodaj do obserwowanych
+                  <button
+                    onClick={handleToggleWatchlist}
+                    disabled={watchlistLoading}
+                    className={`w-full px-4 py-2 rounded-lg text-sm transition-colors ${
+                      isWatched
+                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    } ${watchlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {watchlistLoading ? '⏳ Przetwarzanie...' : isWatched ? '⭐ Obserwujesz' : '⭐ Dodaj do obserwowanych'}
                   </button>
                   <button className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm">
                     🔔 Ustaw alert
