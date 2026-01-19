@@ -4,6 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -30,6 +39,8 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -90,6 +101,44 @@ export default function ProjectsPage() {
     return PROJECT_TYPE_LABELS[type] || { label: type, color: 'bg-gray-100 text-gray-800', icon: '📁' }
   }
 
+  const handleDeleteClick = (e: React.MouseEvent, project: Project) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setProjectToDelete(project)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!projectToDelete) return
+
+    const token = getStoredToken()
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects/${projectToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        setProjects(projects.filter(p => p.id !== projectToDelete.id))
+        setDeleteDialogOpen(false)
+        setProjectToDelete(null)
+      } else {
+        setError('Nie udało się usunąć projektu')
+      }
+    } catch (err) {
+      setError('Nie udało się usunąć projektu')
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setProjectToDelete(null)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -147,43 +196,80 @@ export default function ProjectsPage() {
             {projects.map((project) => {
               const typeInfo = getTypeInfo(project.type)
               return (
-                <Link
+                <div
                   key={project.id}
-                  href={`/projects/${project.id}`}
-                  className="block rounded-xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                  className="relative block rounded-xl bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl">{typeInfo.icon}</span>
-                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${typeInfo.color}`}>
-                          {typeInfo.label}
-                        </span>
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="block"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 pr-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-2xl">{typeInfo.icon}</span>
+                          <span className={`rounded-full px-3 py-1 text-xs font-medium ${typeInfo.color}`}>
+                            {typeInfo.label}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 truncate" title={project.name}>{project.name}</h3>
+                        {project.description && (
+                          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{project.description}</p>
+                        )}
+                        <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            {project.report_ids?.length || 0} raportów
+                          </span>
+                          <span>Aktualizacja: {formatDate(project.updated_at)}</span>
+                        </div>
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 truncate" title={project.name}>{project.name}</h3>
-                      {project.description && (
-                        <p className="mt-2 text-sm text-gray-600 line-clamp-2">{project.description}</p>
-                      )}
-                      <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          {project.report_ids?.length || 0} raportów
-                        </span>
-                        <span>Aktualizacja: {formatDate(project.updated_at)}</span>
-                      </div>
+                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </Link>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => handleDeleteClick(e, project)}
+                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    title="Usuń projekt"
+                    aria-label={`Usuń projekt ${project.name}`}
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                  </div>
-                </Link>
+                  </button>
+                </div>
               )
             })}
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Potwierdź usunięcie projektu</DialogTitle>
+            <DialogDescription>
+              Czy na pewno chcesz usunąć projekt &quot;{projectToDelete?.name}&quot;?
+              Ta operacja jest nieodwracalna i usunie wszystkie powiązane raporty.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDeleteCancel}>
+              Anuluj
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              Usuń projekt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
