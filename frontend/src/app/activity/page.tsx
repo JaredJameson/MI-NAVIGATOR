@@ -466,7 +466,7 @@ export default function ActivityPage() {
                                   {formatTimestamp(activity.timestamp)}
                                 </span>
                               </div>
-                              <p className="mt-1 text-sm text-gray-600">
+                              <p className="mt-1 text-sm text-gray-600 line-clamp-2" title={activity.description}>
                                 {activity.description}
                               </p>
                               {typeInfo && (

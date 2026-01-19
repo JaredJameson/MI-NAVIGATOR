@@ -304,7 +304,7 @@ export default function NotificationsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className={`text-sm font-medium ${notification.read ? 'text-gray-900' : 'text-gray-900'}`}>
+                          <p className={`text-sm font-medium truncate ${notification.read ? 'text-gray-900' : 'text-gray-900'}`} title={notification.title}>
                             {notification.title}
                             {!notification.read && (
                               <span className="ml-2 inline-flex w-2 h-2 bg-blue-600 rounded-full"></span>
@@ -314,7 +314,7 @@ export default function NotificationsPage() {
                             {formatTimestamp(notification.created_at)}
                           </span>
                         </div>
-                        <p className={`mt-1 text-sm ${notification.read ? 'text-gray-600' : 'text-gray-700'}`}>
+                        <p className={`mt-1 text-sm line-clamp-2 ${notification.read ? 'text-gray-600' : 'text-gray-700'}`} title={notification.message}>
                           {notification.message}
                         </p>
                       </div>

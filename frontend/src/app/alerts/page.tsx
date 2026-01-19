@@ -342,9 +342,9 @@ export default function AlertsPage() {
                     <div className="flex items-start gap-3">
                       <span className="text-2xl">{getSeverityIndicator(alert.severity)}</span>
                       <div className="flex-1">
-                        <h3 className={`font-medium ${
+                        <h3 className={`font-medium truncate ${
                           alert.read ? 'text-gray-600' : 'text-gray-900'
-                        }`}>
+                        }`} title={alert.title}>
                           {alert.title}
                         </h3>
                         <p className="mt-1 text-sm text-gray-600">{alert.description}</p>

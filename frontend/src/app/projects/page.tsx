@@ -160,7 +160,7 @@ export default function ProjectsPage() {
                           {typeInfo.label}
                         </span>
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 truncate" title={project.name}>{project.name}</h3>
                       {project.description && (
                         <p className="mt-2 text-sm text-gray-600 line-clamp-2">{project.description}</p>
                       )}

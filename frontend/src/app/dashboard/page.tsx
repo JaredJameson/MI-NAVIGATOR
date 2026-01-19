@@ -539,13 +539,14 @@ export default function DashboardPage() {
                     <button
                       key={w.id}
                       onClick={() => toggleWidgetVisibility(w.id)}
-                      className="flex items-center gap-1 rounded-md bg-white border border-blue-300 px-2 py-1 text-sm text-blue-700 transition-colors hover:bg-blue-100"
+                      className="flex items-center gap-1 rounded-md bg-white border border-blue-300 px-2 py-1 text-sm text-blue-700 transition-colors hover:bg-blue-100 max-w-[200px]"
+                      title={w.title}
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      {w.title}
+                      <span className="truncate">{w.title}</span>
                     </button>
                   ))}
                 </div>
@@ -684,7 +685,8 @@ export default function DashboardPage() {
               <button
                 key={`recent-${item.id}`}
                 onClick={() => handleHistoryClick(item)}
-                className="rounded bg-white/20 px-2 py-1 text-sm transition-colors hover:bg-white/30"
+                className="rounded bg-white/20 px-2 py-1 text-sm transition-colors hover:bg-white/30 max-w-[200px] truncate"
+                title={item.name}
               >
                 {item.name}
               </button>
@@ -815,7 +817,7 @@ function RecentActivityWidget() {
         <ul className="space-y-3">
           {activities.map((activity) => (
             <li key={activity.id} className="text-sm">
-              <span className="text-gray-500">{formatTimeOnly(activity.timestamp, userTimezone)}</span> - {activity.title}
+              <span className="text-gray-500">{formatTimeOnly(activity.timestamp, userTimezone)}</span> - <span className="truncate inline-block max-w-[300px] align-bottom" title={activity.title}>{activity.title}</span>
             </li>
           ))}
         </ul>
@@ -985,8 +987,8 @@ function ProjectsWidget() {
             >
               <div className="flex items-start gap-3">
                 <span className="text-2xl">📁</span>
-                <div>
-                  <h3 className="font-medium text-gray-900">{project.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 truncate" title={project.name}>{project.name}</h3>
                   <div className="mt-2 flex gap-4 text-sm text-gray-500">
                     <span>📄 {project.report_ids?.length || 0} reports</span>
                     <span>🔔 {project.alert_count || 0} alerts</span>
@@ -1094,9 +1096,9 @@ function AlertsWidget() {
                 className={`flex items-start gap-2 rounded-lg border ${styles.border} ${styles.bg} p-3 cursor-pointer hover:opacity-80 transition-opacity`}
               >
                 <span>{styles.indicator}</span>
-                <div>
-                  <p className={`text-sm font-medium ${styles.titleColor}`}>{alert.title}</p>
-                  <p className={`text-xs ${styles.descColor}`}>{alert.description}</p>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium truncate ${styles.titleColor}`} title={alert.title}>{alert.title}</p>
+                  <p className={`text-xs line-clamp-2 ${styles.descColor}`} title={alert.description}>{alert.description}</p>
                 </div>
               </Link>
             )
