@@ -4444,7 +4444,9 @@ class BulkImportResult(BaseModel):
     total_rows: int
     imported_count: int
     failed_count: int
+    skipped_count: int = 0  # Feature #153: Duplicate handling
     imported_ids: List[str]
+    skipped_duplicates: List[dict] = []  # Feature #153: List of skipped duplicates
     errors: List[dict]
 
 
@@ -4615,6 +4617,7 @@ async def bulk_import_reports(
     valid_statuses = ["draft", "in_progress", "completed"]
 
     imported_ids = []
+    skipped_duplicates = []
     errors = []
 
     for idx, row in enumerate(rows, start=2):
@@ -4639,6 +4642,37 @@ async def bulk_import_reports(
                 "row": idx,
                 "data": row,
                 "errors": row_errors
+            })
+            continue
+
+        # Feature #153: Check for duplicates (skip if exists)
+        # Duplicate = same title + type + company (case-insensitive)
+        title = str(row.get('title')).strip()
+        report_type = str(row.get('type')).strip()
+        company = str(row.get('company')).strip() if row.get('company') else None
+
+        # Check if duplicate exists (owned by same user)
+        is_duplicate = False
+        existing_report = None
+        for r in MOCK_REPORTS:
+            if (r.get("created_by") == str(current_user.id) and
+                r.get("title", "").lower() == title.lower() and
+                r.get("type", "").lower() == report_type.lower()):
+                # Check company match (both None or both match)
+                r_company = r.get("company")
+                if (company is None and r_company is None) or \
+                   (company and r_company and r_company.lower() == company.lower()):
+                    is_duplicate = True
+                    existing_report = r
+                    break
+
+        if is_duplicate:
+            # Skip duplicate and record it
+            skipped_duplicates.append({
+                "row": idx,
+                "data": row,
+                "reason": "Duplicate report already exists",
+                "existing_id": existing_report["id"] if existing_report else None
             })
             continue
 
@@ -4682,13 +4716,21 @@ async def bulk_import_reports(
         event_type=EventType.REPORT_CREATED,
         event_name="bulk_import",
         user=current_user,
-        metadata={"method": "bulk_import", "count": len(imported_ids), "filename": filename}
+        metadata={
+            "method": "bulk_import",
+            "count": len(imported_ids),
+            "skipped": len(skipped_duplicates),
+            "failed": len(errors),
+            "filename": filename
+        }
     )
 
     return BulkImportResult(
         total_rows=len(rows),
         imported_count=len(imported_ids),
         failed_count=len(errors),
+        skipped_count=len(skipped_duplicates),
         imported_ids=imported_ids,
+        skipped_duplicates=skipped_duplicates[:50],  # Show first 50 skipped
         errors=errors[:50]  # Show first 50 errors
     )
