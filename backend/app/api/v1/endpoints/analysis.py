@@ -522,3 +522,64 @@ async def check_facts(
     result = fact_checker.check_company_profile(company_data)
 
     return FactCheckResponse(**result)
+
+
+class InsightGenerationRequest(BaseModel):
+    company_name: str
+    financial_data: Optional[Dict[str, Any]] = None
+    market_data: Optional[Dict[str, Any]] = None
+    digital_data: Optional[Dict[str, Any]] = None
+    competitor_data: Optional[Dict[str, Any]] = None
+
+
+class InsightGenerationResponse(BaseModel):
+    insights_report: Dict[str, Any]
+
+
+@router.post("/generate-insights", response_model=InsightGenerationResponse)
+async def generate_insights(
+    request: InsightGenerationRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generate actionable insights, recommendations, and risk assessment from company data.
+
+    Analyzes financial health, market position, digital presence, and competitive landscape
+    to produce data-backed insights and specific recommendations.
+
+    Example request:
+    {
+        "company_name": "FADO Sp. z o.o.",
+        "financial_data": {
+            "revenue": 50200000,
+            "revenue_growth": 25.5,
+            "profit_margin": 18.2,
+            "debt_to_equity": 0.8,
+            "liquidity_ratio": 2.1
+        },
+        "market_data": {
+            "market_share": 15.5,
+            "market_growth": 12.3,
+            "competitor_count": 45,
+            "market_size": 500000000
+        },
+        "digital_data": {
+            "website_traffic": 85000,
+            "social_media_followers": 12500,
+            "seo_score": 72,
+            "mobile_responsive": true
+        }
+    }
+    """
+    from app.services.insight_generator import insight_generator
+
+    # Generate insights report
+    result = insight_generator.generate_insights_report(
+        company_name=request.company_name,
+        financial_data=request.financial_data,
+        market_data=request.market_data,
+        digital_data=request.digital_data,
+        competitor_data=request.competitor_data
+    )
+
+    return InsightGenerationResponse(**result)
