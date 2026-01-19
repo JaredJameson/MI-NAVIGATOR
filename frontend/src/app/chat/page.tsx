@@ -1144,11 +1144,24 @@ export default function ChatPage() {
                             <button
                               key={option.value}
                               onClick={() => answerBriefQuestion(option.value)}
-                              className="px-4 py-3 rounded-lg font-medium transition-all bg-white text-gray-700 hover:bg-purple-100 border border-purple-300 hover:border-purple-400"
+                              className={`px-4 py-3 rounded-lg font-medium transition-all border ${
+                                option.default
+                                  ? 'bg-purple-50 text-purple-900 border-purple-500 hover:bg-purple-100 ring-2 ring-purple-500'
+                                  : 'bg-white text-gray-700 hover:bg-purple-100 border-purple-300 hover:border-purple-400'
+                              }`}
                             >
                               <div className="text-left">
-                                <div className="font-semibold">{option.label}</div>
-                                <div className="text-xs text-gray-600 mt-0.5">{option.description}</div>
+                                <div className="font-semibold flex items-center gap-2">
+                                  {option.label}
+                                  {option.default && (
+                                    <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full">
+                                      Your preference
+                                    </span>
+                                  )}
+                                </div>
+                                <div className={`text-xs mt-0.5 ${option.default ? 'text-purple-700' : 'text-gray-600'}`}>
+                                  {option.description}
+                                </div>
                               </div>
                             </button>
                           ))}

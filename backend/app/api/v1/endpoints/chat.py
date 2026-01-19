@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.api.v1.endpoints.auth import get_current_user, get_current_user_optional
 from app.models.user import User
+from app.services.auth import AuthService
 
 router = APIRouter()
 
@@ -2460,6 +2461,21 @@ Jak moge Ci dzis pomoc?"""
 Czy chcialbys przeprowadzic analize konkretnej firmy lub uzyskac raport? Podaj wiecej szczegolow, a chetnie pomoge."""
 
 
+def map_preferred_depth_to_analysis_depth(preferred_depth: str) -> str:
+    """
+    Map user's preferred depth setting to analysis depth value.
+
+    User preferences: quick, standard, deep
+    Analysis options: executive_summary, standard, detailed, exhaustive
+    """
+    mapping = {
+        "quick": "executive_summary",
+        "standard": "standard",
+        "deep": "detailed"
+    }
+    return mapping.get(preferred_depth, "standard")
+
+
 @router.websocket("/ws/{conversation_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
@@ -2474,8 +2490,24 @@ async def websocket_endpoint(
     await websocket.accept()
 
     try:
-        # Optional: Add token validation here if needed
-        # For now, accept all connections for development
+        # Get user from token if provided
+        current_user = None
+        if token:
+            try:
+                from app.db.session import AsyncSessionLocal
+                token_data = AuthService.decode_token(token)
+                if token_data and token_data.type == "access":
+                    async with AsyncSessionLocal() as db:
+                        current_user = await AuthService.get_user_by_id(db, token_data.sub)
+                        if current_user:
+                            print(f"[WS DEBUG] User authenticated: {current_user.email}, preferred_depth: {current_user.preferred_depth}")
+                        else:
+                            print("[WS DEBUG] User not found after token decode")
+            except Exception as e:
+                print(f"[WS DEBUG] Error getting user from token: {e}")
+                pass  # Continue without user in development mode
+        else:
+            print("[WS DEBUG] No token provided")
 
         while True:
             data = await websocket.receive_text()
@@ -2527,19 +2559,35 @@ async def websocket_endpoint(
                     continue  # Wait for next response
 
                 elif question_id == "scope":
-                    # Ask depth question
+                    # Ask depth question with user's default preference
+                    # Map user's preferred_depth setting to depth values
+                    default_depth = "standard"  # Default fallback
+                    if current_user and current_user.preferred_depth:
+                        depth_mapping = {
+                            "quick": "executive_summary",
+                            "standard": "standard",
+                            "deep": "detailed"
+                        }
+                        default_depth = depth_mapping.get(current_user.preferred_depth, "standard")
+                        print(f"[DEPTH DEBUG] User {current_user.email} preferred_depth: {current_user.preferred_depth} -> default_depth: {default_depth}")
+                    else:
+                        print(f"[DEPTH DEBUG] No current_user or preferred_depth, using fallback: {default_depth}")
+
+                    # Build options with default marked
+                    options = [
+                        {"value": "executive_summary", "label": "Executive Summary", "description": "Key insights and highlights only (5-10 min)", "default": default_depth == "executive_summary"},
+                        {"value": "standard", "label": "Standard Analysis", "description": "Balanced detail with actionable insights (15-20 min)", "default": default_depth == "standard"},
+                        {"value": "detailed", "label": "Detailed Report", "description": "Comprehensive analysis with supporting data (30-45 min)", "default": default_depth == "detailed"},
+                        {"value": "exhaustive", "label": "Exhaustive Research", "description": "Deep dive with all available data (1-2 hours)", "default": default_depth == "exhaustive"}
+                    ]
+
                     await websocket.send_json({
                         "type": "brief_question",
                         "data": {
                             "question_id": "depth",
                             "question": "What level of detail do you need?",
                             "description": "Choose the depth of analysis required",
-                            "options": [
-                                {"value": "executive_summary", "label": "Executive Summary", "description": "Key insights and highlights only (5-10 min)"},
-                                {"value": "standard", "label": "Standard Analysis", "description": "Balanced detail with actionable insights (15-20 min)"},
-                                {"value": "detailed", "label": "Detailed Report", "description": "Comprehensive analysis with supporting data (30-45 min)"},
-                                {"value": "exhaustive", "label": "Exhaustive Research", "description": "Deep dive with all available data (1-2 hours)"}
-                            ]
+                            "options": options
                         }
                     })
                     continue  # Wait for next response
