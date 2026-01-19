@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken, getCsrfToken, fetchCsrfToken } from '@/services/api'
 import { ActivityFeed } from '@/components/projects/ActivityFeed'
+import { Breadcrumb } from '@/components/ui/Breadcrumb'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -217,36 +218,38 @@ export default function ProjectDetailPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/projects" className="text-gray-600 hover:text-gray-900">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </Link>
+        <div className="mx-auto flex max-w-6xl flex-col gap-2">
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Projects', href: '/projects' },
+              { label: project.name }
+            ]}
+          />
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">{project.name}</h1>
               <span className="text-sm text-gray-500">
                 {PROJECT_TYPE_LABELS[project.type] || project.type}
               </span>
             </div>
+            <nav className="flex items-center gap-4">
+              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
+              <Link href="/reports" className="text-gray-600 hover:text-gray-900">Raporty</Link>
+              <Link
+                href={`/projects/${projectId}/edit`}
+                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+              >
+                Edit Project
+              </Link>
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </nav>
           </div>
-          <nav className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-            <Link href="/reports" className="text-gray-600 hover:text-gray-900">Raporty</Link>
-            <Link
-              href={`/projects/${projectId}/edit`}
-              className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
-            >
-              Edit Project
-            </Link>
-            <button
-              onClick={() => setShowDeleteDialog(true)}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
-            >
-              Delete
-            </button>
-          </nav>
         </div>
       </header>
 
