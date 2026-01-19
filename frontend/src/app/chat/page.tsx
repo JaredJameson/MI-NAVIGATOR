@@ -680,7 +680,7 @@ export default function ChatPage() {
       }
 
       if (!supportedTypes.includes(file.type)) {
-        setError(`File type ${file.type} is not supported.`)
+        setError(`File type "${file.type}" is not supported. Supported types: PDF, DOCX, XLSX, CSV, PNG, JPG.`)
         hasError = true
         return
       }
