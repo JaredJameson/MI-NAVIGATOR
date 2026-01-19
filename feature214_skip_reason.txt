@@ -1,0 +1,50 @@
+Feature #214: API key revocation - SKIPPED
+
+Date: 2026-01-19
+Session: 256
+
+REASON FOR SKIP: Missing Infrastructure (same as Feature #213)
+
+INVESTIGATION RESULTS:
+1. ❌ No ApiKey model in database (backend/app/models)
+2. ❌ No API endpoints for key management
+3. ❌ No frontend page for API settings
+4. ❌ No /settings/api-keys route
+5. ❌ Feature #213 (API key generation) already skipped in Session 255
+
+MISSING COMPONENTS:
+- Database model: ApiKey (id, user_id, key_hash, created_at, revoked_at, last_used, permissions)
+- Backend endpoints:
+  * POST /api/v1/api-keys (generate)
+  * GET /api/v1/api-keys (list)
+  * DELETE /api/v1/api-keys/{key_id} (revoke)
+  * Middleware for API key authentication
+- Frontend:
+  * /settings/api-keys page
+  * Key generation UI
+  * Key revocation UI
+  * Key permissions management
+
+STEPS TO TEST (if implemented):
+Step 1: Navigate to API settings
+Step 2: Revoke existing key
+Step 3: Verify key removed from list
+Step 4: Attempt API call with revoked key
+Step 5: Verify 401 unauthorized
+
+RECOMMENDATION:
+This is a complete feature requiring implementation. Should be batched with:
+- Feature #213 (API key generation)
+- Feature #215 (API key permissions) - if exists
+- Feature #216 (API key usage tracking) - if exists
+
+PRIORITY: Move to end of queue (batch implementation later)
+
+---
+
+RELATED FEATURES ALSO SKIPPED:
+- #211: Usage limit enforcement
+- #212: Usage counter accuracy
+- #213: API key generation
+
+All four features require analytics/usage tracking infrastructure that is not currently implemented.
