@@ -34,6 +34,7 @@ class UserProfileResponse(BaseModel):
     preferred_language: str = "pl"
     preferred_depth: str = "standard"
     preferred_format: str = "pdf"
+    preferred_currency: str = "PLN"
     timezone: str = "Europe/Warsaw"
     onboarding_completed: bool = False
 
@@ -136,6 +137,7 @@ async def get_user_profile(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
+        preferred_currency=current_user.preferred_currency or "PLN",
         timezone=current_user.timezone or "Europe/Warsaw",
         onboarding_completed=current_user.onboarding_completed or False
     )
@@ -171,6 +173,7 @@ async def update_user_profile(
         preferred_language=current_user.preferred_language or "pl",
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
+        preferred_currency=current_user.preferred_currency or "PLN",
         timezone=current_user.timezone or "Europe/Warsaw",
         onboarding_completed=current_user.onboarding_completed or False
     )
