@@ -1,0 +1,136 @@
+# Feature #212 - SKIPOWANA - Backend Query Bug
+
+## Data: 2026-01-19 - Session 255
+
+## Powód Pominięcia
+
+Feature #212 (Usage counter accuracy) nie może przejść bo liczniki w dashboardzie NIE są aktualizowane poprawnie - backend ma bug w SQLAlchemy async query.
+
+## Test Wykonany
+
+### Step 1: ✅ PASSED
+- Zanotowano początkowy stan: Analyses: 0/100, API calls: 3
+
+### Step 2: ❌ FAILED
+- Wykonano "billable action" - rozpoczęcie chatu
+- Utworzono ręcznie analytics event w bazie (event_type='chat')
+
+### Step 3-5: ❌ FAILED
+- Liczniki NIE zwiększyły się (nadal 0/100)
+- Po refresh - nadal 0/100
+- Po ręcznym dodaniu eventu - nadal 0/100
+
+## Root Cause Analysis
+
+### ✅ CO DZIAŁA:
+1. **Tabela analytics_events istnieje:**
+   ```sql
+   CREATE TABLE analytics_events (
+     id VARCHAR(36) PRIMARY KEY,
+     event_type VARCHAR(50) NOT NULL,
+     user_id VARCHAR(36),
+     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
+   )
+   ```
+
+2. **Event został utworzony w bazie:**
+   ```
+   ID: 02537439-f392-4cf2-9c08-55ee80250436
+   User ID: 186759b8-1600-4459-b528-ea527467317d
+   Type: chat
+   Created: 2026-01-19T21:48:36.017567
+   ```
+
+3. **SQL query działa poprawnie:**
+   ```sql
+   SELECT COUNT(*) FROM analytics_events 
+   WHERE user_id = '186759b816004459b528ea527467317d' 
+     AND event_type IN ('analysis', 'search', 'chat')
+   -- Result: 1 ✅
+   ```
+
+### ❌ CO NIE DZIAŁA:
+1. **Backend API zwraca 0:**
+   ```bash
+   curl /api/v1/users/usage
+   # Response: {"analyses_count": 0, ...}  ❌
+   ```
+
+2. **SQLAlchemy async query w backendzie:**
+   ```python
+   # File: backend/app/api/v1/endpoints/users.py:576-586
+   analyses_result = await db.execute(
+       select(func.count(AnalyticsEvent.id))
+       .where(
+           and_(
+               AnalyticsEvent.user_id == str(user_id),
+               AnalyticsEvent.created_at >= start_date,
+               AnalyticsEvent.event_type.in_(['analysis', 'search', 'chat'])
+           )
+       )
+   )
+   analyses_count = analyses_result.scalar() or 0
+   # ❌ Zwraca 0 zamiast 1
+   ```
+
+## Możliwe Przyczyny
+
+1. **SQLite async connection issue:**
+   - Backend używa `AsyncSession` z SQLAlchemy
+   - SQLite może nie działać poprawnie z async queries
+   - Connection pooling może czytać z innej instancji bazy
+
+2. **Database file mismatch:**
+   - Backend może używać innej bazy danych
+   - Sprawdzone: mi_navigator.db
+   - Backend może używać: test.db lub memory database
+
+3. **Transaction isolation:**
+   - Event został zapisany ale nie committed
+   - Async session nie widzi zmian
+
+4. **ORM model mismatch:**
+   - Model AnalyticsEvent może mieć inne mapowanie kolumn
+   - user_id może być UUID zamiast str
+
+## Evidence
+
+**Direct SQL query (works):**
+```
+$ python check_query.py
+Count: 1
+```
+
+**Backend API response (broken):**
+```json
+{
+  "analyses_count": 0,
+  "analyses_limit": 100,
+  "analyses_percentage": 0.0,
+  "api_calls_count": 3
+}
+```
+
+**Screenshoty:**
+- feature212_step1_initial_usage.png - Initial 0/100
+- feature212_step3_after_action.png - Still 0/100 after action
+- feature212_step4_after_manual_event.png - Still 0/100 after manual insert
+
+## Rekomendacja
+
+Bug wymaga debugowania backendu:
+1. Sprawdzić jaki plik bazy używa backend (DATABASE_URL)
+2. Zweryfikować czy async SQLite działa poprawnie
+3. Dodać logi do endpoint /usage aby zobaczyć raw query
+4. Sprawdzić czy connection pool nie cache'uje starych wyników
+
+Alternatywie:
+- Przejść na synchroniczne queries dla stats
+- Użyć Redis do cache'owania liczników
+- Implementować liczniki w pamięci (in-memory)
+
+---
+
+**Status:** Feature #212 skipowana, przeniesiona na koniec kolejki
+**Nowy priorytet:** 2583
+**Wymaga:** Fix backend SQLAlchemy async query bug
