@@ -57,6 +57,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/register",
             "/api/v1/auth/refresh",
             "/api/v1/csrf-token",  # Endpoint to get CSRF token
+            "/api/v1/users/onboarding",  # Onboarding endpoint (authenticated)
         ]
 
     async def dispatch(self, request: Request, call_next):

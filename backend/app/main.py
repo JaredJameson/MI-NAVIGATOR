@@ -145,6 +145,7 @@ app.add_middleware(
         "/api/v1/files",  # Allow file uploads without CSRF token (auth handled at endpoint level)
         "/api/v1/chat/ws/",  # Allow WebSocket connections (token passed via query parameter)
         "/api/v1/test",  # Allow test endpoints without CSRF token (development/testing only)
+        "/api/v1/users/onboarding",  # Allow onboarding data submission (dev mode endpoint)
     ]
 )
 

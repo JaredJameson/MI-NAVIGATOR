@@ -630,62 +630,53 @@ async def get_current_user_optional(db: AsyncSession = Depends(get_db)):
 @router.post("/onboarding", response_model=OnboardingDataResponse)
 async def save_onboarding_data(
     onboarding_data: OnboardingDataRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Save user onboarding data (industry, role, preferences).
-    Works in dev mode without authentication.
+    Requires authentication via JWT token.
     """
-    # Try to get authenticated user, fallback to dev mode
-    try:
-        from app.api.v1.endpoints.auth import get_current_user_dep
-        from fastapi import Request
-        # This is a simplified approach for dev mode
-        # In production, you'd use proper authentication
-        current_user = None
+    # Update user profile with onboarding data
+    current_user.industry = onboarding_data.industry
+    current_user.industry_segment = onboarding_data.industry_segment
+    current_user.user_role = onboarding_data.user_role
 
-        # For dev mode, we'll just return success without saving
-        # In production, this would save to the authenticated user's profile
+    # Update preferences
+    if onboarding_data.preferred_language:
+        current_user.preferred_language = onboarding_data.preferred_language
+    if onboarding_data.preferred_depth:
+        current_user.preferred_depth = onboarding_data.preferred_depth
+    if onboarding_data.preferred_format:
+        current_user.preferred_format = onboarding_data.preferred_format
 
-        return OnboardingDataResponse(
-            message="Onboarding data saved successfully (dev mode)",
-            profile=UserProfileResponse(
-                id="dev_user_123",
-                email="dev@example.com",
-                name="Dev User",
-                role="user",
-                industry=onboarding_data.industry,
-                industry_segment=onboarding_data.industry_segment,
-                user_role=onboarding_data.user_role,
-                use_cases=onboarding_data.use_cases,
-                preferred_language=onboarding_data.preferred_language or "pl",
-                preferred_depth=onboarding_data.preferred_depth or "standard",
-                preferred_format=onboarding_data.preferred_format or "pdf",
-                timezone="Europe/Warsaw",
-                onboarding_completed=True
-            )
+    # Mark onboarding as completed
+    current_user.onboarding_completed = True
+    current_user.updated_at = datetime.utcnow()
+
+    # Commit changes to database
+    await db.commit()
+    await db.refresh(current_user)
+
+    # Return updated profile
+    return OnboardingDataResponse(
+        message="Onboarding data saved successfully",
+        profile=UserProfileResponse(
+            id=str(current_user.id),
+            email=current_user.email,
+            name=current_user.name,
+            role=current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
+            industry=current_user.industry,
+            industry_segment=current_user.industry_segment,
+            user_role=current_user.user_role,
+            use_cases=onboarding_data.use_cases,  # Pass through from request (not stored in DB)
+            preferred_language=current_user.preferred_language,
+            preferred_depth=current_user.preferred_depth,
+            preferred_format=current_user.preferred_format,
+            timezone=current_user.timezone or "Europe/Warsaw",
+            onboarding_completed=current_user.onboarding_completed
         )
-    except Exception as e:
-        # Dev mode fallback
-        print(f"Onboarding save error (dev mode): {e}")
-        return OnboardingDataResponse(
-            message="Onboarding data saved successfully (dev mode)",
-            profile=UserProfileResponse(
-                id="dev_user_123",
-                email="dev@example.com",
-                name="Dev User",
-                role="user",
-                industry=onboarding_data.industry,
-                industry_segment=onboarding_data.industry_segment,
-                user_role=onboarding_data.user_role,
-                use_cases=onboarding_data.use_cases,
-                preferred_language=onboarding_data.preferred_language or "pl",
-                preferred_depth=onboarding_data.preferred_depth or "standard",
-                preferred_format=onboarding_data.preferred_format or "pdf",
-                timezone="Europe/Warsaw",
-                onboarding_completed=True
-            )
-        )
+    )
 
 
 @router.get("/test-500-error")
