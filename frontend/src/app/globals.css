@@ -57,3 +57,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile Touch Target Optimization - Feature #166 */
+@media (max-width: 640px) {
+  /* Ensure all interactive elements have adequate touch targets on mobile */
+  button,
+  a,
+  [role="button"],
+  [role="link"],
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+  }
+
+  /* Exception for icon-only buttons in sidebar */
+  nav button,
+  nav a {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Form inputs should also be easy to tap */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea,
+  select {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+}

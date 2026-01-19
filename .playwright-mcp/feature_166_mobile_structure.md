@@ -1,0 +1,118 @@
+### New console messages
+- [WARNING] GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode....
+- [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): ...
+- [LOG] [PWA] Service Worker registered: ServiceWorkerRegistration @ webpack-internal:///(app-pages-br...
+- [LOG] [PWA] Service Worker registered: ServiceWorkerRegistration @ webpack-internal:///(app-pages-br...
+
+### Page state
+- Page URL: http://localhost:3000/dashboard
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e4]
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - button "Expand sidebar" [ref=e8] [cursor=pointer]:
+        - img [ref=e9]
+      - navigation [ref=e11]:
+        - link "Dashboard" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e13]
+        - link "Chat" [ref=e15] [cursor=pointer]:
+          - /url: /chat
+          - img [ref=e16]
+        - link "Research" [ref=e18] [cursor=pointer]:
+          - /url: /research
+          - img [ref=e19]
+        - link "Reports" [ref=e21] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e22]
+        - link "Projects" [ref=e24] [cursor=pointer]:
+          - /url: /projects
+          - img [ref=e25]
+        - link "Settings" [ref=e27] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e28]
+      - generic [ref=e33]: U
+    - generic [ref=e34]:
+      - banner [ref=e35]:
+        - generic [ref=e37]:
+          - heading "Dashboard" [level=1] [ref=e38]
+          - button "Logout" [ref=e40] [cursor=pointer]
+      - main [ref=e41]:
+        - button "Dostosuj układ" [ref=e43] [cursor=pointer]:
+          - img [ref=e44]
+          - text: Dostosuj układ
+        - generic [ref=e46]:
+          - heading "Rozpocznij badanie" [level=2] [ref=e47]
+          - generic [ref=e48]:
+            - textbox "Szukaj firmy, osoby, wklej URL do analizy..." [ref=e49]
+            - img [ref=e50]
+          - generic [ref=e53]: "Ostatnie:"
+        - generic [ref=e54]:
+          - generic [ref=e56]:
+            - heading "Active Research" [level=3] [ref=e57]
+            - generic [ref=e58]:
+              - generic [ref=e61]: Analiza FADO
+              - generic [ref=e63]: "Progress: 67%"
+            - generic [ref=e66]:
+              - link "Start New Research" [ref=e67] [cursor=pointer]:
+                - /url: /chat
+              - link "Market Analysis" [ref=e68] [cursor=pointer]:
+                - /url: /analysis
+              - link "PKD Search" [ref=e69] [cursor=pointer]:
+                - /url: /search
+          - generic [ref=e71]:
+            - heading "Recent Activity" [level=3] [ref=e72]
+            - list [ref=e73]:
+              - listitem [ref=e74]:
+                - text: 14:22 -
+                - generic "Utworzono raport" [ref=e75]
+              - listitem [ref=e76]:
+                - text: 13:22 -
+                - generic "Wyszukiwanie PKD" [ref=e77]
+              - listitem [ref=e78]:
+                - text: 12:22 -
+                - generic "Wyeksportowano raport" [ref=e79]
+            - link "Zobacz wszystkie →" [ref=e80] [cursor=pointer]:
+              - /url: /activity
+          - generic [ref=e82]:
+            - heading "Usage Stats" [level=3] [ref=e83]
+            - generic [ref=e84]:
+              - generic [ref=e86]:
+                - generic [ref=e87]: Analyses this month
+                - generic [ref=e88]: 0/100
+              - generic [ref=e91]:
+                - generic [ref=e92]: Storage
+                - generic [ref=e93]: 0 GB / 10 GB
+              - generic [ref=e95]: "API calls: 3"
+        - generic [ref=e96]:
+          - generic [ref=e98]:
+            - generic [ref=e99]:
+              - heading "My Projects" [level=2] [ref=e100]
+              - link "+ New" [ref=e101] [cursor=pointer]:
+                - /url: /projects/new
+            - generic [ref=e102]: No projects yet
+          - generic [ref=e104]:
+            - heading "Alerts & Monitoring" [level=2] [ref=e105]
+            - generic [ref=e106]:
+              - 'link "🔴 Konkurent X: nowy produkt Wykryto ogłoszenie nowego produktu" [ref=e107] [cursor=pointer]':
+                - /url: /alerts/alert_001
+                - generic [ref=e108]: 🔴
+                - generic [ref=e109]:
+                  - paragraph [ref=e110]: "Konkurent X: nowy produkt"
+                  - paragraph [ref=e111]: Wykryto ogłoszenie nowego produktu
+              - 'link "🟡 FADO: zmiana w zarządzie Nowy członek zarządu" [ref=e112] [cursor=pointer]':
+                - /url: /alerts/alert_002
+                - generic [ref=e113]: 🟡
+                - generic [ref=e114]:
+                  - paragraph [ref=e115]: "FADO: zmiana w zarządzie"
+                  - paragraph [ref=e116]: Nowy członek zarządu
+              - link "🟢 Rynek +5% vs prognoza Pozytywny trend rynkowy" [ref=e117] [cursor=pointer]:
+                - /url: /alerts/alert_003
+                - generic [ref=e118]: 🟢
+                - generic [ref=e119]:
+                  - paragraph [ref=e120]: Rynek +5% vs prognoza
+                  - paragraph [ref=e121]: Pozytywny trend rynkowy
+```
