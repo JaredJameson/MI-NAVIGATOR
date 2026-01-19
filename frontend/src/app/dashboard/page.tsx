@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { authApi, searchApi, SearchSuggestion, getStoredToken } from '@/services/api'
 import { DashboardSkeleton } from '@/components/Skeleton'
+import { formatRelativeTime } from '@/utils/date'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -952,14 +953,7 @@ function ProjectsWidget() {
   }, [])
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-
-    if (diffInDays === 0) return 'Today'
-    if (diffInDays === 1) return 'Yesterday'
-    if (diffInDays < 7) return `${diffInDays} days ago`
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    return formatRelativeTime(dateString, 'pl-PL')
   }
 
   return (

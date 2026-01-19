@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
+import { formatRelativeTime } from '@/utils/date'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -182,26 +183,7 @@ export default function NotificationsPage() {
   }
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffMins < 60) {
-      return `${diffMins} min temu`
-    } else if (diffHours < 24) {
-      return `${diffHours} godz. temu`
-    } else if (diffDays < 7) {
-      return `${diffDays} dni temu`
-    } else {
-      return date.toLocaleDateString('pl-PL', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-    }
+    return formatRelativeTime(timestamp, 'pl-PL')
   }
 
   return (

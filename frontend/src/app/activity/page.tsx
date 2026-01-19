@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getStoredToken } from '@/services/api'
-import { formatDateInTimezone } from '@/utils/date'
+import { formatDateInTimezone, formatRelativeTime } from '@/utils/date'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -188,23 +188,7 @@ export default function ActivityPage() {
   }
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffMins < 60) {
-      return `${diffMins} min temu`
-    } else if (diffHours < 24) {
-      return `${diffHours} godz. temu`
-    } else if (diffDays < 7) {
-      return `${diffDays} dni temu`
-    } else {
-      // Use timezone-aware formatting for older dates
-      return formatDateInTimezone(timestamp, userTimezone, 'pl-PL')
-    }
+    return formatRelativeTime(timestamp, 'pl-PL')
   }
 
   const getActivityTypeInfo = (type: string) => {

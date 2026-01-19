@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard, customFieldsApi, CompanyCustomField } from '@/services/api';
+import { formatRelativeTime } from '@/utils/date';
 
 type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people' | 'data-quality';
 
@@ -197,29 +198,7 @@ export default function CompanyProfilePage() {
 
   // Format date
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      if (diffHours === 0) {
-        const diffMinutes = Math.floor(diffMs / (1000 * 60));
-        return `${diffMinutes} min temu`;
-      }
-      return `${diffHours} godz. temu`;
-    } else if (diffDays === 1) {
-      return 'wczoraj';
-    } else if (diffDays < 7) {
-      return `${diffDays} dni temu`;
-    } else {
-      return date.toLocaleDateString('pl-PL', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
-    }
+    return formatRelativeTime(dateString, 'pl-PL');
   };
 
   // Sentiment badge
