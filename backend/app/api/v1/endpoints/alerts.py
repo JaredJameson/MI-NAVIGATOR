@@ -85,9 +85,11 @@ USER_ALERTS: dict = {}
 
 
 def get_user_alerts(user_id: str) -> List[dict]:
-    """Get alerts for a user, initializing with mock data if needed."""
+    """Get alerts for a user."""
+    # TODO: Replace with real database queries per user
+    # For now, return empty list to show proper empty states
     if user_id not in USER_ALERTS:
-        USER_ALERTS[user_id] = generate_mock_alerts()
+        USER_ALERTS[user_id] = []
     return USER_ALERTS[user_id]
 
 

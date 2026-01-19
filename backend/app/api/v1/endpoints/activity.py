@@ -203,7 +203,9 @@ async def list_activities(
     current_user: User = Depends(get_current_user)
 ):
     """List user's activity log with filtering and pagination."""
-    filtered_activities = MOCK_ACTIVITIES.copy()
+    # TODO: Replace with real database queries per user
+    # For now, return empty list to show proper empty states
+    filtered_activities = []
 
     # Filter by activity type
     if type:

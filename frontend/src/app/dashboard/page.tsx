@@ -716,21 +716,68 @@ export default function DashboardPage() {
 
 // Individual Widget Components
 function ActiveResearchWidget() {
+  const [activeResearch, setActiveResearch] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchActiveResearch = async () => {
+      if (typeof window === 'undefined') return
+
+      const token = localStorage.getItem('mi_navigator_token')
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/research/active`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setActiveResearch(data.items || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch active research:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchActiveResearch()
+  }, [])
+
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm h-full">
       <h3 className="mb-4 font-semibold text-gray-900">Active Research</h3>
-      <div className="rounded-lg bg-gray-50 p-4">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
-          <span className="text-sm font-medium">Analiza FADO</span>
+      {isLoading ? (
+        <div className="text-center py-4 text-gray-500">Loading...</div>
+      ) : activeResearch.length > 0 ? (
+        <div className="space-y-3">
+          {activeResearch.slice(0, 2).map((research) => (
+            <div key={research.id} className="rounded-lg bg-gray-50 p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+                <span className="text-sm font-medium">{research.name}</span>
+              </div>
+              <div className="mt-2">
+                <div className="text-sm text-gray-500">Progress: {research.progress}%</div>
+                <div className="mt-1 h-2 rounded-full bg-gray-200">
+                  <div
+                    className="h-full rounded-full bg-blue-500"
+                    style={{ width: `${research.progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="mt-2">
-          <div className="text-sm text-gray-500">Progress: 67%</div>
-          <div className="mt-1 h-2 rounded-full bg-gray-200">
-            <div className="h-full w-2/3 rounded-full bg-blue-500" />
-          </div>
+      ) : (
+        <div className="text-center py-4">
+          <p className="text-sm text-gray-500 mb-4">No active research. Start a new analysis!</p>
         </div>
-      </div>
+      )}
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href="/chat"
