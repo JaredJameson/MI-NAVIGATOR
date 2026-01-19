@@ -908,6 +908,7 @@ class ComprehensiveAnalysisRequest(BaseModel):
     target: str
     analysis_type: str = "comprehensive"
     context: Optional[Dict[str, Any]] = None
+    simulate_failures: Optional[List[str]] = None  # Feature #161: List of agents to simulate failure
 
     class Config:
         json_schema_extra = {
@@ -917,9 +918,21 @@ class ComprehensiveAnalysisRequest(BaseModel):
                 "context": {
                     "industry": "manufacturing",
                     "depth": "standard"
-                }
+                },
+                "simulate_failures": ["financial_analysis"]
             }
         }
+
+
+class AnalysisSummary(BaseModel):
+    """Summary of analysis execution"""
+    total_agents: int
+    successful_agents: int
+    failed_agents: int
+    success_rate: float
+    errors: List[str]
+    failed_agent_list: List[str]
+    successful_agent_list: List[str]
 
 
 class ComprehensiveAnalysisResponse(BaseModel):
@@ -928,6 +941,7 @@ class ComprehensiveAnalysisResponse(BaseModel):
     status: str
     results: Dict[str, Any]
     execution_plan: List[Dict[str, Any]]
+    summary: AnalysisSummary
 
 
 @router.post(
@@ -984,7 +998,8 @@ async def run_comprehensive_analysis(
     result = await orchestrator_service.execute_analysis(
         analysis_type=request.analysis_type,
         target=request.target,
-        context=request.context
+        context=request.context,
+        simulate_failures=request.simulate_failures  # Feature #161
     )
 
     return ComprehensiveAnalysisResponse(**result)

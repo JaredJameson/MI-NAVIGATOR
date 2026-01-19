@@ -1,0 +1,5 @@
+{
+  "target": "TestCompany Failure",
+  "analysis_type": "comprehensive",
+  "simulate_failures": ["financial_analysis"]
+}

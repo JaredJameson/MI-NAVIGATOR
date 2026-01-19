@@ -90,7 +90,8 @@ class OrchestratorService:
         self,
         analysis_type: str,
         target: str,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
+        simulate_failures: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Execute a complete analysis with multiple agents.
@@ -99,6 +100,7 @@ class OrchestratorService:
             analysis_type: Type of analysis (company, market, competitive, etc.)
             target: Target of analysis (company name, industry, etc.)
             context: Additional context (user preferences, filters, etc.)
+            simulate_failures: List of agent types to simulate failure (for testing)
 
         Returns:
             Aggregated results from all agents
@@ -107,6 +109,14 @@ class OrchestratorService:
 
         # Create execution plan based on analysis type
         plan = self._create_execution_plan(analysis_type, target, context)
+
+        # Feature #161: Mark agents for simulated failure
+        if simulate_failures:
+            for phase in plan:
+                for agent_config in phase.agents:
+                    if agent_config["type"] in simulate_failures:
+                        agent_config["simulate_error"] = True
+                        agent_config["error_message"] = f"Simulated failure for testing: {agent_config['type']}"
 
         # Store job info
         self.active_jobs[job_id] = {
@@ -156,11 +166,37 @@ class OrchestratorService:
             self.active_jobs[job_id]["results"] = all_results
             self.active_jobs[job_id]["completed_at"] = datetime.utcnow()
 
+            # Feature #161: Collect all errors from all phases
+            all_errors = []
+            failed_agents = []
+            successful_agents = []
+
+            for phase in plan:
+                if phase.errors:
+                    all_errors.extend(phase.errors)
+                # Count failed/successful agents
+                for agent_config in phase.agents:
+                    agent_type = agent_config["type"]
+                    agent_result = phase.results.get(agent_type, {})
+                    if isinstance(agent_result, dict) and agent_result.get("status") == "error":
+                        failed_agents.append(agent_type)
+                    else:
+                        successful_agents.append(agent_type)
+
             return {
                 "job_id": job_id,
                 "status": "completed",
                 "results": all_results,
-                "execution_plan": [phase.to_dict() for phase in plan]
+                "execution_plan": [phase.to_dict() for phase in plan],
+                "summary": {
+                    "total_agents": len(successful_agents) + len(failed_agents),
+                    "successful_agents": len(successful_agents),
+                    "failed_agents": len(failed_agents),
+                    "success_rate": (len(successful_agents) / (len(successful_agents) + len(failed_agents)) * 100) if (len(successful_agents) + len(failed_agents)) > 0 else 0,
+                    "errors": all_errors,
+                    "failed_agent_list": failed_agents,
+                    "successful_agent_list": successful_agents
+                }
             }
 
         except Exception as e:
@@ -282,6 +318,12 @@ class OrchestratorService:
             Agent execution result
         """
         logger.info(f"Executing agent: {agent_type}")
+
+        # Feature #161: Simulate agent failure for testing
+        if agent_config.get("simulate_error"):
+            error_msg = agent_config.get("error_message", "Simulated agent failure")
+            logger.error(f"Agent {agent_type} simulating failure: {error_msg}")
+            raise Exception(error_msg)
 
         # Simulate agent execution with delay
         # In real implementation, this would call actual agent services

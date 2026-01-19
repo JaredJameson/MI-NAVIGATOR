@@ -3263,3 +3263,4 @@ const handleCopy = async () => {
 - Safari 13.1+ (March 2020)
 - Edge 79+ (January 2020)
 - Opera 53+ (May 2018)
+
