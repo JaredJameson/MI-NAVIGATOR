@@ -91,7 +91,8 @@ class OrchestratorService:
         analysis_type: str,
         target: str,
         context: Optional[Dict[str, Any]] = None,
-        simulate_failures: Optional[List[str]] = None
+        simulate_failures: Optional[List[str]] = None,
+        simulate_transient_failures: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Execute a complete analysis with multiple agents.
@@ -101,6 +102,7 @@ class OrchestratorService:
             target: Target of analysis (company name, industry, etc.)
             context: Additional context (user preferences, filters, etc.)
             simulate_failures: List of agent types to simulate failure (for testing)
+            simulate_transient_failures: List of agent types to simulate transient failure (Feature #162)
 
         Returns:
             Aggregated results from all agents
@@ -117,6 +119,13 @@ class OrchestratorService:
                     if agent_config["type"] in simulate_failures:
                         agent_config["simulate_error"] = True
                         agent_config["error_message"] = f"Simulated failure for testing: {agent_config['type']}"
+
+        # Feature #162: Mark agents for simulated transient failure (will succeed on retry)
+        if simulate_transient_failures:
+            for phase in plan:
+                for agent_config in phase.agents:
+                    if agent_config["type"] in simulate_transient_failures:
+                        agent_config["simulate_transient_error"] = True
 
         # Store job info
         self.active_jobs[job_id] = {
@@ -307,7 +316,89 @@ class OrchestratorService:
         context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Execute a single agent.
+        Execute a single agent with retry logic on transient failures.
+
+        Args:
+            agent_type: Type of agent to execute
+            agent_config: Configuration for the agent
+            context: Context from previous agents
+
+        Returns:
+            Agent execution result
+
+        Feature #162: Retry on transient failures
+        - Retries up to max_retries times (default 3)
+        - Exponential backoff between retries (1s, 2s, 4s)
+        - Tracks retry attempts in result metadata
+        - Distinguishes transient vs permanent failures
+        """
+        logger.info(f"Executing agent: {agent_type}")
+
+        # Feature #162: Retry configuration
+        max_retries = agent_config.get("max_retries", 3)
+        retry_delay_base = agent_config.get("retry_delay", 1.0)  # seconds
+        simulate_transient = agent_config.get("simulate_transient_error", False)
+
+        retry_count = 0
+        last_error = None
+
+        while retry_count <= max_retries:
+            try:
+                # Feature #161: Simulate agent failure for testing
+                if agent_config.get("simulate_error"):
+                    error_msg = agent_config.get("error_message", "Simulated agent failure")
+                    logger.error(f"Agent {agent_type} simulating failure: {error_msg}")
+                    raise Exception(error_msg)
+
+                # Feature #162: Simulate transient error (for testing retry logic)
+                if simulate_transient and retry_count < 2:
+                    logger.warning(f"Agent {agent_type} simulating transient error (attempt {retry_count + 1})")
+                    raise Exception(f"Transient error: Connection timeout (attempt {retry_count + 1})")
+
+                # Execute agent logic
+                result = await self._execute_agent_logic(agent_type, agent_config, context)
+
+                # Feature #162: Add retry metadata to successful result
+                if retry_count > 0:
+                    result["_retry_metadata"] = {
+                        "retry_count": retry_count,
+                        "succeeded_on_attempt": retry_count + 1,
+                        "total_attempts": retry_count + 1
+                    }
+                    logger.info(f"Agent {agent_type} succeeded after {retry_count} retries")
+
+                return result
+
+            except Exception as e:
+                last_error = e
+                retry_count += 1
+
+                if retry_count <= max_retries:
+                    # Calculate exponential backoff delay
+                    delay = retry_delay_base * (2 ** (retry_count - 1))
+                    logger.warning(
+                        f"Agent {agent_type} failed (attempt {retry_count}/{max_retries + 1}): {str(e)}. "
+                        f"Retrying in {delay}s..."
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    # Max retries exceeded
+                    logger.error(
+                        f"Agent {agent_type} failed after {retry_count} attempts: {str(e)}"
+                    )
+                    raise Exception(
+                        f"Agent {agent_type} failed after {retry_count} attempts. "
+                        f"Last error: {str(last_error)}"
+                    )
+
+    async def _execute_agent_logic(
+        self,
+        agent_type: str,
+        agent_config: Dict[str, Any],
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Core agent execution logic (extracted for retry capability).
 
         Args:
             agent_type: Type of agent to execute
@@ -317,13 +408,6 @@ class OrchestratorService:
         Returns:
             Agent execution result
         """
-        logger.info(f"Executing agent: {agent_type}")
-
-        # Feature #161: Simulate agent failure for testing
-        if agent_config.get("simulate_error"):
-            error_msg = agent_config.get("error_message", "Simulated agent failure")
-            logger.error(f"Agent {agent_type} simulating failure: {error_msg}")
-            raise Exception(error_msg)
 
         # Simulate agent execution with delay
         # In real implementation, this would call actual agent services

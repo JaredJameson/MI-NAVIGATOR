@@ -1,0 +1,5 @@
+{
+  "target": "TestCompany Sp. z o.o.",
+  "analysis_type": "company",
+  "simulate_transient_failures": ["financial_analysis"]
+}
