@@ -583,3 +583,156 @@ async def generate_insights(
     )
 
     return InsightGenerationResponse(**result)
+
+
+# ==================== REPORT COMPOSER ENDPOINT ====================
+
+class ReportComposeRequest(BaseModel):
+    """Request to compose a comprehensive report"""
+    company_name: str
+    sections: Dict[str, Any]
+    include_sources: bool = True
+    language: str = "pl"
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "company_name": "ACME Corp Sp. z o.o.",
+                "sections": {
+                    "company_profile": {
+                        "legal_form": "Spółka z ograniczoną odpowiedzialnością",
+                        "founded_year": 2015,
+                        "industry": "Produkcja tworzyw sztucznych",
+                        "nip": "1234567890",
+                        "krs": "0000123456"
+                    },
+                    "financial_analysis": {
+                        "metrics": {
+                            "revenue": 15000000,
+                            "revenue_growth": 22.5,
+                            "profit_margin": 15.2,
+                            "debt_to_equity": 0.8,
+                            "current_ratio": 2.1
+                        }
+                    },
+                    "insights": [
+                        {
+                            "title": "Silny wzrost przychodów",
+                            "description": "Firma notuje 22.5% wzrost przychodów rok do roku",
+                            "type": "opportunity",
+                            "impact": "high",
+                            "data_backed": True
+                        }
+                    ],
+                    "opportunities": [
+                        {
+                            "title": "Ekspansja na rynek CEE",
+                            "description": "Możliwość wejścia na rynki Europy Środkowo-Wschodniej",
+                            "impact": "high",
+                            "timeline": "medium_term"
+                        }
+                    ],
+                    "risks": [
+                        {
+                            "title": "Rosnąca konkurencja",
+                            "description": "Wzrost liczby konkurentów w segmencie",
+                            "severity": "medium",
+                            "likelihood": "high"
+                        }
+                    ],
+                    "recommendations": [
+                        {
+                            "title": "Inwestycja w automatyzację",
+                            "description": "Zwiększenie wydajności poprzez automatyzację linii produkcyjnych",
+                            "priority": "high",
+                            "timeline": "short_term"
+                        }
+                    ]
+                },
+                "include_sources": True,
+                "language": "pl"
+            }
+        }
+
+
+class ReportComposeResponse(BaseModel):
+    """Response with composed report"""
+    title: str
+    subtitle: str
+    generated_at: str
+    company_name: str
+    language: str
+    executive_summary: Dict[str, Any]
+    table_of_contents: List[Dict[str, Any]]
+    sections: List[Dict[str, Any]]
+    sources: List[Dict[str, Any]]
+    metadata: Dict[str, Any]
+
+
+@router.post(
+    "/compose-report",
+    response_model=ReportComposeResponse,
+    summary="Compose comprehensive report",
+    description="""
+    Compose a comprehensive, well-structured report from multiple agent outputs.
+
+    Features:
+    - Aggregates sections from different analysis agents
+    - Generates executive summary
+    - Creates table of contents
+    - Formats source citations
+    - Ensures professional structure
+
+    Test Steps (Feature #158):
+    1. Run comprehensive analysis
+    2. Verify report composer runs
+    3. Verify all sections included
+    4. Verify table of contents generated
+    5. Verify sources cited throughout
+    """
+)
+async def compose_report(
+    request: ReportComposeRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Compose a comprehensive report from multiple agent outputs.
+
+    This endpoint aggregates data from various analysis agents (company profile,
+    financial analysis, market analysis, insights, etc.) and composes a cohesive,
+    well-structured report with:
+    - Executive summary
+    - Table of contents
+    - All provided sections in logical order
+    - Source citations
+    - Professional formatting
+
+    Example usage:
+    ```python
+    response = requests.post("/api/v1/analysis/compose-report", json={
+        "company_name": "ACME Corp",
+        "sections": {
+            "company_profile": {...},
+            "financial_analysis": {...},
+            "insights": [...],
+            "recommendations": [...]
+        },
+        "include_sources": True,
+        "language": "pl"
+    })
+    ```
+    """
+    from app.services.report_composer import ReportComposerService
+
+    # Initialize composer service
+    composer = ReportComposerService()
+
+    # Compose report
+    report = composer.compose_report(
+        company_name=request.company_name,
+        sections=request.sections,
+        include_sources=request.include_sources,
+        language=request.language
+    )
+
+    return ReportComposeResponse(**report)
