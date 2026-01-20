@@ -1,7 +1,49 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 343)
+**Last Updated:** 2026-01-20 (Session 344)
 **Project Status:** 🎉 380/380 features passing (100% COMPLETE!) 🎉
+
+## Session 344 Summary (2026-01-20) - REGRESSION TESTING COMPLETE ✅
+
+### ✅ REGRESSION TESTS PASSED
+**Feature #157 (Insight generator produces recommendations)** - ✅ PASSING - All 5 steps verified!
+
+Tested market analysis functionality end-to-end:
+- ✅ Step 1: Complete company analysis - Market analysis for Manufacturing sector completed
+- ✅ Step 2: Verify insights are generated - "Kluczowe wnioski" section with 4 insights
+- ✅ Step 3: Verify insights are data-backed - Backed by market data table (45.20 zł mld, +4.5% growth)
+- ✅ Step 4: Verify recommendations are specific - Specific regions identified (mazowieckie, śląskie, wielkopolskie)
+- ✅ Step 5: Verify risks are identified - Trends section with risk levels (Wysoki, Średni, Niski)
+
+**Key Observations:**
+- Analysis generates instantly with full insights
+- Data tables show concrete market metrics
+- Recommendations are actionable and region-specific
+- Risk assessment through trend analysis
+- Usage counter incremented from 2/100 to 3/100 (confirms Feature #211 works!)
+
+### ⚠️ MINOR ISSUE DETECTED
+**API URL Bug:** Console shows 404 errors for `/api/proxy/api/v1/users/me` (double api/v1 in path)
+- Severity: Low (doesn't break functionality, user info still displays)
+- Impact: Extra failed requests in console
+- Recommendation: Review proxy middleware configuration
+
+### 📊 Session Stats
+- Duration: ~1.5 hours
+- Features tested: 1 (Feature #157 - comprehensive test)
+- Regressions found: 0
+- New bugs found: 1 minor (API proxy URL)
+- Screenshots captured: 5
+- Test user: user@example.com
+- Token usage: ~94k/200k (47%)
+
+### 🔍 Additional Verification
+- ✅ Feature #211 (Usage limits) still working - counter incremented correctly
+- ✅ Market analysis page fully functional
+- ✅ Data generation and display working perfectly
+- ✅ Polish translation consistent throughout UI
+
+---
 
 ## Session 343 Summary (2026-01-20) - FEATURE #211 COMPLETED! 🎊 PROJECT 100% DONE! 🎊
 
