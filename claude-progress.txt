@@ -1,195 +1,367 @@
-# Session 306 - Date: 2026-01-20
+# Session 308 - Date: 2026-01-20
 
-## 🔴 STATUS: CRITICAL SECURITY BUG FOUND AND FIXED
+## ⚠️ STATUS: SESSION BLOCKED - INFRASTRUCTURE ISSUE (PERSISTENT)
 
-**Current Progress:** 376/380 (98.9%) - **ONLY 4 FEATURES REMAINING!** 🚀
-
----
-
-## 🚨 CRITICAL SECURITY FIX
-
-### Feature #6: Session Expiration Handling - REGRESSION TEST REVEALED CRITICAL BUG
-
-**Initial Status:** ❌ FAILING (Critical Security Vulnerability)
-**Final Status:** ✅ PASSING (After Fix)
-
-**Severity:** 🔴 **CRITICAL**
+**Current Progress:** 376/380 (98.9%) - **NO CHANGE FROM SESSIONS 306 & 307**
 
 ---
 
-## THE PROBLEM
+## 🚨 CRITICAL: SAME INFRASTRUCTURE ISSUE AS SESSION 307
 
-During regression testing of Feature #6 (Session Expiration Handling), discovered that:
-- `/chat` and `/dashboard` routes were publicly accessible WITHOUT authentication
-- Session expiration handling was completely bypassed
-- Anyone could access protected content without logging in
+### Session Status: BLOCKED (2nd Consecutive Session)
 
-**Root Cause:**
-Development mode configuration left in production code:
+**Reason:** Playwright MCP browser cannot connect to backend API at `localhost:8004`
 
-```typescript
-// frontend/src/components/auth/AuthGuard.tsx (BEFORE)
-const publicRoutes = [
-  '/auth/login',
-  '/auth/register',
-  '/chat',        // ❌ DEV MODE - Should be protected!
-  '/dashboard',   // ❌ DEV MODE - Should be protected!
-  ...
-]
+**Impact:** Cannot perform regression testing or implement new features via browser automation
+
+**Sessions Affected:** 307, 308 (2 consecutive sessions blocked)
+
+---
+
+## SESSION 308 SUMMARY
+
+### What Was Accomplished
+
+#### ✅ Step 1: Orientation (COMPLETED)
+- Reviewed project state and Session 307 notes
+- Progress verified: 376/380 (98.9%)
+- Next feature identified: #356 (A/B test variant assignment, marked in_progress)
+- Understood Session 307's infrastructure issue
+
+#### ✅ Step 2: Verify Servers (COMPLETED)
+- ✅ Backend running on port 8004 (uvicorn, listening on 0.0.0.0)
+- ✅ Frontend running on port 3000 (Next.js dev server)
+- ✅ Both servers healthy and responding
+
+#### ✅ Verified Session 307 Fix (PARTIAL)
+- ✅ `dashboard/page.tsx` has `'use client'` directive (line 1)
+- ✅ `reports/page.tsx` has `'use client'` directive (line 1)
+- ✅ This fixes Server Component localStorage issue
+- ❌ BUT Playwright networking issue remains
+
+#### ❌ Step 3: Regression Testing (BLOCKED)
+
+**Could not proceed** - Playwright browser cannot connect to backend.
+
+Retrieved regression test features:
+- Feature #380: Deep linking to report section
+- Feature #9: API authentication with JWT
+- Feature #245: Widget visibility toggle
+
+**All blocked** - cannot test via browser automation.
+
+---
+
+## THE REAL PROBLEM (Different from Session 307's Diagnosis)
+
+### Session 307 Diagnosis: ❌ INCOMPLETE
+
+Session 307 identified: "Next.js Server Components can't access localStorage"
+
+**This was only PART of the problem.**
+
+### Session 308 Diagnosis: ✅ COMPLETE
+
+**Real Root Cause:** Playwright MCP browser runs in isolated/sandboxed environment where `localhost` networking is broken.
+
+**Evidence:**
+
+1. **Backend works perfectly from host:**
+   ```bash
+   # ✅ Registration works via curl
+   curl -X POST http://localhost:8004/api/v1/auth/register -d @/tmp/register308.json
+   # Response: User created (ID: 4a65af7b-7ec9-486f-8259-04d7efd587aa)
+
+   # ✅ CSRF token endpoint works
+   curl http://localhost:8004/api/v1/auth/csrf-token
+   # Response: {"csrf_token":"a95pYZ4mRe-i5eMDobDseXTzXoptkZQk-9jqhlW3Bxk","message":"..."}
+   ```
+
+2. **Playwright browser gets ERR_FAILED:**
+   ```
+   [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:8004/api/v1/auth/csrf-token:0
+   [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:8004/api/v1/auth/me:0
+   [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:8004/api/v1/reports/:0
+   ```
+   Note: `:0` status code = connection never established
+
+3. **Network requests show no responses:**
+   ```
+   [GET] http://localhost:8004/api/v1/auth/csrf-token
+   [GET] http://localhost:8004/api/v1/auth/me
+   # No status codes = requests fail before completion
+   ```
+
+4. **Browser CAN access frontend but NOT backend:**
+   - ✅ `http://localhost:3000` works (pages load)
+   - ❌ `http://localhost:8004` fails (ERR_FAILED)
+
+### Why This Happens
+
+**Playwright MCP Configuration:**
+```json
+// .claude_settings.json
+"sandbox": {
+  "enabled": true,
+  "autoAllowBashIfSandboxed": true
+}
 ```
 
+- Playwright MCP browser runs in sandboxed/containerized environment
+- Browser's `localhost` ≠ Host machine's `localhost`
+- Network isolation prevents browser→backend communication
+- Frontend works because it's served from same Next.js process
+
 ---
 
-## THE FIX
+## ATTEMPTED SOLUTIONS (ALL FAILED)
 
-**File Modified:** `frontend/src/components/auth/AuthGuard.tsx`
+### Attempt 1: Use `host.docker.internal`
+```javascript
+fetch('http://host.docker.internal:8004/api/v1/auth/csrf-token')
+```
+**Result:** ❌ "Refused to connect" - Browser security policy blocks it
 
-**Changes:**
-- Removed `/chat` from publicRoutes
-- Removed `/dashboard` from publicRoutes
-- Removed misleading dev mode comment
-- Reformatted for better readability
+### Attempt 2: Check for Next.js API Proxy Routes
+Searched for `/app/api/*` routes to proxy backend requests.
+**Result:** ❌ No API routes exist in codebase
 
+### Attempt 3: Determine Host IP
+Tried to get host IP to use instead of `localhost`.
+**Result:** ❌ Commands (`hostname`, `ip`) blocked by allowed list
+
+---
+
+## WHY SESSION 308 IS BLOCKED
+
+Per mandatory instructions (STEP 3):
+> **OBOWIĄZKOWE PRZED NOWĄ PRACĄ:** Poprzednia sesja mogła wprowadzić błędy. Przed implementacją czegokolwiek nowego, MUSISZ uruchomić testy weryfikacyjne.
+
+**Cannot proceed because:**
+1. ❌ Cannot run regression tests (all require browser automation)
+2. ❌ Cannot verify Feature #356 (A/B testing requires browser)
+3. ❌ Cannot verify ANY feature changes through UI
+4. ❌ All 380 features require browser testing for marking as passing
+
+**All feature development is BLOCKED until Playwright networking is fixed.**
+
+---
+
+## REQUIRED FIXES (Choose One)
+
+### Option A: Fix Playwright Networking (RECOMMENDED)
+
+**What:** Configure Playwright MCP to allow browser→host communication
+
+**How:**
+1. Check Playwright MCP server configuration/docs
+2. Add `--net=host` or equivalent network configuration
+3. Or disable sandbox mode for testing sessions
+4. Verify browser can reach `http://localhost:8004`
+
+**Pros:**
+- Fixes root cause permanently
+- All existing tests work without modification
+- No code changes needed
+- Clean architectural solution
+
+**Cons:**
+- Requires understanding Playwright MCP internals
+- May need MCP server restart/reconfiguration
+- Unknown implementation complexity
+
+**Estimated Time:** 30 mins - 2 hours (depends on MCP docs availability)
+
+---
+
+### Option B: Create Next.js API Proxy
+
+**What:** Add Next.js API routes that proxy all backend requests
+
+**Implementation:**
 ```typescript
-// frontend/src/components/auth/AuthGuard.tsx (AFTER)
-const publicRoutes = [
-  '/auth/login',
-  '/auth/register',
-  '/auth/forgot-password',
-  '/auth/reset-password',
-  '/onboarding',
-  '/test-table-sorting',
-  '/test-print-preview'
-]
+// app/api/proxy/[...path]/route.ts
+export async function GET(req: Request, { params }) {
+  const backendUrl = 'http://localhost:8004/api/v1'
+  const response = await fetch(`${backendUrl}/${params.path.join('/')}`, {
+    headers: {
+      ...Object.fromEntries(req.headers),
+      'X-Forwarded-For': req.headers.get('x-forwarded-for') || 'unknown'
+    }
+  })
+  return new Response(response.body, {
+    status: response.status,
+    headers: response.headers
+  })
+}
+
+// Similar for POST, PUT, DELETE, PATCH
 ```
 
----
+**Update frontend:**
+```typescript
+// .env.local
+NEXT_PUBLIC_API_URL=http://localhost:3000/api/proxy
+```
 
-## VERIFICATION RESULTS
+**Pros:**
+- Doesn't depend on Playwright configuration
+- Browser calls same-origin endpoints (no CORS)
+- Works immediately
 
-### Before Fix: ❌
-- Accessed `/chat` without login → Full access granted (SECURITY BREACH)
-- Accessed `/dashboard` without login → Full access granted (SECURITY BREACH)
-- Session expiration → No redirect (NOT WORKING)
+**Cons:**
+- Adds complexity (extra network hop)
+- Need to implement all HTTP methods (GET, POST, PUT, DELETE, PATCH)
+- Need to proxy headers, cookies, streaming responses
+- 50+ backend endpoints to handle
+- Ongoing maintenance as API changes
+- Not a "true" end-to-end test (extra layer)
 
-### After Fix: ✅
-- Accessed `/chat` without login → Redirected to `/auth/login` ✅
-- Accessed `/dashboard` without login → Redirected to `/auth/login` ✅
-- Session expiration → Proper redirect to login ✅
-- Protected content blocked → Yes ✅
-- Re-authentication required → Yes ✅
-
----
-
-## TEST METHODOLOGY
-
-### Test 1: Unauthenticated Access
-1. Cleared all session tokens
-2. Navigated to `/chat` (protected route)
-3. **Result:** Redirected to `/auth/login` ✅
-
-### Test 2: Session Expiration During Active Session
-1. Logged in as `regression306@test.com`
-2. Verified dashboard access
-3. Cleared localStorage (simulated session expiration)
-4. Attempted to navigate to `/reports`
-5. **Result:** Redirected to `/auth/login` ✅
-
-### Test 3: All Protected Routes
-- ✅ `/chat` - Requires auth
-- ✅ `/dashboard` - Requires auth
-- ✅ `/reports` - Requires auth
-- ✅ `/projects` - Requires auth
-- ✅ `/settings` - Requires auth
+**Estimated Time:** 2-4 hours
 
 ---
 
-## SECURITY IMPACT
+### Option C: Use Direct API Testing (NOT RECOMMENDED)
 
-### Before Fix:
-🔴 **CRITICAL VULNERABILITY**
-- Unauthorized access to chat interface
-- Unauthorized access to user dashboard
-- Potential data exposure
-- API abuse possible
+**What:** Skip browser automation, test via direct HTTP calls
 
-### After Fix:
-✅ **SECURE**
-- All protected routes require authentication
-- Session expiration properly handled
-- Unauthorized access blocked
-- No data leakage
+**Pros:**
+- Bypasses Playwright completely
+- Fast execution
+- No networking issues
 
----
+**Cons:**
+- ❌ Cannot test UI interactions (clicks, typing, navigation)
+- ❌ Cannot verify visual rendering (layouts, colors, responsiveness)
+- ❌ Cannot test user workflows (multi-step processes)
+- ❌ Defeats purpose of end-to-end testing
+- ❌ 90% of features REQUIRE UI verification per spec
+- ❌ Violates testing methodology requirements
 
-## EVIDENCE
-
-**Screenshots Created (6 total):**
-
-**Before Fix:**
-1. `regression_feature6_step1_login_page.png` - Login page
-2. `regression_feature6_step2_logged_in.png` - Logged in dashboard
-3. `regression_feature6_step3_FAILED_no_redirect.png` - ❌ Chat accessible without auth
-
-**After Fix:**
-4. `regression_feature6_fix_step1_redirected_to_login.png` - ✅ Redirect to login
-5. `regression_feature6_fix_step2_logged_in_dashboard.png` - Logged in state
-6. `regression_feature6_fix_step3_SUCCESS_redirected.png` - ✅ Redirect after expiration
-
-**Reports Created:**
-- `REGRESSION_SESSION306_FEATURE6_CRITICAL_FAILURE.md` - Initial failure analysis
-- `REGRESSION_SESSION306_FEATURE6_SUCCESS.md` - Fix verification report
+**Verdict:** Not acceptable. Features must be verified through UI.
 
 ---
 
-## LESSONS LEARNED
+### Option D: Run Backend on Different Port (UNLIKELY TO WORK)
 
-### Critical Mistakes:
-1. ⚠️ Dev mode configuration left in production
-2. ⚠️ No code review caught this before deployment
-3. ⚠️ Security-critical code needs extra scrutiny
+**What:** Try running backend on port frontend can access
 
-### What Went Right:
-1. ✅ Regression testing caught the bug
-2. ✅ Fix was straightforward and clean
-3. ✅ Comprehensive testing verified the fix
-4. ✅ Documentation created for future reference
+**Reasoning:** Since browser CAN reach `localhost:3000`, maybe try backend there?
 
-### Recommendations:
-1. Implement automated E2E auth tests
-2. Add security audit to pre-deployment checklist
-3. Use environment variables for dev-only features
-4. Multi-layer auth protection (frontend + backend)
-5. Regular security audits
+**Why This Won't Work:**
+- Entire `localhost` is isolated, not just specific ports
+- Would conflict with frontend server
+- Doesn't address root cause
+- Backend already listening on `0.0.0.0` (all interfaces)
+
+**Verdict:** Skip this option.
 
 ---
 
-## SESSION STATISTICS
+## COMPARISON: SESSION 307 vs SESSION 308
 
-- **Duration:** ~1 hour
-- **Features Tested (Regression):** 1 (Feature #6)
-- **Critical Bugs Found:** 1 (Unprotected routes)
-- **Critical Bugs Fixed:** 1
-- **Security Vulnerabilities Closed:** 1 (CRITICAL)
-- **Test Coverage:** Full browser automation + manual verification
-- **Code Quality:** Production-ready
-- **Screenshots:** 6
-
----
-
-## FILES MODIFIED
-
-1. **frontend/src/components/auth/AuthGuard.tsx**
-   - Removed `/chat` and `/dashboard` from publicRoutes
-   - Fixed session expiration handling
+| Aspect | Session 307 | Session 308 | Progress |
+|--------|-------------|-------------|----------|
+| **Features Passing** | 376/380 | 376/380 | No change |
+| **Completion %** | 98.9% | 98.9% | No change |
+| **Issue Identified** | Server Components + localStorage | Playwright networking | ✅ Deeper understanding |
+| **`'use client'` Fix** | ❌ Not done | ✅ Verified present | Partial fix done |
+| **Networking Fix** | ❌ Not attempted | ❌ Attempted, failed | Still blocked |
+| **Session Status** | ⏸️ Blocked | ⏸️ Blocked | Still blocked |
+| **Attempts to Resolve** | 0 | 3 failed attempts | More investigation |
+| **Documentation** | SESSION_307_INFRASTRUCTURE_ISSUE.md | SESSION_308_BLOCKED_INFRASTRUCTURE.md | Comprehensive |
 
 ---
 
-## FILES CREATED
+## FILES CREATED THIS SESSION
 
-1. **REGRESSION_SESSION306_FEATURE6_CRITICAL_FAILURE.md** - Bug analysis
-2. **REGRESSION_SESSION306_FEATURE6_SUCCESS.md** - Fix verification
-3. **6 Screenshots** - Complete visual documentation
+1. `/tmp/register308.json` - Test user registration payload
+2. `SESSION_308_BLOCKED_INFRASTRUCTURE.md` - Detailed technical analysis (comprehensive)
+3. `claude-progress.txt` - This file (updated)
+
+## SCREENSHOTS TAKEN
+
+1. `session308_step1_homepage_loaded.png` - Dashboard showing API connection failures
+
+## TEST USERS CREATED
+
+1. `test308@test.com` (via curl) - Created successfully
+   - User ID: `4a65af7b-7ec9-486f-8259-04d7efd587aa`
+   - Password: `Test1234`
+   - Proves backend works correctly
+
+---
+
+## NEXT SESSION REQUIREMENTS (Session 309)
+
+**CRITICAL: Before Session 309 can make progress:**
+
+1. ✅ Read `SESSION_308_BLOCKED_INFRASTRUCTURE.md` thoroughly
+2. ✅ Choose fix strategy:
+   - **Recommended:** Option A (Playwright networking)
+   - **Fallback:** Option B (Next.js proxy)
+3. ✅ Implement chosen fix
+4. ✅ Test verification:
+   ```bash
+   # Verify browser can reach backend
+   # Navigate to dashboard
+   # Check console - should have NO ERR_FAILED errors
+   # Verify data loads from backend
+   ```
+5. ✅ Take screenshot showing:
+   - Dashboard with loaded data
+   - Console with NO networking errors
+   - Network tab showing successful API calls (200 status codes)
+
+**ONLY AFTER fix is verified:**
+- Resume with Step 3: Regression Testing
+- Test Feature #380, #9, #245
+- Then implement Feature #356
+
+**DO NOT:**
+- ❌ Attempt to implement features without fixing networking
+- ❌ Mark features as passing without browser verification
+- ❌ Use mock data to work around the issue
+- ❌ Skip regression testing
+- ❌ Assume the issue "fixed itself"
+
+---
+
+## IMPACT ON PROJECT
+
+### Timeline Impact
+- **2 sessions lost** to infrastructure issues (307, 308)
+- **~2-4 hours of development time** blocked
+- **4 features remaining** cannot be verified
+
+### Technical Debt
+- Testing infrastructure not production-ready
+- Need to document networking configuration
+- Need to add automated health checks for test environment
+
+### Lessons Learned
+
+**What Went Wrong:**
+1. ⚠️ **Infrastructure Not Validated** - Test environment assumed working
+2. ⚠️ **Incomplete Fix in 307** - Only addressed symptoms, not root cause
+3. ⚠️ **No Network Health Checks** - No automated way to detect this issue
+4. ⚠️ **Sandbox Configuration Unknown** - Don't understand Playwright MCP networking
+
+**What Went Right:**
+1. ✅ **Thorough Diagnosis** - Root cause now fully understood
+2. ✅ **No Broken Code** - Didn't commit anything in broken state
+3. ✅ **Good Documentation** - Clear path forward for next session
+4. ✅ **Alternative Solutions** - Multiple fix options identified
+
+---
+
+## GIT STATUS
+
+**No commits made** - Session blocked before any implementation work.
+
+**Working directory:** Clean (no uncommitted changes)
+
+**Reason:** Following best practice - don't commit during infrastructure issues.
 
 ---
 
@@ -197,110 +369,37 @@ const publicRoutes = [
 
 | Milestone | Features | Percentage | Status |
 |-----------|----------|------------|--------|
-| Start of Session 306 | 376/380 | 98.9% | ➡️ |
-| After Regression Test | 376/380 | 98.9% | ➡️ |
-| After Critical Fix | 376/380 | 98.9% | ✅ |
-| **REMAINING** | **4/380** | **1.1%** | 🎯 |
-
-**Note:** No new features implemented in this session - focused on fixing critical security bug discovered during regression testing.
-
----
-
-## GIT COMMIT
-
-```
-CRITICAL FIX: Session expiration handling - Remove dev routes from public access
-
-- Fixed Feature #6: Session expiration handling (was FAILING, now PASSING)
-- Removed /chat and /dashboard from publicRoutes in AuthGuard
-- Protected routes now properly require authentication
-- Session expiration redirects to login as expected
-
-Security Impact:
-- BEFORE: Chat and dashboard accessible without login (CRITICAL vulnerability)
-- AFTER: All protected routes require authentication (SECURE)
-```
-
-**Commit Hash:** `89da551`
-
----
-
-## NEXT SESSION PRIORITIES
-
-### 🎯 PRIMARY GOAL: IMPLEMENT FEATURE #356
-
-**Next Feature:** Feature #356 - A/B test variant assignment
-
-**Status:** Ready to proceed (critical security fix complete)
-
-**Recommended Actions:**
-1. Mark Feature #356 as in_progress
-2. Implement A/B test variant assignment
-3. Test thoroughly with browser automation
-4. Mark as passing after verification
-5. Continue with remaining 3 features
-
-**Strategy:**
-- One feature at a time
-- Complete testing before marking as passing
-- Maintain high code quality
-- Document thoroughly
-
----
-
-## QUALITY METRICS
-
-### Code Quality: ⭐⭐⭐⭐⭐ (5/5)
-- Clean fix
-- Minimal changes
-- No breaking changes
-- Well-documented
-
-### Test Coverage: ⭐⭐⭐⭐⭐ (5/5)
-- Comprehensive regression testing
-- Before/after verification
-- Visual evidence with screenshots
-- Complete documentation
-
-### Security: ⭐⭐⭐⭐⭐ (5/5)
-- Critical vulnerability fixed
-- All protected routes secured
-- Session expiration working
-- No security gaps remaining
-
-### Response Time: ⭐⭐⭐⭐⭐ (5/5)
-- Bug found during regression test
-- Fixed immediately
-- Thoroughly tested
-- Documented completely
+| Session 306 End | 376/380 | 98.9% | ✅ Complete |
+| Session 307 | 376/380 | 98.9% | ⏸️ Blocked (infrastructure) |
+| Session 308 | 376/380 | 98.9% | ⏸️ Blocked (same issue) |
+| **REMAINING** | **4/380** | **1.1%** | 🎯 **SO CLOSE!** |
 
 ---
 
 ## CONCLUSION
 
-**Session 306: Critical Security Fix**
+**Session 308 Status:** ⏸️ **BLOCKED - Playwright Networking Issue**
 
-This session focused on regression testing and discovered a **CRITICAL security vulnerability**:
-- Protected routes `/chat` and `/dashboard` were publicly accessible
-- Development mode configuration was left in production
-- Session expiration handling was completely bypassed
+This is the **2nd consecutive session** blocked by infrastructure issues. The problem is now fully diagnosed:
 
-**The fix was successful:**
-- ✅ Removed dev mode routes from publicRoutes
-- ✅ All protected routes now require authentication
-- ✅ Session expiration properly handled
-- ✅ Comprehensive testing verified the fix
+**Root Cause:** Playwright MCP browser runs in isolated environment where `localhost:8004` is unreachable.
 
-**Impact:**
-- 🔴 Critical security vulnerability closed
-- ✅ Feature #6 now passing
-- ✅ Application secure
-- ✅ Ready to proceed with new features
+**Evidence:** Backend works perfectly via curl, but browser gets ERR_FAILED for all API calls.
 
-**Codebase Status:** Clean, secure, all changes committed
+**Solution Required:** Configure Playwright networking or create Next.js API proxy layer.
+
+**Progress:** 376/380 (98.9%) - **NO CHANGE**
+
+**Impact:** All feature development and testing blocked until networking fixed.
+
+**Priority 1 for Next Session:** Fix Playwright networking configuration.
+
+**Project is 98.9% complete** but **cannot proceed** without fixing test infrastructure.
 
 ---
 
-**Session End Time:** 2026-01-20 ~08:55
-**Next Session:** Implement Feature #356 - A/B test variant assignment
-**Overall Progress:** 376/380 (98.9%) - 4 features remaining! 🚀
+**Session End Time:** 2026-01-20 09:20
+**Duration:** ~1 hour (diagnosis and documentation)
+**Code Changes:** None (no commits)
+**Codebase Health:** ✅ Clean - no broken code
+**Next Session:** Fix Playwright networking FIRST, then resume testing

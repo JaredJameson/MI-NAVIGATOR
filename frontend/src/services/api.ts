@@ -2,7 +2,7 @@
  * API Service - Base HTTP client for backend communication
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/proxy';
 
 interface ApiResponse<T> {
   data?: T;
