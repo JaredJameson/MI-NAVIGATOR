@@ -1,399 +1,100 @@
-# Session 317 - Date: 2026-01-20
+# Session 319 - Date: 2026-01-20
 
-## ✅ STATUS: INFRASTRUCTURE FIXES + REGRESSION TESTING COMPLETE
+## STATUS: BUG FOUND & FIXED - Feature #211 Incomplete
 
-**Current Progress:** 377/380 (99.2%) - STABLE
+**Current Progress:** 377/380 (99.2%) - 1 feature in progress
 
-**Session Type:** Infrastructure setup + Regression testing + Feature analysis
+**Session Type:** Feature testing + bug fix session
 
 ---
 
-## SESSION 317 SUMMARY
+## SESSION 319 SUMMARY
 
-### What Was Accomplished
+### ✅ Regression Tests PASSED (2/2)
 
-#### ✅ Step 1: Infrastructure Setup (COMPLETED)
+**Test #1: Feature #192 - Empty State Illustrations**
+- ✅ All empty states have appropriate illustrations
+- ✅ Messages clear and helpful
+- ✅ Call-to-action visible
+- Tested: Dashboard, Projects, Compare pages
 
-**Docker Port Conflicts Fixed:**
-- ❌ Previous: PostgreSQL on port 5432 (conflict with ocr-postgres)
-- ❌ Previous: Redis on port 6379 (conflict with ocr-redis)
-- ✅ Fixed: PostgreSQL on port 5434 (available)
-- ✅ Fixed: Redis on port 6385 (available)
-- ✅ Updated: docker-compose.yml with non-conflicting ports
+**Test #2: Feature #61 - Competitor Mapping Identification**
+- ✅ Automatic competitor identification working
+- ✅ 4 competitors identified successfully
+- ✅ PKD-based search verified
+- ✅ Full categorization and benchmarking data displayed
 
-**Services Status:**
-- ✅ Backend: http://localhost:8004 (running, health check passing)
-- ✅ Frontend: http://localhost:3000 (running, Next.js dev server)
-- ✅ PostgreSQL: localhost:5434 (Docker, healthy)
-- ✅ Redis: localhost:6385 (Docker, healthy)
-- ✅ Qdrant: localhost:6333/6334 (Docker, vector search)
+**Zero regressions found** - application stable!
 
-#### ✅ Step 2: Regression Testing (COMPLETED)
+---
 
-**Feature #164: Desktop layout at 1920px width - ✅ PASSING**
+### ❌ Main Feature #211 - Usage Limit Enforcement: FAILED (Bug Found)
 
-Test Results:
-| Step | Requirement | Status |
-|------|-------------|--------|
-| 1 | Set viewport 1920px | ✅ PASS |
-| 2 | Navigate to dashboard | ✅ PASS |
-| 3 | Take screenshot | ✅ PASS |
-| 4 | Sidebar visible | ✅ PASS |
-| 5 | Main content properly sized | ✅ PASS |
-| 6 | No horizontal scrolling | ✅ PASS |
-
-Verification:
-- Screenshot: `session317_feature164_desktop_1920px.png`
-- Layout renders correctly at 1920x1080
-- All navigation elements visible
-- No layout breaking
-- Zero console errors (except favicon.ico 404 - harmless)
-
-**BONUS:** Confirmed Feature #142 fix still working (long project titles truncate properly)
-
-**Feature #155: Import/Export data integrity - ⚠️ CANNOT TEST**
-
-Investigation Results:
-- ✅ Backend API endpoints exist:
-  - `/api/v1/reports/bulk-import` (import reports)
-  - `/api/v1/reports/bulk-import-preview` (preview)
-  - `/api/v1/users/me/export-data` (GDPR export)
-- ❌ Frontend UI incomplete:
-  - No Import button in Reports page
-  - No Import modal/dialog
-  - Export button exists only in Privacy Settings
-- ⚠️ Feature marked as "passing" but UI not accessible
-- ℹ️ Likely tested via API directly, not through UI
-
-**Conclusion:** Feature #155 requires UI implementation to test properly. Backend exists, frontend incomplete.
-
-#### ✅ Step 3: Feature #372 Analysis (COMPLETED - SKIP CONFIRMED)
-
-**Feature #372: Service worker caching - ❌ SKIPPED (Architecture Blocker)**
-
-**Investigation:**
-```javascript
-// Service Worker Status
-{
-  registered: true,
-  scope: "http://localhost:3000/",
-  state: "activated",
-  updateViaCache: "imports"
-}
-
-// Cache Strategy Analysis (sw.js)
-Line 75-94: "/" → NetworkFirst (caches start URL)
-Line 95-98: "/.*/i" → NetworkOnly (NO CACHING!)
-```
+**Critical Bug Discovered:**
+WebSocket endpoint (`/api/v1/chat/ws/`) was missing `check_usage_limit()` call!
 
 **Root Cause:**
-- Next.js App Router uses React Server Components (RSC)
-- Client navigation doesn't trigger HTTP requests
-- Service Worker cannot intercept RSC navigation
-- `next-pwa` library incompatible with App Router
-- Runtime caching never populates
-
-**What Works:**
-- ✅ Service Worker registration
-- ✅ Service Worker activation
-- ✅ Root URL "/" accessible offline
-- ✅ Static assets precached (90+ files)
-
-**What Doesn't Work:**
-- ❌ Page navigation offline (e.g., /dashboard, /reports)
-- ❌ Runtime cache population
-- ❌ Custom offline page serving
-- ❌ API response caching
-
-**Prior Analysis:**
-- Session 291: Development mode testing
-- Session 292: Production build testing
-- Documentation: `feature372_skip_reason.txt`
-
-**Resolution Options:**
-1. Custom Service Worker (4-8h implementation)
-2. Migrate PWA library (2-4h migration)
-3. Wait for next-pwa App Router support
-
-**Decision:** SKIP (architectural limitation, not code quality issue)
-**Action:** Feature #372 moved to priority 2605 (end of queue)
-
-#### ✅ Step 4: Feature #210 Analysis (COMPLETED - SKIP CONFIRMED)
-
-**Feature #210: Role-based feature access - ❌ SKIPPED (Spec Blocker)**
-
-**Analysis:**
-- Requires subscription plan system
-- Missing specification for:
-  - Which features should be premium-only
-  - Plan limits per tier
-  - Trial period handling
-  - Payment provider integration
-- Billing UI exists (mockup) but no enforcement
-
-**Prior Analysis:** Session 293
-**Documentation:** `feature210_skip_reason.txt`
-**Decision:** SKIP (requires product owner specification)
-**Action:** Feature #210 moved to priority 2606
-
-#### ✅ Step 5: Feature #211 Analysis (COMPLETED - SKIP CONFIRMED)
-
-**Feature #211: Usage limit enforcement - ❌ SKIPPED (Implementation Blocker)**
-
-**Analysis:**
-- Dashboard shows usage: "0/100 analyses this month"
-- Limits defined (100 user / 1000 admin)
-- Rate limiting exists (10k requests/month)
-- **Missing:** Enforcement logic before actions
-- **Missing:** 403 responses when limit exceeded
-- **Missing:** User-friendly limit messages
-
-**What's Needed:**
-1. `check_usage_limit()` function
-2. `@enforce_usage_limit` decorator
-3. Enforcement in chat/research/analysis endpoints
-4. Frontend 403 error handling
-5. Upgrade modal/warnings
-
-**Estimated Work:** 4-6 hours full implementation
-
-**Prior Analysis:** Session 255
-**Documentation:** `feature211_skip_reason.txt`
-**Decision:** SKIP (requires full feature implementation)
-**Action:** Feature #211 moved to priority 2607
-
----
-
-## FILES MODIFIED THIS SESSION
-
-**Infrastructure:**
-1. docker-compose.yml
-   - Line 12: PostgreSQL port 5432 → 5434
-   - Line 25: Redis port 6379 → 6385
-
-**New Files:**
-1. `.playwright-mcp/session317_feature164_desktop_1920px.png` (regression test screenshot)
-2. `.playwright-mcp/session317_reports_page.png` (import/export investigation)
-3. `check_users_auth_debug.py` (debugging script)
-4. `create_long_title_report_session315.py` (test data script)
-
----
-
-## GIT COMMITS THIS SESSION
-
-**Commit:** `82f9cac` - Session 317: Infrastructure fixes + Regression testing
-- Fixed Docker port conflicts
-- Regression testing: Feature #164 passing
-- Feature #372, #210, #211 analysis + skip confirmation
-- All 3 remaining features are blockers (architecture/spec/implementation)
-- Project at 99.2% completion (377/380)
-
----
-
-## KEY INSIGHTS
-
-### ✅ Infrastructure Resilience
-
-**Finding:** Docker port conflicts are common in multi-project environments
-
-**Solution:**
-- Use non-standard ports for project-specific services
-- PostgreSQL: 5434 (not 5432)
-- Redis: 6385 (not 6379)
-- Document port mappings in docker-compose.yml
-
-**Benefit:** Projects can coexist without port conflicts
-
-### ✅ Regression Testing Value
-
-**Finding:** Feature #164 fully functional, confirms project stability
-
-**Evidence:**
-- Desktop layout renders correctly at 1920px
-- Feature #142 fix from Session 316 still working (text truncation)
-- Zero regressions found in core functionality
-- Application stable at 377/380 features
-
-### ⚠️ Backend vs Frontend Gap
-
-**Finding:** Feature #155 shows backend-frontend disconnect
-
-**Analysis:**
-- Backend API: `/bulk-import`, `/bulk-import-preview` exist
-- Frontend UI: No import button, no import modal
-- Feature marked "passing" despite incomplete UI
-- Likely tested programmatically, not via user interface
-
-**Impact:** Feature exists but not user-accessible
-
-### 🚫 Architecture Blockers Are Real
-
-**Feature #372 (Service Worker):**
-- Technical limitation: Next.js App Router + next-pwa incompatibility
-- Not a code quality issue, but library/framework limitation
-- Requires major refactor or library migration
-
-**Feature #210 (Role-based Access):**
-- Missing specification: Which features should be restricted?
-- Cannot implement without product decisions
-- Requires 4-8h work + clear requirements
-
-**Feature #211 (Usage Limits):**
-- Display exists, enforcement doesn't
-- Requires full system: decorators, checks, error handling
-- 4-6h implementation for complete feature
-
-**Conclusion:** All 3 remaining features are legitimate blockers, not implementation gaps
-
----
-
-## PROJECT HEALTH STATUS
-
-### ✅ Current State (377/380 - 99.2%)
-
-**Working Features:**
-- ✅ All core functionality operational
-- ✅ Authentication & authorization
-- ✅ Project management
-- ✅ Report generation
-- ✅ Dashboard & analytics
-- ✅ Settings & preferences
-- ✅ Desktop layouts (1920px verified)
-- ✅ Text truncation (Session 316 fix verified)
-
-**Skipped Features (3 total):**
-- #372: Service worker caching (architecture blocker - next-pwa limitation)
-- #210: Role-based feature access (spec blocker - needs product decisions)
-- #211: Usage limit enforcement (implementation blocker - 4-6h work)
-
-**Feature Status Breakdown:**
-- ✅ **377 passing** (99.2%)
-- ⏭️ **3 skipped** (all are blockers)
-- 🎯 **380 total**
-
----
-
-## REGRESSION TEST RESULTS
-
-**Session 317 Regression Tests:**
-
-| Feature | Test Result | Notes |
-|---------|------------|-------|
-| #164 - Desktop layout 1920px | ✅ PASSING | All 6 steps verified, screenshot confirmed |
-| #155 - Import/Export integrity | ⚠️ CANNOT TEST | Backend exists, frontend UI incomplete |
-
-**Test Summary:**
-- ✅ 1 feature fully tested and passing
-- ⚠️ 1 feature cannot test (UI incomplete)
-- ✅ Zero regressions found
-- ✅ Session 316 fix (Feature #142) still working
-
----
-
-## SESSION METRICS
-
-**Session Duration:** ~2 hours
-**Features Analyzed:** 4 (164, 155, 372, 210, 211)
-**Features Tested:** 1 (Feature #164 - passing)
-**Features Skipped:** 3 (372, 210, 211 - all confirmed blockers)
-**Git Commits:** 1 (infrastructure + regression testing)
-**Screenshots Taken:** 2
-**Docker Services Fixed:** 2 (PostgreSQL, Redis port conflicts)
-**Token Usage:** ~103k/200k (51.5% used)
-
----
-
-## LESSONS LEARNED
-
-### What Went Well ✅
-1. **Quick infrastructure diagnosis** - Identified port conflicts immediately
-2. **Efficient port reassignment** - No downstream issues
-3. **Thorough regression testing** - Feature #164 verified with screenshots
-4. **Blocker confirmation** - Validated all 3 remaining features are legitimate blockers
-5. **Prior session documentation** - Skip reasons already documented in detail
-
-### Key Insights 💡
-1. **99.2% is effectively complete** - Remaining features are all blocked by external factors
-2. **Infrastructure matters** - Port conflicts are common in multi-project dev environments
-3. **Backend/Frontend gaps exist** - Feature #155 shows API exists but UI doesn't
-4. **Architecture blockers are real** - Not every "failing" feature is fixable in a session
-5. **Documentation pays off** - Previous sessions thoroughly analyzed blockers
-
-### Common Patterns 🔄
-1. **Port conflicts** - Always check existing Docker containers before starting
-2. **Regression testing validates stability** - Feature #164 passing confirms project health
-3. **Blockers are legitimate** - Architecture/spec/implementation gaps require different approaches
-4. **Session 316 fixes persist** - Text truncation still working (Feature #142)
-
----
-
-## NEXT STEPS
-
-### Immediate (Session 318)
-**Option 1: Additional Regression Testing**
-- Test 2-3 more random passing features
-- Verify no other regressions exist
-- Build confidence in system stability
-
-**Option 2: Project Close-Out**
-- Document final state
-- Create deployment checklist
-- Archive skip reasons
-- Mark project as complete (with blockers documented)
-
-**Option 3: Address Backend/Frontend Gap**
-- Implement UI for Feature #155 (import/export)
-- Connect existing backend API to frontend
-- ~2-3h work to add import modal
-
-### Future Considerations
-1. **Feature #372 (Service Worker)**
-   - Requires: Custom SW implementation OR next-pwa migration
-   - Effort: 4-8 hours
-   - Blocker: Library/framework limitation
-
-2. **Feature #210 (Role-based Access)**
-   - Requires: Product specification (which features are premium?)
-   - Effort: 4-8 hours after spec defined
-   - Blocker: Missing business requirements
-
-3. **Feature #211 (Usage Limits)**
-   - Requires: Full enforcement system implementation
-   - Effort: 4-6 hours
-   - Blocker: Significant feature work needed
-
-4. **Feature #155 (Import/Export UI)**
-   - Requires: Frontend implementation (backend exists)
-   - Effort: 2-3 hours
-   - Blocker: UI not built yet
-
----
-
-## CONCLUSION
-
-Session 317 was a **INFRASTRUCTURE + REGRESSION SESSION** that confirmed project stability.
-
-**Key Achievements:**
-1. ✅ Fixed Docker port conflicts (PostgreSQL, Redis)
-2. ✅ Verified Feature #164 fully passing (desktop layout)
-3. ✅ Confirmed all 3 remaining features are legitimate blockers
-4. ✅ Zero regressions found in core functionality
-5. ✅ Application running smoothly at 99.2% completion
+- POST endpoint HAD the check (line 96)
+- WebSocket endpoint MISSING the check (line 2485+)
+- Frontend uses WebSocket → enforcement never triggered
+- Users could send unlimited messages
 
 **Impact:**
-- Infrastructure now conflict-free
-- Regression testing confirms stability
-- All blockers documented with clear reasons
-- Project effectively complete at feature level
-
-**Project Status:** ✅ **99.2% COMPLETE - 3 BLOCKERS DOCUMENTED**
-
-**Ready for:** Production deployment with blocker documentation OR additional regression testing
+- Feature #211 fails all test steps
+- 3rd message sent successfully (should be blocked)
+- No error message shown to user
+- Critical security/business logic bug
 
 ---
 
-**Session End Time:** 2026-01-20 ~12:30
-**Duration:** ~2 hours
-**Status:** ✅ **SUCCESS - Infrastructure fixed, regression tests passing, blockers confirmed**
+### ✅ Bug Fix Applied
+
+**File Modified:** `backend/app/api/v1/endpoints/chat.py`
+**Location:** Lines 2694-2706
+
+**Added:** Usage limit check in WebSocket handler before processing messages
+
+**Why this works:**
+- Checks limit BEFORE saving message
+- Sends error to client via WebSocket
+- Skips processing if limit exceeded
+- Uses correct async database session
 
 ---
+
+## WHAT NEEDS TO HAPPEN NEXT
+
+### Immediate (Next Session):
+1. **Re-test Feature #211** with the fix applied
+2. Verify backend auto-reloaded (uvicorn --reload)
+3. Create clean test user OR reset existing user's usage
+4. Run full test sequence:
+   - Message 1 → Should succeed
+   - Message 2 → Should succeed
+   - Message 3 → **Should be BLOCKED with error message**
+5. Verify frontend displays error appropriately
+6. Mark feature #211 as passing ONLY after verification
+
+---
+
+## PROJECT STATUS
+
+**Features:** 377/380 (99.2%)
+
+**In Progress:** Feature #211 (blocked on re-test)
+
+**Remaining:** 3 features total
+- Feature #210: Role-based access (spec blocker)
+- Feature #211: Usage limit enforcement (BUG FIXED, needs re-test)
+- Feature #372: Service worker caching (architecture blocker)
+
+**Application Health:** ✅ STABLE
+- Zero regressions in tested features
+- Bug identified and fixed
+- Ready for re-verification
+
+---
+
+**Session End:** 2026-01-20
+**Status:** ✅ Bug fixed, awaiting re-test
+**Next Action:** Re-run Feature #211 test to verify fix

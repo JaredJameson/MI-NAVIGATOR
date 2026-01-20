@@ -12,6 +12,9 @@ from datetime import datetime
 
 from app.api.v1.endpoints.auth import get_current_user, get_current_user_optional
 from app.models.user import User
+from app.core.usage_limits import check_usage_limit
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db
 
 router = APIRouter()
 
@@ -307,12 +310,20 @@ async def perform_website_analysis(job_id: str, url: str):
 
 
 @router.post("/website", response_model=WebsiteAnalysisJobResponse)
-async def analyze_website(request: WebsiteAnalysisRequest):
+async def analyze_website(
+    request: WebsiteAnalysisRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
     """
     Create a website analysis job.
 
     The analysis runs asynchronously. Use the returned job_id to poll for results.
     """
+    # Check usage limit if user is authenticated
+    if current_user:
+        await check_usage_limit(db, current_user, action_type="analysis")
+
     job_id = str(uuid.uuid4())
     url = str(request.url)
 
@@ -375,8 +386,9 @@ async def get_website_analysis(job_id: str):
 
 @router.post("/market", response_model=MarketAnalysisResponse)
 async def analyze_market(
-    request: MarketAnalysisRequest
-    # Temporarily disabled auth for testing: current_user: User = Depends(get_current_user)
+    request: MarketAnalysisRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Analyze market size and trends with geographic and segment filtering.
@@ -384,6 +396,10 @@ async def analyze_market(
     Supports geographies: poland, europe, cee, global
     Supports segments: B2B, B2C, Enterprise, SMB (varies by industry)
     """
+    # Check usage limit if user is authenticated
+    if current_user:
+        await check_usage_limit(db, current_user, action_type="analysis")
+
     import uuid
 
     industry = request.industry.lower()
@@ -1105,6 +1121,7 @@ class ComprehensiveAnalysisResponse(BaseModel):
 )
 async def run_comprehensive_analysis(
     request: ComprehensiveAnalysisRequest,
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -1124,6 +1141,9 @@ async def run_comprehensive_analysis(
     })
     ```
     """
+    # Check usage limit before starting comprehensive analysis
+    await check_usage_limit(db, current_user, action_type="analysis")
+
     from app.services.orchestrator import orchestrator_service
 
     # Execute analysis with orchestrator

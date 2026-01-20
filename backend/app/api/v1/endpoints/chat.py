@@ -14,6 +14,7 @@ from app.db.session import get_db
 from app.api.v1.endpoints.auth import get_current_user, get_current_user_optional
 from app.models.user import User
 from app.services.auth import AuthService
+from app.core.usage_limits import check_usage_limit
 
 router = APIRouter()
 
@@ -86,9 +87,14 @@ async def get_conversation(conversation_id: str, current_user: Optional[User] = 
 async def send_message(
     conversation_id: str,
     message: MessageCreate,
+    db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """Send a message in conversation and get AI response."""
+    # Check usage limit if user is authenticated
+    if current_user:
+        await check_usage_limit(db, current_user, action_type="chat")
+
     # Dev mode: use mock user if not authenticated
     user_id = str(current_user.id) if current_user else "dev_user_123"
 
@@ -2684,6 +2690,20 @@ async def websocket_endpoint(
                 else:  # cancel
                     await websocket.send_text("Research cancelled. Feel free to start a new query.")
                     continue
+
+            # Check usage limit before processing message
+            if current_user and content and conv:
+                try:
+                    from app.db.session import AsyncSessionLocal
+                    async with AsyncSessionLocal() as db:
+                        await check_usage_limit(db, current_user, action_type="chat")
+                except HTTPException as e:
+                    # Send usage limit error to client
+                    await websocket.send_json({
+                        "type": "error",
+                        "data": e.detail
+                    })
+                    continue  # Skip processing this message
 
             # Save user message to conversation store
             if conv and content:  # Only save if there's actual content (not just brief answers)
