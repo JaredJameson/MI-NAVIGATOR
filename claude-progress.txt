@@ -1,7 +1,90 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 339)
-**Project Status:** 379/380 features passing (99.7%) - 1 external blocker (PRODUCTION READY)
+**Last Updated:** 2026-01-20 (Session 340)
+**Project Status:** 379/380 features passing (99.7%) - Feature #211 bug fixed, testing incomplete
+
+## Session 340 Summary (2026-01-20) - 2 CRITICAL BUGS FIXED, TESTING INCOMPLETE
+
+### ⚠️ SESSION ACCOMPLISHMENTS
+
+**Regression Testing - Feature #102:**
+- ⚠️ **REGRESSION FOUND** - Error pages had English text instead of Polish
+  - error.tsx: "Something Went Wrong" → "Coś poszło nie tak"
+  - not-found.tsx: "Page Not Found" → "Strona nie znaleziona"
+  - All buttons and messages translated to Polish
+  - Verified fix through browser automation
+  - Commit: "fix: Regression #102 - Translate error pages to Polish"
+
+**Feature #211 - Critical Bug Discovery:**
+- 🐛 **BUG FOUND** - `/api/v1/analysis/market` endpoint missing analytics tracking
+  - Root cause: Endpoint checked limits but never recorded events
+  - Impact: Usage counter stayed at 0, limits never enforced
+  - Bug was masking Feature #211 functionality for 27+ sessions
+  - **This was NOT an external blocker - it was an implementation bug!**
+
+**Fix Applied:**
+- ✅ Added `track_event()` import to analysis.py
+- ✅ Added `EventType.ANALYSIS_COMPLETED` tracking after successful analysis
+- ✅ Code follows existing patterns in codebase
+- ✅ Backend restarted with changes
+- ✅ Commit: "fix: Feature #211 - Add analytics event tracking..."
+
+**Testing Status:**
+- ⚠️ **INCOMPLETE** - Could not verify end-to-end due to bash command limitations
+- ✅ Code analysis confirms fix is correct
+- ✅ Pattern matches other endpoints in codebase
+- ❌ Need to complete test with browser automation or Python script
+
+**Documentation:**
+- Created comprehensive session report: `SESSION_340_SUMMARY.md`
+- Updated claude-progress.txt
+- 4 regression test screenshots captured
+
+### Commits Created
+1. 066ca5a - Fix error page language regression (7 files)
+2. a02e29b - Fix analytics event tracking bug (3 files)
+
+### Session Outcome
+
+✅ **2 critical bugs fixed**
+✅ **Regression eliminated (language consistency)**
+✅ **Feature #211 implementation corrected**
+⚠️ **Testing incomplete (infrastructure limitations)**
+⚠️ **Feature #211 still marked in_progress**
+⚠️ Token budget used: ~108k/200k (54%)
+
+### Key Insights
+
+**1. Feature #211 Was Never an External Blocker**
+- Previous 27 sessions assumed WebSocket limitation was the blocker
+- Actual problem: REST endpoint had implementation bug
+- Endpoint existed and was testable, but had missing tracking code
+- Lesson: Always verify code correctness even with external blockers
+
+**2. Analytics Events Are Critical**
+- Many features depend on events being recorded
+- Missing events = broken features (limits, billing, monitoring)
+- Pattern: Check limit → Perform operation → Track event
+
+**3. Language Consistency Matters**
+- English text in Polish app breaks user trust
+- Error pages are high-visibility
+- Need i18n system and automated checks
+
+### Next Session Actions
+
+**MUST DO:**
+1. Complete Feature #211 testing with proper tools
+2. Verify 403 Forbidden on 3rd request
+3. Verify error message content
+4. Mark feature as passing if tests confirm
+
+**RECOMMENDED:**
+1. Audit all endpoints for analytics tracking
+2. Search codebase for remaining English strings
+3. Plan i18n implementation
+
+---
 
 ## Session 339 Summary (2026-01-20) - REGRESSION TEST PASSING, PROJECT PRODUCTION-READY
 
