@@ -1,20 +1,17 @@
-#!/usr/bin/env python3
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+import sqlite3
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+conn = sqlite3.connect('mi_navigator.db')
+cursor = conn.cursor()
 
-DATABASE_URL = "sqlite:///./backend/mi_navigator.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(bind=engine)
+cursor.execute("SELECT id, email, role, is_active FROM users ORDER BY created_at DESC LIMIT 10")
+users = cursor.fetchall()
 
-db = SessionLocal()
-try:
-    results = db.execute(text("SELECT id, email, role FROM users ORDER BY id DESC LIMIT 5")).fetchall()
-    print("Last 5 users in database:")
-    for row in results:
-        print(f"  ID: {row[0]}, Email: {row[1]}, Role: {row[2]}")
-finally:
-    db.close()
+print("Users in database:")
+for user in users:
+    print(f"  ID: {user[0]}")
+    print(f"  Email: {user[1]}")
+    print(f"  Role: {user[2]}")
+    print(f"  Active: {user[3]}")
+    print()
+
+conn.close()

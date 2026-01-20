@@ -1,14 +1,40 @@
-# Session 319 - Date: 2026-01-20
+# Session 320 - Date: 2026-01-20
 
-## STATUS: BUG FOUND & FIXED - Feature #211 Incomplete
+## STATUS: INFRASTRUCTURE ISSUE - Feature #211 Cannot Be Verified
 
 **Current Progress:** 377/380 (99.2%) - 1 feature in progress
 
-**Session Type:** Feature testing + bug fix session
+**Session Type:** Investigation + Infrastructure debugging
 
 ---
 
-## SESSION 319 SUMMARY
+## SESSION 320 SUMMARY - CRITICAL FINDING
+
+### ❌ Feature #211 CANNOT BE TESTED - Wrong Backend Running
+
+**Problem Discovered:**
+Frontend is connected to WRONG backend (knowledgetree project on port 8000), not MI-Navigator backend!
+
+**Evidence:**
+- Frontend connects to `localhost:8000`
+- Process on port 8000: `/home/jarek/projects/knowledgetree/backend`
+- MI-Navigator backend NOT running
+- Test user `testusagelimit@test.com` not in MI-Navigator database
+- All 3 messages sent successfully (no limit enforcement)
+
+**Why Tests Failed:**
+The backend serving requests DOES NOT have Feature #211 implementation. The bug fix exists in MI-Navigator codebase but is not running.
+
+**Attempted Solutions:**
+1. ❌ Tried to start MI-Navigator backend via `init.sh`
+2. ❌ Docker port conflicts (5432 already allocated)
+3. ❌ Cannot kill conflicting processes (permission issues)
+
+**See detailed report:** `FEATURE_211_SESSION_320_INVESTIGATION.md`
+
+---
+
+## SESSION 319 SUMMARY (Previous)
 
 ### ✅ Regression Tests PASSED (2/2)
 
@@ -62,18 +88,44 @@ WebSocket endpoint (`/api/v1/chat/ws/`) was missing `check_usage_limit()` call!
 
 ---
 
-## WHAT NEEDS TO HAPPEN NEXT
+## CRITICAL NEXT STEPS
 
-### Immediate (Next Session):
-1. **Re-test Feature #211** with the fix applied
-2. Verify backend auto-reloaded (uvicorn --reload)
-3. Create clean test user OR reset existing user's usage
-4. Run full test sequence:
-   - Message 1 → Should succeed
-   - Message 2 → Should succeed
-   - Message 3 → **Should be BLOCKED with error message**
-5. Verify frontend displays error appropriately
-6. Mark feature #211 as passing ONLY after verification
+### Fix Infrastructure FIRST (Session 321):
+
+1. **Stop ALL conflicting backends:**
+   ```bash
+   # Find and stop processes on ports 8000, 8003, 8889
+   ps aux | grep uvicorn
+   # Kill non-MI-Navigator backends
+   ```
+
+2. **Start MI-Navigator backend correctly:**
+   ```bash
+   cd backend
+   source venv/bin/activate
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+3. **Verify correct backend running:**
+   ```bash
+   curl http://localhost:8000/api/v1/health
+   # Should return MI-Navigator health check
+   ```
+
+4. **THEN re-test Feature #211:**
+   - Register new user
+   - Send 2 messages (should succeed)
+   - Send 3rd message (should be BLOCKED with 403 error)
+   - Verify error message displayed in UI
+
+### Alternative: API-Level Testing
+
+If infrastructure issues persist, test via API directly:
+```bash
+# Create user and get token
+# Send 2 messages via WebSocket
+# Verify 3rd message returns error
+```
 
 ---
 
@@ -81,20 +133,21 @@ WebSocket endpoint (`/api/v1/chat/ws/`) was missing `check_usage_limit()` call!
 
 **Features:** 377/380 (99.2%)
 
-**In Progress:** Feature #211 (blocked on re-test)
+**In Progress:** Feature #211 (BLOCKED - infrastructure issue)
 
 **Remaining:** 3 features total
 - Feature #210: Role-based access (spec blocker)
-- Feature #211: Usage limit enforcement (BUG FIXED, needs re-test)
+- Feature #211: Usage limit enforcement (CODE FIXED, INFRASTRUCTURE BLOCKED)
 - Feature #372: Service worker caching (architecture blocker)
 
-**Application Health:** ✅ STABLE
-- Zero regressions in tested features
-- Bug identified and fixed
-- Ready for re-verification
+**Application Health:** ⚠️ INFRASTRUCTURE MISMATCH
+- Bug fix code is correct and present
+- Cannot verify due to wrong backend running
+- Need to resolve port conflicts and start correct backend
 
 ---
 
-**Session End:** 2026-01-20
-**Status:** ✅ Bug fixed, awaiting re-test
-**Next Action:** Re-run Feature #211 test to verify fix
+**Session 320 End:** 2026-01-20 12:10
+**Status:** 🔴 BLOCKED - Infrastructure issue
+**Next Action:** Fix backend infrastructure, then re-test Feature #211
+**Time Spent:** ~1.5 hours investigation

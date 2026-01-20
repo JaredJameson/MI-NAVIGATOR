@@ -4,12 +4,12 @@ from datetime import datetime
 conn = sqlite3.connect('mi_navigator.db')
 cursor = conn.cursor()
 
-# Get user ID
-cursor.execute("SELECT id, email, role FROM users WHERE email = 'user@example.com'")
+# Find user by email
+cursor.execute("SELECT id, email, role FROM users WHERE email = 'testusagelimit@test.com'")
 user = cursor.fetchone()
 
 if not user:
-    print("User not found!")
+    print("User not found")
     exit(1)
 
 user_id = user[0]
@@ -34,13 +34,20 @@ cursor.execute("""
 events = cursor.fetchall()
 
 total = 0
-print("Analytics events this month:")
-for event_type, count in events:
-    print(f"  {event_type}: {count}")
-    total += count
+if events:
+    print("Analytics events this month:")
+    for event_type, count in events:
+        print(f"  {event_type}: {count}")
+        total += count
+else:
+    print("❌ NO analytics events recorded!")
 
 print(f"\nTotal usage: {total}")
 print(f"Limit: 2")
-print(f"Remaining: {max(0, 2 - total)}")
+
+if total >= 2:
+    print("\n⚠️  USER SHOULD BE BLOCKED (limit reached)")
+else:
+    print(f"\n✓ User can send {2 - total} more message(s)")
 
 conn.close()
