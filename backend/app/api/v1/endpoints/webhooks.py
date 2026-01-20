@@ -34,6 +34,7 @@ class WebhookResponse(BaseModel):
     user_id: str
     url: str
     event_type: WebhookEvent
+    secret: str | None = None  # HMAC secret for signature verification
     is_active: bool
     max_retries: int
     retry_count: int
@@ -55,6 +56,7 @@ class WebhookResponse(BaseModel):
             user_id=str(obj.user_id),
             url=obj.url,
             event_type=obj.event_type,
+            secret=obj.secret,
             is_active=obj.is_active,
             max_retries=obj.max_retries,
             retry_count=obj.retry_count or 0,

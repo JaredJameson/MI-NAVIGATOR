@@ -22,6 +22,7 @@ def upgrade() -> None:
         sa.Column('user_id', sa.String(36), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
         sa.Column('url', sa.String(500), nullable=False),
         sa.Column('event_type', sa.Enum('report.created', 'report.updated', 'report.deleted', 'analysis.completed', 'alert.triggered', name='webhookevent'), nullable=False),
+        sa.Column('secret', sa.String(128), nullable=True),  # HMAC secret for signature verification
         sa.Column('is_active', sa.Boolean(), default=True, nullable=False),
         sa.Column('max_retries', sa.Integer(), default=5, nullable=False),
         sa.Column('retry_count', sa.Integer(), default=0, nullable=False),

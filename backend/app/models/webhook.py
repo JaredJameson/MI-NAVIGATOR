@@ -47,6 +47,7 @@ class Webhook(Base):
     # Configuration
     url = Column(String, nullable=False)
     event_type = Column(SQLEnum(WebhookEvent), nullable=False)
+    secret = Column(String, nullable=True)  # HMAC secret for signature verification
     is_active = Column(Boolean, default=True, nullable=False)
 
     # Retry configuration

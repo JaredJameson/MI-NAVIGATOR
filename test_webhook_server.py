@@ -8,11 +8,14 @@ This server can:
 4. Log all webhook attempts
 """
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, Header
 from fastapi.responses import JSONResponse
 import uvicorn
 from datetime import datetime
 import json
+import hmac
+import hashlib
+from typing import Optional
 
 app = FastAPI(title="Test Webhook Server")
 
@@ -20,8 +23,22 @@ app = FastAPI(title="Test Webhook Server")
 server_state = {
     "mode": "success",  # "success" or "fail"
     "received_webhooks": [],
-    "failure_count": 0
+    "failure_count": 0,
+    "signature_verification_enabled": False,
+    "expected_secret": None,  # Will be set when needed
+    "signature_failures": 0
 }
+
+
+def verify_signature(payload: dict, secret: str, received_signature: str) -> bool:
+    """Verify HMAC signature."""
+    payload_bytes = json.dumps(payload, sort_keys=True).encode('utf-8')
+    expected_signature = hmac.new(
+        secret.encode('utf-8'),
+        payload_bytes,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected_signature, received_signature)
 
 
 @app.get("/")
@@ -31,27 +48,58 @@ async def root():
         "status": "running",
         "mode": server_state["mode"],
         "webhooks_received": len(server_state["received_webhooks"]),
-        "failures_returned": server_state["failure_count"]
+        "failures_returned": server_state["failure_count"],
+        "signature_verification": server_state["signature_verification_enabled"],
+        "signature_failures": server_state["signature_failures"]
     }
 
 
 @app.post("/webhook")
-async def receive_webhook(request: Request):
+async def receive_webhook(
+    request: Request,
+    x_webhook_signature: Optional[str] = Header(None)
+):
     """
     Webhook endpoint.
 
     Behavior depends on server mode:
     - "success": Always return 200
     - "fail": Always return 500
+
+    Also verifies signature if enabled.
     """
     # Parse request
     body = await request.json()
+
+    # Verify signature if enabled
+    if server_state["signature_verification_enabled"]:
+        if not x_webhook_signature:
+            server_state["signature_failures"] += 1
+            print(f"\n❌ Webhook rejected: Missing signature")
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Missing X-Webhook-Signature header"}
+            )
+
+        if not server_state["expected_secret"]:
+            print(f"\n⚠️  Warning: Signature verification enabled but no secret configured")
+        elif not verify_signature(body, server_state["expected_secret"], x_webhook_signature):
+            server_state["signature_failures"] += 1
+            print(f"\n❌ Webhook rejected: Invalid signature")
+            print(f"   Received: {x_webhook_signature[:16]}...")
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Invalid signature"}
+            )
+        else:
+            print(f"   ✅ Signature verified")
 
     # Log webhook
     webhook_data = {
         "timestamp": datetime.utcnow().isoformat(),
         "payload": body,
-        "mode_when_received": server_state["mode"]
+        "mode_when_received": server_state["mode"],
+        "signature_verified": server_state["signature_verification_enabled"]
     }
     server_state["received_webhooks"].append(webhook_data)
 
@@ -110,12 +158,40 @@ async def get_webhooks():
     }
 
 
+@app.post("/signature/enable")
+async def enable_signature_verification(secret: str):
+    """Enable signature verification with given secret."""
+    server_state["signature_verification_enabled"] = True
+    server_state["expected_secret"] = secret
+
+    print(f"\n🔐 Signature verification enabled")
+    print(f"   Secret: {secret[:8]}..." + ("*" * 8))
+
+    return {
+        "message": "Signature verification enabled",
+        "secret_preview": secret[:8] + "..." + ("*" * 8)
+    }
+
+
+@app.post("/signature/disable")
+async def disable_signature_verification():
+    """Disable signature verification."""
+    server_state["signature_verification_enabled"] = False
+    server_state["expected_secret"] = None
+
+    print(f"\n🔓 Signature verification disabled")
+
+    return {"message": "Signature verification disabled"}
+
+
 @app.post("/reset")
 async def reset():
     """Reset server state."""
     server_state["received_webhooks"] = []
     server_state["failure_count"] = 0
     server_state["mode"] = "success"
+    server_state["signature_failures"] = 0
+    # Keep signature settings
 
     print("\n🔄 Server state reset")
 
@@ -127,11 +203,13 @@ if __name__ == "__main__":
     print("🚀 Test Webhook Server Starting")
     print("="*60)
     print("\nEndpoints:")
-    print("  - GET  /           - Server status")
-    print("  - POST /webhook    - Receive webhooks")
-    print("  - POST /mode/{mode} - Set mode (success/fail)")
-    print("  - GET  /webhooks   - List received webhooks")
-    print("  - POST /reset      - Reset server state")
+    print("  - GET  /                   - Server status")
+    print("  - POST /webhook            - Receive webhooks")
+    print("  - POST /mode/{mode}        - Set mode (success/fail)")
+    print("  - GET  /webhooks           - List received webhooks")
+    print("  - POST /signature/enable   - Enable signature verification")
+    print("  - POST /signature/disable  - Disable signature verification")
+    print("  - POST /reset              - Reset server state")
     print("\nServer will run on: http://localhost:8001")
     print("="*60 + "\n")
 

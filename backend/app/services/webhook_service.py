@@ -4,6 +4,10 @@ Webhook service with retry mechanism and exponential backoff.
 
 import httpx
 import asyncio
+import hmac
+import hashlib
+import json
+import secrets
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +25,42 @@ class WebhookService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    @staticmethod
+    def generate_signature(payload: Dict[str, Any], secret: str) -> str:
+        """
+        Generate HMAC-SHA256 signature for webhook payload.
+
+        Args:
+            payload: Webhook payload data
+            secret: Secret key for signing
+
+        Returns:
+            Hex-encoded HMAC signature
+        """
+        payload_bytes = json.dumps(payload, sort_keys=True).encode('utf-8')
+        signature = hmac.new(
+            secret.encode('utf-8'),
+            payload_bytes,
+            hashlib.sha256
+        ).hexdigest()
+        return signature
+
+    @staticmethod
+    def verify_signature(payload: Dict[str, Any], secret: str, received_signature: str) -> bool:
+        """
+        Verify HMAC signature for webhook payload.
+
+        Args:
+            payload: Webhook payload data
+            secret: Secret key for verification
+            received_signature: Signature to verify
+
+        Returns:
+            True if signature is valid, False otherwise
+        """
+        expected_signature = WebhookService.generate_signature(payload, secret)
+        return hmac.compare_digest(expected_signature, received_signature)
 
     async def trigger_webhook(
         self,
@@ -61,11 +101,18 @@ class WebhookService:
         webhook.status = WebhookStatus.RETRYING
 
         try:
+            # Generate signature if secret is configured
+            headers = {"Content-Type": "application/json"}
+            if webhook.secret:
+                signature = self.generate_signature(payload, webhook.secret)
+                headers["X-Webhook-Signature"] = signature
+                logger.debug(f"Generated signature for webhook {webhook.id}: {signature[:16]}...")
+
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
                     webhook.url,
                     json=payload,
-                    headers={"Content-Type": "application/json"}
+                    headers=headers
                 )
 
                 if response.status_code in [200, 201, 202, 204]:
@@ -136,7 +183,8 @@ class WebhookService:
         user_id: str,
         url: str,
         event_type: WebhookEvent,
-        max_retries: int = 5
+        max_retries: int = 5,
+        secret: Optional[str] = None
     ) -> Webhook:
         """
         Create a new webhook configuration.
@@ -146,15 +194,21 @@ class WebhookService:
             url: Endpoint URL to send webhooks to
             event_type: Type of event to trigger webhook
             max_retries: Maximum number of retry attempts
+            secret: Optional secret for HMAC signature (auto-generated if not provided)
 
         Returns:
             Created webhook
         """
+        # Generate secret if not provided
+        if secret is None:
+            secret = secrets.token_hex(32)  # 64 character hex string
+
         webhook = Webhook(
             id=str(uuid.uuid4()),
             user_id=str(user_id),
             url=url,
             event_type=event_type,
+            secret=secret,
             max_retries=max_retries,
             is_active=True,
             status=WebhookStatus.PENDING
