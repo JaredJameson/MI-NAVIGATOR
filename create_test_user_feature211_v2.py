@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create test user for Feature #211 - Usage limit testing"""
+"""Create test user for Feature #211 - Version 2"""
 
 import sys
 sys.path.insert(0, '/home/jarek/projects/MARKET_INTELLIGENCE/MI-NAVIGATOR/backend')
@@ -11,26 +11,23 @@ import uuid
 
 db = SessionLocal()
 
-# Create test user with known password
-email = "feature211_test@example.com"
+email = "feature211_v2@example.com"
 password = "test123"
 
 # Check if user already exists
 existing = db.query(User).filter(User.email == email).first()
 if existing:
-    print(f"User {email} already exists: {existing.id}")
-    print(f"Role: {existing.role}")
-    print(f"Password: test123")
+    print(f"{existing.id}")
     db.close()
     sys.exit(0)
 
 # Create new user
 user = User(
-    id=uuid.uuid4(),  # Use UUID object, not string
+    id=uuid.uuid4(),
     email=email,
     password_hash=AuthService.hash_password(password),
-    name="Feature 211 Test User",
-    role=UserRole.USER,  # Regular user with limits
+    name="Feature 211 V2",
+    role=UserRole.USER,
     is_active=True,
     email_verified=True,
     onboarding_completed=True
@@ -40,9 +37,5 @@ db.add(user)
 db.commit()
 db.refresh(user)
 
-print(f"Created user: {user.email}")
-print(f"ID: {user.id}")
-print(f"Role: {user.role}")
-print(f"Password: {password}")
-
+print(f"{user.id}")
 db.close()

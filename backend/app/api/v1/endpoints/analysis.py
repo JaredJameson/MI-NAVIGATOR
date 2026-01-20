@@ -13,6 +13,8 @@ from datetime import datetime
 from app.api.v1.endpoints.auth import get_current_user, get_current_user_optional
 from app.models.user import User
 from app.core.usage_limits import check_usage_limit
+from app.services.analytics_service import track_event
+from app.models.analytics_event import EventType
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 
@@ -428,6 +430,20 @@ async def analyze_market(
         else:
             # Default to manufacturing if industry not found
             market_data = data_source.get("manufacturing", [])
+
+    # Track analytics event for usage limit enforcement
+    if current_user:
+        await track_event(
+            db=db,
+            event_type=EventType.ANALYSIS_COMPLETED,
+            event_name="Market Analysis Completed",
+            user=current_user,
+            metadata={
+                "industry": industry,
+                "geography": geography,
+                "segment": segment
+            }
+        )
 
     return MarketAnalysisResponse(
         id=str(uuid.uuid4()),
