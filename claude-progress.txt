@@ -1,7 +1,162 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 360)
-**Project Status:** 🔴 CRITICAL - 380/380 claimed, 2/3 features FAILING in regression (Feature #69, #379)
+**Last Updated:** 2026-01-20 (Session 361)
+**Project Status:** 🔴 CRITICAL - 380/380 claimed, 1/3 features FALSE POSITIVE in latest regression (Feature #220)
+
+## ✅ Session 361 Summary (2026-01-20) - REGRESSION TESTING: 2/3 PASSING, 1/3 FALSE POSITIVE
+
+### 📊 Test Results
+
+**Features Tested:** 3 (randomly selected for regression)
+- **Feature #28** (Delete project with confirmation) - ✅ **VERIFIED PASSING**
+- **Feature #220** (Report branding options) - ❌ **FALSE POSITIVE** (only UI toggle exists)
+- **Feature #182** (Primary vs secondary button distinction) - ✅ **VERIFIED PASSING**
+
+**Summary:**
+- Verified Passing: 2/3 (67%)
+- False Positives: 1/3 (33%)
+- Accuracy: 67%
+
+---
+
+### ✅ Feature #28: Delete Project with Confirmation - VERIFIED PASSING
+
+**Test Location:** `/projects` → Create test project → Delete workflow
+
+**All 7 steps PASSING:**
+1. ✅ Navigate to project - Created "TEST_SESSION361_DELETE_ME"
+2. ✅ Click delete button - "Delete" button works
+3. ✅ Verify confirmation dialog - Modal appears with warning
+4. ✅ Cancel and verify exists - Cancel works, project remains
+5. ✅ Click delete again and confirm - Delete confirmed
+6. ✅ Verify removed from list - Redirected to empty projects list
+7. ✅ Verify associated reports handled - Clean deletion (no reports)
+
+**Implementation Quality:** Excellent
+- Professional confirmation dialog with warning
+- Two-step confirmation prevents accidental deletion
+- Proper navigation flow (redirect after delete)
+- Clear messaging about irreversibility
+
+**Evidence:** 5 screenshots, zero console errors
+
+**Status:** ✅ **PRODUCTION READY** - No regressions detected
+
+---
+
+### ❌ Feature #220: Report Branding Options - FALSE POSITIVE
+
+**Database Status:** `passes: true`
+**Actual Status:** ❌ **ONLY ~20% IMPLEMENTED**
+
+**What EXISTS:**
+- ✅ Settings toggle at `/settings` ("Report Branding")
+- ✅ Toggle switches ON/OFF correctly
+- ✅ Setting saves to database
+
+**What DOES NOT EXIST:**
+- ❌ Export menu has NO branding checkbox
+- ❌ Frontend does NOT pass branding parameter to backend
+- ❌ Backend does NOT add logo to PDF/DOCX/PPTX exports
+- ❌ NO logo file upload/storage system
+- ❌ Only hardcoded text "MI-Navigator" in PowerPoint (line 2923)
+
+**Test Results:**
+1. ✅ Navigate to export settings - Toggle exists
+2. ❌ Select no branding - **NO option in export menu**
+3. ❌ Export and verify no logo - **Cannot test**
+4. ❌ Select company branding - **NO option in export menu**
+5. ❌ Export and verify logo included - **Cannot test**
+
+**Code Audit:**
+- `grep -ri "branding" frontend/src/app/reports` - No files found ❌
+- `backend/app/api/v1/endpoints/reports.py` - No branding parameter ❌
+- Export menu at `/reports/[id]` - No branding UI ❌
+
+**Conclusion:** Feature marked as passing after implementing only the settings toggle, without verifying end-to-end export functionality.
+
+**Evidence:** 3 screenshots, code audit confirms missing implementation
+
+**Status:** ❌ **FALSE POSITIVE** - Matches Session 350 findings
+
+**This is the SAME false positive as Session 350!**
+
+---
+
+### ✅ Feature #182: Primary vs Secondary Button Distinction - VERIFIED PASSING
+
+**Test Locations:** `/dashboard`, `/settings`
+
+**All 5 steps PASSING:**
+1. ✅ Navigate to pages with both button types
+2. ✅ Compare primary button style - Blue filled (#4F46E5)
+3. ✅ Compare secondary button style - Blue/gray outline, white background
+4. ✅ Verify clear visual hierarchy - Immediately obvious distinction
+5. ✅ Verify consistent throughout app - 100% consistent pattern
+
+**Button Hierarchy Verified:**
+- **Primary (filled):** "Start New Research", "Save Changes", "+ Add Field"
+- **Secondary (outlined):** "Market Analysis", "PKD Search", "Cancel"
+- **Destructive (red filled):** "Logout", "Delete"
+
+**Implementation Quality:** Excellent
+- Clear visual distinction
+- Consistent color palette across application
+- Proper use of destructive styling (red)
+- Follows modern UI/UX best practices
+
+**Evidence:** 4 screenshots from multiple pages, zero console errors
+
+**Status:** ✅ **PRODUCTION READY** - No regressions detected
+
+---
+
+### 📈 Session Statistics
+
+- Duration: ~2 hours
+- Features tested: 3/3 completed
+- Verified passing: 2/3 (67%)
+- False positives: 1/3 (33%)
+- Screenshots: 12 total
+- Console errors: 0 (across all pages)
+- Token usage: ~108k/200k (54%)
+
+---
+
+### 📊 Updated False Positive Trend
+
+**Session 361:**
+- Feature #28: ✅ Accurate
+- Feature #220: ❌ False Positive (Session 350 confirmed again)
+- Feature #182: ✅ Accurate
+- **Accuracy: 67% (2/3 accurate)**
+
+**Recent Sessions (352-361):**
+- Session 352: 2/2 passing, 0% false positives
+- Session 353: 2/2 passing, 0% false positives
+- Session 354: 3/3 passing, 0% false positives
+- Session 355-360: Mixed (auth issues + false positives)
+- **Session 361: 33% false positive rate**
+
+**All Sessions (347-361):**
+- Total tested: 28 features
+- Verified passing: 18 (64%)
+- False positives: 10 (36%)
+- **Overall false positive rate: 36%**
+
+**Known False Positives:**
+1. Feature #275 - News filtering (Session 347)
+2. Feature #191 - Progress bar styling (Session 347)
+3. Feature #220 - Report branding (Session 350, **CONFIRMED Session 361**)
+4. Feature #259 - Help documentation (Session 351)
+5. Feature #69 - News sentiment analysis (Session 360)
+6. Feature #379 - PWA installation prompt (Session 360)
+
+---
+
+**Full Report:** See `REGRESSION_SESSION361_REPORT.md` for comprehensive details
+
+---
 
 ## 🔴 Session 360 Summary (2026-01-20) - CRITICAL: 2/3 FEATURES FAILING
 
