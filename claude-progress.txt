@@ -1,7 +1,35 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 367)
-**Project Status:** 🟡 CRITICAL BUG FOUND - Version history broken
+**Last Updated:** 2026-01-20 (Session 368)
+**Project Status:** 🔴 CRITICAL - Authentication regression blocks testing
+
+## 🔴 Session 368 Summary (2026-01-20) - CRITICAL REGRESSION: AUTHENTICATION BROKEN
+
+### 📊 Test Results
+
+**Features Tested:** 3 (randomly selected for regression)
+- **Feature #217** (Session persistence across refresh) - ✅ **VERIFIED PASSING** (5/5 steps = 100%)
+- **Feature #298** (Auto-save draft functionality) - ❌ **BLOCKED** (0/6 steps = 0% - 401 errors)
+- **Feature #71** (Alert notification delivery) - ❌ **BLOCKED** (0/5 steps = 0% - 401 errors)
+
+**Summary:**
+- Verified Passing: 1/3 (33%)
+- Blocked by Auth: 2/3 (67%)
+- **CRITICAL: Same auth issue as sessions 355-362 (9 sessions blocked!)** 🚨
+
+**Critical Finding:** Authentication tokens expire/become invalid during normal usage. Initial dashboard load works (all 200 OK), but after navigating between pages, same endpoints return 401 Unauthorized. Dashboard shows "Unable to load stats", reports show "Nie udało się załadować raportów". Application appears logged in but cannot load any data.
+
+**18 ERROR logs (401 Unauthorized):**
+- `/api/proxy/users/me` (4 times)
+- `/api/proxy/reports/` (multiple endpoints)
+- `/api/proxy/research/active` (2 times)
+- `/api/proxy/users/usage?period=month` (2 times)
+- `/api/proxy/projects` (2 times)
+- `/api/proxy/activity?limit=3` (2 times)
+
+**Full Report:** See `REGRESSION_SESSION368_REPORT.md`
+
+---
 
 ## 🚨 Session 367 Summary (2026-01-20) - REGRESSION TESTING: 2/3 PASSING, 1/3 CRITICAL BUG
 
