@@ -1,7 +1,21 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 363)
-**Project Status:** ✅ AUTH FIXED! - 2/3 features passing, 1/3 incomplete (external dependency)
+**Last Updated:** 2026-01-20 (Session 364)
+**Project Status:** 🔴 CRITICAL BUG FOUND - Feature #57 failing despite marked as passing
+
+## 🔴 Session 364 Summary (2026-01-20) - CRITICAL BUG DISCOVERED
+
+### Test Results
+- Feature #57 (Key people identification): ❌ **FAILING** (0/6 steps)
+- Feature #98 (Loading indicator): ✅ **PASSING** (5/5 steps)
+- Feature #293 (Apply template): ⚠️ **INCOMPLETE** (code exists, E2E not tested)
+
+### Critical Discovery
+**Feature #57 has if/elif priority bug** - Line 471 in chat.py executes before line 927, preventing key people data from being sent. Full implementation exists but is unreachable.
+
+**Reports:** See SESSION_364_SUMMARY.md, FEATURE_57_SESSION364_FAILING.md, FEATURE_98_SESSION364_PASSING.md
+
+---
 
 ## 🎉 Session 363 Summary (2026-01-20) - AUTHENTICATION CRISIS RESOLVED!
 
