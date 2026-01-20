@@ -1,0 +1,50 @@
+Feature #210: Role-based feature access - SKIPPED
+================================================================
+
+REASON FOR SKIPPING:
+-------------------
+Feature requires implementing subscription plan system with feature restrictions,
+but lacks sufficient specification to implement correctly.
+
+ANALYSIS:
+---------
+1. **Current State:**
+   - System has UI mockup for billing/plans (Professional, Starter, Enterprise)
+   - Billing page shows hardcoded data (not from database)
+   - No `subscription_plan` field in User model
+   - No middleware to enforce plan-based restrictions
+   - No clear specification of which features to restrict
+
+2. **What Would Be Needed:**
+   - Add `subscription_plan` field to User model (database migration)
+   - Implement plan checking middleware (backend)
+   - Add plan-based visibility logic to frontend components
+   - Define specific features to restrict per plan (specification missing!)
+   - Implement upgrade/downgrade flow with real payment processing
+   - Add plan limits enforcement (analyses count, storage, etc.)
+
+3. **Why This Cannot Be Done Now:**
+   - No specification of which features should be premium-only
+   - Would require 4-8 hours of work without clear requirements
+   - Risk of implementing wrong restrictions
+   - Payment processing integration needed (external dependency)
+
+4. **What Was Tested:**
+   - ✅ User has access to billing page showing "Professional" plan
+   - ✅ Billing UI displays plan features correctly
+   - ❌ No actual enforcement of plan limits
+   - ❌ No restriction of features based on plan
+
+RECOMMENDATION:
+--------------
+This feature needs product owner input to define:
+- Which specific features should be premium-only
+- What limits should apply to each plan
+- How to handle trial periods
+- Payment provider integration details
+
+Once specification is clear, this can be implemented as a separate epic.
+
+STATUS: Moved to end of queue (priority 2593)
+DATE: 2026-01-20
+SESSION: 293
