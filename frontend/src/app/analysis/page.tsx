@@ -42,12 +42,21 @@ const GEOGRAPHIES = [
   { value: 'global', label: 'Globalnie', flag: '🌐' },
 ]
 
+const SEGMENTS = [
+  { value: '', label: 'Wszystkie segmenty' },
+  { value: 'B2B', label: 'B2B (Business-to-Business)' },
+  { value: 'B2C', label: 'B2C (Business-to-Consumer)' },
+  { value: 'Enterprise', label: 'Enterprise (Duże przedsiębiorstwa)' },
+  { value: 'SMB', label: 'SMB (Małe i średnie firmy)' },
+]
+
 export default function MarketAnalysisPage() {
   const router = useRouter()
   const locale = useUserLocale()
   const currency = useUserCurrency()
   const [industry, setIndustry] = useState('manufacturing')
   const [geography, setGeography] = useState('poland')
+  const [segment, setSegment] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<MarketAnalysisResult | null>(null)
@@ -73,6 +82,7 @@ export default function MarketAnalysisPage() {
           industry,
           geography,
           depth: 'standard',
+          segment: segment || null,
         }),
       })
 
@@ -170,6 +180,27 @@ export default function MarketAnalysisPage() {
             </div>
           </div>
 
+          {/* Market Segment Filter */}
+          <div className="mt-6">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Segment rynku
+            </label>
+            <select
+              value={segment}
+              onChange={(e) => setSegment(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              {SEGMENTS.map((seg) => (
+                <option key={seg.value} value={seg.value}>
+                  {seg.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-sm text-gray-500">
+              Filtruj wyniki według segmentu rynku (B2B, B2C, Enterprise, SMB)
+            </p>
+          </div>
+
           <button
             onClick={handleAnalyze}
             disabled={isLoading}
@@ -211,9 +242,15 @@ export default function MarketAnalysisPage() {
               </div>
               <h3 className="mt-2 text-2xl font-bold capitalize">
                 Analiza rynku: {INDUSTRIES.find(i => i.value === result.industry)?.label}
+                {result.segment && (
+                  <span className="ml-3 text-lg font-normal text-blue-200">
+                    ({result.segment})
+                  </span>
+                )}
               </h3>
               <p className="mt-1 text-blue-100">
                 Dane za rok {result.data[0]?.year || 2024}
+                {result.segment && ` • Segment: ${SEGMENTS.find(s => s.value === result.segment)?.label}`}
               </p>
             </div>
 
