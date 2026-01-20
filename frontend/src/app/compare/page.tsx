@@ -22,11 +22,11 @@ export default function CompareCompaniesPage() {
   const [showDropdown1, setShowDropdown1] = useState(false);
   const [showDropdown2, setShowDropdown2] = useState(false);
 
-  // Mock company suggestions (in real app, this would fetch from API)
+  // Mock company suggestions (matches backend MOCK_COMPANIES)
   const mockCompanies = [
-    { id: '1111111111', name: 'FADO Sp. z o.o.', nip: '1111111111', krs: '0000111111' },
-    { id: '2222222222', name: 'PlastPak Sp. z o.o.', nip: '2222222222', krs: '0000222222' },
-    { id: '3333333333', name: 'MetalPro S.A.', nip: '3333333333', krs: '0000333333' },
+    { id: '1', name: 'FADO Sp. z o.o.', nip: '5260016831', krs: '0000145732' },
+    { id: '2', name: 'Splast S.A.', nip: '6781234567', krs: '0000234567' },
+    { id: '3', name: 'TechSoft Sp. z o.o.', nip: '1234567890', krs: '0000345678' },
   ];
 
   // Load comparison when both companies are selected
