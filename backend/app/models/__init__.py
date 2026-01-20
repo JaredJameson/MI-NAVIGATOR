@@ -10,6 +10,7 @@ from app.models.audit_log import AuditLog
 from app.models.analytics_event import AnalyticsEvent, EventType
 from app.models.error_log import ErrorLog
 from app.models.uploaded_file import UploadedFile
+from app.models.webhook import Webhook, WebhookEvent, WebhookStatus
 
 __all__ = [
     "User",
@@ -25,5 +26,8 @@ __all__ = [
     "AnalyticsEvent",
     "EventType",
     "ErrorLog",
-    "UploadedFile"
+    "UploadedFile",
+    "Webhook",
+    "WebhookEvent",
+    "WebhookStatus"
 ]

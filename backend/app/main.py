@@ -80,6 +80,15 @@ async def lifespan(app: FastAPI):
     # Startup
     print(f"Starting {settings.APP_NAME}...")
 
+    # Initialize database tables (webhooks table)
+    from app.db.session import SessionLocal
+    from app.db.base import Base
+    from app.db.session import engine
+
+    # Create all tables (including webhooks)
+    Base.metadata.create_all(bind=engine)
+    print("[Database] Tables initialized")
+
     # Initialize cache manager
     await cache_manager.connect()
 
