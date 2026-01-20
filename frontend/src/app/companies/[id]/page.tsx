@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard, customFieldsApi, CompanyCustomField, CompanyFinancials } from '@/services/api';
+import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard, customFieldsApi, CompanyCustomField, CompanyFinancials, conflictsApi, DataConflictsResponse } from '@/services/api';
 import { formatRelativeTime } from '@/utils/date';
 
-type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people' | 'data-quality';
+type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people' | 'data-quality' | 'conflicts';
 
 export default function CompanyProfilePage() {
   const params = useParams();
@@ -41,6 +41,9 @@ export default function CompanyProfilePage() {
   const [watchlistLoading, setWatchlistLoading] = useState(false);
   const [financials, setFinancials] = useState<CompanyFinancials | null>(null);
   const [financialsLoading, setFinancialsLoading] = useState(false);
+  const [conflicts, setConflicts] = useState<DataConflictsResponse | null>(null);
+  const [conflictsLoading, setConflictsLoading] = useState(false);
+  const [resolvingConflict, setResolvingConflict] = useState<string | null>(null);
 
   // Load company profile
   useEffect(() => {
@@ -216,6 +219,45 @@ export default function CompanyProfilePage() {
     }
 
     setWatchlistLoading(false);
+  };
+
+  // Load conflicts when switching to conflicts tab
+  useEffect(() => {
+    async function loadConflicts() {
+      if (activeTab !== 'conflicts') return;
+
+      setConflictsLoading(true);
+      const result = await conflictsApi.getCompanyConflicts(companyId);
+
+      if (result.data) {
+        setConflicts(result.data);
+      }
+
+      setConflictsLoading(false);
+    }
+
+    loadConflicts();
+  }, [activeTab, companyId]);
+
+  // Handle conflict resolution
+  const handleResolveConflict = async (fieldName: string, selectedValue: string, selectedSource: string) => {
+    setResolvingConflict(fieldName);
+
+    const result = await conflictsApi.resolveConflict(companyId, {
+      field_name: fieldName,
+      selected_value: selectedValue,
+      selected_source: selectedSource,
+    });
+
+    if (result.data) {
+      // Reload conflicts to refresh the list
+      const conflictsResult = await conflictsApi.getCompanyConflicts(companyId);
+      if (conflictsResult.data) {
+        setConflicts(conflictsResult.data);
+      }
+    }
+
+    setResolvingConflict(null);
   };
 
   // Handle custom field value save
@@ -431,6 +473,7 @@ export default function CompanyProfilePage() {
               { id: 'financials' as Tab, label: 'Finanse', icon: '💰' },
               { id: 'people' as Tab, label: 'Osoby', icon: '👥' },
               { id: 'data-quality' as Tab, label: 'Jakość Danych', icon: '✓' },
+              { id: 'conflicts' as Tab, label: 'Konflikty', icon: '⚠️' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1729,6 +1772,110 @@ export default function CompanyProfilePage() {
                 <h3 className="text-lg font-semibold text-slate-900">Brak danych</h3>
                 <p className="text-slate-600 mt-1">
                   Nie można załadować metryk jakości danych.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Conflicts Tab */}
+        {activeTab === 'conflicts' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Konflikty danych</h2>
+              <p className="text-slate-600">
+                Pola z różnymi wartościami z wielu źródeł. Wybierz preferowaną wartość aby rozwiązać konflikt.
+              </p>
+            </div>
+
+            {conflictsLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-slate-600">Ładowanie konfliktów...</span>
+              </div>
+            ) : conflicts && conflicts.conflict_count > 0 ? (
+              <div className="space-y-6">
+                {conflicts.conflicts.map((conflict) => (
+                  <div key={conflict.field_name} className="bg-white border border-amber-200 rounded-lg p-6">
+                    <div className="flex items-start gap-3 mb-4">
+                      <span className="text-2xl">⚠️</span>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                          {conflict.field_label}
+                        </h3>
+                        <p className="text-sm text-slate-600 mt-1">
+                          Znaleziono {conflict.conflicting_values.length} różne wartości z różnych źródeł
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {conflict.conflicting_values.map((value, index) => {
+                        const isRecommended = conflict.recommended_value_index === index;
+                        const isResolving = resolvingConflict === conflict.field_name;
+
+                        return (
+                          <div
+                            key={index}
+                            className={`border rounded-lg p-4 ${
+                              isRecommended
+                                ? 'border-green-300 bg-green-50'
+                                : 'border-slate-200 bg-white'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-slate-900">{value.value}</span>
+                                  {value.is_verified && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                      ✓ Zweryfikowane
+                                    </span>
+                                  )}
+                                  {isRecommended && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                      👍 Rekomendowane
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-2 text-sm text-slate-600 space-y-1">
+                                  <div>
+                                    <span className="font-medium">Źródło:</span> {value.source}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Pewność:</span> {value.confidence}%
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Ostatnia aktualizacja:</span>{' '}
+                                    {new Date(value.last_updated).toLocaleDateString('pl-PL')}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleResolveConflict(conflict.field_name, value.value, value.source)}
+                                disabled={isResolving}
+                                className={`ml-4 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                  isResolving
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                              >
+                                {isResolving ? 'Zapisywanie...' : 'Wybierz'}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+                <div className="text-4xl mb-4">✅</div>
+                <h3 className="text-lg font-semibold text-slate-900">Brak konfliktów</h3>
+                <p className="text-slate-600 mt-1">
+                  Wszystkie dane są spójne. Nie wykryto konfliktów między źródłami.
                 </p>
               </div>
             )}

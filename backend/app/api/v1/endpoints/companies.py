@@ -2094,3 +2094,130 @@ async def get_company_data_quality(
         improvement_suggestions=improvement_suggestions,
         last_assessment=datetime.now().isoformat()
     )
+
+
+# Data Conflict Resolution Models
+class DataConflictValue(BaseModel):
+    value: str
+    source: str
+    confidence: float  # 0-100
+    last_updated: str
+    is_verified: bool
+
+
+class DataConflict(BaseModel):
+    field_name: str
+    field_label: str
+    conflicting_values: List[DataConflictValue]
+    recommended_value_index: Optional[int] = None  # Index of recommended value in conflicting_values
+
+
+class DataConflictsResponse(BaseModel):
+    company_id: int
+    company_name: str
+    conflicts: List[DataConflict]
+    conflict_count: int
+
+
+class ResolveConflictRequest(BaseModel):
+    field_name: str
+    selected_value: str
+    selected_source: str
+
+
+@router.get("/conflicts/{company_id}", response_model=DataConflictsResponse)
+async def get_data_conflicts(
+    company_id: int,
+    # current_user: User = Depends(get_current_user)  # Temporarily disabled for testing
+):
+    """
+    Get data conflicts for a company.
+    Returns fields where multiple sources provide different values.
+    """
+    # Mock data - company with conflicts
+    if company_id == 1:  # FADO
+        conflicts = [
+            DataConflict(
+                field_name="founded_year",
+                field_label="Rok założenia",
+                conflicting_values=[
+                    DataConflictValue(
+                        value="2005",
+                        source="KRS (rządowe)",
+                        confidence=95.0,
+                        last_updated=(datetime.now() - timedelta(days=30)).isoformat(),
+                        is_verified=True
+                    ),
+                    DataConflictValue(
+                        value="2006",
+                        source="Strona WWW",
+                        confidence=70.0,
+                        last_updated=(datetime.now() - timedelta(days=7)).isoformat(),
+                        is_verified=False
+                    )
+                ],
+                recommended_value_index=0  # Recommend KRS value
+            ),
+            DataConflict(
+                field_name="employees_count",
+                field_label="Liczba pracowników",
+                conflicting_values=[
+                    DataConflictValue(
+                        value="150-200",
+                        source="LinkedIn",
+                        confidence=75.0,
+                        last_updated=(datetime.now() - timedelta(days=15)).isoformat(),
+                        is_verified=False
+                    ),
+                    DataConflictValue(
+                        value="120-150",
+                        source="Strona WWW",
+                        confidence=60.0,
+                        last_updated=(datetime.now() - timedelta(days=60)).isoformat(),
+                        is_verified=False
+                    ),
+                    DataConflictValue(
+                        value="180",
+                        source="GUS",
+                        confidence=85.0,
+                        last_updated=(datetime.now() - timedelta(days=90)).isoformat(),
+                        is_verified=True
+                    )
+                ],
+                recommended_value_index=2  # Recommend GUS value (verified + highest confidence)
+            )
+        ]
+
+        return DataConflictsResponse(
+            company_id=company_id,
+            company_name="FADO Sp. z o.o.",
+            conflicts=conflicts,
+            conflict_count=len(conflicts)
+        )
+
+    # No conflicts for other companies
+    return DataConflictsResponse(
+        company_id=company_id,
+        company_name="Company Name",
+        conflicts=[],
+        conflict_count=0
+    )
+
+
+@router.post("/conflicts/{company_id}/resolve")
+async def resolve_data_conflict(
+    company_id: int,
+    request: ResolveConflictRequest,
+    # current_user: User = Depends(get_current_user)  # Temporarily disabled for testing
+):
+    """
+    Resolve a data conflict by selecting preferred value.
+    In production, this would update the company record.
+    """
+    return {
+        "success": True,
+        "message": f"Conflict for '{request.field_name}' resolved",
+        "selected_value": request.selected_value,
+        "selected_source": request.selected_source,
+        "company_id": company_id
+    }

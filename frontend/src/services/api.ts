@@ -646,4 +646,50 @@ export const customFieldsApi = {
   },
 };
 
+// Data Conflicts API Types
+export interface DataConflictValue {
+  value: string;
+  source: string;
+  confidence: number;
+  last_updated: string;
+  is_verified: boolean;
+}
+
+export interface DataConflict {
+  field_name: string;
+  field_label: string;
+  conflicting_values: DataConflictValue[];
+  recommended_value_index?: number;
+}
+
+export interface DataConflictsResponse {
+  company_id: number;
+  company_name: string;
+  conflicts: DataConflict[];
+  conflict_count: number;
+}
+
+export interface ResolveConflictRequest {
+  field_name: string;
+  selected_value: string;
+  selected_source: string;
+}
+
+// Data Conflicts API
+export const conflictsApi = {
+  async getCompanyConflicts(companyId: string | number): Promise<ApiResponse<DataConflictsResponse>> {
+    return fetchApi(`/companies/conflicts/${companyId}`);
+  },
+
+  async resolveConflict(
+    companyId: string | number,
+    data: ResolveConflictRequest
+  ): Promise<ApiResponse<{ success: boolean; message: string; selected_value: string; selected_source: string; company_id: number }>> {
+    return fetchApi(`/companies/conflicts/${companyId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export default fetchApi;
