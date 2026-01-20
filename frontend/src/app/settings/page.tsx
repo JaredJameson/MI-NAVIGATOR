@@ -33,6 +33,7 @@ interface UserProfile {
   preferred_format: string
   preferred_currency: string
   timezone: string
+  report_branding: boolean
   onboarding_completed: boolean
 }
 
@@ -136,6 +137,7 @@ export default function SettingsPage() {
   const [format, setFormat] = useState('pdf')
   const [currency, setCurrency] = useState('PLN')
   const [timezone, setTimezone] = useState('Europe/Warsaw')
+  const [reportBranding, setReportBranding] = useState(true)
 
   // Notification preferences
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -173,6 +175,7 @@ export default function SettingsPage() {
       format,
       currency,
       timezone,
+      reportBranding,
     }
 
     // Default values to compare against
@@ -185,6 +188,7 @@ export default function SettingsPage() {
       format: 'pdf',
       currency: 'PLN',
       timezone: 'Europe/Warsaw',
+      reportBranding: true,
     }
 
     const hasChanges = Object.keys(currentValues).some(
@@ -192,7 +196,7 @@ export default function SettingsPage() {
     )
 
     setHasUnsavedChanges(hasChanges)
-  }, [name, industry, userRole, language, depth, format, currency, timezone, initialValues])
+  }, [name, industry, userRole, language, depth, format, currency, timezone, reportBranding, initialValues])
 
   // Warn before leaving page with unsaved changes
   useEffect(() => {
@@ -249,6 +253,7 @@ export default function SettingsPage() {
         format: data.preferred_format || 'pdf',
         currency: data.preferred_currency || 'PLN',
         timezone: data.timezone || 'Europe/Warsaw',
+        reportBranding: data.report_branding !== undefined ? data.report_branding : true,
       }
       setName(values.name)
       setIndustry(values.industry)
@@ -258,6 +263,7 @@ export default function SettingsPage() {
       setFormat(values.format)
       setCurrency(values.currency)
       setTimezone(values.timezone)
+      setReportBranding(values.reportBranding)
       setInitialValues(values)
     } catch (err) {
       setError('Failed to load profile')
@@ -459,6 +465,7 @@ export default function SettingsPage() {
           preferred_format: format,
           preferred_currency: currency,
           timezone: timezone,
+          report_branding: reportBranding,
         }),
       })
 
@@ -778,6 +785,33 @@ export default function SettingsPage() {
               <p className="mt-1 text-sm text-gray-500">
                 All timestamps in the application will be displayed in your selected timezone
               </p>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label htmlFor="reportBranding" className="block text-sm font-medium text-gray-900">
+                  Report Branding
+                </label>
+                <p className="text-sm text-gray-500">
+                  Include company logo in exported reports (PDF, DOCX, PPTX)
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={reportBranding}
+                onClick={() => setReportBranding(!reportBranding)}
+                className={`${
+                  reportBranding ? 'bg-blue-600' : 'bg-gray-200'
+                } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`${
+                    reportBranding ? 'translate-x-5' : 'translate-x-0'
+                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                />
+              </button>
             </div>
           </div>
         </section>

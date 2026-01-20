@@ -36,6 +36,7 @@ class UserProfileResponse(BaseModel):
     preferred_format: str = "pdf"
     preferred_currency: str = "PLN"
     timezone: str = "Europe/Warsaw"
+    report_branding: bool = True
     onboarding_completed: bool = False
     created_at: datetime
     last_login_at: Optional[datetime] = None
@@ -59,6 +60,7 @@ class UserPreferencesResponse(BaseModel):
     preferred_format: str
     preferred_currency: str
     timezone: str
+    report_branding: bool
 
 
 class UserPreferencesUpdate(BaseModel):
@@ -68,6 +70,7 @@ class UserPreferencesUpdate(BaseModel):
     preferred_format: Optional[str] = None
     preferred_currency: Optional[str] = None
     timezone: Optional[str] = None
+    report_branding: Optional[bool] = None
 
 
 class NotificationPreferencesResponse(BaseModel):
@@ -141,6 +144,7 @@ async def get_user_profile(
         preferred_format=current_user.preferred_format or "pdf",
         preferred_currency=current_user.preferred_currency or "PLN",
         timezone=current_user.timezone or "Europe/Warsaw",
+        report_branding=current_user.report_branding if hasattr(current_user, 'report_branding') else True,
         onboarding_completed=current_user.onboarding_completed or False,
         created_at=current_user.created_at,
         last_login_at=current_user.last_login_at
@@ -216,6 +220,8 @@ async def update_user_preferences(
         current_user.preferred_currency = prefs_data.preferred_currency
     if prefs_data.timezone is not None:
         current_user.timezone = prefs_data.timezone
+    if prefs_data.report_branding is not None:
+        current_user.report_branding = prefs_data.report_branding
 
     await db.commit()
     await db.refresh(current_user)
@@ -225,7 +231,8 @@ async def update_user_preferences(
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
         preferred_currency=current_user.preferred_currency or "PLN",
-        timezone=current_user.timezone or "Europe/Warsaw"
+        timezone=current_user.timezone or "Europe/Warsaw",
+        report_branding=current_user.report_branding if hasattr(current_user, 'report_branding') else True
     )
 
 

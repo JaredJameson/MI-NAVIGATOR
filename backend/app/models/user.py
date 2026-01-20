@@ -46,6 +46,7 @@ class User(Base):
     preferred_format = Column(String(10), default="pdf")  # pdf, docx, pptx
     preferred_currency = Column(String(3), default="PLN")  # ISO 4217 currency code (PLN, EUR, USD)
     timezone = Column(String(50), default="Europe/Warsaw")  # IANA timezone identifier
+    report_branding = Column(Boolean, default=True)  # Include company logo in reports
 
     # Status
     onboarding_completed = Column(Boolean, default=False)
