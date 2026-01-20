@@ -21,6 +21,7 @@ interface MarketAnalysisResult {
   id: string
   industry: string
   geography: string
+  segment?: string
   status: string
   data: MarketDataPoint[]
   insights: string[]

@@ -71,7 +71,7 @@ export default function ChatPage() {
     description: string
     input_type?: string
     placeholder?: string
-    options?: Array<{value: string, label: string, description: string}>
+    options?: Array<{value: string, label: string, description: string, default?: boolean}>
   } | null>(null)
   const [researchPlan, setResearchPlan] = useState<{
     plan_id: string

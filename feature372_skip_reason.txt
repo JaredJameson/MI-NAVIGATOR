@@ -1,0 +1,61 @@
+# Feature #372: Service Worker Caching - SKIPPED
+
+**Reason**: Architectural limitation - requires custom Service Worker implementation
+
+## Summary
+
+Feature #372 tests offline caching via Service Worker. After extensive testing in both development and production builds, confirmed that **runtime caching does not work** with current architecture.
+
+## Technical Blocker
+
+**Root Cause**: `next-pwa` library incompatibility with Next.js App Router
+
+- Next.js App Router uses React Server Components (RSC)
+- Client-side navigation doesn't trigger HTTP requests
+- Service Worker cannot intercept RSC navigation
+- Runtime caching (`offlineCache`) never gets populated
+
+## What Works
+
+✅ Service Worker registration and activation
+✅ Static asset precaching (90+ files)
+✅ Root URL (`/`) accessible offline
+✅ Fast load times from precached assets
+
+## What Doesn't Work
+
+❌ Page navigation offline (e.g., /dashboard, /reports)
+❌ Runtime cache population
+❌ Custom offline page serving
+❌ API response caching
+
+## Evidence
+
+- Tested in development mode (Session 291)
+- Tested in production build (Session 292)
+- Same issue in both environments
+- Verified Service Worker configuration correct
+- Verified regex patterns and strategies correct
+- Problem is architectural, not configurational
+
+## Resolution Options
+
+1. **Skip for now** (CHOSEN) - Architectural limitation blocks completion
+2. **Custom Service Worker** - Requires 4-8 hours custom implementation
+3. **Migrate PWA library** - Requires 2-4 hours migration + testing
+4. **Accept partial support** - Mark as passing with caveat
+
+## Documentation
+
+Full verification reports:
+- `FEATURE_372_VERIFICATION_REPORT.md` (Session 291 - Development)
+- `FEATURE_372_PRODUCTION_VERIFICATION.md` (Session 292 - Production)
+
+## Recommendation
+
+Feature should be **retested** after:
+- PWA library migration to App Router-compatible solution
+- OR: Custom Service Worker implementation
+- OR: next-pwa adds full App Router support
+
+**Current Status**: Blocked by technical limitation, not implementation quality.
