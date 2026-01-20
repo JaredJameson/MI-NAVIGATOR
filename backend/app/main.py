@@ -165,6 +165,7 @@ app.add_middleware(
         "/api/v1/companies/",  # Allow all companies operations without CSRF token (auth handled at endpoint level)
         "/api/v1/api-keys",  # Allow API key management without CSRF token (uses JWT auth instead)
         "/api/v1/webhooks",  # Allow webhook management without CSRF token (uses JWT auth instead)
+        "/api/v1/projects",  # Allow project operations without CSRF token (uses JWT auth instead)
     ]
 )
 

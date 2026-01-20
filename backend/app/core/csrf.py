@@ -59,6 +59,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             "/api/v1/csrf-token",  # Endpoint to get CSRF token
             "/api/v1/users/onboarding",  # Onboarding endpoint (authenticated)
             "/api/v1/api-keys",  # API Keys management (uses JWT auth instead)
+            "/api/v1/projects",  # Projects API (uses JWT auth)
         ]
         print(f"[CSRF] Initialized with exempt paths: {self.exempt_paths}")
 

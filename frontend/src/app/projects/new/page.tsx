@@ -49,7 +49,7 @@ export default function NewProjectPage() {
         csrfToken = await fetchCsrfToken()
       }
 
-      const response = await fetch(`${API_BASE_URL}/projects/`, {
+      const response = await fetch(`${API_BASE_URL}/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

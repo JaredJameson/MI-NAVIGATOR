@@ -64,7 +64,7 @@ export default function ProjectsPage() {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/projects/`, {
+      const response = await fetch(`${API_BASE_URL}/projects`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
