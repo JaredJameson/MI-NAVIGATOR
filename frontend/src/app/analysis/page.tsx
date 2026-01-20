@@ -7,7 +7,7 @@ import { getStoredToken } from '@/services/api'
 import { useUserLocale, useUserCurrency } from '@/hooks/useUserTimezone'
 import { formatNumber, formatDecimal, formatCurrency } from '@/utils/number'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/proxy'
 
 interface MarketDataPoint {
   region: string

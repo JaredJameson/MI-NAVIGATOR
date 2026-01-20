@@ -102,7 +102,7 @@ async def get_current_user(
 
 async def get_current_user_optional(
     db: AsyncSession = Depends(get_db),
-    token: Optional[str] = None
+    token: Optional[str] = Depends(OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False))
 ) -> Optional["User"]:
     """Get current authenticated user from token, or None if not authenticated."""
     from app.models.user import User

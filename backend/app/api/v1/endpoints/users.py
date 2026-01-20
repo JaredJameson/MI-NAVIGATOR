@@ -586,6 +586,7 @@ async def get_user_usage_stats(
     billable_event_types = [
         EventType.RESEARCH_STARTED,
         EventType.RESEARCH_COMPLETED,
+        EventType.ANALYSIS_COMPLETED,
         EventType.SEARCH_PERFORMED,
         EventType.PKD_SEARCH,
         EventType.COMPANY_ANALYZED,

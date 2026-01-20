@@ -54,11 +54,10 @@ async def check_usage_limit(
     current_usage = result.scalar() or 0
 
     # Determine limit based on role
-    # TEMPORARY: Set low limit for testing Feature #211
     if user.role == UserRole.ADMIN:
         limit = 1000
     else:
-        limit = 2  # Temporarily set to 2 for testing
+        limit = 100  # Standard limit for regular users
 
     # Check if limit exceeded
     if current_usage >= limit:

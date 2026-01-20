@@ -25,6 +25,9 @@ class EventType(str, enum.Enum):
     RESEARCH_STARTED = "research_started"
     RESEARCH_COMPLETED = "research_completed"
 
+    # Analysis events
+    ANALYSIS_COMPLETED = "analysis_completed"
+
     # Report events
     REPORT_CREATED = "report_created"
     REPORT_VIEWED = "report_viewed"
