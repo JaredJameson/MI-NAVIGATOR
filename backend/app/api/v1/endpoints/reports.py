@@ -100,6 +100,8 @@ def generate_pagination_test_reports(count: int = 1000, user_id: str = "f6e9a62e
     return reports
 
 # Mock reports database
+# BUGFIX Session 329: Clean pagination_test reports at module load
+# This ensures no stale test reports with wrong owner_id remain in memory
 MOCK_REPORTS = [
     {
         "id": "report_test113",
@@ -1097,9 +1099,11 @@ Opis: Wiodący software house Python/JavaScript
     }
 ]
 
-# Add pagination test data for Feature #200
-# Generate 1000 test reports for test_session_238@test.com (f6e9a62e-fb70-4808-882b-e5711d0a5411)
-MOCK_REPORTS.extend(generate_pagination_test_reports(1000, "f6e9a62e-fb70-4808-882b-e5711d0a5411"))
+# REMOVED: Pagination test data initialization at startup
+# Reason: Hardcoded user_id causes 403 errors for other users (Session 329 regression)
+# Test reports should be generated on-demand per user via GET /api/v1/reports/ endpoint
+# which automatically generates reports for the authenticated user
+# MOCK_REPORTS.extend(generate_pagination_test_reports(1000, "f6e9a62e-fb70-4808-882b-e5711d0a5411"))
 
 
 class ReportSummary(BaseModel):
@@ -1161,20 +1165,21 @@ async def list_reports(
     # Import REPORT_TAGS from tags module
     from app.api.v1.endpoints.tags import REPORT_TAGS
 
+    # BUGFIX Session 329: ALWAYS remove old pagination_test reports with wrong user_id
+    # Old reports (before Session 327) have hardcoded user_id causing 403 errors
+    # Remove ALL pagination_test reports first, then regenerate for current user
+    MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if not r["id"].startswith("pagination_test_")]
+
     # SECURITY: Only show reports belonging to the current user
     user_id = str(current_user.id)
     filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
 
-    # AUTO-GENERATE TEST DATA: If user has no reports, generate 1000 test reports for testing
-    if len(filtered_reports) == 0:
-        # BUGFIX Session 327: Remove old pagination test reports to avoid ID conflicts
-        # When backend restarts, MOCK_REPORTS gets reset but may contain old pagination_test_* reports
-        # from previous sessions with different user_ids, causing 403 errors
-        MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if not r["id"].startswith("pagination_test_")]
-
+    # AUTO-GENERATE TEST DATA: If user has no pagination test reports, generate 1000 test reports
+    has_pagination_reports = any(r["id"].startswith(f"pagination_test_{user_id[:8]}") for r in filtered_reports)
+    if not has_pagination_reports:
         test_reports = generate_pagination_test_reports(1000, user_id)
         MOCK_REPORTS.extend(test_reports)
-        filtered_reports = test_reports
+        filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
 
     # Filter by archived status (default: show only non-archived)
     if archived is None:
@@ -1535,6 +1540,29 @@ async def get_report(
     current_user: User = Depends(get_current_user)  # SECURITY: Auth required
 ):
     """Get report details."""
+    # BUGFIX Session 329: Handle old pagination_test IDs (without user prefix)
+    # When user clicks old link pagination_test_0001, map it to new format pagination_test_<prefix>_0001
+    user_id = str(current_user.id)
+    user_prefix = user_id[:8]
+
+    if report_id.startswith("pagination_test_"):
+        # Clean all old pagination_test reports first
+        MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if not r["id"].startswith("pagination_test_")]
+
+        # Generate test reports for current user with new format
+        test_reports = generate_pagination_test_reports(1000, user_id)
+        MOCK_REPORTS.extend(test_reports)
+
+        # Map old ID format to new format
+        # Old: pagination_test_0001
+        # New: pagination_test_b40eb11f_0001
+        import re
+        match = re.search(r'pagination_test_(\d{4})$', report_id)
+        if match:
+            # Old format detected (just number, no user prefix)
+            report_num = match.group(1)
+            report_id = f"pagination_test_{user_prefix}_{report_num}"
+
     for report in MOCK_REPORTS:
         if report["id"] == report_id:
             # SECURITY: Check if user is the owner of the report

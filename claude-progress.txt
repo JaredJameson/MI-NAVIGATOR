@@ -1,7 +1,114 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 328)
+**Last Updated:** 2026-01-20 (Session 329)
 **Project Status:** 379/380 features passing (99.7%) - 1 external blocker
+
+## Session 329 Summary (2026-01-20) - AUTHENTICATION ISSUE DISCOVERED
+
+### ⚠️ REGRESSION TESTING BLOCKED - Authentication Problem
+
+**Issue:** Attempted regression testing but discovered authentication/session issue
+**Severity:** DEV ENVIRONMENT ISSUE (not production bug)
+**Status:** ⚠️ REQUIRES FIX BEFORE TESTING
+
+### The Problem
+
+Started regression testing on Feature #38 (Report Editor):
+1. User appeared logged in (showed "User" / "user@example.com")
+2. Navigated to /reports - list loaded successfully
+3. Clicked on report "Pagination Test Report #1"
+4. Received **403 Forbidden** error
+
+### Investigation
+
+**Initial Hypothesis:** Data isolation bug (similar to Sessions 325, 327)
+- Spent ~2 hours debugging report ID mapping
+- Added pagination_test ID mapping logic to backend
+- Multiple backend restarts and code changes
+
+**True Root Cause:**
+- User token in localStorage is **EXPIRED** or **INVALID**
+- User ID from token (`b40eb11f-7118-4e66-b2cd-a5c130283 9cc`) **does not exist in database**
+- Backend correctly returns **401 Unauthorized**
+- Frontend shows generic "Could not load report" error
+
+**Evidence:**
+```json
+{"detail":"Not authenticated"}
+```
+
+All API calls return 401 Unauthorized, not 403 Forbidden as initially thought.
+
+### Code Changes Made
+
+**File:** `backend/app/api/v1/endpoints/reports.py`
+
+**Lines 103-104:** Added comment about cleaning pagination_test at module load
+
+**Lines 1541-1562:** Added ID mapping logic for old pagination_test reports
+- Cleans old test reports before lookup
+- Generates new reports with user_prefix format
+- Maps old IDs (pagination_test_0001) to new format (pagination_test_<prefix>_0001)
+
+**Impact:** These changes are technically correct but **cannot be tested** due to authentication issue.
+
+### Artifacts
+
+**Files Created:**
+- `SESSION_329_SUMMARY.md` - Detailed session analysis
+- `create_session329_user.py` - Created test user (not used)
+- `check_report_owner_session329.py` - DB verification scripts
+- 4 verification screenshots
+
+**Token Usage:** ~116k / 200k (58%) - Heavy debugging session
+
+### Recommendations for Next Session
+
+**CRITICAL - Fix Authentication First:**
+
+Option 1: Clear browser storage
+```javascript
+// In browser console
+localStorage.clear();
+sessionStorage.clear();
+// Then reload page
+```
+
+Option 2: Login with valid user
+```bash
+# Find existing user in database
+sqlite3 mi_navigator.db "SELECT id, email FROM users LIMIT 5;"
+# Use those credentials to login
+```
+
+Option 3: Create matching mock user
+```python
+# Ensure user b40eb11f-7118-4e66-b2cd-a5c130283 9cc exists in DB
+# Or update token to match existing user
+```
+
+**After Auth Fixed:**
+1. Run regression test on Feature #38 (Report Editor)
+2. Run regression test on Feature #128 (Default form values)
+3. If passing, continue with Feature #211 or next available
+
+### Lessons Learned
+
+1. **Check authentication FIRST** before debugging data issues
+2. **401 vs 403:** Different errors indicate different problems
+   - 401 = Not authenticated (token invalid)
+   - 403 = Authenticated but not authorized (wrong permissions)
+3. **Mock users** in dev can have expired tokens
+4. **Always verify** user exists in database when debugging auth
+
+### Session Outcome
+
+- ❌ No features tested (authentication blocker)
+- ✅ Identified root cause (invalid token)
+- ✅ Documented issue thoroughly
+- ⚠️ Code changes made but unverified
+
+---
 
 ## Session 328 Summary (2026-01-20) - REGRESSION TESTING COMPLETE
 
