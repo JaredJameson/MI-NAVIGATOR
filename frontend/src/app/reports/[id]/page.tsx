@@ -6013,7 +6013,7 @@ export default function ReportViewerPage() {
                               const altText = file.name.replace(/\.[^/.]+$/, '')
 
                               // Insert markdown image syntax
-                              const textarea = document.querySelector(`textarea[value="${editedSections[section.id] || section.content}"]`) as HTMLTextAreaElement
+                              const textarea = document.querySelector(`textarea[data-section-id="${section.id}"]`) as HTMLTextAreaElement
                               if (textarea) {
                                 const start = textarea.selectionStart || 0
                                 const currentContent = editedSections[section.id] || section.content
@@ -6046,6 +6046,7 @@ export default function ReportViewerPage() {
                       </button>
                     </div>
                     <textarea
+                      data-section-id={section.id}
                       value={editedSections[section.id] || section.content}
                       onChange={(e) => {
                         setEditedSections({ ...editedSections, [section.id]: e.target.value })
