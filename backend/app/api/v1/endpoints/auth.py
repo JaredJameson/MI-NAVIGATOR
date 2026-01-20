@@ -168,29 +168,30 @@ async def register(
 
 @router.post("/login", response_model=Union[Token, TwoFactorRequired])
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    login_data: UserLogin,
     request: Request = None,
     db: AsyncSession = Depends(get_db)
 ):
     """
     Authenticate user and return JWT tokens.
 
-    Uses OAuth2 password flow:
-    - username: user's email
+    Request body:
+    - email: user's email
     - password: user's password
+    - remember_me: extend session duration (optional, default: false)
     """
     # Get client IP address
     ip_address = request.client.host if request else "unknown"
     user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
 
     # First check if user exists and if account is locked
-    existing_user = await AuthService.get_user_by_email(db, form_data.username)
+    existing_user = await AuthService.get_user_by_email(db, login_data.email)
 
     if existing_user and await AuthService.is_account_locked(existing_user):
         # Account is locked
         lockout_time = existing_user.account_locked_until
         security_logger.warning(
-            f"Locked account login attempt | Email: {form_data.username} | "
+            f"Locked account login attempt | Email: {login_data.email} | "
             f"IP: {ip_address} | Locked until: {lockout_time.isoformat() if lockout_time else 'N/A'}"
         )
 
@@ -200,7 +201,7 @@ async def login(
         )
 
     # Try to authenticate
-    user = await AuthService.authenticate_user(db, form_data.username, form_data.password)
+    user = await AuthService.authenticate_user(db, login_data.email, login_data.password)
 
     if not user:
         # Commit failed attempt counter update before raising exception
@@ -208,7 +209,7 @@ async def login(
 
         # Log failed login attempt
         security_logger.warning(
-            f"Failed login attempt | Email: {form_data.username} | "
+            f"Failed login attempt | Email: {login_data.email} | "
             f"IP: {ip_address} | User-Agent: {user_agent} | "
             f"Timestamp: {datetime.utcnow().isoformat()}"
         )
@@ -225,7 +226,7 @@ async def login(
         temp_token = AuthService.create_access_token(str(user.id), expires_minutes=5)
 
         security_logger.info(
-            f"2FA required for login | Email: {form_data.username} | "
+            f"2FA required for login | Email: {login_data.email} | "
             f"IP: {ip_address} | Timestamp: {datetime.utcnow().isoformat()}"
         )
 
@@ -237,13 +238,19 @@ async def login(
 
     # Log successful login (no 2FA)
     security_logger.info(
-        f"Successful login | Email: {form_data.username} | "
+        f"Successful login | Email: {login_data.email} | Remember Me: {login_data.remember_me} | "
         f"IP: {ip_address} | Timestamp: {datetime.utcnow().isoformat()}"
     )
 
-    # Create tokens
-    access_token = AuthService.create_access_token(str(user.id))
-    refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id))
+    # Create tokens with extended expiration if remember_me is enabled
+    if login_data.remember_me:
+        # Remember me: 30 days for both access and refresh tokens
+        access_token = AuthService.create_access_token(str(user.id), expires_minutes=30 * 24 * 60)  # 30 days in minutes
+        refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id), expires_days=30)
+    else:
+        # Normal login: default expiration (30 min access, 7 days refresh)
+        access_token = AuthService.create_access_token(str(user.id))
+        refresh_token, refresh_expires = AuthService.create_refresh_token(str(user.id))
 
     # Store session
     await AuthService.create_session(
@@ -265,7 +272,7 @@ async def login(
         event_name="User logged in",
         user=user,
         request=request,
-        metadata={"two_factor_used": False}
+        metadata={"two_factor_used": False, "remember_me": login_data.remember_me}
     )
 
     await db.commit()

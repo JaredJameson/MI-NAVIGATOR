@@ -9,6 +9,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [focusField, setFocusField] = useState<string | null>(null)
@@ -120,7 +121,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const result = await authApi.login(email, password)
+      const result = await authApi.login(email, password, rememberMe)
 
       if (result.error) {
         setError(result.error)
@@ -319,6 +320,8 @@ export default function LoginPage() {
               <input
                 id="remember"
                 type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">

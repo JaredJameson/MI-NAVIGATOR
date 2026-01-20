@@ -180,18 +180,18 @@ export const authApi = {
     });
   },
 
-  async login(email: string, password: string): Promise<ApiResponse<TokenResponse | any>> {
-    // OAuth2 form data format
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', password);
-
+  async login(email: string, password: string, rememberMe: boolean = false): Promise<ApiResponse<TokenResponse | any>> {
+    // Send as JSON with remember_me parameter
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: formData,
+      body: JSON.stringify({
+        email,
+        password,
+        remember_me: rememberMe,
+      }),
     });
 
     if (!response.ok) {

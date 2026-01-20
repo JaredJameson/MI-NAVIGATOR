@@ -55,9 +55,17 @@ class AuthService:
         return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
     @staticmethod
-    def create_refresh_token(user_id: str) -> Tuple[str, datetime]:
-        """Create a JWT refresh token and return token with expiry."""
-        expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    def create_refresh_token(user_id: str, expires_days: int = None) -> Tuple[str, datetime]:
+        """Create a JWT refresh token and return token with expiry.
+
+        Args:
+            user_id: User ID to encode in token
+            expires_days: Optional custom expiration time in days (default: from settings)
+        """
+        if expires_days is None:
+            expires_days = settings.REFRESH_TOKEN_EXPIRE_DAYS
+
+        expire = datetime.utcnow() + timedelta(days=expires_days)
         payload = {
             "sub": user_id,
             "exp": expire,
