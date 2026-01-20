@@ -1,7 +1,177 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 359)
-**Project Status:** 🟡 GOOD - 380/380 claimed, 0% false positives (8 sessions), 1/3 passing, 2/3 blocked by auth
+**Last Updated:** 2026-01-20 (Session 360)
+**Project Status:** 🔴 CRITICAL - 380/380 claimed, 2/3 features FAILING in regression (Feature #69, #379)
+
+## 🔴 Session 360 Summary (2026-01-20) - CRITICAL: 2/3 FEATURES FAILING
+
+### 📊 Regression Test Results
+
+**Features Tested:** 3 (randomly selected for regression)
+- **Feature #203** (No console errors) - ✅ **FIXED & PASSING** (was broken, now fixed)
+- **Feature #69** (News sentiment analysis) - ❌ **FAILING** (not implemented)
+- **Feature #379** (PWA installation prompt) - ❌ **FAILING** (code missing)
+
+**Summary:**
+- Fixed & Passing: 1/3 (33%)
+- Failing: 2/3 (67%)
+- **CRITICAL ISSUES FOUND** - Core features marked as passing but not working
+
+---
+
+### ✅ Feature #203: No Console Errors - FIXED & PASSING
+
+**Initial Status:** ❌ FAILING (2 ERROR logs found)
+**Final Status:** ✅ PASSING (0 ERROR logs)
+
+**Errors Found:**
+1. ❌ Duplicate API path: `/api/proxy/api/v1/users/me` (404)
+2. ❌ Missing favicon.ico (404)
+
+**Fixes Applied:**
+1. `frontend/src/components/Sidebar.tsx` - Changed direct backend call to proxy route
+2. `frontend/src/app/test-offline/page.tsx` - Standardized API endpoint
+3. `frontend/public/favicon.ico` - Created from existing icon-192x192.png
+
+**Verification:**
+- Tested 6 pages: /, /dashboard, /chat, /reports, /settings, /auth/login
+- ZERO ERROR logs across all pages ✅
+- Only acceptable webpack dev warning (dev-only)
+
+**Result:** 5/5 steps PASSING (100%)
+
+**Report:** `FEATURE_203_SESSION360_FINAL.md`
+
+---
+
+### ❌ Feature #69: News Sentiment Analysis - FAILING (NOT IMPLEMENTED)
+
+**Status:** ❌ **CRITICAL FAILURE** - Core feature not implemented
+
+**Test Results:**
+- Step 1: ✅ Request sent - "Analyze news sentiment for company FADO"
+- Step 2-5: ❌ FAIL - Wrong output generated
+
+**What Happened:**
+User requested: "Analyze news sentiment for company FADO Sp. z o.o."
+Brief confirmed: "News sentiment monitoring and analysis"
+
+**System Response:** Standard company analysis (profile + financials + market)
+**Expected Response:** News articles with sentiment (positive/negative/neutral)
+
+**What's Missing:**
+- News articles collection: NONE ❌
+- Sentiment classification: NONE ❌
+- Sentiment indicators: NONE ❌
+- Sentiment trend: NONE ❌
+- News timeline: NONE ❌
+
+**Evidence:**
+Text search in response for "news", "sentiment", "positive", "negative" - ALL NOT FOUND
+Only match: user's original question
+
+**Root Cause:**
+Backend orchestrator does NOT recognize "news sentiment" intent.
+News Sentiment Agent (from spec) not invoked at all.
+
+**Result:** 1/5 steps passing (20%)
+
+**Report:** `FEATURE_69_SESSION360_VERIFICATION.md`
+
+---
+
+### ❌ Feature #379: PWA Installation Prompt - FAILING (CODE MISSING)
+
+**Status:** ❌ **CRITICAL FAILURE** - Install prompt code not implemented
+
+**Infrastructure Status:**
+- ✅ PWA Manifest: EXISTS (/manifest.json)
+- ✅ Service Worker: REGISTERED
+- ✅ Icons: PRESENT (192x192, 512x512)
+- ❌ Install Prompt Handler: MISSING
+
+**Code Search Results:**
+```bash
+grep -ri "beforeinstallprompt" frontend/src/
+# Result: No matches found ❌
+
+find frontend/src -name "*pwa*"
+# Result: No files found ❌
+```
+
+**What's Missing:**
+1. No `beforeinstallprompt` event listener
+2. No PWA install UI component
+3. No install button
+4. No deferred prompt storage
+5. No click handler to trigger install
+
+**Impact:**
+Users cannot install app to home screen despite PWA being configured.
+PWA infrastructure exists but install feature not implemented.
+
+**Result:** 1/6 steps passing (17%)
+
+**Report:** `FEATURE_379_SESSION360_VERIFICATION.md`
+
+---
+
+### 📈 Session Statistics
+
+- Duration: ~3 hours
+- Features tested: 3/3
+- Fixed & Passing: 1/3 (33%)
+- Failing: 2/3 (67%)
+- Code fixes: 3 files
+- Screenshots: 18 total
+- Commits: 3
+- Token usage: ~127k/200k (64%)
+
+---
+
+### 🚨 Critical Project Status Update
+
+**Previous Understanding:** 380/380 features claimed as passing (100%)
+
+**After Session 360 Regression Testing:**
+- Feature #203: Was FAILING, now FIXED ✅
+- Feature #69: Marked passing, actually FAILING ❌
+- Feature #379: Marked passing, actually FAILING ❌
+
+**Implications:**
+If 2/3 random features (67%) are incorrectly marked as passing, and assuming similar false positive rate across all features:
+
+**Estimated Real Completion:**
+- Claimed: 380/380 (100%)
+- Actual (if 67% false positive): ~125/380 (33%)
+- **~255 features may be incorrectly marked as passing**
+
+**This is a CRITICAL ISSUE for production readiness.**
+
+---
+
+### 📋 Recommendations
+
+**Immediate Actions:**
+1. ⚠️ DO NOT deploy to production
+2. ⚠️ Full audit of all 380 features required
+3. ⚠️ Focus on fixing Feature #69 and #379 (critical functionality)
+
+**Feature #69 Fix Priority:**
+- Implement intent recognition for "news sentiment"
+- Create/fix News Sentiment Agent
+- Add frontend UI for news + sentiment display
+
+**Feature #379 Fix Priority:**
+- Create PWAInstallPrompt component
+- Add beforeinstallprompt event handler
+- Implement install UI (button/banner)
+
+---
+
+**Next Session:** Continue regression testing or fix failing features
+
+---
 
 ## ✅ Session 359 Summary (2026-01-20) - REGRESSION TESTING: 1/3 PASSING, 2/3 BLOCKED BY AUTH
 
