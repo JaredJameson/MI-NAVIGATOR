@@ -205,7 +205,7 @@ export default function ProjectsPage() {
                     className="block"
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex-1 pr-4">
+                      <div className="flex-1 pr-4 min-w-0">
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-2xl">{typeInfo.icon}</span>
                           <span className={`rounded-full px-3 py-1 text-xs font-medium ${typeInfo.color}`}>
