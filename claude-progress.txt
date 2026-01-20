@@ -1,5 +1,76 @@
 # MI-Navigator Development Progress
 
+**Last Updated:** 2026-01-21 (Session 375)
+**Project Status:** 🟡 REGRESSION TESTING - 1 Critical Bug, 1 Passing Feature
+
+## 🔴 Session 375 Summary (2026-01-21) - REGRESSION TESTING: 1/2 PASSING, 1/2 PARTIAL FAILURE
+
+### 🔴 CRITICAL BUG: Feature #122 Missing Post-Login Redirect
+
+**Features Tested:** 2/3 (randomly selected for regression)
+- **Feature #122** (Direct URL access requires auth) - ❌ **PARTIAL FAILURE** (4/5 steps = 80%)
+- **Feature #236** (PKD code search) - ✅ **VERIFIED PASSING** (5/5 steps = 100%)
+- **Feature #277** (Company timeline events) - ⏸️ **NOT TESTED** (token budget constraints)
+
+**Summary:**
+- Verified Passing: 1/2 (50%)
+- Partial Failures: 1/2 (50%)
+- False Positives: 1/2 (50%) - Feature #122 marked passing but missing critical functionality
+- **Accuracy: 50% (1/2 correct assessments)**
+
+**Critical Bug Details:**
+
+🚨 **Feature #122: Post-login redirect to originally requested URL is missing**
+- Basic auth protection works (redirects unauthorized users to login)
+- Login functionality works correctly
+- **BUT**: After login, always redirects to `/dashboard` instead of original URL
+- **BUT**: No URL preservation when redirecting to login
+- **BUT**: No `?redirect=` parameter handling
+
+**Expected Flow:**
+1. User visits `/reports/pagination_test_c75aa4be_0001` (not logged in)
+2. App redirects to `/auth/login?redirect=/reports/pagination_test_c75aa4be_0001`
+3. User logs in
+4. App redirects back to `/reports/pagination_test_c75aa4be_0001`
+
+**Actual Flow:**
+1. User visits `/reports/pagination_test_c75aa4be_0001` (not logged in)
+2. App redirects to `/auth/login` (NO redirect parameter)
+3. User logs in
+4. App redirects to `/dashboard` (DEFAULT, not original URL)
+
+**Impact:**
+- **HIGH Severity** - Poor user experience
+- Direct links shared via email/Slack don't work properly
+- Bookmarked URLs require extra navigation after login
+- Deep linking completely broken
+
+**Evidence:**
+- 11 screenshots documenting Feature #122 bug
+- 5 screenshots verifying Feature #236 passing
+- Detailed reports:
+  - `REGRESSION_SESSION375_FEATURE122_PARTIAL_FAILURE.md`
+  - `REGRESSION_SESSION375_FEATURE236_PASSING.md`
+  - `SESSION_375_SUMMARY.md`
+
+**Test Account Created:**
+- Email: `test_feature122@example.com`
+- Password: `Test1234`
+
+**Infrastructure Updates:**
+- Modified `docker-compose.yml` ports to avoid conflicts:
+  - PostgreSQL: 5439 (was 5432)
+  - Redis: 6385 (was 6379)
+
+**This is the 9th confirmed false positive** in regression testing.
+
+**Regression Testing Accuracy So Far:** 50% (1/2 features correctly assessed)
+**Action Required:** Fix Feature #122 post-login redirect before claiming complete auth implementation
+
+---
+
+# MI-Navigator Development Progress
+
 **Last Updated:** 2026-01-21 (Session 374)
 **Project Status:** 🔴 CRITICAL BUG FOUND - Feature #123 Delete Functionality Broken
 
