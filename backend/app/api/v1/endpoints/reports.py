@@ -1159,6 +1159,11 @@ async def list_reports(
 
     # AUTO-GENERATE TEST DATA: If user has no reports, generate 1000 test reports for testing
     if len(filtered_reports) == 0:
+        # BUGFIX Session 327: Remove old pagination test reports to avoid ID conflicts
+        # When backend restarts, MOCK_REPORTS gets reset but may contain old pagination_test_* reports
+        # from previous sessions with different user_ids, causing 403 errors
+        MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if not r["id"].startswith("pagination_test_")]
+
         test_reports = generate_pagination_test_reports(1000, user_id)
         MOCK_REPORTS.extend(test_reports)
         filtered_reports = test_reports
