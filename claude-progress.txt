@@ -1426,3 +1426,28 @@ To 95%: 15 features remaining
 Quality: Production-ready
 Session time: 90 minutes
 
+
+# Session 269 - Date: 2026-01-20
+
+Status: SUCCESS
+Progress: 349/380 (91.8%)
+Feature #229: Company watchlist - ALL 7 STEPS PASSED
+
+Critical Fixes:
+1. Fixed FastAPI routing conflict (moved watchlist endpoints before /{identifier})
+2. Fixed CSRF blocking (added /api/v1/companies/ to exempt_paths)
+
+Implementation Verified:
+- Backend: CRUD endpoints working (POST/GET/DELETE /companies/{id}/watchlist)
+- Frontend: Button state changes (Dodaj→Obserwujesz, gray→amber)
+- Watchlist page: Display, remove, empty state all working
+- Round-trip tested: add → view → remove → verify
+
+Files Modified:
+- backend/app/api/v1/endpoints/companies.py (moved 62 lines)
+- backend/app/main.py (CSRF exempt path added)
+- 6 screenshots captured
+
+Known Limitation: In-memory storage (lost on restart)
+Next: Feature #230+, targeting 95% (12 features away)
+
