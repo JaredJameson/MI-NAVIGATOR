@@ -2623,3 +2623,112 @@ Line 61: Logs every request [PROXY GET] ✅
 
 **Conclusion:** All 380 features marked passing. Application is feature-complete.
 
+
+---
+
+## 🔴 Session 376 Summary (2026-01-21) - INFRASTRUCTURE BLOCKER: Chrome Browser Conflict
+
+**Status:** ABORTED - Cannot proceed with regression testing
+**Duration:** ~15 minutes
+**Reason:** Chrome browser automation blocked by existing browser instances
+
+### 🚨 Critical Infrastructure Issue
+
+**Problem:**
+- MCP Playwright cannot launch Chrome browser
+- Error: "Opening in existing browser session"
+- Chrome is already running with same user-data-dir: `/home/jarek/.cache/ms-playwright/mcp-chrome-8873b31`
+- Multiple Chrome instances detected (PIDs: 1913, 1918, 2762)
+
+**Impact:**
+- Cannot run browser automation tests
+- Cannot verify any features requiring UI interaction
+- Regression testing completely blocked
+
+**Error Message:**
+```
+Error: browserType.launchPersistentContext: Failed to launch the browser process.
+[pid=6078][out] Opening in existing browser session.
+```
+
+**Technical Details:**
+- Chrome instances found using same profile
+- Cannot kill processes (pkill restricted to dev processes only)
+- Playwright requires exclusive access to user-data-dir
+
+### 📋 Planned Regression Tests (Not Executed)
+
+**Features selected for testing:**
+1. Feature #132 - File upload progress indicator (5 steps)
+2. Feature #256 - Activity log export (5 steps)
+3. Feature #25 - Chat source citations display (7 steps)
+
+**Status:** All 3 tests blocked - 0/3 executed (0%)
+
+### ✅ Servers Status
+
+**Verified working:**
+- ✅ Frontend: http://localhost:3000 (Next.js running)
+- ✅ Backend: http://localhost:8002 (FastAPI running, health check OK)
+- ✅ Database: PostgreSQL on port 5439 (from docker-compose)
+
+### 🔧 Attempted Solutions
+
+1. ❌ Wait for Chrome cleanup (3s delay) - Failed
+2. ❌ Try to kill Chrome processes - Blocked by security policy
+3. ❌ Retry browser launch - Same error
+
+### 📊 Project Status
+
+**Overall Progress:**
+- Features marked passing: 380/380 (100%)
+- Regression testing needed: YES (high priority)
+- Recent false positive rate: 23% (7/31 features in sessions 347-362)
+
+**Regression Testing History:**
+- Session 375: 1/2 passing, 1 critical bug (Feature #122)
+- Session 374: 1/2 passing, 1 critical bug (Feature #123 - delete broken)
+- Session 372: 1/3 passing, 1 false positive (Feature #275)
+- **Session 376: 0/3 tested (infrastructure blocked)**
+
+### 💡 Recommended Actions
+
+**For User:**
+1. Close all Chrome browser windows
+2. Ensure no Chrome processes running with MCP Playwright profile
+3. Restart session to allow clean browser launch
+
+**Alternative Approaches:**
+1. Use different browser (Firefox/WebKit) if MCP supports
+2. Use different user-data-dir for isolation
+3. Implement headless mode (if not already)
+4. Clear Playwright cache: `rm -rf /home/jarek/.cache/ms-playwright/`
+
+### 🎯 Next Session Goals
+
+**Immediate priority:**
+1. Resolve Chrome browser conflict
+2. Execute 3 planned regression tests
+3. Document any bugs found
+4. Verify critical features (auth, delete, navigation)
+
+**Testing backlog:**
+- Feature #132 - File upload progress
+- Feature #256 - Activity log export
+- Feature #25 - Chat source citations
+- Additional random regression tests
+
+### ⚠️ Known Critical Bugs (From Previous Sessions)
+
+**Still unfixed:**
+1. Feature #122 - Post-login redirect missing (Session 375)
+2. Feature #123 - Delete functionality broken (Session 374)
+3. Feature #275 - News filtering not implemented (Session 372)
+
+**Estimated real completion:** ~292/380 (77%) instead of claimed 100%
+
+---
+
+**Session End:** 2026-01-21 00:46 UTC
+**Next Action Required:** MANUAL INTERVENTION - Close Chrome browser
+
