@@ -3,7 +3,6 @@ Webhook API endpoints.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
 from pydantic import BaseModel, HttpUrl
 
@@ -39,14 +38,33 @@ class WebhookResponse(BaseModel):
     max_retries: int
     retry_count: int
     status: WebhookStatus
-    last_triggered_at: str | None
-    last_delivered_at: str | None
-    last_error: str | None
-    next_retry_at: str | None
+    last_triggered_at: str | None = None
+    last_delivered_at: str | None = None
+    last_error: str | None = None
+    next_retry_at: str | None = None
     created_at: str
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def from_orm(cls, obj):
+        """Convert ORM object to Pydantic model with proper type conversions."""
+        return cls(
+            id=str(obj.id),
+            user_id=str(obj.user_id),
+            url=obj.url,
+            event_type=obj.event_type,
+            is_active=obj.is_active,
+            max_retries=obj.max_retries,
+            retry_count=obj.retry_count or 0,
+            status=obj.status,
+            last_triggered_at=obj.last_triggered_at.isoformat() if obj.last_triggered_at else None,
+            last_delivered_at=obj.last_delivered_at.isoformat() if obj.last_delivered_at else None,
+            last_error=obj.last_error,
+            next_retry_at=obj.next_retry_at.isoformat() if obj.next_retry_at else None,
+            created_at=obj.created_at.isoformat() if obj.created_at else ""
+        )
 
 
 class WebhookTestPayload(BaseModel):
@@ -57,60 +75,60 @@ class WebhookTestPayload(BaseModel):
 @router.post("/", response_model=WebhookResponse, status_code=status.HTTP_201_CREATED)
 async def create_webhook(
     webhook_data: WebhookCreate,
-    db: Session = Depends(get_db),
+    db = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Create a new webhook."""
     service = WebhookService(db)
     webhook = service.create_webhook(
-        user_id=current_user.id,
+        user_id=str(current_user.id),
         url=str(webhook_data.url),
         event_type=webhook_data.event_type,
         max_retries=webhook_data.max_retries
     )
-    return webhook
+    return WebhookResponse.from_orm(webhook)
 
 
 @router.get("/", response_model=List[WebhookResponse])
 async def list_webhooks(
-    db: Session = Depends(get_db),
+    db = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """List all webhooks for current user."""
     service = WebhookService(db)
-    webhooks = service.list_webhooks(current_user.id)
-    return webhooks
+    webhooks = await service.list_webhooks(str(current_user.id))
+    return [WebhookResponse.from_orm(w) for w in webhooks]
 
 
 @router.get("/{webhook_id}", response_model=WebhookResponse)
 async def get_webhook(
     webhook_id: str,
-    db: Session = Depends(get_db),
+    db = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get a specific webhook."""
     service = WebhookService(db)
-    webhook = service.get_webhook(webhook_id, current_user.id)
+    webhook = await service.get_webhook(webhook_id, str(current_user.id))
     if not webhook:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Webhook not found"
         )
-    return webhook
+    return WebhookResponse.from_orm(webhook)
 
 
 @router.patch("/{webhook_id}", response_model=WebhookResponse)
 async def update_webhook(
     webhook_id: str,
     webhook_data: WebhookUpdate,
-    db: Session = Depends(get_db),
+    db = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Update webhook status (enable/disable)."""
     service = WebhookService(db)
 
     # Verify ownership
-    webhook = service.get_webhook(webhook_id, current_user.id)
+    webhook = await service.get_webhook(webhook_id, str(current_user.id))
     if not webhook:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -127,7 +145,7 @@ async def update_webhook(
 @router.delete("/{webhook_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_webhook(
     webhook_id: str,
-    db: Session = Depends(get_db),
+    db = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Delete a webhook."""
@@ -144,7 +162,7 @@ async def delete_webhook(
 async def test_webhook(
     webhook_id: str,
     test_data: WebhookTestPayload,
-    db: Session = Depends(get_db),
+    db = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -155,7 +173,7 @@ async def test_webhook(
     service = WebhookService(db)
 
     # Verify ownership
-    webhook = service.get_webhook(webhook_id, current_user.id)
+    webhook = await service.get_webhook(webhook_id, str(current_user.id))
     if not webhook:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

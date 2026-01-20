@@ -6,7 +6,8 @@ import httpx
 import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 import uuid
 
 from app.models.webhook import Webhook, WebhookEvent, WebhookStatus
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class WebhookService:
     """Service for managing webhooks with retry mechanism."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     async def trigger_webhook(
@@ -151,7 +152,7 @@ class WebhookService:
         """
         webhook = Webhook(
             id=str(uuid.uuid4()),
-            user_id=user_id,
+            user_id=str(user_id),
             url=url,
             event_type=event_type,
             max_retries=max_retries,
@@ -166,18 +167,24 @@ class WebhookService:
         logger.info(f"Webhook created: {webhook.id} for user {user_id}")
         return webhook
 
-    def get_webhook(self, webhook_id: str, user_id: str) -> Optional[Webhook]:
+    async def get_webhook(self, webhook_id: str, user_id: str) -> Optional[Webhook]:
         """Get a webhook by ID for a specific user."""
-        return self.db.query(Webhook).filter(
-            Webhook.id == webhook_id,
-            Webhook.user_id == user_id
-        ).first()
+        result = await self.db.execute(
+            select(Webhook).filter(
+                Webhook.id == webhook_id,
+                Webhook.user_id == user_id
+            )
+        )
+        return result.scalar_one_or_none()
 
-    def list_webhooks(self, user_id: str) -> list[Webhook]:
+    async def list_webhooks(self, user_id: str) -> list[Webhook]:
         """List all webhooks for a user."""
-        return self.db.query(Webhook).filter(
-            Webhook.user_id == user_id
-        ).order_by(Webhook.created_at.desc()).all()
+        result = await self.db.execute(
+            select(Webhook).filter(
+                Webhook.user_id == user_id
+            ).order_by(Webhook.created_at.desc())
+        )
+        return list(result.scalars().all())
 
     def delete_webhook(self, webhook_id: str, user_id: str) -> bool:
         """Delete a webhook."""
