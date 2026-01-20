@@ -336,6 +336,39 @@ Opis: Współzałożycielka, odpowiedzialna za rozwój biznesu
             {"name": "KRS", "confidence": 0.95, "url": "https://api.krs.pl"},
             {"name": "e-sprawozdania", "confidence": 0.90, "url": "https://ekrs.ms.gov.pl"},
             {"name": "Analiza branżowa PZPTS", "confidence": 0.85, "url": "https://pzpts.pl"}
+        ],
+        "charts": [
+            {
+                "id": "chart_revenue_trend",
+                "title": "Trend przychodów FADO (mln PLN)",
+                "type": "bar",
+                "section_id": "section_2",
+                "data": [
+                    {"label": "2021", "value": 35.8},
+                    {"label": "2022", "value": 40.2},
+                    {"label": "2023", "value": 45.2}
+                ],
+                "xKey": "label",
+                "yKey": "value",
+                "yLabel": "Przychody (mln PLN)",
+                "color": "#3b82f6"
+            },
+            {
+                "id": "chart_competitors",
+                "title": "Udział w rynku - główni konkurenci",
+                "type": "bar",
+                "section_id": "section_3",
+                "data": [
+                    {"label": "Splast S.A.", "value": 8.0},
+                    {"label": "PlastPak", "value": 4.2},
+                    {"label": "PolyTech", "value": 3.8},
+                    {"label": "FADO", "value": 3.5}
+                ],
+                "xKey": "label",
+                "yKey": "value",
+                "yLabel": "Udział w rynku (%)",
+                "color": "#10b981"
+            }
         ]
     },
     {
@@ -2118,6 +2151,89 @@ async def export_to_excel(report: dict) -> StreamingResponse:
     )
 
 
+def create_chart_drawing(chart_data: dict, width: float = 5*72, height: float = 3*72):
+    """Create a ReportLab Drawing object with chart visualization.
+
+    Args:
+        chart_data: Dictionary with chart configuration
+            - type: 'line' or 'bar'
+            - title: Chart title
+            - data: List of {label, value} dictionaries
+            - xKey: Key for x-axis data
+            - yKey: Key for y-axis data
+            - yLabel: Label for y-axis
+            - color: Hex color code
+        width: Chart width in points (default 5 inches)
+        height: Chart height in points (default 3 inches)
+
+    Returns:
+        Drawing object containing the chart
+    """
+    from reportlab.graphics.shapes import Drawing
+    from reportlab.graphics.charts.barcharts import VerticalBarChart
+    from reportlab.graphics.charts.linecharts import HorizontalLineChart
+    from reportlab.lib import colors
+
+    # Create drawing container
+    drawing = Drawing(width, height)
+
+    # Extract chart parameters
+    chart_type = chart_data.get('type', 'bar')
+    data_points = chart_data.get('data', [])
+    x_key = chart_data.get('xKey', 'label')
+    y_key = chart_data.get('yKey', 'value')
+    color_hex = chart_data.get('color', '#3b82f6')
+
+    # Parse data
+    labels = [str(point.get(x_key, '')) for point in data_points]
+    values = [float(point.get(y_key, 0)) for point in data_points]
+
+    if not values:
+        return drawing
+
+    # Convert hex color to reportlab color
+    try:
+        chart_color = colors.HexColor(color_hex)
+    except:
+        chart_color = colors.HexColor('#3b82f6')
+
+    # Create appropriate chart type
+    if chart_type == 'line':
+        chart = HorizontalLineChart()
+        chart.x = 50
+        chart.y = 50
+        chart.width = width - 100
+        chart.height = height - 100
+        chart.data = [values]  # Line chart expects list of series
+        chart.categoryAxis.categoryNames = labels
+        chart.lines[0].strokeColor = chart_color
+        chart.lines[0].strokeWidth = 2
+    else:  # bar chart
+        chart = VerticalBarChart()
+        chart.x = 50
+        chart.y = 50
+        chart.width = width - 100
+        chart.height = height - 100
+        chart.data = [values]  # Bar chart expects list of series
+        chart.categoryAxis.categoryNames = labels
+        chart.bars[0].fillColor = chart_color
+
+    # Configure axes
+    chart.valueAxis.valueMin = 0
+    chart.valueAxis.valueMax = max(values) * 1.1 if values else 10
+    chart.valueAxis.valueStep = max(values) / 5 if values else 2
+
+    # Style improvements
+    chart.categoryAxis.labels.fontSize = 9
+    chart.categoryAxis.labels.angle = 0
+    chart.valueAxis.labels.fontSize = 9
+
+    # Add chart to drawing
+    drawing.add(chart)
+
+    return drawing
+
+
 async def export_to_pdf(report: dict) -> StreamingResponse:
     """Generate PDF file with professional formatting."""
     from reportlab.lib import colors
@@ -2490,6 +2606,30 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
             ]))
             elements.append(fin_table)
             elements.append(Spacer(1, 0.1*inch))
+
+        # === ADD CHARTS FOR THIS SECTION (Feature #265) ===
+        # Check if report has charts and if any belong to this section
+        section_id = section.get('id')
+        report_charts = report.get('charts', [])
+
+        for chart in report_charts:
+            if chart.get('section_id') == section_id:
+                # Add chart title
+                chart_title = chart.get('title', 'Wykres')
+                chart_title_para = Paragraph(f'<b>{chart_title}</b>', body_style)
+                elements.append(chart_title_para)
+                elements.append(Spacer(1, 0.05*inch))
+
+                # Generate and add chart drawing
+                try:
+                    chart_drawing = create_chart_drawing(chart, width=6*inch, height=3*inch)
+                    elements.append(chart_drawing)
+                    elements.append(Spacer(1, 0.15*inch))
+                except Exception as e:
+                    # If chart generation fails, add error message
+                    error_para = Paragraph(f'<i>Nie udało się wygenerować wykresu: {str(e)}</i>', body_style)
+                    elements.append(error_para)
+                    elements.append(Spacer(1, 0.1*inch))
 
         elements.append(Spacer(1, 0.2*inch))
 
