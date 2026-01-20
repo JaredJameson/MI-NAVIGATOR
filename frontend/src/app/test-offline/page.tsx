@@ -17,7 +17,7 @@ export default function TestOfflinePage() {
 
     try {
       // Simulate API call
-      const response = await fetch('/api/v1/users/me');
+      const response = await fetch('/api/proxy/users/me');
       if (response.ok) {
         setActionMessage('✅ Action completed successfully');
       } else {

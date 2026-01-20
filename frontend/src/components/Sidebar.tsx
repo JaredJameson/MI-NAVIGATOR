@@ -34,12 +34,9 @@ export function Sidebar({ className = '' }: SidebarProps) {
           return
         }
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/users/me`,
-          {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }
-        )
+        const response = await fetch('/api/proxy/users/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
 
         if (response.ok) {
           const profile: UserProfile = await response.json()

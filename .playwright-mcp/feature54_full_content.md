@@ -1,0 +1,82 @@
+### Page state
+- Page URL: http://localhost:3000/chat?conversation_id=f761f7ad-be5b-4dd7-ae6b-f8473f7b481e
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - region "Notifications alt+T"
+  - alert [ref=e5]: MI-Navigator | Market Intelligence Platform
+  - generic [ref=e181]:
+    - banner [ref=e182]:
+      - generic [ref=e183]:
+        - generic [ref=e184]:
+          - link [ref=e185] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e186]
+          - heading "New Research" [level=1] [ref=e188]
+          - generic [ref=e217]: Connected
+        - generic [ref=e189]:
+          - button "Save as Report" [ref=e218] [cursor=pointer]:
+            - img [ref=e219]
+            - text: Save as Report
+          - button "New Chat" [ref=e190] [cursor=pointer]
+    - generic [ref=e193]:
+      - generic [ref=e223]: Analyze the financial performance of FADO Sp. z o.o. and calculate all key financial ratios including liquidity, profitability, and debt ratios.
+      - generic [ref=e325]:
+        - heading "Financial Performance (2020-2023)" [level=3] [ref=e327]
+        - table [ref=e329]:
+          - rowgroup [ref=e330]:
+            - row "Year Revenue (PLN) Net Profit (PLN) Margin (%)" [ref=e331]:
+              - columnheader "Year" [ref=e332]
+              - columnheader "Revenue (PLN)" [ref=e333]
+              - columnheader "Net Profit (PLN)" [ref=e334]
+              - columnheader "Margin (%)" [ref=e335]
+          - rowgroup [ref=e336]:
+            - row "2020 45 000 000,00 zł 3 200 000,00 zł 7.11%" [ref=e337]:
+              - cell "2020" [ref=e338]
+              - cell "45 000 000,00 zł" [ref=e339]
+              - cell "3 200 000,00 zł" [ref=e340]
+              - cell "7.11%" [ref=e341]
+            - row "2021 52 000 000,00 zł 4 100 000,00 zł 7.88%" [ref=e342]:
+              - cell "2021" [ref=e343]
+              - cell "52 000 000,00 zł" [ref=e344]
+              - cell "4 100 000,00 zł" [ref=e345]
+              - cell "7.88%" [ref=e346]
+            - row "2022 61 000 000,00 zł 5 200 000,00 zł 8.52%" [ref=e347]:
+              - cell "2022" [ref=e348]
+              - cell "61 000 000,00 zł" [ref=e349]
+              - cell "5 200 000,00 zł" [ref=e350]
+              - cell "8.52%" [ref=e351]
+            - row "2023 68 000 000,00 zł 6 100 000,00 zł 8.97%" [ref=e352]:
+              - cell "2023" [ref=e353]
+              - cell "68 000 000,00 zł" [ref=e354]
+              - cell "6 100 000,00 zł" [ref=e355]
+              - cell "8.97%" [ref=e356]
+      - generic [ref=e359]:
+        - text: "## Analiza Rynku ### Wielkość rynku tworzyw sztucznych w Polsce Rynek przetwórstwa tworzyw sztucznych w Polsce jest wyceniany na około **8,5 mld EUR rocznie**"
+        - button "[1]" [ref=e361] [cursor=pointer]
+        - text: . Sektor ten zatrudnia ponad 180 tys. osób w około 3 200 firmach
+        - button "[2]" [ref=e363] [cursor=pointer]
+        - text: ". **Kluczowe segmenty:** - Branża motoryzacyjna: 35% rynku (największy odbiorca) - Przemysł budowlany: 25% rynku - Opakowania: 20% rynku - Elektronika i AGD: 12% rynku - Pozostałe: 8% rynku ### Trendy wzrostowe - **Wzrost CAGR:** 4,2% rocznie (2020-2025)"
+        - button "[1]" [ref=e365] [cursor=pointer]
+        - text: "- **Driverzy wzrostu:** - Rosnące zapotrzebowanie sektora automotive (elektromobilność) - Rozwój e-commerce → więcej opakowań - Inwestycje w automatyzację produkcji - Green plastics i recykling (regulacje UE) ### Pozycja konkurencyjna FADO znajduje się w **TOP 20% producentów** pod względem wielkości produkcji"
+        - button "[3]" [ref=e367] [cursor=pointer]
+        - text: ". Główni konkurenci: - **POLIMER SA** - przychody 85M PLN, 220 pracowników - **TECHNOPLAST Sp. z o.o.** - przychody 62M PLN, 180 pracowników - **SPLAST Group** - przychody 120M PLN, 300 pracowników **Przewaga konkurencyjna FADO:** - Specjalizacja w branży automotive (stabilny popyt) - Certyfikaty ISO 9001, IATF 16949, ISO 14001 - Nowoczesny park maszynowy (ostatnia modernizacja: 2024) - Lokalizacja blisko głównych odbiorców (Volkswagen Poznań, Stellantis Gliwice) **Źródła:**"
+        - button "[1]" [ref=e369] [cursor=pointer]
+        - text: Raport Polskiej Izby Przemysłu Chemicznego 2024
+        - button "[2]" [ref=e371] [cursor=pointer]
+        - text: GUS - Rocznik Statystyczny Przemysłu 2024
+        - button "[3]" [ref=e373] [cursor=pointer]
+        - text: Ranking Polityki Insight "Producenci tworzyw sztucznych 2024"
+      - generic [ref=e376]: "## Analiza i Synteza ### Kluczowe wnioski 1. **Silna pozycja rynkowa:** FADO należy do TOP 20% producentów w Polsce, z przychodami 68M PLN i rosnącym udziałem w rynku automotive 2. **Stabilność finansowa:** Marża zysku netto 8,2%, niskie zadłużenie (32%), wysoki ROE (18,2%) - wszystkie wskaźniki powyżej średniej branżowej 3. **Certyfikacje i jakość:** Pełny zestaw certyfikatów dla branży automotive (IATF 16949) i środowiskowych (ISO 14001) 4. **Nowoczesna infrastruktura:** Ostatnia modernizacja parku maszynowego w 2024 roku (inwestycja 5M PLN) ### Szanse (Opportunities) - **Elektromobilność:** Rosnący popyt na komponenty do pojazdów elektrycznych (baterie, systemy chłodzenia) - **Ekspansja geograficzna:** Potencjał rozwoju w CEE (Czechy, Słowacja, Węgry) - **Recykling i green plastics:** Rosnące wymagania UE = nowe modele biznesowe - **Automatyzacja:** Dalsze inwestycje w Industry 4.0 → większa efektywność ### Ryzyka (Threats) - **Ceny surowców:** Wahania cen polipropylenu i ABS (zależność od cen ropy) - **Presja kosztowa:** Rosnące koszty energii i pracy - **Konkurencja międzynarodowa:** Producenci z Azji (Chiny, Indie) z niższymi kosztami - **Regulacje środowiskowe:** Coraz bardziej restrykcyjne przepisy UE dotyczące plastiku ### Rekomendacje strategiczne **1. Dywersyfikacja portfolio (Priorytet: WYSOKI)** - Rozwój produktów z recyklingu (r-PP, r-ABS) - Wejście w segment bio-plastików - Cel: 20% przychodów z \"green products\" do 2027 **2. Ekspansja na rynki CEE (Priorytet: ŚREDNI)** - Otworzenie biura sprzedaży w Czechach (2026) - Partnerstwa z lokalnymi dystrybutorami - Cel: +15% przychodów z eksportu do 2028 **3. Automatyzacja i digitalizacja (Priorytet: WYSOKI)** - Implementacja systemu MES (Manufacturing Execution System) - Predykcyjna konserwacja maszyn (AI/IoT) - Cel: +10% efektywności OEE do 2026 **4. Hedging surowcowy (Priorytet: ŚREDNI)** - Kontrakty forward na kluczowe surowce - Dywersyfikacja dostawców (obecnie 3 głównych) - Cel: stabilizacja marży przy wahaniach cen ±15% ### Ocena ogólna **Rating:** 7.8/10 **Uzasadnienie:** FADO to solidny, dobrze zarządzany producent z silną pozycją w automotive. Firma ma zdrowe finanse, nowoczesną infrastrukturę i odpowiednie certyfikaty. Główne ryzyka to presja kosztowa i rosnąca konkurencja, ale szanse związane z elektromobilnością i green plastics mogą je zrównoważyć. **Rekomendacja:** - **Dla inwestorów:** Stabilna opcja z umiarkowanym potencjałem wzrostu (15-20% w 3 lata) - **Dla partnerów biznesowych:** Wiarygodny dostawca z udokumentowaną jakością - **Dla konkurentów:** Godny przeciwnik - nie lekceważyć, ale możliwe obszary współpracy (np. recykling)"
+    - generic [ref=e205]:
+      - generic [ref=e206]:
+        - button "Upload file (PDF, DOCX, XLSX, CSV, PNG, JPG - max 50MB)" [ref=e207] [cursor=pointer]:
+          - img [ref=e208]
+        - textbox "Ask about a company, request analysis, or generate a report..." [ref=e210]
+        - button [disabled] [ref=e211]:
+          - img [ref=e212]
+      - paragraph [ref=e214]: MI-Navigator uses AI to analyze markets and companies. Results may vary.
+```
