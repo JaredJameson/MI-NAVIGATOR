@@ -496,6 +496,10 @@ export const companyApi = {
   async getFinancials(identifier: string): Promise<ApiResponse<CompanyFinancials>> {
     return fetchApi(`/companies/${encodeURIComponent(identifier)}/financials`);
   },
+
+  async compareCompanies(company1Id: string, company2Id: string): Promise<ApiResponse<CompanyComparison>> {
+    return fetchApi(`/companies/compare?company1_id=${encodeURIComponent(company1Id)}&company2_id=${encodeURIComponent(company2Id)}`);
+  },
 };
 
 // Custom Fields API Types
@@ -583,6 +587,43 @@ export interface CompanyFinancials {
   statements: FinancialStatement[];
   ratios: FinancialRatios[];
   industry_benchmarks?: IndustryBenchmarks;
+}
+
+// Company Comparison Types
+export interface CompanyComparisonMetric {
+  metric_name: string;
+  company1_value?: number;
+  company2_value?: number;
+  company1_formatted?: string;
+  company2_formatted?: string;
+  difference?: number;
+  difference_percentage?: number;
+  winner?: 'company1' | 'company2' | 'tie';
+  indicator?: 'better' | 'worse' | 'neutral';
+}
+
+export interface CompanyComparison {
+  company1: {
+    id: string;
+    name: string;
+    nip: string;
+    krs: string;
+    industry: string;
+  };
+  company2: {
+    id: string;
+    name: string;
+    nip: string;
+    krs: string;
+    industry: string;
+  };
+  metrics: CompanyComparisonMetric[];
+  summary: {
+    company1_wins: number;
+    company2_wins: number;
+    ties: number;
+    overall_winner: 'company1' | 'company2' | 'tie';
+  };
 }
 
 export const customFieldsApi = {

@@ -970,6 +970,155 @@ async def check_watchlist_status(
     return {"is_watched": is_watched}
 
 
+# Company Comparison Models
+class CompanyComparisonMetric(BaseModel):
+    metric_name: str
+    company1_value: Optional[float] = None
+    company2_value: Optional[float] = None
+    company1_formatted: Optional[str] = None
+    company2_formatted: Optional[str] = None
+    difference: Optional[float] = None
+    difference_percentage: Optional[float] = None
+    winner: Optional[str] = None  # "company1", "company2", "tie"
+    indicator: Optional[str] = None  # "better", "worse", "neutral"
+
+
+class CompanyComparison(BaseModel):
+    company1: dict
+    company2: dict
+    metrics: List[CompanyComparisonMetric]
+    summary: dict
+
+
+@router.get("/compare", response_model=CompanyComparison)
+async def compare_companies(
+    company1_id: str = Query(..., description="First company identifier (NIP/KRS/REGON)"),
+    company2_id: str = Query(..., description="Second company identifier (NIP/KRS/REGON)")
+    # Temporarily disabled auth for testing: current_user: User = Depends(get_current_user)
+):
+    """
+    Compare two companies side by side across multiple metrics
+    """
+    # Fetch both companies
+    company1 = None
+    company2 = None
+
+    for c in MOCK_COMPANIES:
+        if c["id"] == company1_id or c["nip"] == company1_id or c.get("krs", "") == company1_id:
+            company1 = c
+        if c["id"] == company2_id or c["nip"] == company2_id or c.get("krs", "") == company2_id:
+            company2 = c
+
+    if not company1:
+        raise HTTPException(status_code=404, detail=f"Company {company1_id} not found")
+    if not company2:
+        raise HTTPException(status_code=404, detail=f"Company {company2_id} not found")
+
+    # Helper function to calculate difference
+    def calc_diff(val1: Optional[float], val2: Optional[float], higher_is_better: bool = True):
+        if val1 is None or val2 is None:
+            return None, None, None
+
+        diff = val1 - val2
+        diff_pct = (diff / val2 * 100) if val2 != 0 else 0
+
+        if abs(diff_pct) < 5:  # Within 5% is considered tie
+            winner = "tie"
+        elif (higher_is_better and val1 > val2) or (not higher_is_better and val1 < val2):
+            winner = "company1"
+        else:
+            winner = "company2"
+
+        return diff, diff_pct, winner
+
+    # Build comparison metrics
+    metrics = []
+
+    # Mock financial data for demonstration
+    mock_revenue = {"1": 45000000, "7": 12000000, "5": 8500000, "2": 35000000}
+    mock_employees = {"1": 250, "7": 85, "5": 62, "2": 180}
+    mock_roe = {"1": 15.2, "7": 11.8, "5": 9.5, "2": 13.4}
+
+    # Revenue comparison
+    c1_revenue = mock_revenue.get(company1["id"])
+    c2_revenue = mock_revenue.get(company2["id"])
+    diff, diff_pct, winner = calc_diff(c1_revenue, c2_revenue, higher_is_better=True)
+
+    metrics.append(CompanyComparisonMetric(
+        metric_name="Przychody (PLN)",
+        company1_value=c1_revenue,
+        company2_value=c2_revenue,
+        company1_formatted=f"{c1_revenue:,.0f} PLN" if c1_revenue else "Brak danych",
+        company2_formatted=f"{c2_revenue:,.0f} PLN" if c2_revenue else "Brak danych",
+        difference=diff,
+        difference_percentage=diff_pct,
+        winner=winner
+    ))
+
+    # Employees
+    c1_employees = mock_employees.get(company1["id"])
+    c2_employees = mock_employees.get(company2["id"])
+    diff, diff_pct, winner = calc_diff(c1_employees, c2_employees, higher_is_better=True)
+
+    metrics.append(CompanyComparisonMetric(
+        metric_name="Liczba pracowników",
+        company1_value=c1_employees,
+        company2_value=c2_employees,
+        company1_formatted=str(int(c1_employees)) if c1_employees else "Brak danych",
+        company2_formatted=str(int(c2_employees)) if c2_employees else "Brak danych",
+        difference=diff,
+        difference_percentage=diff_pct,
+        winner=winner
+    ))
+
+    # ROE
+    c1_roe = mock_roe.get(company1["id"])
+    c2_roe = mock_roe.get(company2["id"])
+    diff, diff_pct, winner = calc_diff(c1_roe, c2_roe, higher_is_better=True)
+
+    metrics.append(CompanyComparisonMetric(
+        metric_name="ROE (%)",
+        company1_value=c1_roe,
+        company2_value=c2_roe,
+        company1_formatted=f"{c1_roe:.1f}%" if c1_roe else "Brak danych",
+        company2_formatted=f"{c2_roe:.1f}%" if c2_roe else "Brak danych",
+        difference=diff,
+        difference_percentage=diff_pct,
+        winner=winner
+    ))
+
+    # Calculate summary (who wins overall)
+    wins_c1 = sum(1 for m in metrics if m.winner == "company1")
+    wins_c2 = sum(1 for m in metrics if m.winner == "company2")
+    ties = sum(1 for m in metrics if m.winner == "tie")
+
+    summary = {
+        "company1_wins": wins_c1,
+        "company2_wins": wins_c2,
+        "ties": ties,
+        "overall_winner": "company1" if wins_c1 > wins_c2 else "company2" if wins_c2 > wins_c1 else "tie"
+    }
+
+    return CompanyComparison(
+        company1={
+            "id": company1_id,
+            "name": company1.get("name", ""),
+            "nip": company1.get("nip", ""),
+            "krs": company1.get("krs", ""),
+            "industry": company1.get("industry", "")
+        },
+        company2={
+            "id": company2_id,
+            "name": company2.get("name", ""),
+            "nip": company2.get("nip", ""),
+            "krs": company2.get("krs", ""),
+            "industry": company2.get("industry", "")
+        },
+        metrics=metrics,
+        summary=summary
+    )
+
+
 @router.get("/{identifier}", response_model=CompanyProfile)
 async def get_company(
     identifier: str
