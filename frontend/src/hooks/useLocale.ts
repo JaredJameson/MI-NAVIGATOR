@@ -26,7 +26,7 @@ export function useLocale() {
           return
         }
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/proxy';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
         const response = await fetch(`${apiUrl}/users/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,

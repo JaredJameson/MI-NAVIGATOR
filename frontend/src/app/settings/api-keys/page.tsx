@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/proxy'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/proxy'
 
 interface APIKey {
   id: string

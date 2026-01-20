@@ -3,7 +3,7 @@
  * Client-side integration with A/B testing API
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/proxy'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/proxy'
 
 export interface ABTestVariant {
   experiment: string
