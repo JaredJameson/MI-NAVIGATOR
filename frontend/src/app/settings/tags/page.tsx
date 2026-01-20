@@ -64,6 +64,26 @@ export default function TagManagementPage() {
     fetchTags()
   }, [])
 
+  // Handle Escape key to close modals (Feature #116)
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showForm) {
+          closeForm()
+        } else if (showDeleteConfirm) {
+          setShowDeleteConfirm(false)
+          setTagToDelete(null)
+        }
+      }
+    }
+
+    // Only add listener if a modal is open
+    if (showForm || showDeleteConfirm) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showForm, showDeleteConfirm])
+
   const fetchTags = async () => {
     const token = getStoredToken()
     if (!token) {
