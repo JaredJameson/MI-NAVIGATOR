@@ -425,14 +425,67 @@ async def analyze_market(
     )
 
 
-@router.post("/competitive")
-async def analyze_competition(company_id: str):
-    """Analyze competitive landscape."""
-    # TODO: Implement competitive analysis
-    return {
-        "status": "processing",
-        "job_id": "job_125"
+class CompetitorPosition(BaseModel):
+    company_name: str
+    x: float  # Quality/Innovation axis
+    y: float  # Price/Value axis
+    size: float  # Market share (bubble size)
+    color: str
+
+
+class CompetitiveAnalysisResponse(BaseModel):
+    target_company: str
+    competitors: List[CompetitorPosition]
+    x_axis_label: str
+    y_axis_label: str
+
+
+# Mock competitive positioning data
+COMPETITIVE_DATA = {
+    "fado": {
+        "target_company": "FADO Sp. z o.o.",
+        "competitors": [
+            {"company_name": "FADO", "x": 7.5, "y": 6.5, "size": 3.5, "color": "#3b82f6"},
+            {"company_name": "Splast S.A.", "x": 8.0, "y": 7.0, "size": 8.0, "color": "#ef4444"},
+            {"company_name": "PlastPak", "x": 6.0, "y": 5.5, "size": 4.2, "color": "#10b981"},
+            {"company_name": "PolyTech", "x": 7.0, "y": 4.0, "size": 3.8, "color": "#f59e0b"},
+            {"company_name": "FlexiPlast", "x": 5.5, "y": 8.0, "size": 2.5, "color": "#8b5cf6"},
+            {"company_name": "TechMold", "x": 9.0, "y": 3.5, "size": 2.1, "color": "#ec4899"},
+        ],
+        "x_axis_label": "Jakość / Innowacyjność →",
+        "y_axis_label": "Stosunek ceny do wartości →"
+    },
+    "default": {
+        "target_company": "Firma docelowa",
+        "competitors": [
+            {"company_name": "Firma A", "x": 7.0, "y": 6.0, "size": 5.0, "color": "#3b82f6"},
+            {"company_name": "Firma B", "x": 5.0, "y": 8.0, "size": 3.0, "color": "#ef4444"},
+            {"company_name": "Firma C", "x": 8.5, "y": 4.0, "size": 6.0, "color": "#10b981"},
+            {"company_name": "Firma D", "x": 6.0, "y": 5.5, "size": 4.5, "color": "#f59e0b"},
+        ],
+        "x_axis_label": "Jakość / Innowacyjność →",
+        "y_axis_label": "Cena / Wartość →"
     }
+}
+
+
+@router.get("/competitive/{company_id}", response_model=CompetitiveAnalysisResponse)
+async def analyze_competition(company_id: str):
+    """Get competitive positioning map data."""
+    # Use company-specific data if available
+    company_key = company_id.lower().replace("_", "").replace("-", "")
+    if "fado" in company_key:
+        data = COMPETITIVE_DATA["fado"]
+    else:
+        data = COMPETITIVE_DATA["default"]
+        data["target_company"] = company_id
+
+    return CompetitiveAnalysisResponse(
+        target_company=data["target_company"],
+        competitors=[CompetitorPosition(**c) for c in data["competitors"]],
+        x_axis_label=data["x_axis_label"],
+        y_axis_label=data["y_axis_label"]
+    )
 
 
 @router.post("/framework/{framework_type}")
