@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useUserLocale } from '@/hooks/useUserTimezone'
 import { formatNumber } from '@/utils/number'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
 interface EndpointUsage {
   endpoint: string
   requests: number
@@ -26,35 +28,127 @@ interface ApiUsageData {
   quota_warning_message?: string
 }
 
+interface AnalyticsStatsResponse {
+  total_events: number
+  event_counts: Record<string, number>
+  days: number
+  start_date: string
+  end_date: string
+}
+
 export default function ApiUsagePage() {
   const locale = useUserLocale()
-  const [usage, setUsage] = useState<ApiUsageData>({
-    total_requests: 8432,
-    requests_limit: 10000,
-    requests_remaining: 1568,
-    top_endpoints: [
-      { endpoint: '/api/v1/companies/profile', requests: 3245, percentage: 38.5 },
-      { endpoint: '/api/v1/reports/generate', requests: 2156, percentage: 25.6 },
-      { endpoint: '/api/v1/chat/conversations', requests: 1876, percentage: 22.2 },
-      { endpoint: '/api/v1/search/companies', requests: 1155, percentage: 13.7 }
-    ],
-    daily_usage: [
-      { date: '2026-01-11', requests: 856 },
-      { date: '2026-01-12', requests: 923 },
-      { date: '2026-01-13', requests: 1045 },
-      { date: '2026-01-14', requests: 987 },
-      { date: '2026-01-15', requests: 1234 },
-      { date: '2026-01-16', requests: 1567 },
-      { date: '2026-01-17', requests: 1820 }
-    ],
-    quota_warning: true,
-    quota_warning_message: 'You have used 84% of your monthly API quota. Consider upgrading your plan.'
-  })
-  const [loading, setLoading] = useState(false)
+  const [usage, setUsage] = useState<ApiUsageData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch analytics data from backend
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const token = localStorage.getItem('mi_navigator_token')
+        if (!token) {
+          setError('Not authenticated. Please log in.')
+          setLoading(false)
+          return
+        }
+
+        // Fetch analytics stats from backend
+        const response = await fetch(`${API_BASE_URL}/analytics/stats?days=30`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const stats: AnalyticsStatsResponse = await response.json()
+
+        // Transform backend data to frontend format
+        const totalEvents = stats.total_events
+        const limit = 10000 // Default limit (can be made dynamic)
+        const remaining = Math.max(0, limit - totalEvents)
+
+        // Calculate top event types as "endpoints"
+        const topEndpoints: EndpointUsage[] = Object.entries(stats.event_counts)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 4)
+          .map(([eventType, count]) => ({
+            endpoint: eventType,
+            requests: count,
+            percentage: totalEvents > 0 ? (count / totalEvents) * 100 : 0
+          }))
+
+        // For now, use empty daily usage (would need additional backend endpoint)
+        const dailyUsage: DailyUsage[] = []
+
+        // Calculate quota warning
+        const usagePercent = totalEvents > 0 ? (totalEvents / limit) * 100 : 0
+        const quotaWarning = usagePercent >= 75
+        const quotaWarningMessage = quotaWarning
+          ? `You have used ${Math.round(usagePercent)}% of your monthly quota. Consider upgrading your plan.`
+          : undefined
+
+        setUsage({
+          total_requests: totalEvents,
+          requests_limit: limit,
+          requests_remaining: remaining,
+          top_endpoints: topEndpoints,
+          daily_usage: dailyUsage,
+          quota_warning: quotaWarning,
+          quota_warning_message: quotaWarningMessage
+        })
+      } catch (err) {
+        console.error('Failed to fetch analytics:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load analytics data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAnalytics()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading analytics data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !usage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-600 text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Analytics</h2>
+          <p className="text-gray-600 mb-4">{error || 'Unknown error occurred'}</p>
+          <Link
+            href="/settings"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Back to Settings
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   const usagePercentage = Math.round((usage.total_requests / usage.requests_limit) * 100)
 
-  const maxDailyRequests = Math.max(...usage.daily_usage.map(d => d.requests))
+  const maxDailyRequests = usage.daily_usage.length > 0
+    ? Math.max(...usage.daily_usage.map(d => d.requests))
+    : 0
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -141,62 +235,74 @@ export default function ApiUsagePage() {
           {/* Daily Usage Chart */}
           <div className="rounded-lg bg-white p-6 shadow-sm">
             <h2 className="mb-6 text-lg font-semibold text-gray-900">Daily Requests (Last 7 Days)</h2>
-            <div className="flex items-end justify-between gap-4 h-64">
-              {usage.daily_usage.map((day, index) => {
-                const heightPercentage = (day.requests / maxDailyRequests) * 100
-                return (
-                  <div key={day.date} className="flex flex-col items-center flex-1">
-                    <div className="w-full flex flex-col items-center justify-end h-56">
-                      <div className="text-xs font-medium text-gray-900 mb-2">
-                        {formatNumber(day.requests, locale)}
+            {usage.daily_usage.length > 0 ? (
+              <div className="flex items-end justify-between gap-4 h-64">
+                {usage.daily_usage.map((day, index) => {
+                  const heightPercentage = maxDailyRequests > 0 ? (day.requests / maxDailyRequests) * 100 : 0
+                  return (
+                    <div key={day.date} className="flex flex-col items-center flex-1">
+                      <div className="w-full flex flex-col items-center justify-end h-56">
+                        <div className="text-xs font-medium text-gray-900 mb-2">
+                          {formatNumber(day.requests, locale)}
+                        </div>
+                        <div
+                          className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
+                          style={{ height: `${heightPercentage}%` }}
+                          title={`${day.requests} requests`}
+                        />
                       </div>
-                      <div
-                        className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
-                        style={{ height: `${heightPercentage}%` }}
-                        title={`${day.requests} requests`}
-                      />
+                      <div className="mt-2 text-xs text-gray-600 text-center">
+                        {formatDate(day.date)}
+                      </div>
                     </div>
-                    <div className="mt-2 text-xs text-gray-600 text-center">
-                      {formatDate(day.date)}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <p>Daily usage tracking coming soon</p>
+              </div>
+            )}
           </div>
 
           {/* Top Endpoints */}
           <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Top Endpoints</h2>
-            <div className="space-y-4">
-              {usage.top_endpoints.map((endpoint, index) => (
-                <div key={endpoint.endpoint}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
-                        {index + 1}
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Top Event Types</h2>
+            {usage.top_endpoints.length > 0 ? (
+              <div className="space-y-4">
+                {usage.top_endpoints.map((endpoint, index) => (
+                  <div key={endpoint.endpoint}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-mono text-sm text-gray-900">{endpoint.endpoint}</div>
+                          <div className="text-xs text-gray-500">{endpoint.percentage.toFixed(1)}% of total</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-mono text-sm text-gray-900">{endpoint.endpoint}</div>
-                        <div className="text-xs text-gray-500">{endpoint.percentage}% of total</div>
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900">
+                          {formatNumber(endpoint.requests, locale)}
+                        </div>
+                        <div className="text-xs text-gray-500">events</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-gray-900">
-                        {formatNumber(endpoint.requests, locale)}
-                      </div>
-                      <div className="text-xs text-gray-500">requests</div>
+                    <div className="h-2 rounded-full bg-gray-200">
+                      <div
+                        className="h-full rounded-full bg-blue-500"
+                        style={{ width: `${endpoint.percentage}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="h-2 rounded-full bg-gray-200">
-                    <div
-                      className="h-full rounded-full bg-blue-500"
-                      style={{ width: `${endpoint.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-32 text-gray-500">
+                <p>No events tracked yet</p>
+              </div>
+            )}
           </div>
 
           {/* Additional Stats */}
