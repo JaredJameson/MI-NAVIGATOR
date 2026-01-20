@@ -58,7 +58,9 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/refresh",
             "/api/v1/csrf-token",  # Endpoint to get CSRF token
             "/api/v1/users/onboarding",  # Onboarding endpoint (authenticated)
+            "/api/v1/api-keys",  # API Keys management (uses JWT auth instead)
         ]
+        print(f"[CSRF] Initialized with exempt paths: {self.exempt_paths}")
 
     async def dispatch(self, request: Request, call_next):
         """Process request and validate CSRF token for unsafe methods."""
@@ -77,6 +79,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Skip CSRF check for exempt paths
         path = request.url.path
         if any(path.startswith(exempt_path) for exempt_path in self.exempt_paths):
+            print(f"[CSRF] Exempt path matched: {path}")
             response = await call_next(request)
             return response
 
