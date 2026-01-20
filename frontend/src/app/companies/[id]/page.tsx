@@ -574,33 +574,98 @@ export default function CompanyProfilePage() {
                   Informacje
                 </h2>
                 <dl className="space-y-3 text-sm">
+                  {/* NIP - always present */}
                   <div className="flex justify-between">
                     <dt className="text-slate-500">NIP</dt>
                     <dd className="text-slate-900 font-mono">{company.nip}</dd>
                   </div>
-                  {company.krs && (
-                    <div className="flex justify-between">
-                      <dt className="text-slate-500">KRS</dt>
+
+                  {/* KRS - show even if missing with highlighting */}
+                  <div className={`flex justify-between ${!company.krs ? 'bg-amber-50 border border-amber-200 -mx-3 px-3 py-2 rounded' : ''}`}>
+                    <dt className="text-slate-500">KRS</dt>
+                    {company.krs ? (
                       <dd className="text-slate-900 font-mono">{company.krs}</dd>
-                    </div>
-                  )}
-                  {company.regon && (
-                    <div className="flex justify-between">
-                      <dt className="text-slate-500">REGON</dt>
-                      <dd className="text-slate-900 font-mono">{company.regon}</dd>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <dt className="text-slate-500">Rok założenia</dt>
-                    <dd className="text-slate-900">{company.founded}</dd>
+                    ) : (
+                      <dd className="text-amber-600 italic text-xs flex items-center gap-1">
+                        <span>⚠️</span>
+                        <span>Brak danych</span>
+                      </dd>
+                    )}
                   </div>
-                  {company.employees_range && (
-                    <div className="flex justify-between">
-                      <dt className="text-slate-500">Zatrudnienie</dt>
+
+                  {/* REGON - show even if missing with highlighting */}
+                  <div className={`flex justify-between ${!company.regon ? 'bg-amber-50 border border-amber-200 -mx-3 px-3 py-2 rounded' : ''}`}>
+                    <dt className="text-slate-500">REGON</dt>
+                    {company.regon ? (
+                      <dd className="text-slate-900 font-mono">{company.regon}</dd>
+                    ) : (
+                      <dd className="text-amber-600 italic text-xs flex items-center gap-1">
+                        <span>⚠️</span>
+                        <span>Brak danych</span>
+                      </dd>
+                    )}
+                  </div>
+
+                  {/* Rok założenia - show even if missing with highlighting */}
+                  <div className={`flex justify-between ${!company.founded ? 'bg-amber-50 border border-amber-200 -mx-3 px-3 py-2 rounded' : ''}`}>
+                    <dt className="text-slate-500">Rok założenia</dt>
+                    {company.founded ? (
+                      <dd className="text-slate-900">{company.founded}</dd>
+                    ) : (
+                      <dd className="text-amber-600 italic text-xs flex items-center gap-1">
+                        <span>⚠️</span>
+                        <span>Brak danych</span>
+                      </dd>
+                    )}
+                  </div>
+
+                  {/* Zatrudnienie - show even if missing with highlighting */}
+                  <div className={`flex justify-between ${!company.employees_range ? 'bg-amber-50 border border-amber-200 -mx-3 px-3 py-2 rounded' : ''}`}>
+                    <dt className="text-slate-500">Zatrudnienie</dt>
+                    {company.employees_range ? (
                       <dd className="text-slate-900">{company.employees_range}</dd>
-                    </div>
-                  )}
+                    ) : (
+                      <dd className="text-amber-600 italic text-xs flex items-center gap-1">
+                        <span>⚠️</span>
+                        <span>Brak danych</span>
+                      </dd>
+                    )}
+                  </div>
                 </dl>
+
+                {/* Missing Data Suggestions */}
+                {(!company.krs || !company.regon || !company.founded || !company.employees_range) && (
+                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start gap-2">
+                      <span className="text-blue-600 text-lg">💡</span>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-blue-900 mb-2">
+                          Sugestie uzupełnienia danych
+                        </h3>
+                        <ul className="text-xs text-blue-800 space-y-1">
+                          {!company.krs && (
+                            <li>• Dodaj numer KRS aby zwiększyć wiarygodność profilu</li>
+                          )}
+                          {!company.regon && (
+                            <li>• Uzupełnij REGON z oficjalnych rejestrów</li>
+                          )}
+                          {!company.founded && (
+                            <li>• Podaj rok założenia firmy</li>
+                          )}
+                          {!company.employees_range && (
+                            <li>• Określ przedział zatrudnienia</li>
+                          )}
+                        </ul>
+                        <button
+                          onClick={() => setActiveTab('data-quality')}
+                          className="mt-3 text-xs text-blue-700 hover:text-blue-900 font-medium underline"
+                        >
+                          Zobacz pełny raport jakości danych →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Custom Fields */}

@@ -1,3 +1,116 @@
+# Session 279 - Date: 2026-01-20
+
+## Session Summary
+
+**Status:** ✅ SUCCESS - 95% MILESTONE ALMOST REACHED! 🎯🔥
+**Current Progress:** 360/380 (94.7%)
+**Features Completed:** Feature #281 (Missing data highlighting)
+**Regression Tests:** Feature #265 (Charts in PDF) - PASSED, Feature #190 (Alert severity) - Skipped (no alerts)
+**Time:** ~2 hours
+**Method:** Full-stack implementation + Browser automation testing
+
+## 🚀 MAJOR MILESTONE: Only 1 feature to 95%! 🎯🔥🔥🔥
+
+---
+
+## Feature #281: Missing data highlighting
+
+### Key Achievement
+
+Complete visual highlighting system for missing company profile data with amber backgrounds, warning icons, and actionable suggestions to improve data completeness.
+
+### Implementation
+
+**Backend (companies.py):**
+- Added mock company "DataGap Sp. z o.o." (id=8, NIP: 3344556677)
+- Missing fields: KRS, REGON, founded year, employees_range, address details
+- Existing `/data-quality` endpoint already detects missing fields
+
+**Frontend (companies/[id]/page.tsx):**
+- Modified Information section to always show all fields (lines 570-636)
+- Added conditional highlighting with amber background (bg-amber-50)
+- Added amber border (border-amber-200) for missing fields
+- Added warning icon ⚠️ and italic "Brak danych" text (text-amber-600)
+- Created "Sugestie uzupełnienia danych" section with:
+  - Blue info box (bg-blue-50, border-blue-200)
+  - 💡 icon for visual appeal
+  - Specific suggestions for each missing field
+  - Link button to full data quality report
+
+### Visual Design
+
+**Missing Field Styling:**
+```css
+bg-amber-50 border border-amber-200 -mx-3 px-3 py-2 rounded
+text-amber-600 italic text-xs flex items-center gap-1
+```
+
+**Suggestions Box:**
+```css
+bg-blue-50 border border-blue-200 rounded-lg p-4
+```
+
+### Test Results
+
+✅ **All 4 verification steps PASSED:**
+
+1. **View profile with missing data** - PASSED
+   - DataGap Sp. z o.o. loaded successfully
+   - 4 fields missing: KRS, REGON, Rok założenia, Zatrudnienie
+
+2. **Verify missing fields indicated** - PASSED
+   - All 4 fields shown with ⚠️ icon
+   - "Brak danych" text displayed in italic amber
+
+3. **Verify visual distinction** - PASSED
+   - Amber background highlights each missing field
+   - Amber border creates clear visual separation
+   - No highlighting on fields with data (NIP)
+
+4. **Verify suggestions to fill gaps** - PASSED
+   - Blue suggestion box appears below Information section
+   - 4 specific actionable suggestions:
+     - "Dodaj numer KRS aby zwiększyć wiarygodność profilu"
+     - "Uzupełnij REGON z oficjalnych rejestrów"
+     - "Podaj rok założenia firmy"
+     - "Określ przedział zatrudnienia"
+   - Link to "Zobacz pełny raport jakości danych →" works perfectly
+
+### Regression Testing
+
+✅ **Complete data profile (FADO)** - PASSED
+- No amber highlighting shown
+- No warning icons
+- No suggestions box
+- All fields display normally
+
+✅ **Link navigation** - PASSED
+- Clicking "Zobacz pełny raport..." switches to "Jakość Danych" tab
+- Shows comprehensive 52% quality score dashboard
+
+### Visual Quality
+
+- Professional color scheme (amber for warnings, blue for suggestions)
+- Consistent spacing and padding
+- Icons enhance readability
+- Italic text distinguishes missing data
+- Link button has hover state
+- Fully responsive design
+
+### Files Modified
+
+- `backend/app/api/v1/endpoints/companies.py` (+9 lines, new company)
+- `frontend/src/app/companies/[id]/page.tsx` (+58 lines, highlighting logic)
+
+### Progress
+
+- Starting: 359/380 (94.5%)
+- Ending: 360/380 (94.7%)
+- **To 95%: Only 1 feature remaining!** 🎯🔥🔥
+- **To 100%: 20 features remaining**
+
+---
+
 # Session 278 - Date: 2026-01-20
 
 ## Session Summary

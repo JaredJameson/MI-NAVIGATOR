@@ -655,6 +655,17 @@ MOCK_COMPANIES = [
         "status": "active",
         "founded": "2012",
     },
+    {
+        "id": "8",
+        "name": "DataGap Sp. z o.o.",
+        "nip": "3344556677",
+        "krs": "",  # Missing KRS
+        "regon": "",  # Missing REGON
+        "address": {"city": "Wrocław", "street": "", "postal_code": ""},  # Missing street/postal
+        "pkd_codes": ["62.01.Z"],
+        "status": "active",
+        "founded": "",  # Missing founded year
+    },
 ]
 
 # Related companies mapping: company_id -> list of related companies
