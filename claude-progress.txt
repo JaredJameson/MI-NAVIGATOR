@@ -2274,3 +2274,15 @@ Line 61: Logs every request [PROXY GET] ✅
 
 **Full Report:** See screenshots in `.playwright-mcp/session369_*`
 
+
+## ✅ Session 370 Summary (2026-01-20) - CSRF Protection Verified, Auth Issue Returned
+
+### Test Results: 1/3 PASSING, 2/3 BLOCKED
+
+- **Feature #334** (CSRF token validation) - ✅ PASSING (5/5 steps)
+- **Feature #287** (Favorite marking) - ⚠️ BLOCKED (401 errors)
+- **Feature #351** (Currency display) - ⚠️ NOT TESTED
+
+**Critical Finding:** Feature #334 has EXCELLENT enterprise-grade CSRF protection. However, authentication token issue from Sessions 355-368 has RETURNED - 9th consecutive session affected.
+
+**Full Report:** REGRESSION_SESSION370_REPORT.md
