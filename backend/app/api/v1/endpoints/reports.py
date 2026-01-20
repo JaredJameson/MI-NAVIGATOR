@@ -2311,10 +2311,133 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
 
         # Process markdown-like content
         lines = content.split('\n')
+        table_rows = []
+        in_table = False
+        financial_data_rows = []
+        collecting_financial_data = False
+
         for line in lines:
             line = line.strip()
             if not line:
+                # Empty line - finalize any ongoing table or financial data
+                if in_table and table_rows:
+                    # Build table from collected rows
+                    table = Table(table_rows)
+                    table.setStyle(TableStyle([
+                        ('FONTNAME', (0, 0), (-1, 0), bold_font),  # Header row bold
+                        ('FONTNAME', (0, 1), (-1, -1), default_font),
+                        ('FONTSIZE', (0, 0), (-1, -1), 10),
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e5e7eb')),
+                        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1f2937')),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d1d5db')),
+                        ('TOPPADDING', (0, 0), (-1, -1), 8),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                    ]))
+                    elements.append(table)
+                    elements.append(Spacer(1, 0.1*inch))
+                    table_rows = []
+                    in_table = False
+
+                if collecting_financial_data and financial_data_rows:
+                    # Build financial data table
+                    fin_table = Table(financial_data_rows, colWidths=[2.5*inch, 2.5*inch])
+                    fin_table.setStyle(TableStyle([
+                        ('FONTNAME', (0, 0), (0, -1), bold_font),
+                        ('FONTNAME', (1, 0), (1, -1), default_font),
+                        ('FONTSIZE', (0, 0), (-1, -1), 10),
+                        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1f2937')),
+                        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),  # Numbers aligned right
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+                        ('TOPPADDING', (0, 0), (-1, -1), 6),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),  # First row background
+                    ]))
+                    elements.append(fin_table)
+                    elements.append(Spacer(1, 0.1*inch))
+                    financial_data_rows = []
+                    collecting_financial_data = False
                 continue
+
+            # Detect markdown tables (| ... | ... |)
+            if '|' in line and line.count('|') >= 2:
+                # Check if it's a separator line (|---|---|)
+                if set(line.replace('|', '').replace('-', '').replace(' ', '')) == set():
+                    # Skip separator line
+                    continue
+
+                # Parse table row
+                cells = [cell.strip() for cell in line.split('|')]
+                # Remove empty cells from start/end (markdown tables have | at edges)
+                cells = [c for c in cells if c]
+
+                if cells:
+                    table_rows.append(cells)
+                    in_table = True
+                continue
+
+            # Detect financial data pattern: "Label: Value" or "• Label: Value"
+            if ':' in line and (line.startswith('•') or line.startswith('-') or
+                               'mln PLN' in line or '%' in line or
+                               any(year in line for year in ['2021', '2022', '2023', '2024', '2025', '2026'])):
+
+                # Parse key-value pair
+                if line.startswith('•'):
+                    line = line[1:].strip()
+                elif line.startswith('-'):
+                    line = line[1:].strip()
+
+                if ':' in line:
+                    parts = line.split(':', 1)
+                    if len(parts) == 2:
+                        label = parts[0].strip()
+                        value = parts[1].strip()
+                        financial_data_rows.append([label + ':', value])
+                        collecting_financial_data = True
+                        continue
+
+            # If we were collecting tables/data but hit different content, finalize
+            if in_table and table_rows:
+                table = Table(table_rows)
+                table.setStyle(TableStyle([
+                    ('FONTNAME', (0, 0), (-1, 0), bold_font),
+                    ('FONTNAME', (0, 1), (-1, -1), default_font),
+                    ('FONTSIZE', (0, 0), (-1, -1), 10),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e5e7eb')),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1f2937')),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d1d5db')),
+                    ('TOPPADDING', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ]))
+                elements.append(table)
+                elements.append(Spacer(1, 0.1*inch))
+                table_rows = []
+                in_table = False
+
+            if collecting_financial_data and financial_data_rows:
+                fin_table = Table(financial_data_rows, colWidths=[2.5*inch, 2.5*inch])
+                fin_table.setStyle(TableStyle([
+                    ('FONTNAME', (0, 0), (0, -1), bold_font),
+                    ('FONTNAME', (1, 0), (1, -1), default_font),
+                    ('FONTSIZE', (0, 0), (-1, -1), 10),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1f2937')),
+                    ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                    ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
+                ]))
+                elements.append(fin_table)
+                elements.append(Spacer(1, 0.1*inch))
+                financial_data_rows = []
+                collecting_financial_data = False
 
             # Handle headers
             if line.startswith('**') and line.endswith('**'):
@@ -2323,20 +2446,50 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
                 para = Paragraph(f'<b>{text}</b>', body_style)
                 elements.append(para)
             elif line.startswith('- '):
-                # Bullet point
+                # Bullet point (not financial data)
                 text = line[2:]
                 para = Paragraph(f'• {text}', body_style)
                 elements.append(para)
-            elif '|' in line and line.count('|') >= 2:
-                # Skip markdown table separators
-                if line.replace('|', '').replace('-', '').replace(' ', ''):
-                    # Actual table row, skip for now (tables are complex)
-                    para = Paragraph(line, body_style)
-                    elements.append(para)
             else:
                 # Regular paragraph
                 para = Paragraph(line, body_style)
                 elements.append(para)
+
+        # Finalize any remaining table/financial data at section end
+        if in_table and table_rows:
+            table = Table(table_rows)
+            table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (-1, 0), bold_font),
+                ('FONTNAME', (0, 1), (-1, -1), default_font),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e5e7eb')),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1f2937')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d1d5db')),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 0.1*inch))
+
+        if collecting_financial_data and financial_data_rows:
+            fin_table = Table(financial_data_rows, colWidths=[2.5*inch, 2.5*inch])
+            fin_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (0, -1), bold_font),
+                ('FONTNAME', (1, 0), (1, -1), default_font),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1f2937')),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f4f6')),
+            ]))
+            elements.append(fin_table)
+            elements.append(Spacer(1, 0.1*inch))
 
         elements.append(Spacer(1, 0.2*inch))
 

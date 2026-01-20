@@ -1,0 +1,69 @@
+### New console messages
+- [LOG] [PWA] Service Worker registered: ServiceWorkerRegistration @ webpack-internal:///(app-pages-br...
+- [LOG] [PWA] Service Worker registered: ServiceWorkerRegistration @ webpack-internal:///(app-pages-br...
+- [WARNING] GenerateSW has been called multiple times, perhaps due to running webpack in --watch mode....
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+
+### Page state
+- Page URL: http://localhost:3000/analysis
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - alert [ref=e5]
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - link [ref=e10] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e11]
+          - heading "Analiza Rynku" [level=1] [ref=e13]
+        - navigation [ref=e14]:
+          - link "Dashboard" [ref=e15] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Chat" [ref=e16] [cursor=pointer]:
+            - /url: /chat
+    - main [ref=e17]:
+      - generic [ref=e18]:
+        - heading "Parametry analizy" [level=2] [ref=e19]
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Branża
+            - combobox [ref=e23]:
+              - option "Produkcja / Manufacturing" [selected]
+              - option "Technologia / IT"
+              - option "Logistyka / Transport"
+              - option "Handel detaliczny"
+              - option "Usługi"
+          - generic [ref=e24]:
+            - generic [ref=e25]: Obszar geograficzny
+            - generic [ref=e26]:
+              - button "🇵🇱 Polska" [ref=e27] [cursor=pointer]:
+                - generic [ref=e28]: 🇵🇱
+                - generic [ref=e29]: Polska
+              - button "🇪🇺 Europa (EU)" [ref=e30] [cursor=pointer]:
+                - generic [ref=e31]: 🇪🇺
+                - generic [ref=e32]: Europa (EU)
+              - button "🌍 Europa Środkowo-Wschodnia" [ref=e33] [cursor=pointer]:
+                - generic [ref=e34]: 🌍
+                - generic [ref=e35]: Europa Środkowo-Wschodnia
+              - button "🌐 Globalnie" [ref=e36] [cursor=pointer]:
+                - generic [ref=e37]: 🌐
+                - generic [ref=e38]: Globalnie
+        - generic [ref=e39]:
+          - generic [ref=e40]: Segment rynku
+          - combobox [ref=e41]:
+            - option "Wszystkie segmenty" [selected]
+            - option "B2B (Business-to-Business)"
+            - option "B2C (Business-to-Consumer)"
+            - option "Enterprise (Duże przedsiębiorstwa)"
+            - option "SMB (Małe i średnie firmy)"
+          - paragraph [ref=e42]: Filtruj wyniki według segmentu rynku (B2B, B2C, Enterprise, SMB)
+        - button "Rozpocznij analizę" [ref=e43] [cursor=pointer]
+```
