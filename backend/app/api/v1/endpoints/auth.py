@@ -41,8 +41,10 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db)
 ) -> "User":
-    """Get current authenticated user from token."""
+    """Get current authenticated user from token or API key."""
     from app.models.user import User
+    from app.models.api_key import APIKey
+    from sqlalchemy import select
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -50,6 +52,40 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    # Check if token starts with "mi_nav_" (API key format)
+    if token.startswith("mi_nav_"):
+        # Validate API key
+        key_hash = APIKey.hash_key(token)
+        result = await db.execute(
+            select(APIKey).where(
+                APIKey.key_hash == key_hash,
+                APIKey.is_active == True
+            )
+        )
+        api_key = result.scalar_one_or_none()
+
+        if not api_key:
+            raise credentials_exception
+
+        # Check if key has expired
+        if api_key.expires_at and api_key.expires_at < datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="API key has expired"
+            )
+
+        # Update last_used_at timestamp
+        api_key.last_used_at = datetime.utcnow()
+        await db.commit()
+
+        # Get the user
+        user = await AuthService.get_user_by_id(db, api_key.user_id)
+        if not user or not user.is_active:
+            raise credentials_exception
+
+        return user
+
+    # Otherwise, treat as JWT token
     token_data = AuthService.decode_token(token)
     if not token_data or token_data.type != "access":
         raise credentials_exception
