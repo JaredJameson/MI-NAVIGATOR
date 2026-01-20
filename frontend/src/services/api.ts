@@ -230,7 +230,7 @@ export const authApi = {
   },
 
   async getCurrentUser(): Promise<ApiResponse<any>> {
-    return fetchApi('/auth/me');
+    return fetchApi('/users/me');
   },
 
   async refreshToken(): Promise<ApiResponse<TokenResponse>> {
