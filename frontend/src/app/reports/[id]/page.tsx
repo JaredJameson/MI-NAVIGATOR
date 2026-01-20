@@ -4580,6 +4580,11 @@ export default function ReportViewerPage() {
     }
   }
 
+  // Print functionality
+  const handlePrint = () => {
+    window.print()
+  }
+
   // Share via email functionality
   const handleShareEmail = async () => {
     const token = getStoredToken()
@@ -4972,7 +4977,7 @@ export default function ReportViewerPage() {
                   setTimeout(() => searchInputRef.current?.focus(), 100)
                 }
               }}
-              className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+              className="no-print rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
               title="Szukaj w raporcie (Ctrl+F)"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -4982,7 +4987,7 @@ export default function ReportViewerPage() {
             {/* Share button */}
             <button
               onClick={() => setShowShareModal(true)}
-              className="flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+              className="no-print flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
               title="Udostępnij raport przez email"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -4994,7 +4999,7 @@ export default function ReportViewerPage() {
             {/* View Access Log button */}
             <button
               onClick={handleViewAccessLog}
-              className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="no-print flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               title="Zobacz kto otworzył udostępniony raport"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -5003,7 +5008,19 @@ export default function ReportViewerPage() {
               Log dostępu
             </button>
 
-            <div className="relative">
+            {/* Print button */}
+            <button
+              onClick={handlePrint}
+              className="no-print flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              title="Drukuj raport (Ctrl+P)"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Drukuj
+            </button>
+
+            <div className="relative no-print">
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
                 disabled={isExporting}
