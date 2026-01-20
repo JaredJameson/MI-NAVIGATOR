@@ -2633,6 +2633,21 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
 
         elements.append(Spacer(1, 0.2*inch))
 
+    # === SOURCES SECTION (Feature #266) ===
+    if report.get('sources'):
+        elements.append(PageBreak())
+        sources_heading = Paragraph("Źródła", heading_style)
+        elements.append(sources_heading)
+        elements.append(Spacer(1, 0.1*inch))
+
+        for source in report['sources']:
+            source_text = f"• <b>{source['name']}</b> - Wiarygodność: {int(source['confidence']*100)}%"
+            if source.get('url'):
+                source_text += f"<br/>&nbsp;&nbsp;&nbsp;&nbsp;URL: <link href='{source['url']}'>{source['url']}</link>"
+            source_para = Paragraph(source_text, body_style)
+            elements.append(source_para)
+            elements.append(Spacer(1, 0.05*inch))
+
     # === Build PDF ===
     doc.build(elements)
     output.seek(0)

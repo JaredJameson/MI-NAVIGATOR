@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Viewer - Feature #266 Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #pdfViewer { width: 100%; height: 800px; border: 1px solid #ccc; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Feature #266: Source list in PDF export</h1>
+    <div id="status"></div>
+    <button onclick="loadPDF()">Load PDF</button>
+    <div id="pdfViewer"></div>
+
+    <script>
+        async function loadPDF() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<div class="status">Loading PDF...</div>';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/reports/report_001/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ format: 'pdf' })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+
+                document.getElementById('pdfViewer').innerHTML =
+                    `<embed src="${url}" type="application/pdf" width="100%" height="800px">`;
+
+                status.innerHTML = '<div class="status success">✅ PDF loaded! Scroll to bottom to verify sources section.</div>';
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
