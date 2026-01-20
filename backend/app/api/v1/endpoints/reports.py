@@ -2126,6 +2126,20 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
     from reportlab.lib.units import inch
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
     from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    # Register DejaVu fonts for proper Polish character support
+    try:
+        # Try to register DejaVuSans fonts (commonly available on Linux)
+        pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
+        default_font = 'DejaVuSans'
+        bold_font = 'DejaVuSans-Bold'
+    except:
+        # Fallback to Helvetica if DejaVu not available
+        default_font = 'Helvetica'
+        bold_font = 'Helvetica-Bold'
 
     # Create buffer for PDF
     output = io.BytesIO()
@@ -2189,8 +2203,8 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
 
     metadata_table = Table(metadata_data, colWidths=[2*inch, 4*inch])
     metadata_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 0), (0, -1), bold_font),
+        ('FONTNAME', (1, 0), (1, -1), default_font),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#4b5563')),
         ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
@@ -2201,6 +2215,81 @@ async def export_to_pdf(report: dict) -> StreamingResponse:
 
     elements.append(metadata_table)
     elements.append(Spacer(1, 0.3*inch))
+
+    # === COMPANY PROFILE CARD (Feature #263) ===
+    # Add special info card for company profile reports
+    if report.get('type') == 'company_profile':
+        # Extract company data from first section (Informacje podstawowe)
+        company_data = {}
+        if report.get('sections') and len(report['sections']) > 0:
+            first_section = report['sections'][0]
+            content = first_section.get('content', '')
+
+            # Extract NIP, REGON, KRS from content
+            import re
+            nip_match = re.search(r'NIP:\s*(\d+)', content)
+            regon_match = re.search(r'REGON:\s*(\d+)', content)
+            krs_match = re.search(r'KRS:\s*(\d+)', content)
+            legal_form_match = re.search(r'Forma prawna:\s*([^\n]+)', content)
+
+            if nip_match:
+                company_data['NIP'] = nip_match.group(1)
+            if regon_match:
+                company_data['REGON'] = regon_match.group(1)
+            if krs_match:
+                company_data['KRS'] = krs_match.group(1)
+            if legal_form_match:
+                company_data['Forma prawna'] = legal_form_match.group(1).strip()
+
+        # Create company profile card (styled box)
+        if company_data:
+            # Card header
+            card_header = ParagraphStyle(
+                'CardHeader',
+                parent=styles['Heading3'],
+                fontSize=12,
+                textColor=colors.white,
+                backColor=colors.HexColor('#2563eb'),
+                spaceAfter=0,
+                spaceBefore=0,
+                alignment=TA_CENTER,
+                leftIndent=6,
+                rightIndent=6
+            )
+
+            elements.append(Paragraph('📋 KARTA INFORMACYJNA FIRMY', card_header))
+
+            # Card body with company data
+            card_data = []
+            if 'NIP' in company_data:
+                card_data.append(['NIP:', company_data['NIP']])
+            if 'REGON' in company_data:
+                card_data.append(['REGON:', company_data['REGON']])
+            if 'KRS' in company_data:
+                card_data.append(['KRS:', company_data['KRS']])
+            if 'Forma prawna' in company_data:
+                card_data.append(['Forma prawna:', company_data['Forma prawna']])
+
+            if card_data:
+                card_table = Table(card_data, colWidths=[2*inch, 4*inch])
+                card_table.setStyle(TableStyle([
+                    ('FONTNAME', (0, 0), (0, -1), bold_font),
+                    ('FONTNAME', (1, 0), (1, -1), default_font),
+                    ('FONTSIZE', (0, 0), (-1, -1), 10),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1f2937')),
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f3f4f6')),
+                    ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+                    ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+                    ('TOPPADDING', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d1d5db')),
+                    ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#2563eb'))
+                ]))
+
+                elements.append(card_table)
+                elements.append(Spacer(1, 0.3*inch))
 
     # Summary
     if report.get('summary'):
