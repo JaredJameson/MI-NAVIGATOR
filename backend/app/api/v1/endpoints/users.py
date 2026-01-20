@@ -729,8 +729,12 @@ async def save_onboarding_data(
             preferred_language=current_user.preferred_language,
             preferred_depth=current_user.preferred_depth,
             preferred_format=current_user.preferred_format,
+            preferred_currency=current_user.preferred_currency or "PLN",
             timezone=current_user.timezone or "Europe/Warsaw",
-            onboarding_completed=current_user.onboarding_completed
+            report_branding=current_user.report_branding if hasattr(current_user, 'report_branding') else True,
+            onboarding_completed=current_user.onboarding_completed,
+            created_at=current_user.created_at,
+            last_login_at=current_user.last_login_at
         )
     )
 

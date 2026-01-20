@@ -83,7 +83,7 @@ const INDUSTRIES = [
 
 const USER_ROLES = [
   { id: 'ceo', name: 'Zarząd / C-level', icon: '👔' },
-  { id: 'strategy', name: 'Strategy / Business Development', icon: '📊' },
+  { id: 'bd', name: 'Strategy / Business Development', icon: '📊' },
   { id: 'sales', name: 'Sales / Marketing', icon: '📈' },
   { id: 'operations', name: 'Operations', icon: '⚙️' },
   { id: 'analyst', name: 'Analyst / Researcher', icon: '🔍' },
@@ -146,10 +146,16 @@ export default function OnboardingPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/users/onboarding', {
+      // Get auth token from localStorage
+      const token = localStorage.getItem('mi_navigator_token')
+      const csrfToken = localStorage.getItem('mi_navigator_csrf_token')
+
+      const response = await fetch('/api/proxy/users/onboarding', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
         },
         credentials: 'include',
         body: JSON.stringify({
