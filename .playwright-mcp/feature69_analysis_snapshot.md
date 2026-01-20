@@ -1,0 +1,72 @@
+### Page state
+- Page URL: http://localhost:3000/chat?conversation_id=ce50c518-da3a-48b3-994f-0fd47cd930c2
+- Page Title: MI-Navigator | Market Intelligence Platform
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - region "Notifications alt+T"
+  - alert [ref=e5]
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - link [ref=e10] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e11]
+          - heading "New Research" [level=1] [ref=e13]
+          - generic [ref=e42]: Connected
+        - generic [ref=e14]:
+          - button "Save as Report" [ref=e43] [cursor=pointer]:
+            - img [ref=e44]
+            - text: Save as Report
+          - button "New Chat" [ref=e15] [cursor=pointer]
+    - generic [ref=e18]:
+      - generic [ref=e48]: Analyze news sentiment for company FADO Sp. z o.o.
+      - generic [ref=e99]:
+        - generic [ref=e100]:
+          - img [ref=e102]
+          - generic [ref=e104]:
+            - heading "Research Plan Generated" [level=3] [ref=e105]
+            - paragraph [ref=e106]: Here's your research plan based on your requirements. You can proceed or modify it.
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - text: Objective
+              - paragraph [ref=e110]: News sentiment monitoring and analysis
+            - generic [ref=e111]:
+              - text: Scope
+              - paragraph [ref=e112]: company only
+            - generic [ref=e113]:
+              - text: Depth
+              - paragraph [ref=e114]: standard
+          - generic [ref=e115]:
+            - heading "Research Steps:" [level=4] [ref=e116]
+            - generic [ref=e117]:
+              - generic [ref=e118]:
+                - generic [ref=e119]: "1"
+                - generic [ref=e120]:
+                  - generic [ref=e121]: Data Collection
+                  - generic [ref=e122]: Gather company data from official sources (KRS, financial reports, website)
+                  - generic [ref=e123]: ⏱️ 2-3 minutes
+              - generic [ref=e124]:
+                - generic [ref=e125]: "2"
+                - generic [ref=e126]:
+                  - generic [ref=e127]: Analysis & Synthesis
+                  - generic [ref=e128]: Detailed analysis with insights and recommendations
+                  - generic [ref=e129]: ⏱️ 5-8 minutes
+            - generic [ref=e130]: "Total estimated time: ~7 minutes"
+        - generic [ref=e131]:
+          - button "✓ Proceed with Plan" [ref=e132] [cursor=pointer]
+          - button "✏️ Modify Plan" [ref=e133] [cursor=pointer]
+          - button "✕ Cancel" [ref=e134] [cursor=pointer]
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - button "Upload file (PDF, DOCX, XLSX, CSV, PNG, JPG - max 50MB)" [ref=e32] [cursor=pointer]:
+          - img [ref=e33]
+        - textbox "Ask about a company, request analysis, or generate a report..." [ref=e35]
+        - button [disabled] [ref=e36]:
+          - img [ref=e37]
+      - paragraph [ref=e39]: MI-Navigator uses AI to analyze markets and companies. Results may vary.
+```
