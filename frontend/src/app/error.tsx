@@ -48,10 +48,10 @@ export default function Error({
 
         {/* Error Message */}
         <h2 className="mb-2 text-2xl font-semibold text-gray-700">
-          Something Went Wrong
+          Coś poszło nie tak
         </h2>
         <p className="mb-8 text-gray-600">
-          We're sorry, but something unexpected happened. Our team has been notified and is working on it.
+          Przepraszamy, wystąpił nieoczekiwany błąd. Nasz zespół został powiadomiony i pracuje nad rozwiązaniem.
         </p>
 
         {/* Action Buttons */}
@@ -60,43 +60,43 @@ export default function Error({
             onClick={reset}
             className="rounded-lg bg-red-600 px-6 py-3 font-medium text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            Try Again
+            Spróbuj ponownie
           </button>
           <Link
             href="/dashboard"
             className="rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            Go to Dashboard
+            Przejdź do Dashboardu
           </Link>
           <button
             onClick={() => window.history.back()}
             className="rounded-lg px-6 py-3 font-medium text-gray-600 transition-colors hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            ← Go Back
+            ← Wróć
           </button>
         </div>
 
         {/* Contact Support */}
         <div className="mt-8 border-t border-gray-200 pt-6">
-          <p className="mb-3 text-sm text-gray-500">Need help?</p>
+          <p className="mb-3 text-sm text-gray-500">Potrzebujesz pomocy?</p>
           <div className="flex flex-col gap-2 text-sm">
             <a
               href="mailto:support@mi-navigator.com"
               className="text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
-              Contact Support
+              Skontaktuj się z nami
             </a>
             <Link
               href="/help"
               className="text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
-              Help Center
+              Centrum pomocy
             </Link>
             <Link
               href="/reports"
               className="text-gray-600 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
-              View Reports
+              Zobacz raporty
             </Link>
           </div>
         </div>
