@@ -171,6 +171,23 @@ async def list_workspaces():  # TESTING: Auth disabled
     return workspaces
 
 
+@router.get("/invitations/pending", response_model=List[MemberResponse])
+async def list_pending_invitations():  # TESTING: Auth disabled
+    """List all pending workspace invitations for the current user."""
+    # TESTING: Support multiple mock users by email parameter
+    # This will be replaced with actual user auth in production
+
+    # For now, we'll list ALL pending invitations (for testing purposes)
+    # In production, this would filter by current_user email
+    pending_invitations = [
+        MemberResponse(**m)
+        for m in WORKSPACE_MEMBERS_STORAGE
+        if not m["invitation_accepted"]
+    ]
+
+    return pending_invitations
+
+
 @router.get("/{workspace_id}", response_model=WorkspaceResponse)
 async def get_workspace(
     workspace_id: str
@@ -273,12 +290,44 @@ async def invite_member(
         "user_name": None,
         "role": invite_data.role.value,
         "invited_by": mock_user_id,  # TESTING: Use mock user
-        "invitation_accepted": True,  # TESTING: Auto-accept for testing
+        "invitation_accepted": False,  # Invitation requires acceptance
         "created_at": now,
         "updated_at": now
     }
 
     WORKSPACE_MEMBERS_STORAGE.append(member)
+
+    return MemberResponse(**member)
+
+
+@router.post("/{workspace_id}/members/{member_id}/accept", response_model=MemberResponse)
+async def accept_invitation(
+    workspace_id: str,
+    member_id: str
+    # TESTING: Auth disabled - current_user: User = Depends(get_current_user)
+):
+    """Accept a workspace invitation."""
+    # Check if workspace exists
+    workspace = next((w for w in WORKSPACES_STORAGE if w["id"] == workspace_id), None)
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    # Find the member/invitation
+    member = next(
+        (m for m in WORKSPACE_MEMBERS_STORAGE
+         if m["id"] == member_id and m["workspace_id"] == workspace_id),
+        None
+    )
+    if not member:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+
+    # Check if already accepted
+    if member["invitation_accepted"]:
+        raise HTTPException(status_code=400, detail="Invitation already accepted")
+
+    # Accept the invitation
+    member["invitation_accepted"] = True
+    member["updated_at"] = datetime.utcnow().isoformat() + "Z"
 
     return MemberResponse(**member)
 
