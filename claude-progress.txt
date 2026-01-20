@@ -1,7 +1,28 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 366)
-**Project Status:** ⚠️ FALSE POSITIVE DETECTED - Quality streak broken
+**Last Updated:** 2026-01-20 (Session 367)
+**Project Status:** 🟡 CRITICAL BUG FOUND - Version history broken
+
+## 🚨 Session 367 Summary (2026-01-20) - REGRESSION TESTING: 2/3 PASSING, 1/3 CRITICAL BUG
+
+### 📊 Test Results
+
+**Features Tested:** 3 (randomly selected for regression)
+- **Feature #362** (Hover state animations) - ✅ **VERIFIED PASSING** (5/5 steps = 100%)
+- **Feature #239** (Report version history) - ❌ **CRITICAL BUG** (1/5 steps = 20% - Frontend not loading versions)
+- **Feature #56** (Ownership structure mapping) - ✅ **VERIFIED PASSING** (6/6 steps = 100%)
+
+**Summary:**
+- Verified Passing: 2/3 (67%)
+- Critical Bugs Found: 1/3 (33%)
+- False Positives: 0/3 (0%)
+- **Accuracy: 100% (3/3 correct assessments)** ✨
+
+**Critical Finding:** Feature #239 version history panel broken - Backend creates versions correctly, but frontend doesn't call `fetchVersions()` when panel opens. Missing function call in `page.tsx` line 4878.
+
+**Full Report:** See `REGRESSION_SESSION367_REPORT.md`
+
+---
 
 ## ⚠️ Session 366 Summary (2026-01-20) - REGRESSION TESTING: 1/3 VERIFIED, 1/3 FALSE POSITIVE
 
