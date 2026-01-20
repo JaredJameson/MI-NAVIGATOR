@@ -1519,21 +1519,20 @@ async def get_audit_logs_endpoint(
 @router.get("/{report_id}")
 async def get_report(
     report_id: str,
-    current_user: Optional[User] = Depends(lambda: None)  # DEV MODE: No auth required
+    current_user: User = Depends(get_current_user)  # SECURITY: Auth required
 ):
     """Get report details."""
     for report in MOCK_REPORTS:
         if report["id"] == report_id:
             # SECURITY: Check if user is the owner of the report
-            # DEV MODE: Skip auth check for development
-            # if report.get("created_by") and current_user and report.get("created_by") != str(current_user.id):
-            #     raise HTTPException(
-            #         status_code=403,
-            #         detail="Nie masz uprawnień do wyświetlenia tego raportu."
-            #     )
+            if report.get("created_by") and report.get("created_by") != str(current_user.id):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Nie masz uprawnień do wyświetlenia tego raportu."
+                )
 
             # Check if report is in user's favorites
-            user_id = str(current_user.id) if current_user else "dev_user"
+            user_id = str(current_user.id)
             is_favorite = user_id in USER_FAVORITES and report_id in USER_FAVORITES[user_id]
 
             return ReportDetail(
