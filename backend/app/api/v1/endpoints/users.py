@@ -199,7 +199,8 @@ async def get_user_preferences(
         preferred_depth=current_user.preferred_depth or "standard",
         preferred_format=current_user.preferred_format or "pdf",
         preferred_currency=current_user.preferred_currency or "PLN",
-        timezone=current_user.timezone or "Europe/Warsaw"
+        timezone=current_user.timezone or "Europe/Warsaw",
+        report_branding=current_user.report_branding or False
     )
 
 
