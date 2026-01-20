@@ -1398,6 +1398,7 @@ export default function ReportsPage() {
                                 onClick={(e) => toggleFavorite(report.id, e)}
                                 className="p-1 rounded hover:bg-gray-100"
                                 title={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+                                aria-label={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
                               >
                                 <svg
                                   className={`h-4 w-4 ${report.is_favorite ? 'fill-yellow-400 stroke-yellow-500' : 'fill-none stroke-gray-400'}`}
@@ -1513,6 +1514,7 @@ export default function ReportsPage() {
                               onClick={(e) => toggleFavorite(report.id, e)}
                               className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                               title={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+                              aria-label={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
                             >
                               <svg
                                 className={`h-5 w-5 ${report.is_favorite ? 'fill-yellow-400 stroke-yellow-500' : 'fill-none stroke-gray-400'}`}

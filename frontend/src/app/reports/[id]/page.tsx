@@ -4887,6 +4887,7 @@ export default function ReportViewerPage() {
               onClick={toggleFavorite}
               className="rounded-lg border border-gray-300 p-2 hover:bg-gray-50"
               title={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+              aria-label={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
             >
               <svg
                 className={`h-5 w-5 ${report.is_favorite ? 'fill-yellow-400 stroke-yellow-500' : 'fill-none stroke-gray-600'}`}
