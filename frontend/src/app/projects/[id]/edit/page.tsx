@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken, getCsrfToken, fetchCsrfToken } from '@/services/api'
+import { toast } from 'sonner'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -112,10 +113,18 @@ export default function EditProjectPage() {
         throw new Error('Failed to update project')
       }
 
+      // Show success toast
+      toast.success('Projekt zaktualizowany pomyślnie', {
+        description: `Zmiany w projekcie "${formData.name}" zostały zapisane`
+      })
+
       // Redirect to the project details page
       router.push(`/projects/${projectId}`)
     } catch (err) {
       setError('Nie udało się zaktualizować projektu. Spróbuj ponownie.')
+      toast.error('Nie udało się zaktualizować projektu', {
+        description: 'Spróbuj ponownie'
+      })
     } finally {
       setIsSubmitting(false)
     }

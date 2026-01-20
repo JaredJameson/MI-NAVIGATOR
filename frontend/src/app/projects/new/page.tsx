@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getStoredToken, getCsrfToken, fetchCsrfToken } from '@/services/api'
+import { toast } from 'sonner'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -68,10 +69,18 @@ export default function NewProjectPage() {
 
       const newProject = await response.json()
 
+      // Show success toast
+      toast.success('Projekt utworzony pomyślnie', {
+        description: `Projekt "${formData.name}" został utworzony`
+      })
+
       // Redirect to the new project
       router.push(`/projects/${newProject.id}`)
     } catch (err) {
       setError('Nie udało się utworzyć projektu. Spróbuj ponownie.')
+      toast.error('Nie udało się utworzyć projektu', {
+        description: 'Spróbuj ponownie'
+      })
     } finally {
       setIsSubmitting(false)
     }

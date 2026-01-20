@@ -572,14 +572,27 @@ async def get_user_usage_stats(
         start_date = datetime(2020, 1, 1)  # Arbitrary old date
 
     # Count analyses based on analytics events
-    # Count events of type 'analysis', 'search', 'chat' as analyses
+    # Count events of type research, search, company analysis, chat as analyses
+    from app.models.analytics_event import EventType
+
+    billable_event_types = [
+        EventType.RESEARCH_STARTED,
+        EventType.RESEARCH_COMPLETED,
+        EventType.SEARCH_PERFORMED,
+        EventType.PKD_SEARCH,
+        EventType.COMPANY_ANALYZED,
+        EventType.COMPETITOR_MAPPED,
+        EventType.CHAT_MESSAGE_SENT,
+        EventType.REPORT_CREATED
+    ]
+
     analyses_result = await db.execute(
         select(func.count(AnalyticsEvent.id))
         .where(
             and_(
                 AnalyticsEvent.user_id == str(user_id),
                 AnalyticsEvent.created_at >= start_date,
-                AnalyticsEvent.event_type.in_(['analysis', 'search', 'chat'])
+                AnalyticsEvent.event_type.in_(billable_event_types)
             )
         )
     )

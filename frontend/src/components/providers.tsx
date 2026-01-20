@@ -12,6 +12,7 @@ import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
 import { CSRFTokenInitializer } from '@/components/CSRFTokenInitializer'
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { Toaster } from 'sonner'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -43,6 +44,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <OfflineIndicator />
           <SyncManager />
           <KeyboardShortcutsHelp />
+          <Toaster position="top-right" richColors closeButton />
           <AuthGuard>
             {children}
           </AuthGuard>

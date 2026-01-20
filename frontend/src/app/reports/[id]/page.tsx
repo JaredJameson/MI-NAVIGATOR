@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getStoredToken } from '@/services/api'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { toast } from 'sonner'
 import {
   DndContext,
   closestCenter,
@@ -3742,6 +3743,10 @@ export default function ReportViewerPage() {
         setIsEditing(false)
         setEditedSections({})
         setEditedTitle('')
+        // Show success toast
+        toast.success('Raport zapisany pomyślnie', {
+          description: 'Wszystkie zmiany zostały zapisane'
+        })
       } else if (response.status === 409) {
         // Edit conflict detected
         const errorData = await response.json()
@@ -3756,11 +3761,15 @@ export default function ReportViewerPage() {
         }
         // If user cancelled, they stay in edit mode with their changes
       } else {
-        alert('Failed to save changes')
+        toast.error('Nie udało się zapisać zmian', {
+          description: 'Spróbuj ponownie'
+        })
       }
     } catch (err) {
       console.error('Failed to save report:', err)
-      alert('Failed to save changes')
+      toast.error('Nie udało się zapisać zmian', {
+        description: 'Wystąpił błąd podczas zapisywania'
+      })
     } finally {
       setIsSaving(false)
     }
