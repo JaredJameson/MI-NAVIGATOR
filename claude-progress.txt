@@ -1,7 +1,55 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 340)
-**Project Status:** 379/380 features passing (99.7%) - Feature #211 bug fixed, testing incomplete
+**Last Updated:** 2026-01-20 (Session 342)
+**Project Status:** 379/380 features passing (99.7%) - Feature #211 needs completion testing
+
+## Session 342 Summary (2026-01-20) - CRITICAL FRONTEND BUG FIXED
+
+### 🐛 CRITICAL BUG FIXED
+**Problem:** Frontend had hardcoded `http://localhost:3000/api/proxy` in `.env.local` and multiple files
+- Caused CSP violations when running on alternate ports (3001, 3002, 3005, 3006)
+- "Refused to connect" errors prevented all API calls
+- Service Worker cached old builds preventing updates
+- **Application was completely non-functional**
+
+**Root Cause:** `NEXT_PUBLIC_API_URL=http://localhost:3000/api/proxy` in `.env.local`
+
+**Solution:** Changed to relative URL `/api/proxy` in 5 files:
+- ✅ `frontend/.env.local` (primary fix)
+- ✅ `frontend/src/services/api.ts`
+- ✅ `frontend/src/services/abTesting.ts`
+- ✅ `frontend/src/hooks/useLocale.ts`
+- ✅ `frontend/src/app/settings/api-keys/page.tsx`
+
+**Result:** Frontend now works on any port, zero CSP violations
+
+### ✅ REGRESSION TEST PASSED
+**Feature #352 (404 page styling)** - ✅ PASSING
+- Professional Polish 404 page with sad face icon
+- Clear messaging: "Strona nie znaleziona"
+- 3 navigation buttons + 4 quick links
+- Consistent styling throughout
+
+### ⏳ SESSION INCOMPLETE
+- Feature #211 testing not completed (ran out of time after fixing infrastructure)
+- Feature #367 not tested (lower priority)
+- Test user created: session342@test.com / Password123!
+- Environment ready for next session
+
+### 📊 Session Stats
+- Duration: ~2 hours
+- Bugs fixed: 1 critical (frontend URLs)
+- Regressions found: 0
+- Features tested: 1 (Feature #352)
+- Token usage: 112k/200k (56%)
+- Commit: a7d521c
+
+### 🔜 Next Session Must Do
+1. Complete Feature #211 testing (code fix already in place from Session 340)
+2. Verify usage limits enforced (3 requests → 403 Forbidden)
+3. Mark Feature #211 as passing if tests confirm
+
+---
 
 ## Session 340 Summary (2026-01-20) - 2 CRITICAL BUGS FIXED, TESTING INCOMPLETE
 
