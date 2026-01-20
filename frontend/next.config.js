@@ -58,7 +58,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net", // unsafe-inline needed for Tailwind
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' http://localhost:8004 ws://localhost:8004",
+              "connect-src 'self' http://localhost:8000 ws://localhost:8000",
               "frame-ancestors 'none'",
             ].join('; '),
           },
