@@ -1104,6 +1104,181 @@ export default function CompanyProfilePage() {
               </div>
             ) : financials ? (
               <>
+                {/* Historical Data Comparison */}
+                {financials.statements && financials.statements.length > 1 && (
+                  <div className="bg-white rounded-xl border border-slate-200 p-6">
+                    <h2 className="text-xl font-semibold text-slate-900 mb-4">
+                      Dane Historyczne
+                    </h2>
+
+                    {/* Revenue Trend */}
+                    <div className="mb-6">
+                      <h3 className="text-sm font-medium text-slate-700 mb-3">Przychody (PLN)</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-200">
+                              <th className="text-left py-2 px-3 text-slate-600 font-medium">Rok</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">Wartość</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">YoY</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">Wzrost</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {financials.statements.map((statement, index) => {
+                              const prevStatement = financials.statements[index + 1];
+                              const yoyChange = prevStatement
+                                ? statement.revenue - prevStatement.revenue
+                                : 0;
+                              const yoyPercent = prevStatement
+                                ? ((statement.revenue - prevStatement.revenue) / prevStatement.revenue * 100)
+                                : 0;
+                              const isPositive = yoyChange > 0;
+
+                              return (
+                                <tr key={statement.year} className="border-b border-slate-100 last:border-0">
+                                  <td className="py-2 px-3 font-medium text-slate-900">{statement.year}</td>
+                                  <td className="py-2 px-3 text-right font-semibold text-slate-900">
+                                    {(statement.revenue / 1_000_000).toFixed(1)}M
+                                  </td>
+                                  <td className="py-2 px-3 text-right">
+                                    {prevStatement ? (
+                                      <span className={isPositive ? 'text-green-600' : 'text-red-600'}>
+                                        {isPositive ? '+' : ''}{(yoyChange / 1_000_000).toFixed(1)}M
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400">-</span>
+                                    )}
+                                  </td>
+                                  <td className="py-2 px-3 text-right">
+                                    {prevStatement ? (
+                                      <span className={`inline-flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                        {isPositive ? '↑' : '↓'} {Math.abs(yoyPercent).toFixed(1)}%
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400">-</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Net Profit Trend */}
+                    <div className="mb-6">
+                      <h3 className="text-sm font-medium text-slate-700 mb-3">Zysk netto (PLN)</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-200">
+                              <th className="text-left py-2 px-3 text-slate-600 font-medium">Rok</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">Wartość</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">YoY</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">Wzrost</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {financials.statements.map((statement, index) => {
+                              const prevStatement = financials.statements[index + 1];
+                              const yoyChange = prevStatement
+                                ? statement.net_profit - prevStatement.net_profit
+                                : 0;
+                              const yoyPercent = prevStatement
+                                ? ((statement.net_profit - prevStatement.net_profit) / prevStatement.net_profit * 100)
+                                : 0;
+                              const isPositive = yoyChange > 0;
+
+                              return (
+                                <tr key={statement.year} className="border-b border-slate-100 last:border-0">
+                                  <td className="py-2 px-3 font-medium text-slate-900">{statement.year}</td>
+                                  <td className="py-2 px-3 text-right font-semibold text-slate-900">
+                                    {(statement.net_profit / 1_000_000).toFixed(1)}M
+                                  </td>
+                                  <td className="py-2 px-3 text-right">
+                                    {prevStatement ? (
+                                      <span className={isPositive ? 'text-green-600' : 'text-red-600'}>
+                                        {isPositive ? '+' : ''}{(yoyChange / 1_000_000).toFixed(1)}M
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400">-</span>
+                                    )}
+                                  </td>
+                                  <td className="py-2 px-3 text-right">
+                                    {prevStatement ? (
+                                      <span className={`inline-flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                        {isPositive ? '↑' : '↓'} {Math.abs(yoyPercent).toFixed(1)}%
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400">-</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Key Ratios Historical Comparison */}
+                    {financials.ratios && financials.ratios.length > 1 && (
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-700 mb-3">Wskaźniki Rentowności</h3>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-slate-200">
+                                <th className="text-left py-2 px-3 text-slate-600 font-medium">Rok</th>
+                                <th className="text-right py-2 px-3 text-slate-600 font-medium">ROE (%)</th>
+                                <th className="text-right py-2 px-3 text-slate-600 font-medium">ROA (%)</th>
+                                <th className="text-right py-2 px-3 text-slate-600 font-medium">ROS (%)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {financials.ratios.map((ratio, index) => {
+                                const prevRatio = financials.ratios[index + 1];
+
+                                return (
+                                  <tr key={ratio.year} className="border-b border-slate-100 last:border-0">
+                                    <td className="py-2 px-3 font-medium text-slate-900">{ratio.year}</td>
+                                    <td className="py-2 px-3 text-right">
+                                      <span className="font-semibold text-slate-900">{ratio.roe.toFixed(1)}%</span>
+                                      {prevRatio && (
+                                        <span className={`ml-2 text-xs ${ratio.roe > prevRatio.roe ? 'text-green-600' : 'text-red-600'}`}>
+                                          {ratio.roe > prevRatio.roe ? '↑' : '↓'}
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="py-2 px-3 text-right">
+                                      <span className="font-semibold text-slate-900">{ratio.roa.toFixed(1)}%</span>
+                                      {prevRatio && (
+                                        <span className={`ml-2 text-xs ${ratio.roa > prevRatio.roa ? 'text-green-600' : 'text-red-600'}`}>
+                                          {ratio.roa > prevRatio.roa ? '↑' : '↓'}
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="py-2 px-3 text-right">
+                                      <span className="font-semibold text-slate-900">{ratio.ros.toFixed(1)}%</span>
+                                      {prevRatio && (
+                                        <span className={`ml-2 text-xs ${ratio.ros > prevRatio.ros ? 'text-green-600' : 'text-red-600'}`}>
+                                          {ratio.ros > prevRatio.ros ? '↑' : '↓'}
+                                        </span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Latest Financial Ratios */}
                 {financials.ratios && financials.ratios.length > 0 && (
                   <div className="bg-white rounded-xl border border-slate-200 p-6">
