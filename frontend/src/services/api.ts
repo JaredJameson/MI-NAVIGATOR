@@ -306,6 +306,16 @@ export interface PKDDescription {
   category: string;
 }
 
+export interface RelatedCompany {
+  id: string;
+  name: string;
+  nip: string;
+  krs?: string;
+  relationship: 'subsidiary' | 'parent' | 'sister' | 'affiliate';
+  ownership_percentage?: number;
+  description?: string;
+}
+
 export interface CompanyProfile {
   id: string;
   name: string;
@@ -321,6 +331,7 @@ export interface CompanyProfile {
   website?: string;
   employees_range?: string;
   last_updated?: string;  // ISO timestamp of last data refresh
+  related_companies?: RelatedCompany[];
 }
 
 export interface NewsArticle {

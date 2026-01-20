@@ -102,6 +102,16 @@ class CompanyTimeline(BaseModel):
     total_count: int
 
 
+class RelatedCompany(BaseModel):
+    id: str
+    name: str
+    nip: str
+    krs: Optional[str] = None
+    relationship: str  # "subsidiary", "parent", "sister", "affiliate"
+    ownership_percentage: Optional[float] = None
+    description: Optional[str] = None
+
+
 class CompanyProfile(BaseModel):
     id: str
     name: str
@@ -117,6 +127,7 @@ class CompanyProfile(BaseModel):
     website: Optional[str] = None
     employees_range: Optional[str] = None
     last_updated: Optional[str] = None  # ISO timestamp of last data refresh
+    related_companies: Optional[List[RelatedCompany]] = []
 
 
 # Data Quality Models
@@ -646,6 +657,63 @@ MOCK_COMPANIES = [
     },
 ]
 
+# Related companies mapping: company_id -> list of related companies
+RELATED_COMPANIES_MAP = {
+    "1": [  # FADO Sp. z o.o. has 2 subsidiaries
+        {
+            "id": "7",
+            "name": "PlastPak Sp. z o.o.",
+            "nip": "9988776655",
+            "krs": "0000789012",
+            "relationship": "subsidiary",
+            "ownership_percentage": 100.0,
+            "description": "Spółka zależna - produkcja opakowań z tworzyw sztucznych"
+        },
+        {
+            "id": "5",
+            "name": "MetalPro Sp. z o.o.",
+            "nip": "1122334455",
+            "krs": "0000567890",
+            "relationship": "subsidiary",
+            "ownership_percentage": 51.0,
+            "description": "Spółka zależna - produkcja komponentów metalowych"
+        }
+    ],
+    "2": [  # Splast S.A. has parent company
+        {
+            "id": "1",
+            "name": "FADO Sp. z o.o.",
+            "nip": "5260016831",
+            "krs": "0000145732",
+            "relationship": "parent",
+            "ownership_percentage": 60.0,
+            "description": "Spółka matka - główny akcjonariusz"
+        }
+    ],
+    "5": [  # MetalPro has parent
+        {
+            "id": "1",
+            "name": "FADO Sp. z o.o.",
+            "nip": "5260016831",
+            "krs": "0000145732",
+            "relationship": "parent",
+            "ownership_percentage": 51.0,
+            "description": "Spółka matka - większościowy udziałowiec"
+        }
+    ],
+    "7": [  # PlastPak has parent
+        {
+            "id": "1",
+            "name": "FADO Sp. z o.o.",
+            "nip": "5260016831",
+            "krs": "0000145732",
+            "relationship": "parent",
+            "ownership_percentage": 100.0,
+            "description": "Spółka matka - jedyny udziałowiec"
+        }
+    ]
+}
+
 # Mock CEIDG companies (sole proprietorships - jednoosobowe działalności gospodarcze)
 MOCK_CEIDG_COMPANIES = [
     {
@@ -966,6 +1034,12 @@ async def get_company(
     if company_id not in COMPANY_LAST_UPDATED:
         COMPANY_LAST_UPDATED[company_id] = datetime.now().isoformat()
 
+    # Get related companies
+    related_companies_data = RELATED_COMPANIES_MAP.get(company_id, [])
+    related_companies = [
+        RelatedCompany(**rc) for rc in related_companies_data
+    ]
+
     return CompanyProfile(
         id=company["id"],
         name=company["name"],
@@ -980,7 +1054,8 @@ async def get_company(
         description=descriptions.get(company["id"]),
         website=websites.get(company["id"]),
         employees_range=employees.get(company["id"]),
-        last_updated=COMPANY_LAST_UPDATED[company_id]
+        last_updated=COMPANY_LAST_UPDATED[company_id],
+        related_companies=related_companies
     )
 
 
