@@ -71,11 +71,19 @@ MOCK_TEMPLATES = [
 
 # Helper function to generate pagination test data
 def generate_pagination_test_reports(count: int = 1000, user_id: str = "f6e9a62e-fb70-4808-882b-e5711d0a5411"):
-    """Generate test reports for pagination performance testing (Feature #200)"""
+    """Generate test reports for pagination performance testing (Feature #200)
+
+    BUGFIX Session 327: Use per-user unique IDs to prevent ID collisions
+    when multiple users generate test data. This ensures User B's reports
+    don't conflict with User A's reports.
+    """
     reports = []
+    # Use first 8 chars of user_id to make IDs unique per user
+    user_prefix = user_id[:8] if user_id else "default"
+
     for i in range(1, count + 1):
         report = {
-            "id": f"pagination_test_{i:04d}",
+            "id": f"pagination_test_{user_prefix}_{i:04d}",
             "title": f"Pagination Test Report #{i}",
             "type": "market_analysis" if i % 2 == 0 else "company_profile",
             "company": f"Test Company {i}" if i % 3 == 0 else None,
