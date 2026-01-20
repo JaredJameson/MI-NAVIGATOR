@@ -481,6 +481,10 @@ export const companyApi = {
   async getWatchlist(): Promise<ApiResponse<{watchlist: string[], count: number}>> {
     return fetchApi('/companies/watchlist');
   },
+
+  async getFinancials(identifier: string): Promise<ApiResponse<CompanyFinancials>> {
+    return fetchApi(`/companies/${encodeURIComponent(identifier)}/financials`);
+  },
 };
 
 // Custom Fields API Types
@@ -517,6 +521,57 @@ export interface SetCustomFieldValueRequest {
   field_definition_id: string;
   value: string | null;
   value_json: any | null;
+}
+
+export interface FinancialStatement {
+  year: number;
+  revenue: number;
+  net_profit: number;
+  total_assets: number;
+  total_equity: number;
+  total_liabilities: number;
+  current_assets: number;
+  current_liabilities: number;
+  inventory: number;
+  accounts_receivable: number;
+}
+
+export interface FinancialRatios {
+  year: number;
+  roe: number;
+  roa: number;
+  ros: number;
+  current_ratio: number;
+  quick_ratio: number;
+  debt_ratio: number;
+  debt_to_equity: number;
+  inventory_turnover: number;
+  dso: number;
+}
+
+export interface IndustryBenchmark {
+  metric_name: string;
+  company_value: number;
+  industry_average: number;
+  industry_median: number;
+  percentile: number;
+  comparison: 'above_average' | 'average' | 'below_average';
+}
+
+export interface IndustryBenchmarks {
+  industry: string;
+  year: number;
+  source: string;
+  source_url?: string;
+  metrics: IndustryBenchmark[];
+}
+
+export interface CompanyFinancials {
+  company_id: string;
+  company_name: string;
+  statements: FinancialStatement[];
+  ratios: FinancialRatios[];
+  industry_benchmarks?: IndustryBenchmarks;
 }
 
 export const customFieldsApi = {

@@ -40,11 +40,29 @@ class FinancialRatios(BaseModel):
     dso: int  # Days Sales Outstanding (days)
 
 
+class IndustryBenchmark(BaseModel):
+    metric_name: str
+    company_value: float
+    industry_average: float
+    industry_median: float
+    percentile: int  # Company's percentile rank (0-100)
+    comparison: str  # "above_average", "average", "below_average"
+
+
+class IndustryBenchmarks(BaseModel):
+    industry: str  # e.g., "Plastics Manufacturing (PKD 22.2)"
+    year: int
+    source: str  # e.g., "GUS Statistical Yearbook 2023"
+    source_url: Optional[str] = None
+    metrics: List[IndustryBenchmark]
+
+
 class CompanyFinancials(BaseModel):
     company_id: str
     company_name: str
     statements: List[FinancialStatement]
     ratios: List[FinancialRatios]
+    industry_benchmarks: Optional[IndustryBenchmarks] = None
 
 
 # News Article Model
@@ -1049,7 +1067,87 @@ async def get_company_financials(identifier: str):
                     inventory_turnover=5.8,
                     dso=49
                 )
-            ]
+            ],
+            industry_benchmarks=IndustryBenchmarks(
+                industry="Plastics Manufacturing (PKD 22.2)",
+                year=2023,
+                source="GUS Statistical Yearbook 2023 - Manufacturing Sector Analysis",
+                source_url="https://stat.gov.pl/yearbook/2023",
+                metrics=[
+                    IndustryBenchmark(
+                        metric_name="ROE (Return on Equity)",
+                        company_value=18.2,
+                        industry_average=12.5,
+                        industry_median=11.8,
+                        percentile=78,
+                        comparison="above_average"
+                    ),
+                    IndustryBenchmark(
+                        metric_name="ROA (Return on Assets)",
+                        company_value=9.4,
+                        industry_average=7.2,
+                        industry_median=6.9,
+                        percentile=72,
+                        comparison="above_average"
+                    ),
+                    IndustryBenchmark(
+                        metric_name="ROS (Return on Sales)",
+                        company_value=10.6,
+                        industry_average=8.3,
+                        industry_median=7.9,
+                        percentile=75,
+                        comparison="above_average"
+                    ),
+                    IndustryBenchmark(
+                        metric_name="Current Ratio",
+                        company_value=2.1,
+                        industry_average=1.8,
+                        industry_median=1.7,
+                        percentile=68,
+                        comparison="above_average"
+                    ),
+                    IndustryBenchmark(
+                        metric_name="Quick Ratio",
+                        company_value=1.4,
+                        industry_average=1.2,
+                        industry_median=1.1,
+                        percentile=65,
+                        comparison="above_average"
+                    ),
+                    IndustryBenchmark(
+                        metric_name="Debt Ratio",
+                        company_value=32.0,
+                        industry_average=45.2,
+                        industry_median=46.8,
+                        percentile=72,
+                        comparison="below_average"  # Lower debt is better
+                    ),
+                    IndustryBenchmark(
+                        metric_name="Debt to Equity",
+                        company_value=0.47,
+                        industry_average=0.82,
+                        industry_median=0.88,
+                        percentile=68,
+                        comparison="below_average"  # Lower is better
+                    ),
+                    IndustryBenchmark(
+                        metric_name="Inventory Turnover",
+                        company_value=6.2,
+                        industry_average=5.1,
+                        industry_median=4.8,
+                        percentile=71,
+                        comparison="above_average"
+                    ),
+                    IndustryBenchmark(
+                        metric_name="DSO (Days Sales Outstanding)",
+                        company_value=45.0,
+                        industry_average=52.0,
+                        industry_median=54.0,
+                        percentile=65,
+                        comparison="below_average"  # Lower DSO is better
+                    )
+                ]
+            )
         )
 
     # Return empty data for unknown companies

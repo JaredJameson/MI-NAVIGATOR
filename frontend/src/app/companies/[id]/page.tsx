@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard, customFieldsApi, CompanyCustomField } from '@/services/api';
+import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard, customFieldsApi, CompanyCustomField, CompanyFinancials } from '@/services/api';
 import { formatRelativeTime } from '@/utils/date';
 
 type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people' | 'data-quality';
@@ -39,6 +39,8 @@ export default function CompanyProfilePage() {
   const [fieldValues, setFieldValues] = useState<Record<string, string | string[]>>({});
   const [isWatched, setIsWatched] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [financials, setFinancials] = useState<CompanyFinancials | null>(null);
+  const [financialsLoading, setFinancialsLoading] = useState(false);
 
   // Load company profile
   useEffect(() => {
@@ -125,6 +127,22 @@ export default function CompanyProfilePage() {
     }
 
     loadDataQuality();
+  }, [activeTab, companyId, company]);
+
+  // Load financials when switching to financials tab
+  useEffect(() => {
+    async function loadFinancials() {
+      if (activeTab !== 'financials' || !company) return;
+
+      setFinancialsLoading(true);
+      const result = await companyApi.getFinancials(companyId);
+      if (result.data) {
+        setFinancials(result.data);
+      }
+      setFinancialsLoading(false);
+    }
+
+    loadFinancials();
   }, [activeTab, companyId, company]);
 
   // Load custom fields when company profile loads
@@ -1076,17 +1094,103 @@ export default function CompanyProfilePage() {
           </div>
         )}
 
-        {/* Financials Tab (Placeholder) */}
+        {/* Financials Tab */}
         {activeTab === 'financials' && (
-          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-            <div className="text-5xl mb-4">💰</div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              Dane finansowe
-            </h3>
-            <p className="text-slate-600 mt-2">
-              Ta sekcja jest w przygotowaniu. Wkrótce będą tutaj dostępne dane
-              finansowe firmy.
-            </p>
+          <div className="space-y-6">
+            {financialsLoading ? (
+              <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+                <div className="text-5xl mb-4">💰</div>
+                <p className="text-slate-600">Ładowanie danych finansowych...</p>
+              </div>
+            ) : financials ? (
+              <>
+                {/* Latest Financial Ratios */}
+                {financials.ratios && financials.ratios.length > 0 && (
+                  <div className="bg-white rounded-xl border border-slate-200 p-6">
+                    <h2 className="text-xl font-semibold text-slate-900 mb-4">
+                      Wskaźniki Finansowe {financials.ratios[0].year}
+                    </h2>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                        <div className="text-sm text-slate-600">ROE</div>
+                        <div className="text-2xl font-bold text-slate-900">{financials.ratios[0].roe}%</div>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                        <div className="text-sm text-slate-600">ROA</div>
+                        <div className="text-2xl font-bold text-slate-900">{financials.ratios[0].roa}%</div>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                        <div className="text-sm text-slate-600">ROS</div>
+                        <div className="text-2xl font-bold text-slate-900">{financials.ratios[0].ros}%</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Industry Benchmarks */}
+                {financials.industry_benchmarks && (
+                  <div className="bg-white rounded-xl border border-slate-200 p-6">
+                    <div className="mb-4">
+                      <h2 className="text-xl font-semibold text-slate-900">Porównanie z Branżą</h2>
+                      <p className="text-sm text-slate-600 mt-1">{financials.industry_benchmarks.industry}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Źródło: {financials.industry_benchmarks.source} ({financials.industry_benchmarks.year})
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      {financials.industry_benchmarks.metrics.map((metric, index) => {
+                        const isLowerBetter = metric.metric_name.includes('Debt') || metric.metric_name.includes('DSO');
+                        const isAbove = isLowerBetter
+                          ? metric.comparison === 'below_average'
+                          : metric.comparison === 'above_average';
+
+                        return (
+                          <div key={index} className="border-b border-slate-200 pb-4 last:border-0">
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="font-medium text-slate-900">{metric.metric_name}</div>
+                              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                isAbove ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {isAbove ? '✓ Powyżej średniej' : '⚠ Poniżej średniej'}
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <div className="text-slate-600">Twoja firma</div>
+                                <div className="font-bold text-slate-900">{metric.company_value.toFixed(2)}</div>
+                              </div>
+                              <div>
+                                <div className="text-slate-600">Średnia branży</div>
+                                <div className="font-medium text-slate-700">{metric.industry_average.toFixed(2)}</div>
+                              </div>
+                              <div>
+                                <div className="text-slate-600">Mediana branży</div>
+                                <div className="font-medium text-slate-700">{metric.industry_median.toFixed(2)}</div>
+                              </div>
+                              <div>
+                                <div className="text-slate-600">Percentyl</div>
+                                <div className="font-bold text-blue-600">{metric.percentile}%</div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+                <div className="text-5xl mb-4">💰</div>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Brak danych finansowych
+                </h3>
+                <p className="text-slate-600 mt-2">
+                  Nie znaleziono danych finansowych dla tej firmy.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
