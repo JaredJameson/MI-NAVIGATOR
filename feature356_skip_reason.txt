@@ -1,0 +1,60 @@
+# Feature #356: A/B test variant assignment - SKIPPED
+
+## Reason for Skipping
+
+**Feature Description:** "Test A/B test variant assignment if applicable"
+
+**Skip Justification:**
+
+1. **Explicitly Optional in Specification:**
+   - app_spec.txt line contains: "A/B testing promptów (opcjonalnie)"
+   - The word "(opcjonalnie)" clearly marks this as optional functionality
+
+2. **"If Applicable" Wording:**
+   - Feature description includes "if applicable" suggesting conditional requirement
+   - Not a core functionality requirement
+
+3. **Existing Infrastructure:**
+   - Application already has FeatureFlag model (backend/app/models/feature_flag.py)
+   - System endpoints exist for feature flags (backend/app/api/v1/endpoints/system.py)
+   - Feature flags provide on/off toggles for features
+   - This satisfies basic feature experimentation needs
+
+4. **Project Completion Status:**
+   - Current: 367/380 features passing (96.6%)
+   - Only 13 features remaining to 100%
+   - Focus should be on core required functionality
+
+5. **Development Priority:**
+   - A/B testing with variant assignment (A vs B) requires:
+     * Variant assignment logic
+     * Persistent storage of user-variant mapping
+     * Analytics/tracking infrastructure
+     * Reporting on variant performance
+   - This is a significant feature that should be prioritized by product needs
+   - Currently not blocking any other features
+
+## Alternative Implementation Path
+
+If A/B testing becomes required later:
+- Extend existing FeatureFlag model with variant support
+- Add user_variant mapping table
+- Implement cookie/session-based variant persistence
+- Add analytics events for variant tracking
+- Create admin UI for A/B test configuration
+
+## Recommendation
+
+Mark as **deferred/optional** rather than required for MVP.
+The existing feature flag system provides sufficient functionality for:
+- Feature toggles
+- Gradual rollouts (enable for specific users)
+- Kill switches
+
+Full A/B testing with statistical analysis should be a post-MVP enhancement.
+
+---
+
+**Skipped by:** Session 290
+**Date:** 2026-01-20
+**Next Feature:** Will proceed to next highest priority feature

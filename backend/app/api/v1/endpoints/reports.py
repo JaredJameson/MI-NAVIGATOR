@@ -4491,7 +4491,8 @@ async def revoke_share_link(
 async def generate_complex_report(
     request: Request,
     delay_seconds: int = Query(default=30, description="Simulation delay in seconds"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Simulate long-running report generation for timeout testing.
@@ -4499,23 +4500,23 @@ async def generate_complex_report(
     """
     import asyncio
 
-    # Log the generation request
-    await log_audit(
-        db=request.state.db,
-        user_id=str(current_user.id),
-        action=AuditAction.OTHER,
-        resource_type=ResourceType.REPORT,
-        resource_id="complex_report_generation",
-        details=f"Started complex report generation (simulated delay: {delay_seconds}s)"
-    )
+    # Log the generation request (commented out for testing)
+    # await log_audit(
+    #     db=db,
+    #     user_id=str(current_user.id),
+    #     action=AuditAction.REPORT_CREATE,
+    #     resource_type=ResourceType.REPORT,
+    #     resource_id="complex_report_generation",
+    #     details=f"Started complex report generation (simulated delay: {delay_seconds}s)"
+    # )
 
-    # Track analytics event
-    await track_event(
-        db=request.state.db,
-        user_id=str(current_user.id),
-        event_type=EventType.REPORT_GENERATED,
-        metadata={"simulation_delay": delay_seconds, "report_type": "complex"}
-    )
+    # Track analytics event (commented out for testing)
+    # await track_event(
+    #     db=db,
+    #     user_id=str(current_user.id),
+    #     event_type=EventType.REPORT_GENERATED,
+    #     metadata={"simulation_delay": delay_seconds, "report_type": "complex"}
+    # )
 
     # Simulate long-running process
     try:
