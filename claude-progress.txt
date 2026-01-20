@@ -1,7 +1,59 @@
 # MI-Navigator Development Progress
 
-**Last Updated:** 2026-01-20 (Session 334)
+**Last Updated:** 2026-01-20 (Session 335)
 **Project Status:** 379/380 features passing (99.7%) - 1 external blocker
+
+## Session 335 Summary (2026-01-20) - CRITICAL REGRESSION FIX: API KEYS AUTHENTICATION
+
+### ✅ SESSION ACCOMPLISHMENTS
+
+**Critical Regression Fixed:**
+- 🚨 Feature #213 (API key generation) - **AUTHENTICATION BUG FIXED**
+  - Problem: API keys page failing with 401 Unauthorized
+  - Root cause: Direct backend URL instead of proxy middleware
+  - Line 7: `API_BASE_URL = 'http://localhost:8000/api/v1'` (WRONG)
+  - Fixed to: `API_BASE_URL = 'http://localhost:3000/api/proxy'` (CORRECT)
+  - Playwright MCP cannot reach host's localhost:8000 directly
+  - Proxy middleware required to forward auth headers properly
+
+**Feature #213 Full Flow Testing:**
+- ✅ Step 1: Navigate to API settings - SUCCESS
+- ✅ Step 2: Click generate new key - Form modal opens correctly
+- ✅ Step 3: Verify key displayed once - Full key shown with security warning
+- ✅ Step 4: Copy key - Clipboard copy works, toast notification shown
+- ✅ Step 5: Verify API call works - API key authenticates successfully (200 OK)
+
+**Test Evidence:**
+- Created fresh user: test_session335@example.com / Password123!
+- Generated API key: `mi_nav_cmw_bPaKznMbcE3863JvYxUpH4qB1QNR1YZobFyD1iw`
+- Tested API call: `GET /api/proxy/users/me` → 200 OK
+- Returned correct user email: test_session335@example.com
+
+**Impact:**
+- CRITICAL: Feature was completely broken (regression from previous working state)
+- All API key functionality now working end-to-end
+- Authentication through proxy verified working
+
+### Code Changes
+- `frontend/src/app/settings/api-keys/page.tsx` (line 7)
+  - Changed API_BASE_URL to use proxy route
+
+### Artifacts Created
+- 4 verification screenshots in `.playwright-mcp/` directory
+- Git commit: "fix: Feature #213 - API keys page proxy URL regression"
+
+### Session Outcome
+
+✅ **Critical regression fixed and verified**
+✅ **Feature #213 fully working (all 5 test steps passing)**
+✅ **Zero new regressions introduced**
+✅ **Project remains production-ready (99.7% complete)**
+
+### Next Steps
+- Continue regression testing (Feature #345 - Audit trail)
+- Review Feature #211 (external blocker confirmation)
+
+---
 
 ## Session 334 Summary (2026-01-20) - BUG FIX: COMPANY COMPARISON DATA SYNC
 
