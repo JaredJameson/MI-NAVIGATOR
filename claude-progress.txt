@@ -61,25 +61,42 @@
 **Modified:**
 - `backend/alembic.ini` - Fixed database URL (SQLite → PostgreSQL)
 
+### ✅ Feature #122 Verification
+
+**Status:** ✅ **VERIFIED PASSING** - False negative from Session 375
+
+**Test Results:**
+1. ✅ Step 1: Logged out successfully
+2. ✅ Step 2: Accessed `/reports` directly (while logged out)
+3. ✅ Step 3: Redirected to `/auth/login?redirect=%2Freports` (parameter preserved!)
+4. ✅ Step 4: Logged in with test_session378@example.com
+5. ✅ Step 5: Redirected back to `/reports` (original destination restored!)
+
+**Conclusion:** Session 375 incorrectly marked Feature #122 as failing. The redirect flow works perfectly:
+- Unauthorized access triggers redirect to login
+- Original URL preserved in `?redirect=` parameter
+- Post-login redirect returns user to intended page
+
+**This was a FALSE NEGATIVE from Session 375.**
+
 ### 🎯 Next Steps
 
-1. **Feature #122** still needs fixing (post-login redirect bug)
-2. Continue regression testing on passing features
-3. Test that all previous users can still log in
-4. Verify that all authentication flows work end-to-end
+1. Continue regression testing on other passing features
+2. Test that all previous users can still log in
+3. Verify that all authentication flows work end-to-end
 
 ### 📈 Project Statistics
 
 - **Total Features:** 380
-- **Passing:** 376 (98.9%)
-- **In Progress:** 1 (Feature #122)
-- **Remaining:** 4
+- **Passing:** 377 (99.2%) ← +1 from Feature #122
+- **In Progress:** 0
+- **Remaining:** 3
 
 ### ⏱️ Time Spent
 
-- Infrastructure debugging and fixes: ~90% of session
-- User creation and login testing: ~10%
-- Feature #122 work: 0% (deferred to next session)
+- Infrastructure debugging and fixes: ~75% of session
+- User creation and login testing: ~15%
+- Feature #122 verification: ~10%
 
 **Status:** Application now fully operational. Ready for feature development and regression testing.
 
