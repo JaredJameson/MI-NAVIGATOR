@@ -1165,21 +1165,14 @@ async def list_reports(
     # Import REPORT_TAGS from tags module
     from app.api.v1.endpoints.tags import REPORT_TAGS
 
-    # BUGFIX Session 329: ALWAYS remove old pagination_test reports with wrong user_id
-    # Old reports (before Session 327) have hardcoded user_id causing 403 errors
-    # Remove ALL pagination_test reports first, then regenerate for current user
-    MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if not r["id"].startswith("pagination_test_")]
-
     # SECURITY: Only show reports belonging to the current user
     user_id = str(current_user.id)
     filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
 
-    # AUTO-GENERATE TEST DATA: If user has no pagination test reports, generate 1000 test reports
-    has_pagination_reports = any(r["id"].startswith(f"pagination_test_{user_id[:8]}") for r in filtered_reports)
-    if not has_pagination_reports:
-        test_reports = generate_pagination_test_reports(1000, user_id)
-        MOCK_REPORTS.extend(test_reports)
-        filtered_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
+    # BUGFIX Session 381: REMOVED auto-generation of pagination test reports
+    # This was causing deleted reports to reappear when user returned to reports list
+    # Old behavior: If user had no pagination reports, list endpoint would regenerate them
+    # New behavior: User sees empty list if they deleted all reports (correct behavior)
 
     # Filter by archived status (default: show only non-archived)
     if archived is None:
@@ -1540,22 +1533,18 @@ async def get_report(
     current_user: User = Depends(get_current_user)  # SECURITY: Auth required
 ):
     """Get report details."""
-    # BUGFIX Session 329: Handle old pagination_test IDs (without user prefix)
-    # When user clicks old link pagination_test_0001, map it to new format pagination_test_<prefix>_0001
+    # BUGFIX Session 381: REMOVED auto-regeneration logic for pagination_test reports
+    # This was causing deleted reports to reappear when accessed via URL
+    # Old behavior: If user had no pagination reports, GET would regenerate them all
+    # New behavior: If report doesn't exist, return 404 (correct behavior)
+
     user_id = str(current_user.id)
     user_prefix = user_id[:8]
 
+    # Map old ID format to new format (backwards compatibility)
+    # Old: pagination_test_0001
+    # New: pagination_test_b40eb11f_0001
     if report_id.startswith("pagination_test_"):
-        # Clean all old pagination_test reports first
-        MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if not r["id"].startswith("pagination_test_")]
-
-        # Generate test reports for current user with new format
-        test_reports = generate_pagination_test_reports(1000, user_id)
-        MOCK_REPORTS.extend(test_reports)
-
-        # Map old ID format to new format
-        # Old: pagination_test_0001
-        # New: pagination_test_b40eb11f_0001
         import re
         match = re.search(r'pagination_test_(\d{4})$', report_id)
         if match:
@@ -1610,8 +1599,8 @@ async def update_report(
     report_id: str,
     update_data: ReportUpdateRequest,
     request: Request,
-    current_user: Optional[User] = Depends(lambda: None),  # DEV MODE: No auth required
-    db: Optional[AsyncSession] = Depends(lambda: None)  # DEV MODE: Optional DB
+    current_user: User = Depends(get_current_user),  # SECURITY: Auth required
+    db: AsyncSession = Depends(get_db)
 ):
     """Update report content (title, summary, sections)."""
     global MOCK_REPORTS
@@ -1622,9 +1611,11 @@ async def update_report(
         raise HTTPException(status_code=404, detail="Report not found")
 
     # SECURITY: Verify ownership
-    # DEV MODE: Skip auth check for development
-    # if current_user and str(report.get("created_by")) != str(current_user.id):
-    #     raise HTTPException(status_code=403, detail="Not authorized to edit this report")
+    if report.get("created_by") and str(report.get("created_by")) != str(current_user.id):
+        raise HTTPException(
+            status_code=403,
+            detail="Nie masz uprawnień do edycji tego raportu."
+        )
 
     # CONFLICT DETECTION: Check if report was modified since client last loaded it
     if update_data.last_known_updated_at:
@@ -1752,6 +1743,13 @@ async def delete_report(
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
 
+    # SECURITY: Check if user is the owner of the report
+    if report.get("created_by") and report.get("created_by") != str(current_user.id):
+        raise HTTPException(
+            status_code=403,
+            detail="Nie masz uprawnień do usunięcia tego raportu."
+        )
+
     # Log audit event BEFORE deletion
     await log_audit(
         db=db,
@@ -1768,8 +1766,8 @@ async def delete_report(
         }
     )
 
-    # Remove the report
-    MOCK_REPORTS = [r for r in MOCK_REPORTS if r["id"] != report_id]
+    # Remove the report (in-place modification to persist globally)
+    MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if r["id"] != report_id]
 
     # Also clean up related data
     if report_id in REPORT_VERSIONS:
@@ -1801,6 +1799,13 @@ async def duplicate_report(report_id: str, current_user: User = Depends(get_curr
 
     if not original_report:
         raise HTTPException(status_code=404, detail="Report not found")
+
+    # SECURITY: Check if user is the owner of the original report
+    if original_report.get("created_by") and original_report.get("created_by") != str(current_user.id):
+        raise HTTPException(
+            status_code=403,
+            detail="Nie masz uprawnień do duplikowania tego raportu."
+        )
 
     # Generate new ID for the duplicate
     import uuid
@@ -1840,15 +1845,18 @@ async def bulk_delete_reports(
     if not request.report_ids:
         raise HTTPException(status_code=400, detail="No report IDs provided")
 
-    # Find which reports exist
-    existing_ids = {r["id"] for r in MOCK_REPORTS}
-    ids_to_delete = set(request.report_ids) & existing_ids
+    # SECURITY: Only delete reports that belong to current user
+    user_id = str(current_user.id)
+    user_reports = {r["id"]: r for r in MOCK_REPORTS if r.get("created_by") == user_id}
+
+    # Find which reports exist AND belong to current user
+    ids_to_delete = set(request.report_ids) & set(user_reports.keys())
 
     if not ids_to_delete:
-        raise HTTPException(status_code=404, detail="No matching reports found")
+        raise HTTPException(status_code=404, detail="No matching reports found or you don't have permission to delete them")
 
-    # Remove the reports
-    MOCK_REPORTS = [r for r in MOCK_REPORTS if r["id"] not in ids_to_delete]
+    # Remove the reports (in-place modification to persist globally)
+    MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if r["id"] not in ids_to_delete]
 
     # Clean up related data for deleted reports
     for report_id in ids_to_delete:
@@ -1913,11 +1921,11 @@ def parse_financial_data_from_content(content: str) -> List[dict]:
 async def export_report(
     report_id: str,
     request: ExportRequest,
+    current_user: User = Depends(get_current_user),  # SECURITY: Auth required
     db: AsyncSession = Depends(get_db),
     req: Request = None
 ):
-    """Export report to specified format (pdf, xlsx, docx, pptx). No auth required for development."""
-    current_user = None  # Optional auth - can be added later
+    """Export report to specified format (pdf, xlsx, docx, pptx)."""
     # Find the report
     report = None
     for r in MOCK_REPORTS:
@@ -1927,6 +1935,13 @@ async def export_report(
 
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
+
+    # SECURITY: Check if user is the owner of the report
+    if report.get("created_by") and report.get("created_by") != str(current_user.id):
+        raise HTTPException(
+            status_code=403,
+            detail="Nie masz uprawnień do eksportu tego raportu."
+        )
 
     # Filter sections if section_ids provided
     if request.section_ids:
@@ -3426,6 +3441,13 @@ async def share_report(
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
 
+    # SECURITY: Check if user is the owner of the report
+    if report.get("created_by") and report.get("created_by") != str(current_user.id):
+        raise HTTPException(
+            status_code=403,
+            detail="Nie masz uprawnień do udostępniania tego raportu."
+        )
+
     # Generate unique share token
     share_token = str(uuid.uuid4())
 
@@ -4160,6 +4182,12 @@ async def archive_report(
     # Find the report
     for report in MOCK_REPORTS:
         if report["id"] == report_id:
+            # SECURITY: Check if user is the owner of the report
+            if report.get("created_by") and report.get("created_by") != str(current_user.id):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Nie masz uprawnień do archiwizacji tego raportu."
+                )
             report["is_archived"] = True
             return {"message": "Raport zarchiwizowany pomyślnie", "is_archived": True}
 
@@ -4175,6 +4203,12 @@ async def unarchive_report(
     # Find the report
     for report in MOCK_REPORTS:
         if report["id"] == report_id:
+            # SECURITY: Check if user is the owner of the report
+            if report.get("created_by") and report.get("created_by") != str(current_user.id):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Nie masz uprawnień do przywrócenia tego raportu."
+                )
             report["is_archived"] = False
             return {"message": "Raport przywrócony z archiwum", "is_archived": False}
 
@@ -4193,12 +4227,11 @@ async def save_report_as_template(
     """Save a report as a reusable template."""
     import copy
 
-    # Auto-generate test reports if user has none yet (ensures MOCK_REPORTS is populated)
+    # BUGFIX Session 381: REMOVED auto-generation of test reports
+    # This was causing deleted reports to reappear (Feature #123 critical bug)
+    # Old behavior: If user had no reports, save-as-template would generate 1000 test reports
+    # New behavior: User must have at least one report to save as template (correct behavior)
     user_id = str(current_user.id)
-    user_reports = [r for r in MOCK_REPORTS if r.get("created_by") == user_id]
-    if len(user_reports) == 0:
-        test_reports = generate_pagination_test_reports(1000, user_id)
-        MOCK_REPORTS.extend(test_reports)
 
     # Find the source report
     source_report = None
@@ -4209,6 +4242,13 @@ async def save_report_as_template(
 
     if not source_report:
         raise HTTPException(status_code=404, detail="Report not found")
+
+    # SECURITY: Check if user is the owner of the report
+    if source_report.get("created_by") and source_report.get("created_by") != str(current_user.id):
+        raise HTTPException(
+            status_code=403,
+            detail="Nie masz uprawnień do tworzenia szablonu z tego raportu."
+        )
 
     # Create template in database
     new_template = ReportTemplate(
