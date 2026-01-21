@@ -467,6 +467,144 @@ def generate_mock_response(user_message: str, user_industry: str = None, user_in
             }
         }, ensure_ascii=False)
 
+    # BUGFIX Session 364 (Feature #57): Moved key_people check BEFORE company_profile
+    # to prevent "company profile with key people" from matching company_profile first
+    # Key people / management request
+    elif ("kluczowe osoby" in user_lower or "key people" in user_lower or "zarząd" in user_lower or
+          "management" in user_lower or "kierownictwo" in user_lower or "rada nadzorcza" in user_lower or
+          "supervisory board" in user_lower or "board of directors" in user_lower or
+          "członkowie zarządu" in user_lower or "management board" in user_lower):
+        return json.dumps({
+            "type": "key_people",
+            "data": {
+                "company_name": "FADO Sp. z o.o.",
+                "nip": "5260016831",
+                "krs": "0000145732",
+                "source": "KRS",
+                "management_board": [
+                    {
+                        "name": "Jan Kowalski",
+                        "role": "Prezes Zarządu",
+                        "role_en": "CEO / President of the Board",
+                        "since": "1995-03-15",
+                        "tenure_years": 29,
+                        "other_positions": [
+                            {
+                                "company": "FADO Automotive Sp. z o.o.",
+                                "role": "Prezes Zarządu",
+                                "since": "2010-01-10"
+                            },
+                            {
+                                "company": "Stowarzyszenie Producentów Tworzyw",
+                                "role": "Członek Zarządu",
+                                "since": "2015-05-20"
+                            }
+                        ],
+                        "linkedin": "https://linkedin.com/in/jan-kowalski-fado",
+                        "photo": None
+                    },
+                    {
+                        "name": "Anna Nowak",
+                        "role": "Wiceprezes Zarządu",
+                        "role_en": "Vice President / Deputy CEO",
+                        "since": "2005-11-10",
+                        "tenure_years": 19,
+                        "other_positions": [
+                            {
+                                "company": "Plastics Innovation Sp. z o.o.",
+                                "role": "Członek Rady Nadzorczej",
+                                "since": "2012-03-15"
+                            }
+                        ],
+                        "linkedin": "https://linkedin.com/in/anna-nowak-fado",
+                        "photo": None
+                    },
+                    {
+                        "name": "Piotr Wiśniewski",
+                        "role": "Członek Zarządu",
+                        "role_en": "Board Member / CFO",
+                        "since": "2015-08-05",
+                        "tenure_years": 9,
+                        "other_positions": [],
+                        "linkedin": None,
+                        "photo": None
+                    }
+                ],
+                "supervisory_board": [
+                    {
+                        "name": "Maria Lewandowska",
+                        "role": "Przewodnicząca Rady Nadzorczej",
+                        "role_en": "Chairperson of Supervisory Board",
+                        "since": "2010-06-20",
+                        "tenure_years": 14,
+                        "other_positions": [
+                            {
+                                "company": "Invest Capital Sp. z o.o.",
+                                "role": "Partner Zarządzający",
+                                "since": "2005-01-10"
+                            },
+                            {
+                                "company": "TechCorp S.A.",
+                                "role": "Członek Rady Nadzorczej",
+                                "since": "2018-09-01"
+                            }
+                        ],
+                        "linkedin": "https://linkedin.com/in/maria-lewandowska",
+                        "photo": None
+                    },
+                    {
+                        "name": "Tomasz Kamiński",
+                        "role": "Wiceprzewodniczący Rady Nadzorczej",
+                        "role_en": "Vice-Chairperson of Supervisory Board",
+                        "since": "2012-03-15",
+                        "tenure_years": 12,
+                        "other_positions": [],
+                        "linkedin": None,
+                        "photo": None
+                    },
+                    {
+                        "name": "Katarzyna Zielińska",
+                        "role": "Członek Rady Nadzorczej",
+                        "role_en": "Supervisory Board Member",
+                        "since": "2018-09-01",
+                        "tenure_years": 6,
+                        "other_positions": [
+                            {
+                                "company": "Legal Partners Sp. z o.o.",
+                                "role": "Partner",
+                                "since": "2015-06-01"
+                            }
+                        ],
+                        "linkedin": "https://linkedin.com/in/katarzyna-zielinska",
+                        "photo": None
+                    }
+                ],
+                "prokurenci": [
+                    {
+                        "name": "Robert Nowicki",
+                        "role": "Prokurent",
+                        "role_en": "Proxy / Attorney",
+                        "since": "2020-04-10",
+                        "tenure_years": 4,
+                        "scope": "samodzielny",
+                        "scope_en": "independent",
+                        "other_positions": [],
+                        "linkedin": None,
+                        "photo": None
+                    }
+                ],
+                "key_person_risk": {
+                    "level": "medium",
+                    "factors": [
+                        "CEO holds position for 29 years - high concentration of experience",
+                        "Limited external board diversity",
+                        "Good succession planning with Vice President in place"
+                    ]
+                },
+                "fetched_at": datetime.utcnow().isoformat()
+            }
+        }, ensure_ascii=False)
+
     # Company profile request
     elif ("profil" in user_lower or "profile" in user_lower) and ("firma" in user_lower or "company" in user_lower):
         # Get industry-specific context
@@ -918,142 +1056,6 @@ def generate_mock_response(user_message: str, user_industry: str = None, user_in
                     "total_shares": 1000,
                     "share_value": 500,
                     "currency": "PLN"
-                },
-                "fetched_at": datetime.utcnow().isoformat()
-            }
-        }, ensure_ascii=False)
-
-    # Key people / management request
-    elif ("kluczowe osoby" in user_lower or "key people" in user_lower or "zarząd" in user_lower or
-          "management" in user_lower or "kierownictwo" in user_lower or "rada nadzorcza" in user_lower or
-          "supervisory board" in user_lower or "board of directors" in user_lower or
-          "członkowie zarządu" in user_lower or "management board" in user_lower):
-        return json.dumps({
-            "type": "key_people",
-            "data": {
-                "company_name": "FADO Sp. z o.o.",
-                "nip": "5260016831",
-                "krs": "0000145732",
-                "source": "KRS",
-                "management_board": [
-                    {
-                        "name": "Jan Kowalski",
-                        "role": "Prezes Zarządu",
-                        "role_en": "CEO / President of the Board",
-                        "since": "1995-03-15",
-                        "tenure_years": 29,
-                        "other_positions": [
-                            {
-                                "company": "FADO Automotive Sp. z o.o.",
-                                "role": "Prezes Zarządu",
-                                "since": "2010-01-10"
-                            },
-                            {
-                                "company": "Stowarzyszenie Producentów Tworzyw",
-                                "role": "Członek Zarządu",
-                                "since": "2015-05-20"
-                            }
-                        ],
-                        "linkedin": "https://linkedin.com/in/jan-kowalski-fado",
-                        "photo": None
-                    },
-                    {
-                        "name": "Anna Nowak",
-                        "role": "Wiceprezes Zarządu",
-                        "role_en": "Vice President / Deputy CEO",
-                        "since": "2005-11-10",
-                        "tenure_years": 19,
-                        "other_positions": [
-                            {
-                                "company": "Plastics Innovation Sp. z o.o.",
-                                "role": "Członek Rady Nadzorczej",
-                                "since": "2012-03-15"
-                            }
-                        ],
-                        "linkedin": "https://linkedin.com/in/anna-nowak-fado",
-                        "photo": None
-                    },
-                    {
-                        "name": "Piotr Wiśniewski",
-                        "role": "Członek Zarządu",
-                        "role_en": "Board Member / CFO",
-                        "since": "2015-08-05",
-                        "tenure_years": 9,
-                        "other_positions": [],
-                        "linkedin": None,
-                        "photo": None
-                    }
-                ],
-                "supervisory_board": [
-                    {
-                        "name": "Maria Lewandowska",
-                        "role": "Przewodnicząca Rady Nadzorczej",
-                        "role_en": "Chairperson of Supervisory Board",
-                        "since": "2010-06-20",
-                        "tenure_years": 14,
-                        "other_positions": [
-                            {
-                                "company": "Invest Capital Sp. z o.o.",
-                                "role": "Partner Zarządzający",
-                                "since": "2005-01-10"
-                            },
-                            {
-                                "company": "TechCorp S.A.",
-                                "role": "Członek Rady Nadzorczej",
-                                "since": "2018-09-01"
-                            }
-                        ],
-                        "linkedin": "https://linkedin.com/in/maria-lewandowska",
-                        "photo": None
-                    },
-                    {
-                        "name": "Tomasz Kamiński",
-                        "role": "Wiceprzewodniczący Rady Nadzorczej",
-                        "role_en": "Vice-Chairperson of Supervisory Board",
-                        "since": "2012-03-15",
-                        "tenure_years": 12,
-                        "other_positions": [],
-                        "linkedin": None,
-                        "photo": None
-                    },
-                    {
-                        "name": "Katarzyna Zielińska",
-                        "role": "Członek Rady Nadzorczej",
-                        "role_en": "Supervisory Board Member",
-                        "since": "2018-09-01",
-                        "tenure_years": 6,
-                        "other_positions": [
-                            {
-                                "company": "Legal Partners Sp. z o.o.",
-                                "role": "Partner",
-                                "since": "2015-06-01"
-                            }
-                        ],
-                        "linkedin": "https://linkedin.com/in/katarzyna-zielinska",
-                        "photo": None
-                    }
-                ],
-                "prokurenci": [
-                    {
-                        "name": "Robert Nowicki",
-                        "role": "Prokurent",
-                        "role_en": "Proxy / Attorney",
-                        "since": "2020-04-10",
-                        "tenure_years": 4,
-                        "scope": "samodzielny",
-                        "scope_en": "independent",
-                        "other_positions": [],
-                        "linkedin": None,
-                        "photo": None
-                    }
-                ],
-                "key_person_risk": {
-                    "level": "medium",
-                    "factors": [
-                        "CEO holds position for 29 years - high concentration of experience",
-                        "Limited external board diversity",
-                        "Good succession planning with Vice President in place"
-                    ]
                 },
                 "fetched_at": datetime.utcnow().isoformat()
             }

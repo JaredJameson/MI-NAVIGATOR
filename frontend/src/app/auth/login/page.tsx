@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { authApi, fetchCsrfToken } from '@/services/api'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  // BUGFIX Session 375 (Feature #122): Get redirect URL from query params
+  const redirectUrl = searchParams.get('redirect') || '/dashboard'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -130,8 +133,8 @@ export default function LoginPage() {
         setRequires2FA(true)
         setTempToken(result.data.temp_token)
       } else {
-        // Successfully logged in, redirect to dashboard
-        router.push('/dashboard')
+        // Successfully logged in, redirect to originally requested page or dashboard
+        router.push(redirectUrl)
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
@@ -178,8 +181,8 @@ export default function LoginPage() {
         // Fetch CSRF token after successful login
         await fetchCsrfToken()
 
-        // Successfully logged in, redirect to dashboard
-        router.push('/dashboard')
+        // Successfully logged in, redirect to originally requested page or dashboard
+        router.push(redirectUrl)
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')

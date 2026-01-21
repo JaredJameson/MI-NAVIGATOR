@@ -54,14 +54,14 @@ class AnalyticsEvent(Base):
 
     __tablename__ = "analytics_events"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Event info
     event_type = Column(SQLEnum(EventType), nullable=False, index=True)
     event_name = Column(String(100), nullable=False)  # Human-readable event name
 
     # User info (nullable for anonymous events)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Session info
     session_id = Column(String(100), nullable=True, index=True)

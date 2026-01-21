@@ -34,7 +34,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     // Redirect if not authenticated and on protected route
     if (!token && shouldBeAuthenticated) {
-      router.push('/auth/login')
+      // BUGFIX Session 375 (Feature #122): Save intended URL for post-login redirect
+      const redirectUrl = encodeURIComponent(pathname)
+      router.push(`/auth/login?redirect=${redirectUrl}`)
       return
     }
 

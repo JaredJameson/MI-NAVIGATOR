@@ -104,6 +104,143 @@ Na przykład, jeśli to była aplikacja czatu, powinieneś wykonać test który 
   - Brakujące stany hover
   - Błędy konsoli
 
+### REGRESSION BUG FIX PROTOCOL (KRYTYCZNY!)
+
+**OBOWIĄZKOWE gdy znajdziesz bug podczas regression testing:**
+
+#### 1. NATYCHMIASTOWE DZIAŁANIA
+- Oznacz featurę jako `passes: false` w bazie danych (SQLite)
+- Stwórz szczegółowy bug report w katalogu głównym projektu:
+  - Format pliku: `FEATURE_{id}_SESSION_{session}_FAILING.md`
+  - Zawartość: opis buga, root cause, screenshots, kod problematyczny
+
+#### 2. ANALIZA ROOT CAUSE (OBOWIĄZKOWA)
+Przed naprawą MUSISZ zidentyfikować:
+- Dokładne linie kodu powodujące problem
+- Dlaczego bug powstał (logika biznesowa, typo, missing feature)
+- Jakie inne części systemu mogą być dotknięte
+
+Użyj narzędzi:
+```
+# Znajdź problematyczny kod
+grep -r "problem_keyword" backend/ frontend/
+
+# Przeczytaj relevantne pliki
+Read file_path lines X-Y
+
+# Sprawdź git blame jeśli potrzeba historii
+git log --follow -p -- path/to/file
+```
+
+#### 3. NAPRAW BUG (PRIORYTET #1)
+**Przed przejściem do nowych features MUSISZ naprawić wszystkie znalezione bugi!**
+
+Kolejność napraw według severity:
+1. 🔴 CRITICAL - Blokuje core functionality (auth, data loss, 403/500 errors)
+2. 🟡 HIGH - Ważna feature nie działa (missing data, incorrect behavior)
+3. 🟢 MEDIUM - UX issues (missing toasts, UI bugs)
+4. 🔵 LOW - Kosmetyczne (typos, minor styling)
+
+#### 4. IMPLEMENTACJA NAPRAWY
+```bash
+# 1. Przeczytaj plik z bugiem
+cat path/to/buggy/file.py
+
+# 2. Edytuj plik (użyj narzędzi Edit/Write)
+Use Edit tool to fix the specific lines
+
+# 3. Test manualny w przeglądarce
+# Odtwórz DOKŁADNIE te same kroki co w bug reportcie
+
+# 4. Commit z opisowym message
+git add .
+git commit -m "fix(feature-{id}): {short description}
+
+- Root cause: {why bug happened}
+- Fix: {what changed}
+- Tested: {how verified}
+- Session: {session_number}"
+```
+
+#### 5. WERYFIKACJA NAPRAWY
+Po naprawie MUSISZ:
+- Przetestować WSZYSTKIE kroki z bug reportu
+- Upewnić się że fix nie złamał innych features (regression of regression!)
+- Oznaczyć featurę jako `passes: true` TYLKO po pełnej weryfikacji
+
+```
+# Oznacz jako passing TYLKO po verificacji
+Use the feature_mark_passing tool with feature_id=X
+```
+
+#### 6. DOKUMENTACJA NAPRAWY
+Zaktualizuj bug report:
+```markdown
+## FIX APPLIED - Session {current_session}
+
+### Changes Made
+- File: `path/to/file.py` lines X-Y
+- Change: {description}
+
+### Verification
+- ✅ Step 1: {verified}
+- ✅ Step 2: {verified}
+...
+
+### Status
+- Feature #{id}: ✅ PASSING (verified Session {session})
+```
+
+#### 7. PRZYKŁADOWE NAPRAWY (REFERENCJA)
+
+**Bug #1: Delete endpoint nie usuwa z DB**
+```python
+# ❌ ZŁE - tworzy nową listę zamiast modyfikacji in-place
+MOCK_REPORTS = [r for r in MOCK_REPORTS if r["id"] != report_id]
+
+# ✅ DOBRE - in-place modification
+MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if r["id"] != report_id]
+```
+
+**Bug #2: If/elif priority**
+```python
+# ❌ ZŁE - sprawdza generalne przed specific
+elif "profile" in msg and "company" in msg:  # Line 471
+    return company_card
+elif "key people" in msg:  # Line 927 - NIGDY NIE OSIĄGNIE
+    return key_people
+
+# ✅ DOBRE - sprawdza specific przed generalne
+elif "key people" in msg:  # NAJPIERW specific
+    return key_people
+elif "profile" in msg and "company" in msg:  # POTEM generalne
+    return company_card
+```
+
+**Bug #3: Per-user unique IDs**
+```python
+# ❌ ZŁE - usuwa WSZYSTKIE pagination_test reports
+MOCK_REPORTS[:] = [r for r in MOCK_REPORTS if not r["id"].startswith("pagination_test_")]
+
+# ✅ DOBRE - sprawdza czy user MA swoje raporty
+has_user_reports = any(r["id"].startswith(f"pagination_test_{user_id[:8]}") for r in MOCK_REPORTS)
+if not has_user_reports:
+    generate_pagination_test_reports(1000, user_id)
+```
+
+#### 8. NIGDY NIE IGNORUJ BUGÓW
+**ABSOLUTNIE ZABRONIONE:**
+- ❌ "Naprawię to później" - NIE, naprawa teraz!
+- ❌ "To minor issue" - Każdy bug degraduje UX
+- ❌ "Nie mam czasu" - Bugi mają PRIORYTET nad nowymi features
+- ❌ Pozostawianie `passes: true` dla łamanej feature
+
+**ZAWSZE:**
+- ✅ Naprawa wszystkich znalezionych bugów przed nowymi features
+- ✅ Pełna weryfikacja po naprawie
+- ✅ Commit z opisem root cause i fix
+- ✅ Dokumentacja w bug reportcie
+
 ### KROK 4: WYBIERZ JEDNĄ FUNKCJĘ DO IMPLEMENTACJI
 
 #### NASTAWIENIE NA DEVELOPMENT STEROWANY TESTAMI (KRYTYCZNE)
