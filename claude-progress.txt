@@ -2928,3 +2928,57 @@ Error: browserType.launchPersistentContext: Failed to launch the browser process
 **Session End:** 2026-01-21 00:46 UTC
 **Next Action Required:** MANUAL INTERVENTION - Close Chrome browser
 
+
+---
+
+## SESSION 381 - 2026-01-21
+
+### Status: SUCCESS - Feature #123 FIXED
+
+**Feature #123:** Direct URL to deleted entity
+**Status:** PASSING (was CRITICAL BUG in Session 374)
+
+### Root Cause Identified
+
+Delete functionality appeared to work but reports would reappear due to auto-regeneration logic in 3 endpoints:
+1. GET /reports/{report_id} - regenerated 1000 reports if user had none
+2. GET /reports/ - same issue in list endpoint  
+3. POST /{report_id}/save-as-template - also had auto-generation
+
+When user deleted ALL pagination reports and accessed deleted URL, backend regenerated them!
+
+### Fix Applied
+
+Removed auto-regeneration logic from all 3 locations in backend/app/api/v1/endpoints/reports.py
+- GET /{report_id}: removed lines 1544-1555
+- GET /: removed lines 1172-1178
+- POST save-as-template: removed lines 4233-4238
+
+### Verification Complete
+
+All 5 test steps passed:
+1. Noted URL: pagination_test_ee036a07_0002
+2. Deleted report via bulk delete UI - toast shown
+3. Accessed deleted URL - backend returned 404
+4. Verified error page displayed with proper message
+5. No crashes or unexpected errors
+
+Screenshots saved: feature123_step1-6.png
+
+### Results
+
+- Features passing: 380/380 (100%)
+- Feature #123: PASSING
+- Delete functionality works correctly
+- Deleted reports do NOT reappear
+- Proper 404 handling implemented
+
+### Session Summary
+
+- Features completed: 1
+- Bugs fixed: 1 critical
+- Code changes: 1 file (+83/-43 lines)
+- Verification: Browser automation
+- Commit: 87912c1
+
+Session End: 2026-01-21 08:30 UTC
