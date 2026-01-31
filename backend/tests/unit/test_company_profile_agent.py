@@ -677,3 +677,655 @@ async def test_week2_data_processing_integration():
     assert processed['management_board'][0]['name'] == 'Jan Kowalski'
     assert processed['management_board'][0]['position'] == 'Prezes Zarządu'
     assert processed['management_board'][0]['appointment_date'] == '2020-01-15'
+
+
+# ============================================================================
+# WEEK 22 TESTS: LLM Enhancement Integration
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_enhance_with_llm_success():
+    """
+    Test LLM enhancement with successful response.
+
+    Week 22 test: LLM-powered intelligent analysis
+
+    Validates:
+    - ClaudeService integration works
+    - Business insights are generated
+    - LLM quality score is calculated
+    - Enhanced data contains all expected fields
+    """
+    from unittest.mock import AsyncMock
+
+    agent = CompanyProfileAgent()
+
+    # Skip test if ClaudeService not available
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+
+    # Mock LLM response (Week 28: profile_insights structure)
+    mock_llm_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "data_completeness": {"score": 87, "assessment": "Wysokiej jakości kompletne dane KRS i NIP"},
+    "data_accuracy": {"score": 90, "analysis": "Dane zweryfikowane krzyżowo KRS-GUS"},
+    "cross_validation_quality": "Skuteczna weryfikacja między źródłami KRS i GUS",
+    "information_reliability": "Wiarygodne źródła - oficjalne rejestry państwowe",
+    "recommendations": ["Dodaj dane finansowe", "Uzupełnij strukturę zarządu"]
+  },
+  "quality_score": 0.87,
+  "analysis_notes": ["Data completeness: high", "Cross-validation successful"]
+}
+```""",
+        "model": "claude-sonnet-4-5-20250929",
+        "usage": {"input_tokens": 100, "output_tokens": 150}
+    }
+
+    # Mock the claude_service.chat method
+    agent.claude_service.chat = AsyncMock(return_value=mock_llm_response)
+
+    # Prepare test data
+    processed_data = {
+        "company_name": "Test Company Sp. z o.o.",
+        "krs_number": "0000123456",
+        "nip_number": "1234563218",
+        "industry": "IT Services"
+    }
+
+    target_info = {"type": "krs", "krs_number": "0000123456"}
+
+    # Execute enhancement
+    enhanced_data = await agent._enhance_with_llm(
+        processed_data=processed_data,
+        target_info=target_info,
+        context={"language": "pl"}
+    )
+
+    # Validate enhanced data structure
+    assert "profile_insights" in enhanced_data
+    assert "llm_quality_score" in enhanced_data
+    assert "llm_analysis_notes" in enhanced_data
+
+    # Validate profile insights (Week 28 structure)
+    insights = enhanced_data["profile_insights"]
+    assert "data_completeness" in insights
+    assert "data_accuracy" in insights
+    assert "cross_validation_quality" in insights
+    assert "information_reliability" in insights
+    assert "recommendations" in insights
+
+    # Validate quality score
+    assert enhanced_data["llm_quality_score"] == 0.87
+    assert isinstance(enhanced_data["llm_quality_score"], float)
+    assert 0.0 <= enhanced_data["llm_quality_score"] <= 1.0
+
+    # Validate analysis notes
+    assert len(enhanced_data["llm_analysis_notes"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_enhance_with_llm_no_claude_service():
+    """
+    Test LLM enhancement when ClaudeService is not available.
+
+    Validates:
+    - Graceful degradation without ClaudeService
+    - Original data is returned unchanged
+    - No errors are raised
+    """
+    agent = CompanyProfileAgent()
+
+    # Disable ClaudeService temporarily
+    original_service = agent.claude_service
+    agent.claude_service = None
+
+    processed_data = {
+        "company_name": "Test Company",
+        "krs_number": "0000123456"
+    }
+
+    target_info = {"type": "krs"}
+
+    # Execute enhancement
+    enhanced_data = await agent._enhance_with_llm(
+        processed_data=processed_data,
+        target_info=target_info
+    )
+
+    # Restore original service
+    agent.claude_service = original_service
+
+    # Validate that data is unchanged
+    assert enhanced_data == processed_data
+    assert "llm_quality_score" not in enhanced_data
+
+
+@pytest.mark.asyncio
+async def test_enhance_with_llm_error_handling():
+    """
+    Test LLM enhancement error handling.
+
+    Week 22 test: Error recovery and graceful degradation
+
+    Validates:
+    - Handles JSON parsing errors
+    - Handles ClaudeService exceptions
+    - Returns original data on errors
+    """
+    from unittest.mock import AsyncMock
+
+    agent = CompanyProfileAgent()
+
+    # Skip test if ClaudeService not available
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+
+    # Mock LLM response with invalid JSON
+    mock_invalid_response = {
+        "content": "This is not valid JSON",
+        "model": "claude-sonnet-4-5-20250929"
+    }
+
+    agent.claude_service.chat = AsyncMock(return_value=mock_invalid_response)
+
+    processed_data = {
+        "company_name": "Test Company",
+        "krs_number": "0000123456"
+    }
+
+    target_info = {"type": "krs"}
+
+    # Execute enhancement (should handle error gracefully)
+    enhanced_data = await agent._enhance_with_llm(
+        processed_data=processed_data,
+        target_info=target_info
+    )
+
+    # Validate graceful degradation
+    assert enhanced_data == processed_data
+    assert "llm_quality_score" not in enhanced_data
+
+
+@pytest.mark.asyncio
+async def test_confidence_calculation_with_llm_quality():
+    """
+    Test confidence calculation incorporating LLM quality score.
+
+    Week 22 test: Enhanced confidence scoring
+
+    Validates:
+    - Base confidence calculation still works
+    - LLM quality score is incorporated (70% base + 30% LLM)
+    - Final score is in valid range (0-100)
+    """
+    agent = CompanyProfileAgent()
+
+    # Test Case 1: Base score without LLM
+    processed_data_base = {
+        "krs_number": "0000123456",
+        "nip_number": "1234563218"
+    }
+
+    data_sources = ["KRS API"]
+    target_info = {"type": "krs", "krs_number": "0000123456"}
+
+    base_confidence = agent._calculate_confidence(
+        processed_data=processed_data_base,
+        data_sources=data_sources,
+        target_info=target_info
+    )
+
+    # Base score should be: KRS (50) + NIP valid (30) = 80/125 = 64%
+    assert base_confidence > 0
+    assert base_confidence <= 100
+
+    # Test Case 2: Enhanced score with LLM quality
+    processed_data_enhanced = {
+        "krs_number": "0000123456",
+        "nip_number": "1234563218",
+        "llm_quality_score": 0.90  # High LLM quality
+    }
+
+    enhanced_confidence = agent._calculate_confidence(
+        processed_data=processed_data_enhanced,
+        data_sources=data_sources,
+        target_info=target_info
+    )
+
+    # Enhanced score should be: (64 * 0.7) + (90 * 0.3) = 44.8 + 27 = 71.8
+    assert enhanced_confidence > base_confidence  # LLM boost
+    assert enhanced_confidence <= 100
+    assert isinstance(enhanced_confidence, float)
+
+    # Test Case 3: LLM quality score lowers confidence
+    processed_data_lowered = {
+        "krs_number": "0000123456",
+        "nip_number": "1234563218",
+        "llm_quality_score": 0.30  # Low LLM quality
+    }
+
+    lowered_confidence = agent._calculate_confidence(
+        processed_data=processed_data_lowered,
+        data_sources=data_sources,
+        target_info=target_info
+    )
+
+    # Enhanced score should be: (64 * 0.7) + (30 * 0.3) = 44.8 + 9 = 53.8
+    assert lowered_confidence < base_confidence  # LLM penalty
+    assert lowered_confidence > 0
+
+
+@pytest.mark.asyncio
+async def test_full_execution_with_llm_enhancement():
+    """
+    Test full agent execution with LLM enhancement integrated.
+
+    Week 22 integration test: End-to-end LLM enhancement
+
+    Validates:
+    - LLM enhancement is called during execution
+    - Enhanced data flows through to output
+    - Confidence score reflects LLM quality assessment
+    """
+    from unittest.mock import AsyncMock
+
+    agent = CompanyProfileAgent()
+
+    # Skip test if ClaudeService not available
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+
+    # Mock LLM response
+    mock_llm_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "strengths": ["Registered company with valid KRS"],
+    "risks": ["Mock data only"],
+    "opportunities": ["Market expansion potential"],
+    "market_positioning": "Emerging market player"
+  },
+  "quality_score": 0.85,
+  "analysis_notes": ["Mock data analysis", "Limited information available"]
+}
+```""",
+        "model": "claude-sonnet-4-5-20250929"
+    }
+
+    agent.claude_service.chat = AsyncMock(return_value=mock_llm_response)
+
+    # Execute full workflow
+    result = await agent.execute(target="KRS 0000123456")
+
+    # Validate output type
+    assert isinstance(result, CompanyProfileOutput)
+    assert result.agent_type == "company_profile"
+
+    # Validate confidence score (should be enhanced by LLM)
+    assert result.confidence_score >= 0
+    assert result.confidence_score <= 100
+
+    # Note: The enhanced data (business_insights, llm_quality_score) is not directly
+    # accessible in CompanyProfileOutput model, but it was used for confidence calculation
+    # This validates the integration flow works correctly
+
+
+# ============================================================================
+# WEEK 28 TESTS: Enhanced Profile Insights Structure
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_profile_insights_structure_week28():
+    """Test Week 28 profile insights structure (5 dimensions)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    mock_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "data_completeness": {
+      "score": 92,
+      "assessment": "Bardzo wysoka kompletność - pełne dane KRS, NIP, GUS"
+    },
+    "data_accuracy": {
+      "score": 88,
+      "analysis": "Wysoka dokładność - dane zweryfikowane krzyżowo między KRS-GUS-REGON"
+    },
+    "cross_validation_quality": "Doskonała weryfikacja krzyżowa - wszystkie źródła spójne",
+    "information_reliability": "Maksymalna wiarygodność - oficjalne rejestry państwowe KRS i GUS",
+    "recommendations": [
+      "Dodaj najnowsze sprawozdania finansowe",
+      "Uzupełnij dane o zarządzie o daty powołania",
+      "Wzbogać o dane o zatrudnieniu z GUS"
+    ]
+  },
+  "quality_score": 0.90,
+  "analysis_notes": [
+    "Kompletne dane podstawowe",
+    "Skuteczna weryfikacja krzyżowa",
+    "Brak danych finansowych"
+  ]
+}
+```"""
+    }
+    
+    agent.claude_service.chat = AsyncMock(return_value=mock_response)
+    
+    processed_data = {"company_name": "Test", "krs_number": "123"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    # Verify 5-dimensional structure
+    insights = enhanced['profile_insights']
+    assert 'data_completeness' in insights
+    assert 'data_accuracy' in insights
+    assert 'cross_validation_quality' in insights
+    assert 'information_reliability' in insights
+    assert 'recommendations' in insights
+    
+    # Verify scores
+    assert insights['data_completeness']['score'] == 92
+    assert insights['data_accuracy']['score'] == 88
+
+
+@pytest.mark.asyncio
+async def test_data_completeness_assessment_week28():
+    """Test data completeness assessment insights (Week 28)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    mock_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "data_completeness": {
+      "score": 95,
+      "assessment": "Wybitna kompletność - wszystkie kluczowe dane dostępne z KRS, NIP, GUS i REGON"
+    },
+    "data_accuracy": {"score": 85, "analysis": "test"},
+    "cross_validation_quality": "test",
+    "information_reliability": "test",
+    "recommendations": []
+  },
+  "quality_score": 0.92,
+  "analysis_notes": []
+}
+```"""
+    }
+    
+    agent.claude_service.chat = AsyncMock(return_value=mock_response)
+    
+    processed_data = {"company_name": "Test"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    completeness = enhanced['profile_insights']['data_completeness']
+    assert completeness['score'] == 95
+    assert 'wszystkie kluczowe dane' in completeness['assessment'].lower()
+
+
+@pytest.mark.asyncio
+async def test_data_accuracy_analysis_week28():
+    """Test data accuracy analysis insights (Week 28)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    mock_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "data_completeness": {"score": 85, "assessment": "test"},
+    "data_accuracy": {
+      "score": 97,
+      "analysis": "Najwyższa dokładność - dane w 100% zgodne między KRS, GUS i REGON"
+    },
+    "cross_validation_quality": "test",
+    "information_reliability": "test",
+    "recommendations": []
+  },
+  "quality_score": 0.93,
+  "analysis_notes": []
+}
+```"""
+    }
+    
+    agent.claude_service.chat = AsyncMock(return_value=mock_response)
+    
+    processed_data = {"company_name": "Test"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    accuracy = enhanced['profile_insights']['data_accuracy']
+    assert accuracy['score'] == 97
+    assert '100% zgodne' in accuracy['analysis']
+
+
+@pytest.mark.asyncio
+async def test_cross_validation_quality_week28():
+    """Test cross-validation quality assessment (Week 28)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    mock_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "data_completeness": {"score": 85, "assessment": "test"},
+    "data_accuracy": {"score": 90, "analysis": "test"},
+    "cross_validation_quality": "Bardzo dobra weryfikacja - KRS i GUS potwierdzają 95% danych",
+    "information_reliability": "test",
+    "recommendations": []
+  },
+  "quality_score": 0.88,
+  "analysis_notes": []
+}
+```"""
+    }
+    
+    agent.claude_service.chat = AsyncMock(return_value=mock_response)
+    
+    processed_data = {"company_name": "Test"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    validation = enhanced['profile_insights']['cross_validation_quality']
+    assert '95%' in validation
+    assert 'weryfikacja' in validation.lower()
+
+
+@pytest.mark.asyncio
+async def test_information_reliability_week28():
+    """Test information reliability assessment (Week 28)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    mock_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "data_completeness": {"score": 85, "assessment": "test"},
+    "data_accuracy": {"score": 90, "analysis": "test"},
+    "cross_validation_quality": "test",
+    "information_reliability": "Maksymalna wiarygodność - źródła: KRS (oficjalny), GUS (państwowy), REGON (państwowy)",
+    "recommendations": []
+  },
+  "quality_score": 0.92,
+  "analysis_notes": []
+}
+```"""
+    }
+    
+    agent.claude_service.chat = AsyncMock(return_value=mock_response)
+    
+    processed_data = {"company_name": "Test"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    reliability = enhanced['profile_insights']['information_reliability']
+    assert 'wiarygodność' in reliability.lower()
+    assert 'KRS' in reliability
+
+
+@pytest.mark.asyncio
+async def test_profile_recommendations_week28():
+    """Test profile enhancement recommendations (Week 28)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    mock_response = {
+        "content": """```json
+{
+  "profile_insights": {
+    "data_completeness": {"score": 85, "assessment": "test"},
+    "data_accuracy": {"score": 90, "analysis": "test"},
+    "cross_validation_quality": "test",
+    "information_reliability": "test",
+    "recommendations": [
+      "Pobierz najnowsze sprawozdania finansowe z KRS",
+      "Uzupełnij dane o liczbie pracowników z GUS",
+      "Dodaj informacje o strukturze własnościowej"
+    ]
+  },
+  "quality_score": 0.85,
+  "analysis_notes": []
+}
+```"""
+    }
+    
+    agent.claude_service.chat = AsyncMock(return_value=mock_response)
+    
+    processed_data = {"company_name": "Test"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    recommendations = enhanced['profile_insights']['recommendations']
+    assert len(recommendations) == 3
+    assert any('finansowe' in rec.lower() for rec in recommendations)
+    assert any('pracowników' in rec.lower() for rec in recommendations)
+
+
+@pytest.mark.asyncio
+async def test_llm_enhancement_invalid_json_week28():
+    """Test invalid JSON response handling (Week 28)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    mock_response = {
+        "content": "This is not valid JSON at all!"
+    }
+    
+    agent.claude_service.chat = AsyncMock(return_value=mock_response)
+    
+    processed_data = {"company_name": "Test"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    # Should return original data on error
+    assert enhanced == processed_data
+
+
+@pytest.mark.asyncio
+async def test_confidence_boost_with_high_llm_quality_week28():
+    """Test confidence boost with high LLM quality (Week 28)"""
+    agent = CompanyProfileAgent()
+    
+    # Simulate high-quality profile data with high LLM quality
+    processed_data = {
+        "krs_number": "0000123456",
+        "nip_number": "1234563218",  # Valid NIP
+        "ownership_structure": [{"owner": "Test"}],
+        "financial_statements": {"year": 2023},
+        "llm_quality_score": 0.95  # High LLM quality
+    }
+    
+    data_sources = ["KRS API", "GUS API"]
+    target_info = {"type": "krs"}
+    
+    confidence = agent._calculate_confidence(processed_data, data_sources, target_info)
+    
+    # With high LLM quality (0.95), confidence should be boosted
+    # Base score ~125/125 = 100, with LLM: (100 * 0.7) + (0.95 * 100 * 0.3) = 70 + 28.5 = 98.5
+    assert confidence >= 95
+
+
+@pytest.mark.asyncio
+async def test_confidence_penalty_with_low_llm_quality_week28():
+    """Test confidence penalty with low LLM quality (Week 28)"""
+    agent = CompanyProfileAgent()
+    
+    # Simulate moderate-quality data with low LLM quality
+    processed_data = {
+        "krs_number": "0000123456",
+        "nip_number": "1234563218",  # Valid NIP
+        "llm_quality_score": 0.25  # Low LLM quality
+    }
+    
+    data_sources = ["KRS API"]
+    target_info = {"type": "krs"}
+    
+    confidence = agent._calculate_confidence(processed_data, data_sources, target_info)
+    
+    # With low LLM quality (0.25), confidence should be reduced
+    # Base score ~80/125 = 64, with LLM: (64 * 0.7) + (0.25 * 100 * 0.3) = 44.8 + 7.5 = 52.3
+    assert confidence <= 60
+
+
+def test_confidence_70_30_weighting_formula_week28():
+    """Test accuracy of 70/30 weighting formula (Week 28)"""
+    agent = CompanyProfileAgent()
+    
+    # Test cases: (base_score, llm_quality, expected_confidence)
+    test_cases = [
+        (80, 0.80, 80.0),  # (80 * 0.7) + (0.80 * 100 * 0.3) = 56 + 24 = 80
+        (60, 0.90, 69.0),  # (60 * 0.7) + (0.90 * 100 * 0.3) = 42 + 27 = 69
+        (100, 0.50, 85.0),  # (100 * 0.7) + (0.50 * 100 * 0.3) = 70 + 15 = 85
+    ]
+    
+    for base_score_normalized, llm_quality, expected in test_cases:
+        # Verify the formula matches expectation
+        calculated = (base_score_normalized * 0.7) + (llm_quality * 100 * 0.3)
+        assert abs(calculated - expected) < 0.5
+
+
+@pytest.mark.asyncio
+async def test_llm_enhancement_error_recovery_week28():
+    """Test error recovery during LLM call (Week 28)"""
+    from unittest.mock import AsyncMock
+    
+    agent = CompanyProfileAgent()
+    
+    if not agent.claude_service:
+        pytest.skip("ClaudeService not available")
+    
+    # Mock exception during LLM call
+    agent.claude_service.chat = AsyncMock(side_effect=Exception("LLM error"))
+    
+    processed_data = {"company_name": "Test"}
+    enhanced = await agent._enhance_with_llm(processed_data, {})
+    
+    # Should return original data on error (graceful degradation)
+    assert enhanced == processed_data

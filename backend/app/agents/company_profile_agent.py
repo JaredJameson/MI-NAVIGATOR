@@ -10,6 +10,7 @@ Use case: "Get profile for company with KRS 0000123456"
          "Analyze ownership structure of company with NIP 1234567890"
 """
 
+import json
 import logging
 import re
 from typing import Dict, List, Optional, Any
@@ -17,6 +18,22 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.services.agent_tools import ToolRegistry, get_tool_registry
+
+# Week 22: Import PromptLoader for MD prompt integration
+try:
+    from app.services.prompt_loader import prompt_loader
+    PROMPTS_AVAILABLE = True
+except ImportError:
+    PROMPTS_AVAILABLE = False
+    logger.warning("PromptLoader not available, using fallback behavior")
+
+# Week 22: Import ClaudeService for LLM-enhanced analysis
+try:
+    from app.services.claude_service import ClaudeService
+    CLAUDE_SERVICE_AVAILABLE = True
+except ImportError:
+    CLAUDE_SERVICE_AVAILABLE = False
+    logger.warning("ClaudeService not available, using basic analysis only")
 
 # Week 2: Import GUS and REGON clients
 try:
@@ -185,12 +202,69 @@ class CompanyProfileAgent:
     """
 
     def __init__(self):
-        """Initialize CompanyProfileAgent with tool registry."""
+        """Initialize CompanyProfileAgent with tool registry, system prompt, and LLM service."""
         self.agent_type = "company_profile"
         self.tool_registry = get_tool_registry()
         self.domain_knowledge = CompanyProfileDomainKnowledge()
-        logger.info(f"{self.agent_type} agent initialized")
 
+        # Week 22: Load system prompt from MD files
+        self.system_prompt = None
+        if PROMPTS_AVAILABLE:
+            try:
+                self.system_prompt = prompt_loader.load_prompt("company_profile")
+                if self.system_prompt:
+                    logger.info(f"✅ {self.agent_type} agent initialized with MD prompt ({len(self.system_prompt)} chars)")
+                else:
+                    logger.warning(f"⚠️ {self.agent_type} agent: MD prompt empty, using fallback behavior")
+            except Exception as e:
+                logger.error(f"❌ Error loading prompt for {self.agent_type}: {e}")
+                logger.info(f"{self.agent_type} agent initialized with fallback behavior")
+        else:
+            logger.info(f"{self.agent_type} agent initialized without prompts (PromptLoader not available)")
+
+        # Week 22: Initialize ClaudeService for LLM-enhanced analysis
+        self.claude_service = None
+        if CLAUDE_SERVICE_AVAILABLE:
+            try:
+                self.claude_service = ClaudeService()
+                logger.info(f"✅ {self.agent_type} agent: ClaudeService initialized for intelligent analysis")
+            except Exception as e:
+                logger.error(f"❌ Error initializing ClaudeService for {self.agent_type}: {e}")
+                logger.info(f"{self.agent_type} agent: Using basic analysis without LLM enhancement")
+        else:
+            logger.info(f"{self.agent_type} agent: ClaudeService not available, using basic analysis")
+
+
+    def get_prompt_instructions(self) -> Optional[str]:
+        """
+        Get system prompt instructions for this agent.
+
+        Week 22: Added for MD prompt integration.
+        Future use: Can be passed to LLM calls for enhanced agent behavior.
+
+        Returns:
+            System prompt string or None if not available
+        """
+        return self.system_prompt
+
+    def get_prompt_guidelines(self, task_type: str = "general") -> str:
+        """
+        Get prompt-based guidelines for specific task types.
+
+        Week 22: Helper method to extract relevant guidelines from system prompt.
+        Useful for LLM-based enhancements in future iterations.
+
+        Args:
+            task_type: Type of task (general, krs, nip, company_name)
+
+        Returns:
+            Relevant guidelines or fallback instructions
+        """
+        if not self.system_prompt:
+            return "Use available tools and domain knowledge to analyze company profile."
+
+        # Return full prompt for now, can be enhanced to extract specific sections
+        return self.system_prompt
 
     async def execute(
         self,
@@ -249,9 +323,16 @@ class CompanyProfileAgent:
             # Step 3: Data Processing & Aggregation
             processed_data = self._process_data(collected_data.get("data", {}), target_info)
 
-            # Step 4: Confidence Scoring
-            confidence_score = self._calculate_confidence(
+            # Step 3.5: LLM-Enhanced Analysis (Week 22)
+            enhanced_data = await self._enhance_with_llm(
                 processed_data=processed_data,
+                target_info=target_info,
+                context=context
+            )
+
+            # Step 4: Confidence Scoring (enhanced with LLM quality assessment)
+            confidence_score = self._calculate_confidence(
+                processed_data=enhanced_data,
                 data_sources=data_sources,
                 target_info=target_info
             )
@@ -259,7 +340,7 @@ class CompanyProfileAgent:
             # Step 5: Build Structured Output
             result = self._build_output(
                 target=target,
-                data=processed_data,
+                data=enhanced_data,
                 confidence_score=confidence_score,
                 data_sources=data_sources,
                 errors=errors,
@@ -719,6 +800,136 @@ class CompanyProfileAgent:
         return processed
 
 
+    async def _enhance_with_llm(
+        self,
+        processed_data: Dict[str, Any],
+        target_info: Dict[str, Any],
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Enhance company profile data with LLM-powered intelligent analysis.
+
+        Week 28 implementation: Uses ClaudeService to provide profile quality insights,
+        data completeness assessment, and cross-validation quality analysis.
+
+        Args:
+            processed_data: Normalized company data from APIs
+            target_info: Target identification info
+            context: Optional additional context
+
+        Returns:
+            Enhanced data dict with:
+            - profile_insights: {data_completeness, data_accuracy, cross_validation_quality, information_reliability, recommendations}
+            - llm_quality_score: Float 0.0-1.0 quality assessment
+            - llm_analysis_notes: List of insights from LLM
+
+        Example Enhancement:
+            Input: {"company_name": "ABC Sp. z o.o.", "industry": "IT"}
+            Output: {
+                ...original data...,
+                "profile_insights": {
+                    "data_completeness": {"score": 85, "assessment": "Wysokiej jakości kompletne dane"},
+                    "data_accuracy": {"score": 90, "analysis": "Dane zweryfikowane krzyżowo"},
+                    "cross_validation_quality": "Skuteczna weryfikacja KRS-GUS-REGON",
+                    "information_reliability": "Wiarygodne źródła - oficjalne rejestry",
+                    "recommendations": ["Dodaj dane finansowe", "Uzupełnij strukturę zarządu"]
+                },
+                "llm_quality_score": 0.87,
+                "llm_analysis_notes": ["Data completeness: high", "Cross-validation: successful"]
+            }
+        """
+        # If ClaudeService not available, return data unchanged
+        if not self.claude_service:
+            logger.info("CompanyProfileAgent: ClaudeService not available, skipping LLM enhancement")
+            return processed_data
+
+        try:
+            # Use pre-loaded system prompt
+            system_prompt = self.system_prompt if self.system_prompt else (
+                "You are an intelligent business analyst specializing in Polish company analysis. "
+                "Analyze company data and provide structured business insights in Polish."
+            )
+
+            # Prepare data summary for LLM
+            data_summary = {
+                "company_name": processed_data.get("company_name", "Unknown"),
+                "krs_number": processed_data.get("krs_number"),
+                "nip_number": processed_data.get("nip_number"),
+                "legal_form": processed_data.get("legal_form"),
+                "industry": processed_data.get("industry"),
+                "pkd_code": processed_data.get("pkd_code"),
+                "employee_count": processed_data.get("employee_count"),
+                "registration_date": processed_data.get("registration_date"),
+                "has_ownership_data": len(processed_data.get("ownership_structure", [])) > 0,
+                "has_management_data": len(processed_data.get("management_board", [])) > 0,
+                "has_financial_data": processed_data.get("financial_statements") is not None
+            }
+
+            # Build analysis request (Week 28: profile_insights structure)
+            analysis_request = (
+                f"Przeanalizuj profil firmy i dostarcz ocenę jakości danych:\n\n"
+                f"```json\n{json.dumps(data_summary, indent=2, ensure_ascii=False)}\n```\n\n"
+                f"Wygeneruj analizę w formacie JSON:\n"
+                f"{{\n"
+                f"  \"profile_insights\": {{\n"
+                f"    \"data_completeness\": {{\"score\": 0-100, \"assessment\": \"ocena kompletności danych firmy\"}},\n"
+                f"    \"data_accuracy\": {{\"score\": 0-100, \"analysis\": \"dokładność i spójność danych z różnych źródeł\"}},\n"
+                f"    \"cross_validation_quality\": \"ocena jakości weryfikacji krzyżowej między KRS-GUS-REGON\",\n"
+                f"    \"information_reliability\": \"ocena wiarygodności informacji z dostępnych źródeł\",\n"
+                f"    \"recommendations\": [\"lista rekomendacji wzbogacenia profilu\"]\n"
+                f"  }},\n"
+                f"  \"quality_score\": 0.0-1.0,\n"
+                f"  \"analysis_notes\": [\"lista uwag analitycznych\"]\n"
+                f"}}\n"
+            )
+
+            # Call ClaudeService
+            logger.info("CompanyProfileAgent: Requesting LLM enhancement...")
+            response = await self.claude_service.chat(
+                message=analysis_request,
+                conversation_history=[],
+                system_prompt=system_prompt,
+                language=context.get("language", "pl") if context else "pl",
+                model=self.claude_service.default_model
+            )
+
+            # Extract and parse LLM response
+            llm_content = response.get("content", "")
+
+            # Extract JSON from markdown if present
+            import re
+            json_match = re.search(r'```(?:json)?\s*\n?([\s\S]+?)\n?```', llm_content)
+            if json_match:
+                json_str = json_match.group(1).strip()
+            else:
+                json_str = llm_content.strip()
+
+            llm_analysis = json.loads(json_str)
+
+            # Merge LLM insights into processed data (Week 28: profile_insights)
+            enhanced_data = processed_data.copy()
+            enhanced_data['profile_insights'] = llm_analysis.get('profile_insights', {})
+            enhanced_data['llm_quality_score'] = llm_analysis.get('quality_score', 0.0)
+            enhanced_data['llm_analysis_notes'] = llm_analysis.get('analysis_notes', [])
+
+            logger.info(
+                f"CompanyProfileAgent: LLM enhancement complete "
+                f"(quality score: {enhanced_data.get('llm_quality_score', 0.0):.2f})"
+            )
+
+            return enhanced_data
+
+        except json.JSONDecodeError as e:
+            logger.error(f"CompanyProfileAgent: Failed to parse LLM response: {e}")
+            logger.debug(f"Raw LLM response: {llm_content}")
+            return processed_data
+
+        except Exception as e:
+            logger.error(f"CompanyProfileAgent: LLM enhancement error: {str(e)}", exc_info=True)
+            # Return original data if LLM enhancement fails (graceful degradation)
+            return processed_data
+
+
     def _parse_ownership_structure(self, raw_ownership: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Parse ownership structure with shareholding percentages.
@@ -857,17 +1068,25 @@ class CompanyProfileAgent:
         """
         Calculate confidence score based on data quality.
 
+        Week 22 Enhancement: Incorporates LLM quality assessment for intelligent scoring.
+
         Confidence Scoring Algorithm (from AGENT_IMPLEMENTATION_GUIDE.md):
-            score = 0
-            if krs_data: score += 50
-            if nip_valid: score += 30
-            if gus_data: score += 20
-            if ownership_structure: score += 10
-            if financial_statements: score += 15
-            # Max: 125, normalized to 0-100
+            Base score (0-125):
+            - if krs_data: score += 50
+            - if nip_valid: score += 30
+            - if gus_data: score += 20
+            - if ownership_structure: score += 10
+            - if financial_statements: score += 15
+
+            Enhanced formula (Week 22):
+            - base_score = normalized to 0-100
+            - if llm_quality_score available:
+                final = (base_score * 0.7) + (llm_quality_score * 100 * 0.3)
+            - else:
+                final = base_score
 
         Args:
-            processed_data: Processed company data
+            processed_data: Processed company data (may include llm_quality_score)
             data_sources: List of data sources used
             target_info: Original target info with validation results
 
@@ -899,10 +1118,23 @@ class CompanyProfileAgent:
         if processed_data.get('financial_statements'):
             score += 15
 
-        # Normalize to 0-100
-        normalized_score = min(100, (score / max_score) * 100)
+        # Normalize base score to 0-100
+        base_score = min(100, (score / max_score) * 100)
 
-        return round(normalized_score, 2)
+        # Week 22: Incorporate LLM quality assessment if available
+        llm_quality_score = processed_data.get('llm_quality_score')
+        if llm_quality_score is not None and isinstance(llm_quality_score, (int, float)):
+            # Weighted combination: 70% base data quality + 30% LLM assessment
+            # This balances objective data availability with LLM's qualitative evaluation
+            final_score = (base_score * 0.7) + (llm_quality_score * 100 * 0.3)
+            logger.debug(
+                f"Confidence calculation: base={base_score:.2f}, "
+                f"llm={llm_quality_score:.2f}, final={final_score:.2f}"
+            )
+            return round(min(100, final_score), 2)
+        else:
+            # Fallback to base score if LLM enhancement not available
+            return round(base_score, 2)
 
 
     def _build_output(
