@@ -4,7 +4,7 @@ API v1 Router - Aggregates all API endpoints
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, chat, reports, projects, companies, analysis, search, activity, notifications, help, feedback, custom_fields, tags, workspaces, billing, system, analytics, errors, admin, alerts, files, test_endpoints, research, webhooks, api_keys, ab_testing
+from app.api.v1.endpoints import auth, users, chat, reports, projects, companies, analysis, search, activity, notifications, help, feedback, custom_fields, tags, workspaces, billing, system, analytics, errors, admin, alerts, files, test_endpoints, research, webhooks, api_keys, ab_testing, agents, agents_deployment
 
 api_router = APIRouter()
 
@@ -88,3 +88,9 @@ api_router.include_router(test_endpoints.router, prefix="/test", tags=["Testing"
 
 # A/B Testing endpoints
 api_router.include_router(ab_testing.router, prefix="/ab-testing", tags=["A/B Testing"])
+
+# Autonomous Agents endpoints (Week 3)
+api_router.include_router(agents.router, prefix="/agents", tags=["Agents"])
+
+# Agent Deployment endpoints (Phase 3 Week 31)
+api_router.include_router(agents_deployment.router, prefix="/agents", tags=["Agent Deployment"])

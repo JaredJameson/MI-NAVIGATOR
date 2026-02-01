@@ -1,0 +1,290 @@
+version: '3.8'
+
+# MI-Navigator Production Deployment Configuration
+#
+# DEPLOYMENT NOTES:
+# - Use managed database services (AWS RDS, Azure Database, Google Cloud SQL) instead of containers
+# - Use managed Redis (AWS ElastiCache, Azure Cache, Google Memorystore) instead of containers
+# - This compose file is for the application containers only
+# - Use Kubernetes/Docker Swarm for multi-node deployments
+#
+# USAGE:
+#   docker-compose -f docker-compose.production.yml up -d
+
+services:
+  # ============================================================================
+  # BACKEND API SERVICE
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+    image: mi-navigator-backend:production
+    container_name: mi-navigator-backend-prod
+    restart: always
+
+    # Environment variables (use .env.production file)
+    env_file:
+      - backend/.env.production
+
+    # Health checks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+      replicas: 2  # For load balancing (use Docker Swarm or K8s)
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Ports (expose only internally, use reverse proxy)
+    expose:
+      - "8000"
+
+    # Networks
+    networks:
+      - mi-navigator-prod-network
+
+    # Volumes
+    volumes:
+      - backend-logs:/var/log/mi-navigator
+      - backend-uploads:/app/uploads
+
+    # Labels for monitoring and service discovery
+    labels:
+      - "com.mi-navigator.service=backend"
+      - "com.mi-navigator.environment=production"
+      - "com.mi-navigator.version=1.0.0"
+
+  # ============================================================================
+  # FRONTEND SERVICE (Next.js)
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+    image: mi-navigator-frontend:production
+    container_name: mi-navigator-frontend-prod
+    restart: always
+
+    # Environment variables
+    env_file:
+      - frontend/.env.production
+
+    # Health checks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+      replicas: 2
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Ports
+    expose:
+      - "3000"
+
+    # Networks
+    networks:
+      - mi-navigator-prod-network
+
+    # Volumes
+    volumes:
+      - frontend-cache:/app/.next/cache
+
+    # Labels
+    labels:
+      - "com.mi-navigator.service=frontend"
+      - "com.mi-navigator.environment=production"
+      - "com.mi-navigator.version=1.0.0"
+
+  # ============================================================================
+  # NGINX REVERSE PROXY (SSL Termination & Load Balancing)
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: mi-navigator-nginx-prod
+    restart: always
+
+    # Ports (SSL termination)
+    ports:
+      - "443:443"
+      - "80:80"
+
+    # Configuration
+    volumes:
+      - ./nginx/nginx.production.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # SSL certificates
+      - nginx-cache:/var/cache/nginx
+      - nginx-logs:/var/log/nginx
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Depends on backend and frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+    # Health checks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    # Networks
+    networks:
+      - mi-navigator-prod-network
+
+    # Labels
+    labels:
+      - "com.mi-navigator.service=reverse-proxy"
+      - "com.mi-navigator.environment=production"
+
+  # ============================================================================
+  # MONITORING - PROMETHEUS (Optional)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mi-navigator-prometheus-prod
+    restart: always
+
+    # Configuration
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+    # Command
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+
+    # Ports (internal only)
+    expose:
+      - "9090"
+
+    # Networks
+    networks:
+      - mi-navigator-prod-network
+
+    # Labels
+    labels:
+      - "com.mi-navigator.service=prometheus"
+      - "com.mi-navigator.environment=production"
+
+  # ============================================================================
+  # MONITORING - GRAFANA (Optional)
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mi-navigator-grafana-prod
+    restart: always
+
+    # Environment
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=CHANGE_ME_SECURE_PASSWORD
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+
+    # Volumes
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+
+    # Ports (internal only, access via nginx)
+    expose:
+      - "3100"
+
+    # Networks
+    networks:
+      - mi-navigator-prod-network
+
+    # Depends on
+    depends_on:
+      - prometheus
+
+    # Labels
+    labels:
+      - "com.mi-navigator.service=grafana"
+      - "com.mi-navigator.environment=production"
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  mi-navigator-prod-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# VOLUMES (Persistent Data)
+# ============================================================================
+volumes:
+  backend-logs:
+    driver: local
+  backend-uploads:
+    driver: local
+  frontend-cache:
+    driver: local
+  nginx-cache:
+    driver: local
+  nginx-logs:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local

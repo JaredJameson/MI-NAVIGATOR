@@ -1,0 +1,100 @@
+# Prometheus Configuration for MI-Navigator
+#
+# Monitors backend API, databases, and infrastructure
+# Integrates with Grafana for visualization
+
+global:
+  scrape_interval: 15s  # Default scrape interval
+  evaluation_interval: 15s  # Evaluation of recording rules and alerts
+  external_labels:
+    cluster: 'mi-navigator-production'
+    environment: 'production'
+
+# Alertmanager configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  # - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # ============================================================================
+  # PROMETHEUS ITSELF
+  # ============================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # ============================================================================
+  # MI-NAVIGATOR BACKEND API
+  # ============================================================================
+  - job_name: 'mi-navigator-backend'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:8000']
+        labels:
+          service: 'backend-api'
+          app: 'mi-navigator'
+
+  # ============================================================================
+  # POSTGRESQL DATABASE
+  # ============================================================================
+  - job_name: 'postgresql'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgresql'
+          database: 'minavigator'
+
+  # ============================================================================
+  # REDIS CACHE
+  # ============================================================================
+  - job_name: 'redis'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
+          cache: 'minavigator'
+
+  # ============================================================================
+  # NGINX REVERSE PROXY
+  # ============================================================================
+  - job_name: 'nginx'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+        labels:
+          service: 'nginx'
+          proxy: 'reverse-proxy'
+
+  # ============================================================================
+  # NODE EXPORTER (Server Metrics)
+  # ============================================================================
+  - job_name: 'node'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          instance: 'production-server'
+
+  # ============================================================================
+  # DOCKER CONTAINERS (cAdvisor)
+  # ============================================================================
+  - job_name: 'docker'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+          container_monitoring: 'docker'

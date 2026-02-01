@@ -1,0 +1,327 @@
+version: '3.8'
+
+# MI-Navigator Staging Deployment Configuration
+#
+# DEPLOYMENT NOTES:
+# - Staging environment for testing before production
+# - Can use containerized database and Redis for cost savings
+# - Fewer resources allocated than production
+# - Full feature parity with production
+#
+# USAGE:
+#   docker-compose -f docker-compose.staging.yml up -d
+
+services:
+  # ============================================================================
+  # DATABASE - POSTGRESQL (Containerized for staging)
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: mi-navigator-postgres-staging
+    restart: always
+
+    environment:
+      POSTGRES_USER: minavigator_staging
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-staging_password_change_me}
+      POSTGRES_DB: minavigator_staging
+
+    ports:
+      - "5440:5432"  # Different port from dev
+
+    volumes:
+      - postgres-staging-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U minavigator_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+    networks:
+      - mi-navigator-staging-network
+
+    labels:
+      - "com.mi-navigator.service=database"
+      - "com.mi-navigator.environment=staging"
+
+  # ============================================================================
+  # REDIS - CACHE (Containerized for staging)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: mi-navigator-redis-staging
+    restart: always
+
+    command: redis-server --requirepass ${REDIS_PASSWORD:-staging_redis_password}
+
+    ports:
+      - "6386:6379"  # Different port from dev
+
+    volumes:
+      - redis-staging-data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    networks:
+      - mi-navigator-staging-network
+
+    labels:
+      - "com.mi-navigator.service=cache"
+      - "com.mi-navigator.environment=staging"
+
+  # ============================================================================
+  # BACKEND API SERVICE
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.staging
+    image: mi-navigator-backend:staging
+    container_name: mi-navigator-backend-staging
+    restart: always
+
+    env_file:
+      - backend/.env.staging
+
+    environment:
+      # Override database connection for containerized postgres
+      - DATABASE_URL=postgresql://minavigator_staging:${POSTGRES_PASSWORD:-staging_password_change_me}@postgres:5432/minavigator_staging
+      - ASYNC_DATABASE_URL=postgresql+asyncpg://minavigator_staging:${POSTGRES_PASSWORD:-staging_password_change_me}@postgres:5432/minavigator_staging
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-staging_redis_password}@redis:6379/0
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+    expose:
+      - "8000"
+
+    networks:
+      - mi-navigator-staging-network
+
+    volumes:
+      - backend-staging-logs:/var/log/mi-navigator
+      - backend-staging-uploads:/app/uploads
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    labels:
+      - "com.mi-navigator.service=backend"
+      - "com.mi-navigator.environment=staging"
+      - "com.mi-navigator.version=1.0.0-staging"
+
+  # ============================================================================
+  # FRONTEND SERVICE (Next.js)
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.staging
+    image: mi-navigator-frontend:staging
+    container_name: mi-navigator-frontend-staging
+    restart: always
+
+    env_file:
+      - frontend/.env.staging
+
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000/api/v1
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+    expose:
+      - "3000"
+
+    networks:
+      - mi-navigator-staging-network
+
+    volumes:
+      - frontend-staging-cache:/app/.next/cache
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    labels:
+      - "com.mi-navigator.service=frontend"
+      - "com.mi-navigator.environment=staging"
+      - "com.mi-navigator.version=1.0.0-staging"
+
+  # ============================================================================
+  # NGINX REVERSE PROXY
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: mi-navigator-nginx-staging
+    restart: always
+
+    ports:
+      - "8443:443"  # Different SSL port for staging
+      - "8080:80"   # Different HTTP port for staging
+
+    volumes:
+      - ./nginx/nginx.staging.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl/staging:/etc/nginx/ssl:ro
+      - nginx-staging-cache:/var/cache/nginx
+      - nginx-staging-logs:/var/log/nginx
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    networks:
+      - mi-navigator-staging-network
+
+    labels:
+      - "com.mi-navigator.service=reverse-proxy"
+      - "com.mi-navigator.environment=staging"
+
+  # ============================================================================
+  # QDRANT VECTOR DATABASE (Optional - for testing)
+  # ============================================================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: mi-navigator-qdrant-staging
+    restart: always
+
+    ports:
+      - "6335:6333"  # Different port from dev
+      - "6336:6334"
+
+    volumes:
+      - qdrant-staging-data:/qdrant/storage
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+    networks:
+      - mi-navigator-staging-network
+
+    labels:
+      - "com.mi-navigator.service=vector-db"
+      - "com.mi-navigator.environment=staging"
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  mi-navigator-staging-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.21.0.0/16
+
+# ============================================================================
+# VOLUMES (Persistent Data)
+# ============================================================================
+volumes:
+  postgres-staging-data:
+    driver: local
+  redis-staging-data:
+    driver: local
+  backend-staging-logs:
+    driver: local
+  backend-staging-uploads:
+    driver: local
+  frontend-staging-cache:
+    driver: local
+  nginx-staging-cache:
+    driver: local
+  nginx-staging-logs:
+    driver: local
+  qdrant-staging-data:
+    driver: local

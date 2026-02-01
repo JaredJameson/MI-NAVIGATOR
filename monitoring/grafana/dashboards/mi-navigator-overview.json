@@ -1,0 +1,91 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "mi-navigator-overview",
+    "title": "MI-Navigator Production Overview",
+    "description": "Production monitoring dashboard for MI-Navigator platform",
+    "tags": ["mi-navigator", "production", "overview"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "type": "graph",
+        "title": "API Request Rate",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{service=\"backend-api\"}[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "type": "graph",
+        "title": "API Response Time (p95)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"backend-api\"}[5m]))",
+            "legendFormat": "{{endpoint}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "type": "stat",
+        "title": "Active Users",
+        "targets": [
+          {
+            "expr": "count(http_requests_total{service=\"backend-api\",endpoint=~\"/api/.*\"})",
+            "legendFormat": "Active Users"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "type": "stat",
+        "title": "Error Rate (%)",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{service=\"backend-api\",status=~\"5..\"}[5m]) * 100",
+            "legendFormat": "Error Rate"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "type": "stat",
+        "title": "Database Connections",
+        "targets": [
+          {
+            "expr": "pg_stat_database_numbackends{database=\"minavigator\"}",
+            "legendFormat": "Connections"
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": []
+    },
+    "annotations": {
+      "list": []
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    },
+    "links": []
+  },
+  "folderId": 0,
+  "overwrite": true
+}
