@@ -1,0 +1,3319 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "create": "Create",
+      "update": "Update",
+      "confirm": "Confirm",
+      "close": "Close",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "submit": "Submit",
+      "reset": "Reset",
+      "clear": "Clear",
+      "search": "Search",
+      "filter": "Filter",
+      "download": "Download",
+      "export": "Export",
+      "import": "Import",
+      "share": "Share",
+      "copy": "Copy",
+      "print": "Print",
+      "refresh": "Refresh",
+      "select": "Select",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "apply": "Apply",
+      "remove": "Remove",
+      "view": "View",
+      "manage": "Manage"
+    },
+    "status": {
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "deleting": "Deleting...",
+      "processing": "Processing...",
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Information",
+      "pending": "Pending",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "draft": "Draft",
+      "active": "Active",
+      "inactive": "Inactive",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "archived": "Archived"
+    },
+    "time": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "tomorrow": "Tomorrow",
+      "now": "Now",
+      "never": "Never",
+      "lastUpdate": "Last update",
+      "nextUpdate": "Next update",
+      "createdAt": "Created",
+      "updatedAt": "Updated"
+    },
+    "errors": {
+      "generic": "An error occurred",
+      "connectionError": "Server connection error",
+      "notFound": "Not found",
+      "unauthorized": "Unauthorized",
+      "forbidden": "Access denied",
+      "validationError": "Validation error",
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidFormat": "Invalid format",
+      "tryAgain": "Please try again",
+      "reportProblem": "Report problem"
+    },
+    "actions": {
+      "clearFilters": "Clear all filters",
+      "clearSelection": "Clear selection",
+      "cancelSelection": "Cancel selection",
+      "exitSelectionMode": "Exit selection mode"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Market Intelligence Platform",
+      "email": "Email",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "signingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "errors": {
+        "emailRequired": "Email is required",
+        "invalidEmail": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "unexpectedError": "An unexpected error occurred. Please try again."
+      },
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "Enter your password"
+    },
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "description": "Enter the 6-digit code from your authenticator app",
+      "codeLabel": "Authentication Code",
+      "codePlaceholder": "000000",
+      "codeExpires": "Code expires in 30 seconds",
+      "verify": "Verify Code",
+      "verifying": "Verifying...",
+      "backToLogin": "Back to login",
+      "errors": {
+        "codeRequired": "Authentication code is required",
+        "codeLength": "Code must be 6 digits",
+        "invalidCode": "Invalid 2FA code"
+      }
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join MI-Navigator today",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "nameLabel": "Name (optional)",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "Min 8 characters",
+      "passwordHelpText": "At least 8 characters, one uppercase letter, and one digit",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "Repeat password",
+      "creatingAccount": "Creating account...",
+      "successMessage": "Account created successfully! Check your email to verify your account...",
+      "errors": {
+        "passwordUppercase": "Password must contain at least one uppercase letter",
+        "passwordDigit": "Password must contain at least one digit",
+        "passwordMinLength": "Password must be at least 8 characters",
+        "confirmPasswordRequired": "Please confirm your password",
+        "passwordsNotMatch": "Passwords do not match"
+      }
+    },
+    "forgotPassword": {
+      "title": "Reset password",
+      "subtitle": "Enter your email to receive a reset link",
+      "backToLogin": "Back to login",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "you@example.com",
+      "sendingButton": "Sending...",
+      "submitButton": "Send Reset Link",
+      "rememberPassword": "Remember your password?",
+      "successTitle": "Check Your Email",
+      "successMessage": "If an account exists for {email}, you will receive a password reset link shortly.",
+      "returnToLogin": "Return to Login",
+      "errors": {
+        "sendFailed": "Failed to send reset link"
+      }
+    },
+    "resetPassword": {
+      "title": "Create New Password",
+      "subtitle": "Enter your new password below",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Min 8 characters",
+      "passwordHelpText": "At least 8 characters, one uppercase letter, and one digit",
+      "confirmPasswordLabel": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Repeat password",
+      "resettingButton": "Resetting...",
+      "submitButton": "Reset Password",
+      "successTitle": "Password Reset Successful",
+      "successMessage": "Your password has been changed. Redirecting to login...",
+      "goToLogin": "Go to Login",
+      "errors": {
+        "invalidToken": "Invalid or missing reset token",
+        "invalidTokenShort": "Invalid reset token",
+        "passwordMinLength": "Password must be at least 8 characters",
+        "passwordUppercase": "Password must contain at least one uppercase letter",
+        "passwordDigit": "Password must contain at least one digit",
+        "passwordsNotMatch": "Passwords do not match",
+        "resetFailed": "Failed to reset password"
+      }
+    },
+    "verifyEmail": {
+      "title": "Check Your Email",
+      "subtitle": "We've sent a verification link to:",
+      "instructionsHeading": "📧 What's next?",
+      "instructionsStep1": "Open your email inbox",
+      "instructionsStep2": "Find the email from MI Navigator",
+      "instructionsStep3": "Click the \"Verify Email\" button",
+      "instructionsStep4": "Your account will be activated!",
+      "expirationWarning": "Verification link expires in 24 hours.",
+      "warningLabel": "Important:",
+      "didntReceive": "Didn't receive the email?",
+      "resendingButton": "Sending...",
+      "resendButton": "Resend",
+      "tipsLabel": "Tip:",
+      "tipsSpam": "Check your SPAM/Junk folder",
+      "tipsAddContact": "Add noreply@mi-navigator.com to your contacts to avoid delivery issues.",
+      "backToLogin": "← Back to login",
+      "errors": {
+        "emailMissing": "Email address is missing",
+        "tooManyRequests": "Too many requests. Please wait before trying again.",
+        "resendFailed": "Failed to resend verification email. Please try again later.",
+        "networkError": "Network error. Please check your connection."
+      },
+      "success": {
+        "resent": "Verification email sent! Please check your inbox."
+      }
+    },
+    "verifyToken": {
+      "loading": {
+        "title": "Verification in progress...",
+        "message": "Please wait while we verify your verification link."
+      },
+      "success": {
+        "title": "🎉 Email verified!",
+        "message": "Your account has been successfully activated.",
+        "redirecting": "Redirecting to dashboard in {countdown} seconds...",
+        "accountActiveHeading": "✨ Your account is now active!",
+        "feature1": "Full access to all features",
+        "feature2": "Ability to create reports",
+        "feature3": "Access to AI Chat Assistant",
+        "feature4": "Data analysis and visualizations",
+        "goToDashboard": "Go to Dashboard"
+      },
+      "alreadyVerified": {
+        "title": "Email already verified",
+        "message": "Your account was already activated.",
+        "infoMessage": "ℹ️ You can log in and use all platform features.",
+        "goToLogin": "Go to Login"
+      },
+      "error": {
+        "title": "Verification failed",
+        "messageFallback": "There was a problem verifying your email.",
+        "possibleReasonsHeading": "❌ Possible reasons:",
+        "reason1": "Verification link expired (24 hours)",
+        "reason2": "Link was already used",
+        "reason3": "Invalid link",
+        "goToLogin": "Go to Login",
+        "registerAgain": "Register again",
+        "invalidLink": "Invalid verification link",
+        "verificationFailed": "Verification failed",
+        "networkError": "Network error. Please check your connection."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "logout": "Logout",
+    "loggingOut": "Logging out...",
+    "customizeLayout": "Customize layout",
+    "customizeMode": "Customize mode",
+    "customizeModeDescription": "Use arrows to reorder, red icon to hide widget",
+    "reset": "Reset",
+    "cancel": "Cancel",
+    "saveLayout": "Save layout",
+    "saving": "Saving...",
+    "hiddenWidgets": "Hidden widgets ({count})",
+    "showWidget": "Show widget",
+    "hideWidget": "Hide widget",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "quickSearch": {
+      "title": "Start research",
+      "placeholder": "Search company, person, paste URL to analyze...",
+      "recentSearchesTitle": "Recent searches",
+      "noResults": "No results for \"{query}\""
+    },
+    "recentSearches": "Recent:",
+    "widgets": {
+      "activeResearch": {
+        "title": "Active Research",
+        "loading": "Loading...",
+        "noActiveResearch": "No active research. Start a new analysis!",
+        "progress": "Progress: {percent}%",
+        "startNewResearch": "Start New Research",
+        "marketAnalysis": "Market Analysis",
+        "pkdSearch": "PKD Search"
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "loading": "Loading...",
+        "noActivity": "No recent activity",
+        "viewAll": "View all →"
+      },
+      "usageStats": {
+        "title": "Usage Statistics",
+        "loading": "Loading...",
+        "unableToLoad": "Unable to load stats",
+        "analysesThisMonth": "Analyses this month",
+        "storage": "Storage",
+        "apiCalls": "API calls: {count}"
+      },
+      "projects": {
+        "title": "My Projects",
+        "newProject": "+ New",
+        "loading": "Loading projects...",
+        "noProjects": "No projects yet",
+        "reports": "reports",
+        "alerts": "alerts",
+        "updated": "Updated: {time}"
+      },
+      "alerts": {
+        "title": "Alerts & Monitoring",
+        "loading": "Loading alerts...",
+        "noAlerts": "No alerts"
+      }
+    },
+    "messages": {
+      "layout_saved": "Layout saved successfully!",
+      "layout_reset": "Layout restored to default",
+      "layout_save_error": "Error saving layout"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "backToDashboard": "Back to dashboard",
+    "profileInformation": "Profile Information",
+    "email": "Email",
+    "emailCannotBeChanged": "Email cannot be changed",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Your name",
+    "industry": "Industry",
+    "industryPlaceholder": "Select industry...",
+    "role": "Role",
+    "rolePlaceholder": "Select role...",
+    "preferences": "Preferences",
+    "language": "Language",
+    "defaultAnalysisDepth": "Default Analysis Depth",
+    "analysisDepthDescription": "Controls the level of detail in generated reports and analyses",
+    "defaultExportFormat": "Default Export Format",
+    "preferredCurrency": "Preferred Currency",
+    "currencyDescription": "Currency symbol used to display financial data",
+    "timezone": "Timezone",
+    "timezoneDescription": "All timestamps in the application will be displayed in your selected timezone",
+    "notifications": "Notifications",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDescription": "Receive email notifications about reports, alerts and updates",
+    "inAppNotifications": "In-App Notifications",
+    "inAppNotificationsDescription": "Show notifications in application",
+    "tags": "Tags",
+    "tagsDescription": "Organize your reports with custom tags",
+    "manageTags": "Manage Tags",
+    "customFields": "Custom Fields",
+    "addField": "+ Add Field",
+    "noCustomFields": "No custom fields defined yet.",
+    "clickAddField": "Click \"Add Field\" to create your first custom field.",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "settingsSaved": "Settings saved successfully!",
+    "account": "Account",
+    "securitySettings": "Security Settings",
+    "securitySettingsDescription": "Two-factor authentication and security options",
+    "manageSecurity": "Manage Security →",
+    "privacySettings": "Privacy Settings",
+    "privacySettingsDescription": "Export your data and manage privacy options (GDPR)",
+    "managePrivacy": "Manage Privacy →",
+    "featureFlags": "Feature Flags",
+    "featureFlagsDescription": "Control which features are enabled (Admin only)",
+    "manageFeatures": "Manage Features →",
+    "auditTrail": "Audit Trail",
+    "auditTrailDescription": "View log of all sensitive operations",
+    "viewAuditLog": "View Audit Log →",
+    "changePassword": "Change Password",
+    "changePasswordDescription": "Update your password",
+    "resetPassword": "Reset Password",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDescription": "Permanently delete your account and all data",
+    "deleteComingSoon": "Delete (Coming Soon)",
+    "workspace": {
+      "title": "Workspace Settings",
+      "backToDashboard": "← Back to Dashboard",
+      "loading": "Loading...",
+      "myWorkspaces": "My Workspaces",
+      "createWorkspace": "Create Workspace",
+      "members": "Members",
+      "membersCount": "{count} members",
+      "membersCountSingular": "{count} member",
+      "role": "Role: {role}",
+      "created": "Created: {date}",
+      "selectWorkspace": "Select a workspace to view details",
+      "inviteForm": {
+        "emailPlaceholder": "Email address",
+        "inviteMember": "Invite Member",
+        "roles": {
+          "viewer": "Viewer",
+          "member": "Member",
+          "admin": "Admin"
+        }
+      },
+      "memberActions": {
+        "transferOwnership": "Transfer Ownership",
+        "remove": "Remove"
+      },
+      "badges": {
+        "invitationPending": "Invitation Pending"
+      },
+      "empty": {
+        "noWorkspaces": "You are not a member of any workspace yet."
+      },
+      "prompts": {
+        "enterWorkspaceName": "Enter workspace name:",
+        "enterWorkspaceDescription": "Enter workspace description (optional):",
+        "confirmRemove": "Are you sure you want to remove {email} from this workspace?",
+        "confirmTransfer": "Are you sure you want to transfer ownership of this workspace to {email}? You will become an Admin."
+      },
+      "messages": {
+        "loadWorkspacesFailed": "Failed to load workspaces",
+        "loadMembersFailed": "Failed to load members",
+        "invalidEmail": "Please enter a valid email address",
+        "inviteSuccess": "Member invited successfully",
+        "inviteFailed": "Failed to invite member",
+        "removedMember": "Removed {email} from workspace",
+        "removeFailed": "Failed to remove member",
+        "transferSuccess": "Ownership transferred to {email}",
+        "transferFailed": "Failed to transfer ownership",
+        "workspaceCreated": "Workspace created successfully",
+        "workspaceCreateFailed": "Failed to create workspace"
+      }
+    },
+    "security": {
+      "title": "Security Settings",
+      "backToSettings": "Back to Settings",
+      "twoFactor": {
+        "title": "Two-Factor Authentication (2FA)",
+        "description": "Add an extra layer of security to your account by requiring a verification code in addition to your password.",
+        "statusTitle": "2FA Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "statusEnabled": "Two-factor authentication is enabled",
+        "statusDisabled": "Two-factor authentication is disabled",
+        "enableButton": "Enable 2FA",
+        "disableButton": "Disable 2FA",
+        "settingUp": "Setting up...",
+        "protectedMessage": "Your account is protected with 2FA",
+        "protectedDescription": "You'll need to enter a verification code from your authenticator app when logging in.",
+        "confirmDisable": "Are you sure you want to disable two-factor authentication? This will make your account less secure."
+      },
+      "password": {
+        "title": "Change Password",
+        "description": "Update your password and invalidate all other active sessions for security.",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "changeButton": "Change Password",
+        "changingButton": "Changing Password...",
+        "passwordRequirement": "Must be at least 6 characters long",
+        "securityNoticeTitle": "Security Notice",
+        "securityNoticeDescription": "Changing your password will log out all other devices. You will stay logged in on this device."
+      },
+      "twoFactorSetup": {
+        "modalTitle": "Set Up Two-Factor Authentication",
+        "step1Title": "Step 1: Scan QR Code",
+        "step1Description": "Use your authenticator app (Google Authenticator, Authy, etc.) to scan this QR code:",
+        "manualEntryTitle": "Or Enter Manually",
+        "step2Title": "Step 2: Enter Verification Code",
+        "step2Description": "Enter the 6-digit code from your authenticator app:",
+        "verificationPlaceholder": "000000",
+        "cancel": "Cancel",
+        "verifyButton": "Verify & Enable",
+        "verifying": "Verifying..."
+      },
+      "errors": {
+        "allFieldsRequired": "All password fields are required",
+        "passwordTooShort": "New password must be at least 6 characters long",
+        "passwordsMismatch": "New passwords do not match",
+        "notAuthenticated": "Not authenticated",
+        "sessionNotFound": "Session token not found",
+        "failedToFetch2FAStatus": "Failed to fetch 2FA status",
+        "failedToSetup2FA": "Failed to setup 2FA",
+        "invalidVerificationCode": "Invalid verification code",
+        "verificationFailed": "Verification failed",
+        "failedToDisable2FA": "Failed to disable 2FA",
+        "failedToChangePassword": "Failed to change password"
+      },
+      "success": {
+        "passwordChanged": "Password changed successfully",
+        "sessionsInvalidated": "{count} other session(s) logged out"
+      }
+    },
+    "industries": {
+      "manufacturing": "Manufacturing",
+      "services": "Services",
+      "technology": "Technology",
+      "retail": "Retail",
+      "finance": "Finance",
+      "healthcare": "Healthcare",
+      "logistics": "Logistics",
+      "other": "Other"
+    },
+    "userRoles": {
+      "ceo": "CEO / Executive",
+      "sales": "Sales",
+      "analyst": "Analyst",
+      "bd": "Business Development",
+      "operations": "Operations",
+      "other": "Other"
+    },
+    "depths": {
+      "quick": "Quick (Basic overview)",
+      "standard": "Standard (Detailed analysis)",
+      "deep": "Deep (Comprehensive research)"
+    },
+    "formats": {
+      "pdf": "PDF",
+      "docx": "Word (DOCX)",
+      "pptx": "PowerPoint (PPTX)"
+    },
+    "currencies": {
+      "PLN": "PLN (Polish Złoty)",
+      "EUR": "EUR (Euro)",
+      "USD": "USD (US Dollar)",
+      "GBP": "GBP (British Pound)"
+    },
+    "timezones": {
+      "Europe/Warsaw": "Europe/Warsaw (UTC+1/+2)",
+      "Europe/London": "Europe/London (UTC+0/+1)",
+      "Europe/Paris": "Europe/Paris (UTC+1/+2)",
+      "Europe/Berlin": "Europe/Berlin (UTC+1/+2)",
+      "America/New_York": "America/New_York (UTC-5/-4)",
+      "America/Chicago": "America/Chicago (UTC-6/-5)",
+      "America/Los_Angeles": "America/Los_Angeles (UTC-8/-7)",
+      "Asia/Tokyo": "Asia/Tokyo (UTC+9)",
+      "Asia/Shanghai": "Asia/Shanghai (UTC+8)",
+      "Asia/Dubai": "Asia/Dubai (UTC+4)",
+      "Australia/Sydney": "Australia/Sydney (UTC+10/+11)"
+    },
+    "fieldTypes": {
+      "text": "Text",
+      "number": "Number",
+      "date": "Date",
+      "email": "Email",
+      "url": "URL",
+      "select": "Select (dropdown)",
+      "multiselect": "Multi-select"
+    },
+    "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave this page? Your changes will be lost."
+  },
+  "companies": {
+    "title": "Companies",
+    "schedules": {
+      "title": "Automatic Update Schedules",
+      "subtitle": "Configure automatic company data refresh",
+      "backToDashboard": "← Back to dashboard",
+      "addNew": "Add new schedule",
+      "cancel": "Cancel",
+      "newSchedule": "New schedule",
+      "company": "Company",
+      "frequency": {
+        "label": "Frequency",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "time": "Time",
+      "save": "Save schedule",
+      "configuredSchedules": "Configured schedules ({count})",
+      "noSchedules": "No configured schedules",
+      "lastUpdate": "Last update",
+      "nextUpdate": "Next update",
+      "never": "Never",
+      "statusLabel": "Status",
+      "statusActive": "Active",
+      "statusDisabled": "Disabled",
+      "delete": "Delete",
+      "notifications": "Notifications ({count})",
+      "noNotifications": "No notifications",
+      "loading": "Loading schedules...",
+      "error": "Error",
+      "connectionError": "Server connection error",
+      "deleteError": "Schedule deletion error",
+      "deleteConfirmation": "Are you sure you want to delete the schedule for {company}?"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "search": {
+      "placeholder": "Search in reports..."
+    },
+    "filters": {
+      "allTypes": "All types",
+      "allTags": "All tags",
+      "favorites": "Favorites",
+      "showFavorites": "Show favorites only",
+      "clearAll": "Clear all",
+      "clearAllTitle": "Clear all filters"
+    },
+    "status": {
+      "all": "All"
+    },
+    "types": {
+      "companyProfile": "Company profile",
+      "marketAnalysis": "Market analysis",
+      "dueDiligence": "Due Diligence",
+      "competitive": "Competition"
+    },
+    "viewModes": {
+      "list": "List view",
+      "grid": "Grid view",
+      "table": "Table view"
+    },
+    "table": {
+      "date": "Date",
+      "title": "Title",
+      "type": "Type",
+      "status": "Status",
+      "company": "Company",
+      "actions": "Actions"
+    },
+    "selection": {
+      "select": "Select",
+      "cancelSelection": "Cancel selection",
+      "selectedCount": "{count} of {total} selected",
+      "selectPage": "Page selected",
+      "selectAll": "All selected",
+      "selectAllOnPage": "All {count} on this page selected.",
+      "selectAllAcrossPages": "Select all {total} reports",
+      "clearSelection": "Clear selection"
+    },
+    "bulkActions": {
+      "delete": "Delete ({count})",
+      "assignToProject": "Assign to project ({count})",
+      "export": "Export ({count})",
+      "exporting": "Exporting...",
+      "confirmDelete": "Confirm deletion",
+      "confirmDeleteMessage": "Are you sure you want to delete {count} report(s)?",
+      "irreversible": "This operation is irreversible.",
+      "deleting": "Deleting...",
+      "deleteCount": "Delete {count} report(s)",
+      "exportFormats": {
+        "excel": "Excel (.xlsx)",
+        "excelDescription": "All in one file",
+        "pdf": "PDF (ZIP archive)",
+        "pdfDescription": "Separate files in ZIP"
+      },
+      "progress": {
+        "title": "Exporting reports",
+        "progress": "Progress",
+        "processing": "Processing reports...",
+        "reportsCount": "{processed}/{total} reports"
+      }
+    },
+    "projects": {
+      "assignTitle": "Assign to project",
+      "selectProject": "Select project to assign {count} reports to",
+      "loading": "Loading projects...",
+      "noProjects": "No available projects",
+      "createFirst": "Create first project →",
+      "reportsCount": "{count} reports",
+      "types": {
+        "dueDiligence": "Due Diligence",
+        "marketAnalysis": "Market analysis",
+        "competitive": "Competition",
+        "research": "Research"
+      },
+      "assignmentSuccess": "Assigned {count} reports to project"
+    },
+    "tags": {
+      "manage": "Manage tags",
+      "add": "Add tag",
+      "noTags": "You don't have any tags yet",
+      "createFirst": "Create first tag",
+      "close": "Close"
+    },
+    "favorites": {
+      "add": "Add to favorites",
+      "remove": "Remove from favorites"
+    },
+    "empty": {
+      "title": "No reports",
+      "description": "No reports found matching the search criteria.",
+      "startNew": "Start new analysis"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "showing": "Showing {from}-{to} of {total} reports"
+    },
+    "errors": {
+      "loadFailed": "Failed to load reports",
+      "deleteFailed": "Failed to delete reports",
+      "assignFailed": "Failed to assign reports to project",
+      "exportFailed": "Failed to export reports",
+      "updateTagsFailed": "Failed to update tags",
+      "trackProgressFailed": "Failed to track export progress",
+      "reportProblem": "Report problem"
+    },
+    "navigation": {
+      "backToDashboard": "Back to dashboard",
+      "dashboard": "Dashboard",
+      "pkdSearch": "PKD Search"
+    },
+    "help": "Help",
+    "helpTitle": "Help about reports"
+  },
+  "analysis": {
+    "title": "Analysis",
+    "swot": {
+      "title": "SWOT Analysis",
+      "strengths": "Strengths",
+      "weaknesses": "Weaknesses",
+      "opportunities": "Opportunities",
+      "threats": "Threats",
+      "loading": "Loading...",
+      "loadingAnalysis": "Loading SWOT analysis...",
+      "nav": {
+        "backToAnalyses": "Back to analyses",
+        "dashboard": "Dashboard"
+      },
+      "legend": {
+        "strengths": "Strengths (internal, positive)",
+        "weaknesses": "Weaknesses (internal, negative)",
+        "opportunities": "Opportunities (external, positive)",
+        "threats": "Threats (external, negative)"
+      },
+      "axes": {
+        "internal": "Internal factors",
+        "external": "External factors",
+        "positive": "Positive",
+        "negative": "Negative"
+      },
+      "summary": {
+        "title": "Analysis summary",
+        "strengthsCount": "Strengths",
+        "weaknessesCount": "Weaknesses",
+        "opportunitiesCount": "Opportunities",
+        "threatsCount": "Threats",
+        "clickToExpand": "Click on item to expand details"
+      },
+      "errors": {
+        "loadFailed": "Failed to load SWOT analysis",
+        "generic": "An error occurred"
+      }
+    },
+    "pestle": {
+      "title": "PESTLE Analysis",
+      "political": "Political",
+      "economic": "Economic",
+      "social": "Social",
+      "technological": "Technological",
+      "legal": "Legal",
+      "environmental": "Environmental"
+    },
+    "porter": {
+      "title": "Porter's Five Forces",
+      "competitiveRivalry": "Competitive Rivalry",
+      "supplierPower": "Supplier Power",
+      "buyerPower": "Buyer Power",
+      "threatOfSubstitution": "Threat of Substitution",
+      "threatOfNewEntry": "Threat of New Entry"
+    },
+    "market": {
+      "title": "Market Analysis",
+      "nav": {
+        "dashboard": "Dashboard",
+        "chat": "Chat"
+      },
+      "parameters": {
+        "title": "Analysis parameters",
+        "industry": "Industry",
+        "geography": "Geographic area",
+        "segment": "Market segment",
+        "segmentDescription": "Filter results by market segment (B2B, B2C, Enterprise, SMB)"
+      },
+      "actions": {
+        "analyzing": "Analyzing...",
+        "startAnalysis": "Start analysis"
+      },
+      "results": {
+        "title": "Market analysis",
+        "dataYear": "Data for year",
+        "segment": "Segment",
+        "marketData": "Market data",
+        "keyInsights": "Key insights",
+        "trends": "Market trends",
+        "timeline": "Timeline"
+      },
+      "table": {
+        "region": "Region",
+        "marketSize": "Market size (bln)",
+        "growth": "YoY Growth",
+        "players": "Number of players"
+      },
+      "impact": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "errors": {
+        "analysisFailed": "Failed to perform analysis. Please try again."
+      },
+      "industries": {
+        "manufacturing": "Manufacturing",
+        "technology": "Technology / IT",
+        "logistics": "Logistics / Transport",
+        "retail": "Retail",
+        "services": "Services"
+      },
+      "geographies": {
+        "poland": "Poland",
+        "europe": "Europe (EU)",
+        "cee": "Central and Eastern Europe",
+        "global": "Global"
+      },
+      "segments": {
+        "all": "All segments",
+        "B2B": "B2B (Business-to-Business)",
+        "B2C": "B2C (Business-to-Consumer)",
+        "Enterprise": "Enterprise (Large corporations)",
+        "SMB": "SMB (Small and medium businesses)"
+      }
+    }
+  },
+  "search": {
+    "title": "Search",
+    "pageTitle": "PKD Code Search",
+    "savedSearches": "Saved Searches",
+    "savedWithCount": "Saved ({count})",
+    "saveSearch": "Save search",
+    "savingSearch": "Saving...",
+    "searchName": "Search name",
+    "nav": {
+      "dashboard": "Dashboard",
+      "marketAnalysis": "Market Analysis"
+    },
+    "saved": {
+      "title": "Saved Searches",
+      "pkdCode": "PKD Code:",
+      "savedOn": "Saved on:",
+      "empty": "No saved searches"
+    },
+    "form": {
+      "title": "Search companies by PKD code",
+      "description": "PKD (Polish Classification of Activities) is a code defining the type of business activity.",
+      "placeholder": "Enter PKD code (e.g. 22.21.Z)",
+      "search": "Search",
+      "searching": "Searching...",
+      "popularLabel": "Popular PKD codes:"
+    },
+    "popularCodes": {
+      "22_21_Z": "Plastics manufacturing",
+      "62_01_Z": "Software",
+      "49_41_Z": "Road transport",
+      "41_20_Z": "Construction",
+      "69_20_Z": "Accounting",
+      "46_71_Z": "Fuel trade"
+    },
+    "results": {
+      "found": "Found {count} {count, plural, one {company} other {companies}} with this PKD code",
+      "companiesWithCode": "Companies with code {code}",
+      "noCompanies": "No companies with this code",
+      "noCompaniesDescription": "No companies found with PKD code {code}"
+    },
+    "company": {
+      "statusActive": "Active",
+      "pkdCodes": "PKD Codes"
+    },
+    "actions": {
+      "load": "Load",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "saveModal": {
+      "title": "Save search",
+      "namePlaceholder": "Enter search name...",
+      "examplePlaceholder": "e.g. Plastic companies",
+      "pkdCode": "PKD Code:",
+      "description": "Description:",
+      "results": "Results:",
+      "companiesCount": "{count} companies",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "empty": "No saved searches. Perform a search and click \"Save\" to add.",
+    "delete": "Delete",
+    "errors": {
+      "nameRequired": "Enter search name",
+      "noQuery": "Perform a search first",
+      "saveFailed": "Failed to save search",
+      "pkdRequired": "Enter PKD code",
+      "searchFailed": "Failed to search companies. Please try again."
+    },
+    "success": {
+      "saved": "Search saved!"
+    }
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "The page you are looking for does not exist or has been moved.",
+    "buttons": {
+      "dashboard": "Go to Dashboard",
+      "chat": "Start New Research",
+      "back": "← Go Back"
+    },
+    "help": {
+      "title": "Need help? Try:",
+      "reports": "Reports",
+      "projects": "Projects",
+      "settings": "Settings",
+      "search": "Search"
+    }
+  },
+  "chat": {
+    "header": {
+      "newResearch": "New Research",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "saveAsReport": "Save as Report",
+      "newChat": "New Chat"
+    },
+    "welcome": {
+      "title": "Start Your Research",
+      "subtitle": "Ask me about any company, market, or business topic. I can analyze companies, generate reports, and provide market intelligence.",
+      "suggestions": {
+        "analyzeCompany": "Analyze company FADO Sp. z o.o.",
+        "dueDiligence": "Generate Due Diligence report",
+        "compareCompetitors": "Compare competitors in logistics",
+        "marketTrends": "Market trends in e-commerce"
+      }
+    },
+    "loading": {
+      "response": "Loading response...",
+      "inProgress": "Research in progress"
+    },
+    "progress": {
+      "estimatedTime": "Estimated time"
+    },
+    "checkpoint": {
+      "preliminaryFindings": "Preliminary Findings:",
+      "modifyScope": "Click \"Modify Scope\" to adjust research focus"
+    },
+    "briefQuestion": {
+      "enterAnswer": "Enter your answer...",
+      "pressEnterToSubmit": "Press Enter to submit your answer",
+      "yourPreference": "Your preference"
+    },
+    "researchPlan": {
+      "title": "Research Plan Generated",
+      "objective": "Objective",
+      "scope": "Scope",
+      "depth": "Depth",
+      "researchSteps": "Research Steps:",
+      "totalEstimatedTime": "Total estimated time: ~{minutes} minutes",
+      "proceedWithPlan": "Proceed with Plan",
+      "modifyPlan": "Modify Plan",
+      "cancel": "Cancel",
+      "modifyPrompt": "What would you like to modify in the plan?"
+    },
+    "detection": {
+      "url": {
+        "title": "URL Detected",
+        "message": "Would you like to analyze this website?",
+        "button": "Analyze Website"
+      },
+      "nip": {
+        "title": "NIP Detected: {number}",
+        "message": "Would you like to lookup this company?",
+        "button": "Lookup Company"
+      },
+      "krs": {
+        "title": "KRS Detected: {number}",
+        "message": "Would you like to lookup this company?",
+        "button": "Lookup Company"
+      }
+    },
+    "fileUpload": {
+      "waiting": "Waiting...",
+      "uploadTitle": "Upload file (PDF, DOCX, XLSX, CSV, PNG, JPG - max 50MB)",
+      "attached": "Attached {count} file(s): {files}",
+      "fileUploadOnly": "[File upload]"
+    },
+    "input": {
+      "placeholder": "Ask about a company, request analysis, or generate a report...",
+      "disclaimer": "MI-Navigator uses AI to analyze markets and companies. Results may vary."
+    },
+    "saveReport": {
+      "title": "Save as Report",
+      "selectProject": "Select Project",
+      "selectProjectPlaceholder": "-- Select a project --",
+      "noProjects": "No projects found.",
+      "createProject": "Create a new project",
+      "createProjectFirst": "first.",
+      "cancel": "Cancel",
+      "save": "Save Report",
+      "saving": "Saving...",
+      "success": "Report saved successfully!"
+    },
+    "errors": {
+      "webSocketConnection": "WebSocket connection error",
+      "failedToConnect": "Failed to connect to chat",
+      "failedToCreateConversation": "Failed to create conversation",
+      "failedToStartConversation": "Failed to start conversation",
+      "failedToLoadConversation": "Failed to load conversation history",
+      "webSocketTimeout": "WebSocket connection timeout",
+      "failedToSend": "Failed to send message. Please try again.",
+      "fileTooLarge": "File {filename} is too large. Max size is 50MB.",
+      "fileTypeNotSupported": "File type \"{type}\" is not supported. Supported types: PDF, DOCX, XLSX, CSV, PNG, JPG.",
+      "failedToUpload": "Failed to upload {filename}",
+      "failedToParseResponse": "Failed to parse response for {filename}",
+      "networkError": "Network error uploading {filename}",
+      "noConversationToSave": "No conversation to save",
+      "notAuthenticated": "Not authenticated",
+      "failedToLoadProjects": "Failed to load projects",
+      "pleaseSelectProject": "Please select a project",
+      "failedToCreateReport": "Failed to create report",
+      "failedToAssignReport": "Failed to assign report to project",
+      "failedToSaveReport": "Failed to save report. Please try again."
+    }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "new": "New Alert",
+    "edit": "Edit Alert",
+    "saving": "Saving...",
+    "saveChanges": "Save changes",
+    "backToDashboard": "Back to dashboard",
+    "backToAlerts": "Back to alerts",
+    "loading": "Loading...",
+    "loadingAlert": "Loading alert...",
+    "loadingConfig": "Loading configuration...",
+    "monitoring": "Monitoring",
+    "monitoringDescription": "Track important information about companies and markets",
+    "createNewAlert": "Create new alert",
+    "createFirstAlert": "Create first alert",
+    "activeMonitoring": "Active monitoring",
+    "recentAlerts": "Recent alerts",
+    "noConfigurations": "No configured alerts. Create your first alert to start monitoring.",
+    "noAlerts": "No alerts",
+    "confirmDelete": "Are you sure you want to delete this alert?",
+    "created": "Created",
+    "types": {
+      "news": "News",
+      "financial": "Financial",
+      "competitor": "Competitor"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "fields": {
+      "company": "Company",
+      "keyword": "Keyword",
+      "companyName": "Company name",
+      "companyPlaceholder": "e.g. FADO Ltd.",
+      "companyHelp": "Enter the company name you want to monitor",
+      "keywordPlaceholder": "e.g. acquisition, merger, restructuring",
+      "keywordHelp": "Enter keywords to monitor (separate with commas)",
+      "alertType": "Alert type",
+      "conditions": "Alert conditions",
+      "frequency": "Frequency",
+      "threshold": "Notification threshold"
+    },
+    "typeDescriptions": {
+      "news": "News",
+      "newsHelp": "Track latest news, press articles and media publications",
+      "financial": "Financial",
+      "financialHelp": "Monitor financial reports, quarterly results and indicator changes",
+      "competitor": "Competitor",
+      "competitorHelp": "Watch competitor activities, new products and strategic changes"
+    },
+    "frequency": {
+      "realtime": "Real-time",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "label": "Frequency"
+    },
+    "threshold": {
+      "any": "Any changes",
+      "significant": "Significant changes",
+      "critical": "Critical changes",
+      "label": "Threshold"
+    },
+    "actions": {
+      "enableAlert": "Enable alert",
+      "disableAlert": "Disable alert",
+      "editAlert": "Edit alert",
+      "deleteAlert": "Delete alert",
+      "viewCompanyDetails": "View company details",
+      "createAlert": "Create alert",
+      "creating": "Creating..."
+    },
+    "severity": {
+      "label": ""
+    },
+    "details": {
+      "unread": "Unread",
+      "description": "Description",
+      "source": "Source",
+      "created": "Created"
+    },
+    "create": {
+      "title": "Create new alert",
+      "description": "Configure an alert to automatically receive notifications about important changes"
+    },
+    "editPage": {
+      "title": "Edit alert",
+      "description": "Update alert settings"
+    },
+    "errors": {
+      "fetchConfigs": "Failed to fetch alert configurations",
+      "fetchAlerts": "Failed to fetch alerts",
+      "loadFailed": "Failed to load data",
+      "toggleFailed": "Failed to change alert status",
+      "deleteFailed": "Failed to delete alert",
+      "validation": "Fill in at least one field: company name or keyword",
+      "createFailed": "Failed to create alert",
+      "updateFailed": "Failed to update alert",
+      "loadConfigFailed": "Failed to load alert configuration",
+      "notAuthenticated": "Not authenticated",
+      "notFound": "Alert not found",
+      "loadAlertFailed": "Failed to load alert"
+    }
+  },
+  "activity": {
+    "title": "Activity History",
+    "subtitle": "View your recent activity in the system",
+    "export": "Export",
+    "backToDashboard": "Back to dashboard",
+    "exportModal": {
+      "title": "Export activities",
+      "dateFrom": "Date from",
+      "dateTo": "Date to",
+      "filterInfo": "Export will include only activities of type: {type}",
+      "emptyInfo": "Leave empty to export all activities.",
+      "cancel": "Cancel",
+      "exporting": "Exporting...",
+      "exportCsv": "Export CSV"
+    },
+    "filters": {
+      "filterByType": "Filter by type",
+      "all": "All",
+      "filterByDate": "Filter by date",
+      "allDates": "All dates",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This week",
+      "last7days": "Last 7 days",
+      "last30days": "Last 30 days",
+      "thisMonth": "This month",
+      "lastMonth": "Last month"
+    },
+    "loading": "Loading activities...",
+    "empty": "No activities to display",
+    "pagination": {
+      "page": "Page {current} of {total} ({count} activities)",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "errors": {
+      "fetchFailed": "Failed to fetch activities",
+      "loadFailed": "Failed to load activities",
+      "exportFailed": "Failed to export activities"
+    }
+  },
+  "watchlist": {
+    "title": "Watched Companies",
+    "loading": "Loading watched companies...",
+    "error": "Error",
+    "noCompanies": "You are not watching any companies",
+    "watchingCount": "Watching {count} {count, plural, one {company} other {companies}}",
+    "backToDashboard": "Back to dashboard",
+    "empty": {
+      "title": "No watched companies",
+      "description": "Add companies to watchlist to track their news and changes",
+      "searchCompanies": "Search companies"
+    },
+    "companyId": "Company ID",
+    "clickToView": "Click to view profile",
+    "viewProfile": "View profile",
+    "removeFromWatchlist": "Remove from watchlist"
+  },
+  "feedback": {
+    "title": "Submit Feedback",
+    "subtitle": "Help us improve MI-Navigator",
+    "backToDashboard": "Back to dashboard",
+    "form": {
+      "newFeedback": "New feedback",
+      "feedbackType": "Feedback type *",
+      "errorContext": "Error context (automatically added)",
+      "page": "Page:",
+      "additionalDescription": "Additional problem description *",
+      "yourMessage": "Your message *",
+      "placeholderError": "Describe what you were doing when the error occurred...",
+      "placeholderFeedback": "Describe your feedback, suggestion or problem...",
+      "minChars": "Minimum 10 characters ({count}/10)",
+      "submitting": "Sending...",
+      "submit": "Submit feedback"
+    },
+    "sidebar": {
+      "title": "My feedback",
+      "submitted": "submitted",
+      "loading": "Loading...",
+      "empty": "You haven't submitted any feedback yet",
+      "statusNew": "New"
+    },
+    "errors": {
+      "selectType": "Select feedback type",
+      "minLength": "Message must contain at least 10 characters",
+      "submitFailed": "Failed to send feedback",
+      "generic": "An error occurred",
+      "errorPrefix": "Error"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "backToDashboard": "Back to dashboard",
+    "createNew": "+ New project",
+    "loading": "Loading projects...",
+    "empty": {
+      "title": "No projects",
+      "message": "You don't have any projects yet."
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "reports": "Reports"
+    },
+    "types": {
+      "due_diligence": "Due Diligence",
+      "market_analysis": "Market Analysis",
+      "competitive": "Competitive",
+      "research": "Research"
+    },
+    "meta": {
+      "reports": "reports",
+      "updated": "Updated:"
+    },
+    "delete": {
+      "button": "Delete project",
+      "buttonLabel": "Delete project {name}",
+      "title": "Confirm project deletion",
+      "message": "Are you sure you want to delete project \"{name}\"? This operation is irreversible and will delete all associated reports.",
+      "confirm": "Delete project",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "loadFailed": "Failed to load projects",
+      "deleteFailed": "Failed to delete project"
+    },
+    "detail": {
+      "loading": "Loading project...",
+      "notFound": "Project not found",
+      "backToProjects": "← Back to projects",
+      "editButton": "Edit Project",
+      "deleteButton": "Delete",
+      "breadcrumb": {
+        "dashboard": "Dashboard",
+        "projects": "Projects"
+      },
+      "info": {
+        "description": "Description",
+        "noDescription": "No description",
+        "created": "Created",
+        "updated": "Last updated"
+      },
+      "reportsSection": {
+        "title": "Reports in project",
+        "count": "Reports in project ({count})",
+        "addReports": "+ Add reports",
+        "empty": "No reports in project",
+        "emptyDescription": "Go to the reports list to assign reports to this project"
+      },
+      "reportStatus": {
+        "completed": "Completed",
+        "in_progress": "In progress"
+      },
+      "reportTypes": {
+        "company_profile": "Company Profile",
+        "market_analysis": "Market Analysis",
+        "due_diligence": "Due Diligence",
+        "competitive": "Competitive"
+      },
+      "deleteDialog": {
+        "title": "Delete Project",
+        "subtitle": "This action cannot be undone",
+        "message": "Are you sure you want to delete <strong>{name}</strong>?",
+        "warning": "⚠️ This project has {count} report(s) assigned. They will remain in your reports list.",
+        "cancel": "Cancel",
+        "confirm": "Delete Project",
+        "deleting": "Deleting..."
+      },
+      "errors": {
+        "loadFailed": "Failed to load project",
+        "deleteFailed": "Failed to delete project"
+      }
+    },
+    "edit": {
+      "title": "Edit project",
+      "loading": "Loading project...",
+      "form": {
+        "name": "Project name *",
+        "namePlaceholder": "e.g. Due Diligence - ACME Corp",
+        "type": "Project type",
+        "description": "Project description",
+        "descriptionPlaceholder": "Describe the project goal and scope..."
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "saving": "Saving..."
+      },
+      "success": {
+        "title": "Project updated successfully",
+        "description": "Changes to project \"{name}\" have been saved"
+      },
+      "errors": {
+        "nameRequired": "Project name is required",
+        "loadFailed": "Failed to load project",
+        "updateFailed": "Failed to update project. Please try again.",
+        "updateFailedShort": "Failed to update project",
+        "tryAgain": "Try again"
+      }
+    },
+    "new": {
+      "title": "New project",
+      "form": {
+        "name": "Project name *",
+        "namePlaceholder": "e.g. Due Diligence - ACME Corp",
+        "type": "Project type",
+        "description": "Project description",
+        "descriptionPlaceholder": "Describe the project goal and scope..."
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "create": "Create project",
+        "creating": "Creating..."
+      },
+      "success": {
+        "title": "Project created successfully",
+        "description": "Project \"{name}\" has been created"
+      },
+      "errors": {
+        "nameRequired": "Project name is required",
+        "createFailed": "Failed to create project. Please try again.",
+        "createFailedShort": "Failed to create project",
+        "tryAgain": "Try again"
+      }
+    }
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "subtitle": "System Administration",
+    "backToDashboard": "Back to Dashboard",
+    "backToAdmin": "Back to Admin Panel",
+    "verifyingAuth": "Verifying authorization...",
+    "loggedInAs": "Logged in as: {email} ({role})",
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "You do not have permission to access the admin panel. Admin privileges are required.",
+      "userManagementMessage": "You do not have permission to access user management. Admin privileges are required.",
+      "goToDashboard": "Go to Dashboard"
+    },
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeUsers": "Active Users",
+      "reports": "Reports",
+      "searches": "Searches",
+      "analyses": "Analyses"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "userManagement": {
+        "title": "User Management",
+        "description": "Manage users and roles"
+      },
+      "systemSettings": {
+        "title": "System Settings",
+        "description": "Configure system preferences"
+      },
+      "viewReports": {
+        "title": "View Reports",
+        "description": "Access all system reports"
+      }
+    },
+    "features": {
+      "title": "Admin Features",
+      "userManagement": {
+        "title": "User Management",
+        "description": "Create, edit, and delete user accounts"
+      },
+      "roleAssignment": {
+        "title": "Role Assignment",
+        "description": "Manage user roles and permissions"
+      },
+      "systemStats": {
+        "title": "System Statistics",
+        "description": "View real-time system usage metrics"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage user accounts and roles",
+      "loading": "Loading users...",
+      "search": "Search by email, name, or role...",
+      "resultsCount": "{filtered} of {total} users",
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "security": "Security",
+        "lastLogin": "Last Login",
+        "noName": "No name",
+        "active": "Active",
+        "inactive": "Inactive",
+        "emailVerified": "Email verified",
+        "twoFactorEnabled": "2FA Enabled",
+        "no2FA": "No 2FA",
+        "never": "Never"
+      },
+      "info": {
+        "title": "Information",
+        "description": "User management features allow you to view all registered users, their roles, and status. Additional management features (role changes, account disable/enable) can be implemented as needed."
+      },
+      "empty": "No users found matching your search."
+    }
+  },
+  "help": {
+    "title": "Help Center",
+    "subtitle": "Find answers to your questions",
+    "backToDashboard": "Back to dashboard",
+    "search": {
+      "placeholder": "Search help...",
+      "button": "Search",
+      "results": "Search results for: {query} ({count} results)",
+      "clear": "Clear"
+    },
+    "categories": {
+      "title": "Categories",
+      "allArticles": "All articles"
+    },
+    "contextHelp": {
+      "banner": "Context-sensitive help: Showing articles related to {section}",
+      "showAll": "Show all"
+    },
+    "contextLabels": {
+      "reports": "Reports",
+      "projects": "Projects",
+      "search": "Search",
+      "alerts": "Alerts",
+      "settings": "Settings",
+      "account": "Account",
+      "dashboard": "Dashboard"
+    },
+    "article": {
+      "backToList": "Back to article list",
+      "tags": "Tags"
+    },
+    "empty": {
+      "title": "No articles found",
+      "message": "No articles found"
+    },
+    "loading": "Loading articles...",
+    "errors": {
+      "fetchArticles": "Failed to fetch articles",
+      "loadArticles": "Failed to load articles"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "{count} unread",
+    "markAllAsRead": "Mark all as read",
+    "backToDashboard": "← Back to dashboard",
+    "filters": {
+      "all": "All",
+      "unreadOnly": "Only unread"
+    },
+    "loading": "Loading notifications...",
+    "empty": {
+      "unread": "No unread notifications",
+      "all": "No notifications"
+    },
+    "errors": {
+      "fetchNotifications": "Failed to fetch notifications",
+      "loadNotifications": "Failed to load notifications"
+    }
+  },
+  "invitations": {
+    "title": "Workspace Invitations",
+    "backToDashboard": "Back to Dashboard",
+    "manageWorkspaces": "Manage Workspaces",
+    "loading": "Loading invitations...",
+    "empty": {
+      "title": "No Pending Invitations",
+      "message": "You don't have any pending workspace invitations at the moment.",
+      "goToDashboard": "Go to Dashboard"
+    },
+    "count": {
+      "singular": "You have 1 pending invitation",
+      "plural": "You have {count} pending invitations"
+    },
+    "invitedAs": "Invited as:",
+    "invitedOn": "Invited on {date}",
+    "buttons": {
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    "confirm": {
+      "decline": "Are you sure you want to decline this invitation?"
+    },
+    "messages": {
+      "accepted": "Invitation accepted! You now have access to the workspace.",
+      "declined": "Invitation declined"
+    },
+    "errors": {
+      "loadFailed": "Failed to load invitations",
+      "acceptFailed": "Failed to accept invitation",
+      "declineFailed": "Failed to decline invitation",
+      "csrfFailed": "Failed to get CSRF token"
+    }
+  },
+  "competitive": {
+    "title": "Competitive Positioning Map",
+    "input": {
+      "companyIdLabel": "Company ID",
+      "placeholder": "e.g. fado, company_001"
+    },
+    "actions": {
+      "loading": "Loading...",
+      "analyze": "Analyze"
+    },
+    "tooltip": {
+      "quality": "Quality",
+      "value": "Value",
+      "share": "Share"
+    },
+    "results": {
+      "positioning": "Positioning"
+    },
+    "table": {
+      "title": "Competitors",
+      "company": "Company",
+      "quality": "Quality / Innovation",
+      "value": "Value",
+      "marketShare": "Market share (%)",
+      "color": "Color",
+      "you": "You"
+    },
+    "insights": {
+      "title": "Insights",
+      "positioning": "is positioned in",
+      "highQualitySegment": "high quality segment",
+      "lowQualitySegment": "low quality segment",
+      "strongestCompetitor": "Strongest competitor",
+      "share": "share",
+      "competitorsCount": "Number of competitors on map"
+    },
+    "empty": {
+      "message": "Enter company ID and click \"Analyze\" to see positioning map"
+    },
+    "errors": {
+      "companyIdRequired": "Please enter company ID",
+      "loadFailed": "Failed to load data"
+    }
+  },
+  "compare": {
+    "title": "Compare Companies",
+    "subtitle": "Compare two companies side by side",
+    "nav": {
+      "back": "Back"
+    },
+    "selection": {
+      "title": "Select companies to compare",
+      "company1": "Company 1",
+      "company2": "Company 2",
+      "placeholder": "Enter NIP, KRS, REGON or name..."
+    },
+    "actions": {
+      "loading": "Loading...",
+      "compare": "Compare"
+    },
+    "results": {
+      "metric": "Metric",
+      "nip": "NIP",
+      "winner": "Winner",
+      "noData": "No data"
+    },
+    "summary": {
+      "title": "Summary",
+      "metricsWon": "Metrics won",
+      "ties": "Ties"
+    },
+    "empty": {
+      "title": "Select two companies to compare",
+      "message": "Use the selection fields above to choose companies you want to compare"
+    }
+  },
+  "offline": {
+    "title": "You're offline",
+    "message": "Please check your internet connection and try again.",
+    "retry": "Retry"
+  },
+  "onboarding": {
+    "title": "Welcome"
+  },
+  "share": {
+    "title": "Share"
+  },
+  "maintenance": {
+    "loading": "Loading...",
+    "statusCode": "503",
+    "title": "Under Maintenance",
+    "defaultMessage": "System is currently under maintenance. Please check back later.",
+    "estimatedTime": "Estimated Time:",
+    "infoMessage": "We're currently performing scheduled maintenance to improve our services. The system will be back online shortly.",
+    "checkStatus": "Check Status",
+    "autoRefresh": "This page automatically checks every 30 seconds"
+  },
+  "companyDetail": {
+    "loading": "Loading company profile...",
+    "errors": {
+      "loadFailed": "Error",
+      "back": "Go back"
+    },
+    "header": {
+      "breadcrumb": "Company",
+      "navigation": {
+        "reports": "Reports",
+        "search": "Search"
+      }
+    },
+    "status": {
+      "active": "Active"
+    },
+    "info": {
+      "founded": "Founded",
+      "employees": "employees",
+      "website": "Visit Website",
+      "addToWatchlist": "Add to Watchlist",
+      "removeFromWatchlist": "Remove from Watchlist"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "timeline": "Timeline",
+      "news": "News",
+      "financials": "Financials",
+      "people": "People",
+      "dataQuality": "Data Quality",
+      "conflicts": "Conflicts"
+    },
+    "sections": {
+      "basicInfo": "Basic Information",
+      "address": "Address",
+      "industry": "Industry",
+      "description": "Description",
+      "customFields": "Custom Fields",
+      "recommendations": "Recommendations",
+      "financialRatios": "Financial Ratios",
+      "industryComparison": "Industry Comparison",
+      "keyPeople": "Key People",
+      "dataQualityDashboard": "Data Quality",
+      "dataConflicts": "Data Conflicts"
+    },
+    "empty": {
+      "noData": "No data",
+      "noEvents": "No events",
+      "noNews": "No news",
+      "noFinancials": "No financial data",
+      "noPeople": "No people data",
+      "noCustomFields": "No custom fields",
+      "noConflicts": "No conflicts"
+    },
+    "news": {
+      "category": "Category",
+      "sentiment": "Sentiment",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "showDateFilter": "Show date filter",
+      "clearFilters": "Clear filters"
+    },
+    "timeline": {
+      "eventType": "Event type",
+      "impact": "Impact",
+      "details": "Details"
+    },
+    "sentiment": {
+      "positive": "Positive",
+      "negative": "Negative",
+      "neutral": "Neutral"
+    },
+    "categories": {
+      "general": "General",
+      "financial": "Financial",
+      "product": "Product",
+      "hr": "HR",
+      "legal": "Legal"
+    },
+    "relationships": {
+      "subsidiary": "Subsidiary",
+      "parent": "Parent Company",
+      "sister": "Sister Company",
+      "affiliate": "Affiliate",
+      "ownership": "Ownership"
+    },
+    "refresh": {
+      "button": "Refresh data",
+      "refreshing": "Refreshing...",
+      "lastUpdate": "Last update",
+      "error": "Error"
+    },
+    "missingData": {
+      "label": "No data",
+      "suggestions": "Data completion suggestions",
+      "addKrs": "Add KRS number to increase profile credibility",
+      "addRegon": "Add REGON from official registries",
+      "addFounded": "Provide company founding year",
+      "addEmployees": "Specify employment range",
+      "viewQualityReport": "View full data quality report →"
+    },
+    "fields": {
+      "nip": "NIP",
+      "krs": "KRS",
+      "regon": "REGON",
+      "founded": "Founded year",
+      "employment": "Employment",
+      "select": "Select...",
+      "save": "Save",
+      "enterValue": "Enter value...",
+      "current": "Current"
+    },
+    "sectionHeaders": {
+      "pkdCodes": "PKD Codes",
+      "location": "Location",
+      "relatedCompanies": "Related Companies",
+      "information": "Information",
+      "customFields": "Custom Fields",
+      "actions": "Actions"
+    },
+    "actions": {
+      "generateReport": "Generate report",
+      "processing": "Processing...",
+      "watching": "Watching",
+      "addToWatched": "Add to watchlist",
+      "setAlert": "Set alert"
+    },
+    "eventTypes": {
+      "all": "All",
+      "founding": "Founding",
+      "investment": "Investment",
+      "partnership": "Partnership",
+      "product": "Product",
+      "legal": "Legal",
+      "hr": "HR",
+      "milestone": "Milestone"
+    },
+    "impactLevels": {
+      "all": "All",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "newsCategories": {
+      "all": "All",
+      "general": "General",
+      "financial": "Financial",
+      "products": "Products",
+      "hr": "HR",
+      "legal": "Legal"
+    },
+    "newsSentiments": {
+      "all": "All",
+      "positive": "Positive",
+      "neutral": "Neutral",
+      "negative": "Negative"
+    },
+    "conflicts": {
+      "resolving": "Saving...",
+      "choose": "Choose"
+    }
+  },
+  "reportDetail": {
+    "loading": "Loading report...",
+    "errors": {
+      "loadFailed": "Failed to load report",
+      "notFound": "Report not found. It may have been deleted.",
+      "structureError": "Report structure error",
+      "saveFailed": "Failed to save changes",
+      "saveFailedDescription": "An error occurred while saving",
+      "tryAgain": "Please try again",
+      "exportFailed": "Failed to export report",
+      "shareFailed": "Failed to share report",
+      "invalidEmail": "Please provide a valid email address",
+      "duplicateFailed": "Failed to duplicate report",
+      "duplicateError": "An error occurred while duplicating the report",
+      "templateSaveFailed": "Failed to save template",
+      "templateSaveError": "An error occurred while saving the template",
+      "csrfFailed": "Failed to get CSRF token",
+      "versionRestoreFailed": "Failed to restore version",
+      "versionRestoreError": "Error while restoring version",
+      "accessLogFailed": "Failed to fetch access log",
+      "linkGenerateFailed": "Failed to generate link",
+      "linkRevokeFailed": "Failed to revoke link",
+      "linkRevokeError": "An error occurred while revoking the link",
+      "uploadFailed": "Failed to upload image",
+      "unknown": "Unknown error"
+    },
+    "success": {
+      "saved": "Report saved successfully",
+      "savedDescription": "All changes have been saved",
+      "templateSaved": "Template \"{name}\" created successfully!"
+    },
+    "prompts": {
+      "templateName": "Enter template name:"
+    },
+    "header": {
+      "backToReports": "Back to reports",
+      "actions": {
+        "favorite": "Add to favorites",
+        "unfavorite": "Remove from favorites",
+        "archive": "Archive report",
+        "unarchive": "Restore from archive",
+        "duplicate": "Duplicate report",
+        "saveAsTemplate": "Save as template",
+        "comments": "Comments ({count})",
+        "versions": "Version history",
+        "search": "Search in report (Ctrl+F)",
+        "print": "Print report (Ctrl+P)",
+        "accessLog": "Access log",
+        "export": "Export",
+        "exporting": "Exporting...",
+        "share": "Share",
+        "edit": "Edit",
+        "save": "Save changes",
+        "cancel": "Cancel",
+        "delete": "Delete report",
+        "autoSaved": "Auto-saved {time}"
+      }
+    },
+    "metadata": {
+      "type": "Type",
+      "company": "Company",
+      "created": "Created",
+      "updated": "Updated",
+      "createdLabel": "Created",
+      "updatedLabel": "Updated",
+      "status": "Status",
+      "types": {
+        "company_profile": "Company Profile",
+        "market_analysis": "Market Analysis",
+        "due_diligence": "Due Diligence"
+      }
+    },
+    "tableOfContents": {
+      "title": "Table of Contents"
+    },
+    "search": {
+      "placeholder": "Search in report...",
+      "matches": "{current} of {total}",
+      "noMatches": "No results",
+      "previous": "Previous",
+      "next": "Next",
+      "close": "Close search"
+    },
+    "sections": {
+      "collapse": "Collapse section",
+      "expand": "Expand section",
+      "edit": "Edit section",
+      "delete": "Delete section",
+      "addNew": "Add new section",
+      "newTitle": "New section",
+      "newContent": "Enter section content...",
+      "dragToReorder": "Drag to reorder"
+    },
+    "comments": {
+      "title": "Comments ({count})",
+      "empty": "No comments yet. Be the first to add a comment!",
+      "placeholder": "Add a comment...",
+      "submit": "Add comment",
+      "reply": "Reply",
+      "delete": "Delete comment",
+      "deleteReply": "Delete reply",
+      "resolve": "Resolve",
+      "unresolve": "Mark as unresolved",
+      "resolved": "Resolved",
+      "resolvedBy": "• Resolved by: {name}",
+      "resolvedCount": "({count} resolved)",
+      "showResolved": "Show resolved",
+      "hideResolved": "Hide resolved",
+      "replyPlaceholder": "Reply to {name}...",
+      "escToCancel": "Esc to cancel"
+    },
+    "versions": {
+      "title": "Version history",
+      "empty": "No version history",
+      "current": "Current version",
+      "version": "Version {number}",
+      "author": "Author",
+      "changes": "Changes",
+      "created": "Created",
+      "load": "Load version",
+      "restore": "Restore",
+      "restoring": "Restoring...",
+      "restoreTitle": "Restore version",
+      "restoreConfirm": "Are you sure you want to restore version {version}? This will create a new version with the restored content.",
+      "restoreSuccess": "Restored version {oldVersion}. Created new version {newVersion}.",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "annotations": {
+      "title": "Add annotation",
+      "selectedText": "Selected text",
+      "commentLabel": "Comment",
+      "commentPlaceholder": "Enter your comment...",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "delete": "Delete annotation",
+      "deleteTooltip": "Delete annotation",
+      "sectionTitle": "Annotations",
+      "count": "Annotations ({count})"
+    },
+    "edit": {
+      "mode": "Edit mode",
+      "title": "Report title",
+      "titlePlaceholder": "Report title...",
+      "sectionTitle": "Section title",
+      "content": "Content",
+      "contentPlaceholder": "Enter section content...",
+      "newSection": "New section",
+      "dragInstruction": "Drag to reorder",
+      "saving": "Saving...",
+      "autoSaved": "Auto-saved",
+      "interactiveDiagram": "Interactive diagram",
+      "unsavedDraft": "Found unsaved changes. Do you want to restore them?",
+      "conflictDetected": "This report was modified by another user.",
+      "conflictAction": "Click OK to refresh and see the latest version (your changes will be lost), or Cancel to continue editing.",
+      "annotationsTitle": "Annotations in this section",
+      "deleteAnnotation": "Delete annotation",
+      "formatting": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "boldShortcut": "Bold (Ctrl+B)",
+        "italicShortcut": "Italic (Ctrl+I)",
+        "link": "Link",
+        "linkPrompt": "Enter URL:",
+        "bulletList": "Bullet list",
+        "insertImage": "Insert image",
+        "insertLink": "Insert link",
+        "table": "Table"
+      },
+      "table": {
+        "title": "Insert table",
+        "rows": "Number of rows",
+        "columns": "Number of columns",
+        "insert": "Insert",
+        "cancel": "Cancel"
+      },
+      "deleteSection": {
+        "title": "Delete section?",
+        "irreversible": "This action is irreversible",
+        "confirm": "Are you sure you want to delete section \"{title}\"?",
+        "cancel": "Cancel",
+        "delete": "Delete section",
+        "tooltip": "Delete section"
+      }
+    },
+    "export": {
+      "title": "Export report",
+      "selectSections": "Select sections to export",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "minOneSection": "Select at least one section",
+      "format": "Export format",
+      "formats": {
+        "pdf": "PDF",
+        "pdfDescription": "PDF file with full formatting",
+        "excel": "Excel (.xlsx)",
+        "excelDescription": "With financial formulas",
+        "word": "Word (.docx)",
+        "wordDescription": "For document editing",
+        "powerpoint": "PowerPoint (.pptx)",
+        "powerpointDescription": "For presentations",
+        "markdown": "Markdown",
+        "markdownDescription": "Markdown text",
+        "default": "Default"
+      },
+      "exporting": "Exporting...",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "share": {
+      "title": "Share report",
+      "tabs": {
+        "link": "Link",
+        "email": "Email",
+        "embed": "Embed"
+      },
+      "link": {
+        "generate": "Generate link",
+        "generating": "Generating...",
+        "generateTitle": "Generate sharing link",
+        "generateDescription": "Create a public link to this report",
+        "copy": "Copy link",
+        "copied": "Copied!",
+        "copyShort": "Copy",
+        "successTitle": "Link created successfully!",
+        "successDescription": "Anyone with this link can view the report",
+        "shareLink": "Share link",
+        "expiresWarning": "Link expires after 30 days. You can revoke access at any time.",
+        "revoke": "Revoke link",
+        "revoking": "Revoking...",
+        "revokeButton": "Revoke",
+        "revokeConfirm": "Are you sure you want to revoke this link? All users will lose access.",
+        "passwordProtection": "Password protection",
+        "password": "Password",
+        "passwordPlaceholder": "Enter password...",
+        "expiresIn": "Expires in",
+        "expiresNever": "Never",
+        "expires24h": "24 hours",
+        "expires7d": "7 days",
+        "expires30d": "30 days",
+        "permissions": "Permissions",
+        "viewOnly": "View only",
+        "canComment": "Can comment",
+        "canEdit": "Can edit"
+      },
+      "email": {
+        "emailPlaceholder": "Enter email address...",
+        "recipientEmail": "Recipient email address *",
+        "message": "Message (optional)",
+        "messagePlaceholder": "Add a short message...",
+        "send": "Send",
+        "sending": "Sending...",
+        "success": "Report has been shared",
+        "successMessage": "Report has been successfully shared!"
+      },
+      "revokeWarning": "Revoke sharing - link will stop working",
+      "embed": {
+        "title": "Embed code",
+        "description": "Copy the code below to embed the report on your website",
+        "generateTitle": "Generate embed code",
+        "generateDescription": "Create HTML code to embed the report on your website",
+        "generate": "Generate code",
+        "successTitle": "Embed code generated!",
+        "successDescription": "Copy the code below and paste it on your website",
+        "codeLabel": "HTML code (iframe)",
+        "copy": "Copy code",
+        "copied": "Copied!",
+        "howToUse": "How to use:",
+        "step1": "Copy the HTML code above",
+        "step2": "Paste it where you want to embed the report",
+        "step3": "The report will display in an iframe with 100% width and 800px height",
+        "height": "Height",
+        "width": "Width"
+      },
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "accessLog": {
+      "title": "Report access log",
+      "loading": "Loading...",
+      "empty": "No shares",
+      "emptyDescription": "This report has not been shared yet",
+      "summary": "Summary",
+      "sharedCount": "Report shared {count} times",
+      "totalViews": "Total views",
+      "shareLink": "Share link #{number}",
+      "created": "Created",
+      "expires": "Expires",
+      "views": "views",
+      "accessHistory": "Access history:",
+      "totalAccesses": "Total views",
+      "uniqueUsers": "Unique users",
+      "columns": {
+        "user": "User",
+        "accessedAt": "Access date",
+        "ipAddress": "IP address",
+        "action": "Action"
+      },
+      "close": "Close"
+    },
+    "swot": {
+      "title": "SWOT Analysis",
+      "strengths": "Strengths",
+      "strengthsEn": "Strengths",
+      "weaknesses": "Weaknesses",
+      "weaknessesEn": "Weaknesses",
+      "opportunities": "Opportunities",
+      "opportunitiesEn": "Opportunities",
+      "threats": "Threats",
+      "threatsEn": "Threats",
+      "internalFactors": "Internal factors",
+      "externalFactors": "External factors",
+      "positive": "Positive",
+      "negative": "Negative",
+      "summary": "Total: {total} factors",
+      "tip": "Click section header to expand"
+    },
+    "porter": {
+      "title": "Porter's Five Forces",
+      "subtitle": "Porter's Five Forces - forces influencing industry attractiveness",
+      "supplierPower": "Supplier power",
+      "supplierPowerEn": "Supplier Power",
+      "buyerPower": "Buyer power",
+      "buyerPowerEn": "Buyer Power",
+      "substitutes": "Threat of substitutes",
+      "substitutesEn": "Threat of Substitutes",
+      "newEntrants": "New entrants",
+      "newEntrantsEn": "Threat of New Entrants",
+      "industryRivalry": "Industry rivalry",
+      "industryRivalryEn": "Industry Rivalry",
+      "strength": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "lowUpper": "LOW",
+        "mediumUpper": "MEDIUM",
+        "highUpper": "HIGH"
+      },
+      "strengthDescription": {
+        "low": "Low - favorable for company",
+        "medium": "Medium - neutral",
+        "high": "High - challenge"
+      },
+      "keyFactors": "Key factors:",
+      "tip": "Click a force to see details",
+      "dataUnavailable": "Data unavailable"
+    },
+    "tamSamSom": {
+      "title": "TAM SAM SOM Model",
+      "subtitle": "TAM SAM SOM Model - Market size analysis",
+      "tam": "TAM - Total Addressable Market",
+      "tamDescription": "Total Addressable Market",
+      "sam": "SAM - Serviceable Addressable Market",
+      "samDescription": "Serviceable Addressable Market",
+      "som": "SOM - Serviceable Obtainable Market",
+      "somDescription": "Serviceable Obtainable Market",
+      "methodology": "Calculation methodology:",
+      "growth": "Growth forecast:",
+      "estimated": "Estimated",
+      "estimatedDescription": "Estimated value",
+      "tip": "Click a circle to see details"
+    },
+    "trendTimeline": {
+      "title": "Trend timeline",
+      "subtitle": "Trend timeline",
+      "categories": {
+        "technology": "Technology",
+        "regulations": "Regulations",
+        "market": "Market",
+        "social": "Social"
+      },
+      "status": {
+        "growing": "Growing",
+        "mature": "Mature",
+        "stable": "Stable",
+        "declining": "Declining"
+      },
+      "impact": "Impact",
+      "impactLevel": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "forecast": "Forecast",
+      "summary": "{trendCount} trends with {pointCount} time points",
+      "tip": "Click a trend to expand detailed timeline. Hover over a point to see description."
+    },
+    "ownership": {
+      "title": "Ownership structure",
+      "company": "Main company",
+      "shareholder": "Shareholder",
+      "ubo": "Ultimate Beneficial Owner (UBO)",
+      "shareholders": "Shareholders",
+      "beneficiaries": "Beneficiaries",
+      "share": "Share",
+      "role": "Role",
+      "type": "Type",
+      "entityType": "Entity type",
+      "krs": "KRS",
+      "country": "Country",
+      "description": "Description",
+      "direct": "Direct",
+      "showTable": "Show shareholder table",
+      "hideTable": "Hide shareholder table",
+      "columns": {
+        "name": "Name",
+        "share": "Share",
+        "type": "Type",
+        "role": "Role"
+      },
+      "tip": "Click a tree node to see details. Use arrows to expand/collapse branches."
+    },
+    "financialRatios": {
+      "title": "Financial ratios",
+      "showBenchmark": "Show industry benchmark",
+      "categories": {
+        "profitability": "Profitability",
+        "liquidity": "Liquidity",
+        "leverage": "Leverage",
+        "efficiency": "Efficiency"
+      },
+      "companyValue": "Company value",
+      "industryBenchmark": "Industry benchmark",
+      "comparison": "Benchmark comparison:",
+      "comparisonStatus": {
+        "above": "Above benchmark",
+        "below": "Below benchmark",
+        "equal": "At benchmark level"
+      },
+      "better": "better",
+      "description": "Description:",
+      "summary": "Analysis summary",
+      "indicators": "Indicators",
+      "chart": "Radar chart - {count} financial indicators",
+      "chartWithBenchmark": "Radar chart - {count} financial indicators with industry benchmark",
+      "tip": "Click a point or tile to see indicator details"
+    },
+    "competitorMap": {
+      "title": "Competitor positioning map",
+      "quadrants": {
+        "innovators": "Innovators",
+        "leaders": "Leaders",
+        "niche": "Niche",
+        "consolidators": "Consolidators"
+      },
+      "revenue": "Revenue",
+      "position": "Position",
+      "segment": "Segment",
+      "quadrantAnalysis": "Quadrant analysis",
+      "conclusions": "Conclusions",
+      "competitors": "Competitors",
+      "segments": "Segments",
+      "tip": "Click a bubble to see company details. Bubble size reflects revenue."
+    }
+  },
+  "settingsPrivacy": {
+    "header": {
+      "title": "Privacy Settings",
+      "backToSettings": "← Back to Settings"
+    },
+    "export": {
+      "title": "Export Your Data",
+      "description": "Download a copy of all your personal data stored in MI-Navigator. This includes your profile information, preferences, activity logs, and more. This export is provided in compliance with GDPR regulations.",
+      "includedTitle": "What's included in the export:",
+      "includedItems": {
+        "profile": "User profile (email, name, role, industry)",
+        "preferences": "Preferences (language, format, depth)",
+        "security": "Security settings (2FA status, account status)",
+        "activity": "Activity log (all actions performed in the system)"
+      },
+      "buttonExporting": "Exporting...",
+      "buttonDownload": "Download My Data"
+    },
+    "retention": {
+      "title": "Data Retention",
+      "description": "We retain your personal data as long as your account is active. If you wish to delete your account and all associated data, use the \"Delete Account\" option below. Account deletion is permanent and cannot be undone."
+    },
+    "delete": {
+      "title": "Delete Account",
+      "description": "Permanently delete your account and all associated data. This action cannot be undone. All your reports, projects, and settings will be permanently removed.",
+      "warningTitle": "⚠️ Warning: This will delete:",
+      "warningItems": {
+        "account": "Your user account and profile",
+        "logs": "All audit logs and activity history",
+        "templates": "All saved report templates",
+        "preferences": "All preferences and settings"
+      },
+      "button": "Delete My Account"
+    },
+    "modal": {
+      "title": "Confirm Account Deletion",
+      "subtitle": "This action is permanent and cannot be undone.",
+      "passwordLabel": "Enter your password to confirm",
+      "passwordPlaceholder": "Your password",
+      "confirmLabel": "Type DELETE to confirm",
+      "confirmPlaceholder": "DELETE",
+      "buttonCancel": "Cancel",
+      "buttonDeleting": "Deleting...",
+      "buttonDelete": "Delete My Account"
+    },
+    "messages": {
+      "notAuthenticated": "Not authenticated",
+      "exportSuccess": "Data exported successfully!",
+      "exportFailed": "Failed to export data. Please try again.",
+      "passwordRequired": "Please enter your password",
+      "confirmationRequired": "Please type DELETE to confirm",
+      "deleteFailed": "Failed to delete account. Please try again."
+    }
+  },
+  "settingsApiKeys": {
+    "header": {
+      "title": "API Keys",
+      "subtitle": "Generate and manage API keys for programmatic access to MI-Navigator",
+      "backToSettings": "← Back to Settings",
+      "generateButton": "+ Generate New Key"
+    },
+    "table": {
+      "columnKey": "Key",
+      "columnNameDescription": "Name / Description",
+      "columnCreated": "Created",
+      "columnLastUsed": "Last Used",
+      "columnStatus": "Status",
+      "columnActions": "Actions",
+      "unnamedKey": "Unnamed key",
+      "never": "Never",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "deleteButton": "Delete"
+    },
+    "createForm": {
+      "title": "Generate New API Key",
+      "nameLabel": "Key Name (optional)",
+      "namePlaceholder": "e.g., Production Server",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Brief description of what this key will be used for...",
+      "buttonCancel": "Cancel",
+      "buttonGenerate": "Generate Key"
+    },
+    "createdModal": {
+      "title": "API Key Created!",
+      "warning": "⚠️ Copy your API key now. You won't be able to see it again!",
+      "yourKeyLabel": "Your API Key",
+      "buttonCopy": "📋 Copy",
+      "buttonCopied": "✓ Copied!",
+      "nameLabel": "Name: ",
+      "securityWarning": "Important: Store this key securely. It provides full access to your account via the API.",
+      "buttonClose": "I've Saved My Key"
+    },
+    "empty": {
+      "title": "No API Keys",
+      "description": "You haven't generated any API keys yet. Create one to get started with programmatic access.",
+      "buttonCreate": "Generate Your First Key"
+    },
+    "documentation": {
+      "title": "Using Your API Key",
+      "description": "Include your API key in the Authorization header of your HTTP requests:",
+      "codeExample": "Authorization: Bearer YOUR_API_KEY",
+      "docsLink": "For full API documentation, visit",
+      "docsLinkText": "API Documentation"
+    },
+    "messages": {
+      "loading": "Loading API keys...",
+      "loadFailed": "Failed to load API keys",
+      "notAuthenticated": "Not authenticated. Please log in.",
+      "createSuccess": "API key created successfully",
+      "createSuccessDescription": "Make sure to copy your key now. You won't be able to see it again!",
+      "createFailed": "Failed to create API key",
+      "deleteConfirm": "Are you sure you want to delete this API key? This action cannot be undone.",
+      "deleteSuccess": "API key deleted successfully",
+      "deleteFailed": "Failed to delete API key",
+      "copySuccess": "API key copied to clipboard",
+      "copyFailed": "Failed to copy to clipboard",
+      "retryButton": "Retry"
+    }
+  },
+  "settingsApiUsage": {
+    "header": {
+      "title": "API Usage Monitoring",
+      "subtitle": "Track your API usage and monitor quotas",
+      "backToSettings": "← Back to Settings"
+    },
+    "quotaWarning": {
+      "title": "Quota Warning",
+      "upgradePlanButton": "Upgrade Plan"
+    },
+    "currentMonth": {
+      "title": "Current Month Usage",
+      "requests": "requests",
+      "of": "of",
+      "remaining": "remaining",
+      "used": "used"
+    },
+    "dailyChart": {
+      "title": "Daily Requests (Last 7 Days)",
+      "comingSoon": "Daily usage tracking coming soon"
+    },
+    "topEvents": {
+      "title": "Top Event Types",
+      "noEventsYet": "No events tracked yet",
+      "ofTotal": "of total",
+      "events": "events"
+    },
+    "stats": {
+      "averageDaily": "Average Daily Requests",
+      "peakDaily": "Peak Daily Requests",
+      "daysUntilReset": "Days Until Reset"
+    },
+    "messages": {
+      "loading": "Loading analytics data...",
+      "loadFailed": "Failed to Load Analytics",
+      "notAuthenticated": "Not authenticated. Please log in.",
+      "unknownError": "Unknown error occurred",
+      "backToSettings": "Back to Settings"
+    }
+  },
+  "settingsAudit": {
+    "header": {
+      "title": "Audit Trail",
+      "dashboard": "Dashboard",
+      "settings": "Settings"
+    },
+    "description": {
+      "title": "Activity Log",
+      "subtitle": "Track all sensitive operations performed on your account, including deletions, shares, and exports."
+    },
+    "empty": {
+      "title": "No audit logs yet",
+      "subtitle": "Sensitive operations will be logged here for tracking and security purposes."
+    },
+    "log": {
+      "ipLabel": "IP:",
+      "viewDetails": "View Details"
+    },
+    "messages": {
+      "loading": "Loading...",
+      "notAuthenticated": "Not authenticated",
+      "loadFailed": "Failed to load audit logs"
+    }
+  },
+  "settingsWebhooks": {
+    "header": {
+      "title": "Webhook Settings",
+      "subtitle": "Configure webhooks to receive real-time notifications for events in your account.",
+      "backToSettings": "← Back to Settings",
+      "addButton": "+ Add Webhook"
+    },
+    "createForm": {
+      "title": "Add New Webhook",
+      "urlLabel": "Webhook URL *",
+      "urlPlaceholder": "https://your-domain.com/webhook",
+      "urlHelp": "The URL where webhook notifications will be sent",
+      "eventsLabel": "Select Events * (choose one or more)",
+      "buttonCreate": "Create Webhook",
+      "buttonCancel": "Cancel"
+    },
+    "eventTypes": {
+      "reportCreated": "Report Created",
+      "reportUpdated": "Report Updated",
+      "reportDeleted": "Report Deleted",
+      "analysisCompleted": "Analysis Completed",
+      "alertTriggered": "Alert Triggered"
+    },
+    "table": {
+      "columnUrl": "URL",
+      "columnEvent": "Event",
+      "columnStatus": "Status",
+      "columnCreated": "Created",
+      "columnLastTriggered": "Last Triggered",
+      "columnLastDelivered": "Last Delivered",
+      "columnRetryCount": "Retry Count",
+      "columnLastError": "Last Error",
+      "columnActions": "Actions",
+      "statusDelivered": "delivered",
+      "statusFailed": "failed",
+      "statusRetrying": "retrying",
+      "statusPending": "pending",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "buttonTest": "🧪 Test",
+      "buttonDelete": "🗑️ Delete",
+      "never": "Never"
+    },
+    "empty": {
+      "emoji": "🔔",
+      "title": "No Webhooks",
+      "description": "You haven't configured any webhooks yet. Add your first webhook to start receiving notifications.",
+      "buttonCreate": "Add Your First Webhook"
+    },
+    "documentation": {
+      "title": "📚 Webhook Documentation",
+      "format": "Webhook Format: All webhooks are sent as POST requests with JSON payload.",
+      "authentication": "Authentication: Webhooks include an HMAC signature in the",
+      "authenticationCode": "X-Webhook-Signature",
+      "retryPolicy": "Retry Policy: Failed webhooks are retried up to 5 times with exponential backoff.",
+      "timeout": "Timeout: Webhook requests timeout after 10 seconds.",
+      "examplePayload": "Example Payload:"
+    },
+    "messages": {
+      "loading": "Loading webhooks...",
+      "notAuthenticated": "Not authenticated. Please log in.",
+      "loadFailed": "Failed to load webhooks",
+      "validationError": "Please provide URL and select at least one event type",
+      "createSuccess": "Webhook(s) created successfully",
+      "createFailed": "Failed to create webhook",
+      "deleteConfirm": "Are you sure you want to delete this webhook?",
+      "deleteSuccess": "Webhook deleted successfully",
+      "deleteFailed": "Failed to delete webhook",
+      "testSuccess": "Webhook test triggered successfully",
+      "testFailed": "Webhook test failed:"
+    }
+  },
+  "settingsFeatureFlags": {
+    "header": {
+      "title": "Feature Flags",
+      "subtitle": "Control which features are visible and enabled in the application"
+    },
+    "flag": {
+      "keyLabel": "Key:",
+      "statusEnabled": "Enabled",
+      "statusDisabled": "Disabled",
+      "buttonEnable": "Enable",
+      "buttonDisable": "Disable",
+      "buttonUpdating": "Updating..."
+    },
+    "empty": {
+      "message": "No feature flags found"
+    },
+    "howItWorks": {
+      "title": "How it works:",
+      "point1": "• Feature flags control visibility of features across the application",
+      "point2": "• Changes take effect immediately after toggling",
+      "point3": "• Refresh the page to see feature visibility changes",
+      "point4": "• Only admin users can manage feature flags"
+    },
+    "messages": {
+      "loading": "Loading feature flags...",
+      "loadFailed": "Failed to load feature flags",
+      "toggleFailed": "Failed to toggle"
+    }
+  },
+  "settingsTags": {
+    "header": {
+      "title": "Tag Management",
+      "buttonNew": "+ New Tag"
+    },
+    "info": {
+      "title": "What are tags?",
+      "description": "Tags allow you to organize reports by your own categories. You can assign multiple tags to one report."
+    },
+    "form": {
+      "titleCreate": "Create New Tag",
+      "titleEdit": "Edit Tag",
+      "nameLabel": "Tag Name *",
+      "namePlaceholder": "e.g. High Priority",
+      "colorLabel": "Color *",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Brief description of the tag's purpose...",
+      "buttonCancel": "Cancel",
+      "buttonCreate": "Create Tag",
+      "buttonEdit": "Save Changes",
+      "buttonSaving": "Saving..."
+    },
+    "colors": {
+      "red": "Red",
+      "amber": "Amber",
+      "green": "Green",
+      "blue": "Blue",
+      "purple": "Purple",
+      "pink": "Pink",
+      "gray": "Gray"
+    },
+    "list": {
+      "createdLabel": "Created:",
+      "buttonEdit": "Edit tag",
+      "buttonDelete": "Delete tag"
+    },
+    "empty": {
+      "title": "No Tags",
+      "description": "Create your first tag to start organizing reports.",
+      "buttonCreate": "+ Create First Tag"
+    },
+    "deleteConfirm": {
+      "title": "Confirm Deletion",
+      "message": "Are you sure you want to delete the tag",
+      "warning": "The tag will be removed from all reports.",
+      "buttonCancel": "Cancel",
+      "buttonDelete": "Delete Tag",
+      "buttonDeleting": "Deleting..."
+    },
+    "messages": {
+      "loading": "Loading tags...",
+      "loadFailed": "Failed to load tags",
+      "nameRequired": "Tag name is required",
+      "createSuccess": "Tag has been created",
+      "updateSuccess": "Tag has been updated",
+      "saveFailed": "Failed to save tag",
+      "deleteSuccess": "Tag has been deleted",
+      "deleteFailed": "Failed to delete tag"
+    }
+  },
+  "settingsBilling": {
+    "header": {
+      "title": "Billing & Usage",
+      "backToSettings": "← Back to Settings"
+    },
+    "currentPlan": {
+      "title": "Current Plan",
+      "billingPeriod": "Billing period:",
+      "buttonDowngrade": "Downgrade",
+      "buttonUpgrade": "Upgrade Plan"
+    },
+    "usage": {
+      "title": "Usage Statistics",
+      "analysesTitle": "Analyses",
+      "analysesDescription": "Company profiles, market reports, etc.",
+      "storageTitle": "Storage",
+      "storageDescription": "Reports, exports, uploaded files",
+      "apiCallsTitle": "API Calls",
+      "apiCallsDescription": "External data sources usage",
+      "used": "used"
+    },
+    "billingPeriod": {
+      "title": "Billing Period",
+      "start": "Period Start",
+      "end": "Period End",
+      "daysRemaining": "Days Remaining",
+      "nextBilling": "Next Billing Date",
+      "daysLabel": "days"
+    },
+    "paymentMethods": {
+      "title": "Payment Methods",
+      "manage": "Manage →",
+      "description": "Manage your credit cards and payment methods"
+    },
+    "billingHistory": {
+      "title": "Billing History",
+      "columnInvoice": "Invoice",
+      "columnDate": "Date",
+      "columnAmount": "Amount",
+      "columnStatus": "Status",
+      "columnAction": "Action",
+      "statusPaid": "Paid",
+      "buttonDownload": "Download PDF"
+    },
+    "planFeatures": {
+      "title": "Plan Features",
+      "analyses": "analyses per month",
+      "storage": "storage",
+      "apiCallsUnlimited": "Unlimited API calls",
+      "exports": "PDF, DOCX, PPTX exports",
+      "support": "Priority support"
+    }
+  },
+  "shareReport": {
+    "loading": "Loading...",
+    "passwordProtected": {
+      "title": "Password Protected",
+      "description": "This report is protected. Please enter the password to continue.",
+      "label": "Password",
+      "placeholder": "Enter password...",
+      "button": "Access Report",
+      "verifying": "Verifying...",
+      "backHome": "← Back to Homepage"
+    },
+    "errors": {
+      "notFound": "Share link not found or has expired",
+      "expired": "This share link has expired",
+      "forbidden": "Password required",
+      "loadFailed": "Failed to load shared report",
+      "incorrectPassword": "Incorrect password",
+      "verificationFailed": "Verification failed"
+    },
+    "errorPage": {
+      "title": "Link Not Found",
+      "button": "Go to Homepage"
+    },
+    "header": {
+      "appName": "MI-Navigator",
+      "subtitle": "Shared Report",
+      "signInCTA": "Sign in to create your own reports →"
+    },
+    "notice": {
+      "sharedBy": "This report was shared with you by",
+      "you": "you"
+    },
+    "report": {
+      "created": "Created:"
+    },
+    "cta": {
+      "title": "Want to create reports like this?",
+      "description": "MI-Navigator helps you analyze companies, markets, and competitors with AI-powered intelligence.",
+      "button": "Get Started Free"
+    }
+  },
+  "reportsTemplates": {
+    "loading": "Loading templates...",
+    "header": {
+      "appName": "MI-Navigator",
+      "breadcrumbReports": "Reports",
+      "breadcrumbTemplates": "Templates",
+      "linkReports": "Reports List",
+      "linkDashboard": "Dashboard",
+      "title": "Report Templates",
+      "subtitle": "Manage report templates. Create new reports based on existing templates."
+    },
+    "empty": {
+      "icon": "📋",
+      "title": "No Templates",
+      "description": "You don't have any report templates yet. Create a template from an existing report using the \"Save as template\" button.",
+      "button": "Go to Reports"
+    },
+    "card": {
+      "basedOn": "Based on:",
+      "created": "Created:",
+      "used": "Used:",
+      "usedTimes": "time",
+      "usedTimesPlural": "times",
+      "lastUsed": "Last used:",
+      "useTemplate": "Use Template",
+      "deleteTemplate": "Delete Template"
+    },
+    "types": {
+      "company_profile": "Company Profile",
+      "market_analysis": "Market Analysis",
+      "competitive": "Competitive Analysis",
+      "financial": "Financial Analysis"
+    },
+    "messages": {
+      "loadFailed": "Failed to load templates",
+      "deleteConfirm": "Are you sure you want to delete this template?",
+      "deleteSuccess": "Template has been deleted",
+      "deleteFailed": "Failed to delete template",
+      "promptTitle": "Enter title for new report based on template",
+      "createFailed": "Failed to create report from template"
+    }
+  },
+  "reportsInfinite": {
+    "header": {
+      "title": "Reports (Infinite Scroll)",
+      "performanceMode": "Performance Test Mode",
+      "backToPagination": "← Pagination Mode",
+      "backAriaLabel": "Back to reports (pagination)",
+      "dashboard": "Dashboard"
+    },
+    "stats": {
+      "title": "Loaded Reports",
+      "ofReports": "of {total} reports",
+      "page": "Page {page}"
+    },
+    "loading": {
+      "message": "Loading more reports..."
+    },
+    "endOfList": {
+      "title": "End of List",
+      "description": "Loaded all {count} reports"
+    },
+    "empty": {
+      "title": "No Reports",
+      "description": "No reports found.",
+      "button": "Start New Analysis"
+    },
+    "error": {
+      "loadFailed": "Failed to load reports"
+    },
+    "types": {
+      "company_profile": "Company Profile",
+      "market_analysis": "Market Analysis",
+      "due_diligence": "Due Diligence",
+      "competitive": "Competitive"
+    },
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In Progress",
+      "draft": "Draft"
+    }
+  },
+  "testPages": {
+    "common": {
+      "backToDashboard": "← Back to Dashboard",
+      "testMode": "Test Mode - DO NOT use in production",
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success"
+    },
+    "testError": {
+      "title": "Error Tracking Test Page",
+      "subtitle": "Test different types of errors to verify error tracking is working correctly",
+      "scenarios": {
+        "title": "Test Scenarios",
+        "jsError": "JavaScript Error",
+        "apiError": "API Error",
+        "networkError": "Network Error",
+        "validationError": "Validation Error",
+        "trigger": "Trigger {type}"
+      },
+      "status": {
+        "title": "Error Tracking Status",
+        "checking": "Checking...",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "instructions": {
+        "title": "Test Instructions",
+        "step1": "Step 1: Click test button above",
+        "step2": "Step 2: Check browser console",
+        "step3": "Step 3: Verify error was logged",
+        "step4": "Step 4: Check if error boundary displays correctly"
+      }
+    },
+    "testPwa": {
+      "title": "PWA Service Worker Test",
+      "subtitle": "Check service worker status and PWA functionality",
+      "swStatus": {
+        "title": "Service Worker Status",
+        "checking": "Checking...",
+        "registered": "Registered",
+        "notRegistered": "Not Registered",
+        "updating": "Updating...",
+        "error": "Registration Error"
+      },
+      "instructions": {
+        "title": "Test Instructions",
+        "step1": "Load this page (Step 1: Load application) ✅",
+        "step2": "Check service worker registration status above (Step 2) ✅",
+        "step3": "Go offline (set throttling to 'Offline' in DevTools) 🔧",
+        "step4": "Refresh page - should load from cache (Step 4) 📱",
+        "step5": "Check if offline icon appears in top right (Step 5) 🔴"
+      }
+    },
+    "testOffline": {
+      "title": "Feature #370: Offline Indicator Test",
+      "subtitle": "Testing connection status indicator",
+      "status": {
+        "online": "🟢 Online",
+        "offline": "🔴 Offline",
+        "title": "Connection Status"
+      },
+      "instructions": {
+        "title": "Test Instructions",
+        "step1": "Open DevTools (F12) and go to Network tab",
+        "step2": "Set throttling to 'Offline'",
+        "step3": "Check if red offline indicator appears in top right corner",
+        "step4": "Set throttling back to 'No throttling'",
+        "step5": "Check if green online indicator appears again",
+        "step6": "Optional: Use browser console for simulation"
+      },
+      "consoleCommands": {
+        "title": "Console Commands",
+        "offline": "// Simulate offline",
+        "online": "// Simulate online"
+      }
+    },
+    "testAb": {
+      "title": "A/B Testing Demo",
+      "subtitle": "Testing A/B variant assignment and tracking",
+      "variants": {
+        "loading": "Loading variant...",
+        "error": "Error loading variant",
+        "variantA": {
+          "title": "Version A: Classic Design",
+          "description": "This is the control variant with a traditional blue color scheme."
+        },
+        "variantB": {
+          "title": "Version B: Modern Design",
+          "description": "This is the test variant with a fresh green color scheme."
+        }
+      },
+      "tracking": {
+        "title": "Event Tracking",
+        "button": "Track Click",
+        "success": "Event tracked successfully",
+        "error": "Error tracking event"
+      },
+      "info": {
+        "title": "Test Information",
+        "testName": "Test Name:",
+        "yourVariant": "Your Variant:",
+        "explanation": "Each user is randomly assigned variant A or B. Variant is stored in localStorage so it remains consistent across sessions."
+      }
+    },
+    "testSkeleton": {
+      "title": "Skeleton Screen Demo",
+      "subtitle": "This page demonstrates loading skeleton screens. Toggle between different skeleton types below.",
+      "controls": {
+        "toggleLoading": "Toggle Loading",
+        "dashboard": "Dashboard Skeleton",
+        "reportList": "Report List Skeleton",
+        "reportDetail": "Report Detail Skeleton",
+        "table": "Table Skeleton",
+        "chart": "Chart Skeleton"
+      },
+      "info": {
+        "title": "ℹ️ About Skeleton Screens",
+        "point1": "Skeleton screens improve perceived performance during data loading",
+        "point2": "Show page layout before data is ready",
+        "point3": "Reduce perceived wait time and user frustration",
+        "point4": "Used throughout MI-Navigator app for better UX"
+      },
+      "content": {
+        "loaded": "Content Loaded! 🎉",
+        "description": "This section shows actual content after loading completes."
+      }
+    },
+    "testRetry": {
+      "title": "Test: Retry Failed Operation",
+      "subtitle": "Feature #369 - Test retry operation capability",
+      "status": {
+        "idle": "Idle",
+        "running": "Running",
+        "failed": "Failed",
+        "success": "Success"
+      },
+      "buttons": {
+        "startFail": "Start Task (Will Fail)",
+        "startNew": "Start New Task",
+        "retry": "Retry",
+        "clear": "Clear"
+      },
+      "messages": {
+        "taskRunning": "Task running...",
+        "taskFailed": "Task failed! Try retrying.",
+        "taskSuccess": "Task completed successfully! ✅",
+        "retrying": "Retrying..."
+      },
+      "logs": {
+        "title": "Operation Log",
+        "empty": "No log entries"
+      },
+      "instructions": {
+        "title": "Test Instructions (Feature #369)",
+        "step1": "Click \"Start Task\" (will fail after 2 seconds)",
+        "step2": "Check if \"Retry\" button appears",
+        "step3": "Click \"Retry\" (will succeed this time)",
+        "step4": "Check if status changes to \"Success\"",
+        "step5": "Verify messages in operation log"
+      }
+    },
+    "testTableSorting": {
+      "title": "Feature #222: Table Sorting Test",
+      "subtitle": "This is a standalone test page for table sorting functionality. No authentication required.",
+      "columns": {
+        "company": "Company",
+        "revenue": "Revenue (PLN)",
+        "employees": "Employees",
+        "year": "Year",
+        "status": "Status"
+      },
+      "instructions": {
+        "title": "Test Instructions:",
+        "step1": "Step 1: Click \"Company\" header to sort alphabetically (A-Z)",
+        "step2": "Step 2: Click again to reverse order (Z-A)",
+        "step3": "Step 3: Click \"Revenue\" to sort by revenue",
+        "step4": "Step 4: Test \"Employees\" and \"Year\" sorting",
+        "step5": "Step 5: Check if sorting arrows (↑/↓) display correctly"
+      }
+    },
+    "testBatchProgress": {
+      "title": "Test: Batch Operation Progress Tracking",
+      "subtitle": "Feature #367 - Progress tracking for batch operations",
+      "buttons": {
+        "start": "Start Batch Export (10 items)",
+        "processing": "Processing..."
+      },
+      "progress": {
+        "title": "Export Progress",
+        "label": "Progress",
+        "itemsProcessed": "Items processed:",
+        "status": "Status:",
+        "taskId": "Task ID:"
+      },
+      "status": {
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "completion": {
+        "success": "Batch operation completed!",
+        "failed": "Failed:"
+      },
+      "instructions": {
+        "title": "Test Steps (Feature #367):",
+        "step1": "✅ Step 1: Start batch operation (click button above)",
+        "step2": "✅ Step 2: Verify progress bar appears",
+        "step3": "✅ Step 3: Verify percentage updates (0% → 100%)",
+        "step4": "✅ Step 4: Verify item count shown (0/10 → 10/10)",
+        "step5": "✅ Step 5: Verify completion notification (green success message)"
+      }
+    },
+    "testCancel": {
+      "title": "Test: Cancel Long-Running Operation",
+      "subtitle": "Feature #368 - Test cancelling tasks in progress",
+      "buttons": {
+        "start": "Start Long Operation",
+        "starting": "Starting...",
+        "cancel": "Cancel Operation",
+        "cancelling": "Cancelling...",
+        "reset": "Reset State"
+      },
+      "status": {
+        "label": "Status:",
+        "idle": "idle",
+        "starting": "starting",
+        "running": "running",
+        "cancelling": "cancelling...",
+        "completed": "completed",
+        "cancelled": "cancelled",
+        "error": "error"
+      },
+      "progress": {
+        "label": "Progress:",
+        "step": "Step {current} of {total}"
+      },
+      "result": {
+        "title": "Result:",
+        "message": "Message",
+        "completedSteps": "Completed {completed} of {total} steps",
+        "partialResults": "Partial Results:",
+        "completeResults": "Complete Results:",
+        "noResults": "No results"
+      },
+      "error": {
+        "label": "Error:",
+        "notAuthenticated": "Not authenticated",
+        "loginFirst": "Please login first"
+      },
+      "instructions": {
+        "title": "Test Steps:",
+        "step1": "Click \"Start Long Operation\" to begin a 10-step task",
+        "step2": "Wait for a few steps to complete (watch progress bar)",
+        "step3": "Click \"Cancel Operation\" to stop the task",
+        "step4": "Verify that the task stops after current step completes",
+        "step5": "Check partial results are displayed",
+        "step6": "Click \"Reset State\" to restore clean state"
+      }
+    },
+    "testChartColors": {
+      "title": "Chart Color Accessibility Test - Feature #194",
+      "subtitle": "Testing chart colors for distinctiveness and accessibility (including colorblind simulation)",
+      "guidelines": {
+        "title": "🎨 Color Accessibility Guidelines",
+        "intro": "✓ Good palette should:",
+        "point1": "Use colors distinguishable by people with color vision deficiencies",
+        "point2": "Maintain sufficient contrast ratios (WCAG 2.1 AA minimum)",
+        "point3": "Use patterns/shapes in addition to colors when possible",
+        "point4": "Provide alternative text descriptions of data",
+        "point5": "Include legends with clear labels"
+      },
+      "palette": {
+        "title": "Current Color Palette",
+        "blue": "Blue (Revenue)",
+        "green": "Green (Profit)",
+        "purple": "Purple (Assets)",
+        "amber": "Amber (Equity)"
+      },
+      "testSteps": {
+        "title": "📋 Test Steps",
+        "step1": "Visual Inspection: Verify colors are distinct from each other",
+        "step2": "Colorblind Simulation: Use browser extensions or tools to simulate different types of color vision deficiencies",
+        "step3": "Legend Clarity: Check if legend labels are clear and readable",
+        "step4": "Data Table Alternative: Verify \"Show data table\" buttons work and provide accessible alternatives",
+        "step5": "Pattern Support: Consider if patterns/dashes should be added to line charts"
+      },
+      "charts": {
+        "chart1": "1. Basic Trend Chart (Single Series)",
+        "chart2": "2. Bar Chart",
+        "chart3": "3. Financial Statements (Multi-Series Line Charts)"
+      },
+      "colorblindTools": {
+        "title": "🔍 Colorblind Simulation Tools",
+        "browserExtensions": "Browser Extensions:",
+        "chrome": "Chrome/Edge: \"Colorblindly\" or \"NoCoffee Vision Simulator\"",
+        "firefox": "Firefox: Built-in accessibility simulator in DevTools",
+        "testWith": "Test with these vision types:",
+        "protanopia": "Protanopia: Red-blind (affects ~1% of males)",
+        "deuteranopia": "Deuteranopia: Green-blind (affects ~1% of males)",
+        "tritanopia": "Tritanopia: Blue-blind (rare, affects ~0.001% of population)",
+        "achromatopsia": "Achromatopsia: Complete color blindness (very rare)"
+      }
+    },
+    "testPrintPreview": {
+      "title": "Test Print Preview - Feature #224",
+      "subtitle": "Click \"Print\" button to see print preview (Ctrl+P)",
+      "buttons": {
+        "share": "Share",
+        "print": "Print",
+        "printTitle": "Print report (Ctrl+P)",
+        "exportPdf": "Export PDF"
+      },
+      "report": {
+        "title": "Market Analysis: Automotive Industry in Poland",
+        "created": "Created: January 20, 2026",
+        "type": "Type: Market Analysis",
+        "status": "Status: Completed",
+        "executiveSummary": "Executive Summary",
+        "marketSize": "Market Size",
+        "competitiveLandscape": "Competitive Landscape",
+        "keyFindings": "Key Findings",
+        "recommendations": "Recommendations",
+        "footer": "Report generated by MI-Navigator • Market Intelligence Platform",
+        "copyright": "© 2026 MI-Navigator. All rights reserved."
+      },
+      "instructions": {
+        "title": "Testing Instructions:",
+        "step1": "Step 1: Click \"Print\" button above or press Ctrl+P",
+        "step2": "Step 2: Check if print preview appeared",
+        "step3": "Step 3: Verify that action buttons (Share, Print, Export) are NOT visible",
+        "step4": "Step 4: Verify that formatting is correct (fonts, spacing, colors)",
+        "step5": "Step 5: Verify that page breaks are appropriate (no cut headers/tables)"
+      }
+    },
+    "testSync": {
+      "title": "Feature #371: Data Sync on Reconnection Test",
+      "subtitle": "Testing data synchronization after reconnection",
+      "connectionStatus": {
+        "title": "Connection Status",
+        "online": "🟢 Online",
+        "offline": "🔴 Offline",
+        "pendingOperations": "Pending operations:",
+        "syncing": "Syncing:",
+        "yes": "✅ Yes",
+        "no": "❌ No",
+        "lastSync": "Last sync:"
+      },
+      "addOperation": {
+        "title": "Add Operation",
+        "titleLabel": "Title *",
+        "titlePlaceholder": "Enter title...",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Enter description...",
+        "addButton": "Add to Queue",
+        "titleRequired": "❌ Title is required",
+        "added": "✅ Added operation {id} to queue ({status})",
+        "willSyncNow": "will sync immediately",
+        "willSyncLater": "will sync when online"
+      },
+      "manualControls": {
+        "title": "Manual Controls",
+        "manualSync": "Manual Sync",
+        "syncing": "Syncing...",
+        "clearQueue": "Clear Queue"
+      },
+      "manualSyncMessages": {
+        "syncing": "⏳ Syncing...",
+        "success": "✅ Sync complete: {success} success, {failed} failed",
+        "queueCleared": "🗑️ Queue cleared"
+      },
+      "instructions": {
+        "title": "Test Instructions",
+        "step1": {
+          "title": "Step 1: Make changes offline",
+          "point1": "Open DevTools (F12) → Network tab",
+          "point2": "Set throttling to \"Offline\"",
+          "point3": "Add 2-3 operations using the form",
+          "point4": "Verify they appear in the queue below"
+        },
+        "step2": {
+          "title": "Step 2: Go online",
+          "point1": "Set throttling back to \"No throttling\"",
+          "point2": "Wait a moment for reconnection"
+        },
+        "step3": {
+          "title": "Step 3: Verify sync occurs",
+          "point1": "Green banner should appear briefly",
+          "point2": "Automatic sync should trigger",
+          "point3": "Check console for sync logs"
+        },
+        "step4": {
+          "title": "Step 4: Verify changes persisted",
+          "point1": "Queue should be empty (or reduced)",
+          "point2": "Check \"Last sync\" timestamp",
+          "point3": "Verify success/failed counts"
+        }
+      },
+      "pendingOperations": {
+        "title": "Pending Operations",
+        "empty": "No pending operations",
+        "emptyDescription": "Add operations using the form above",
+        "retries": "Retries: {count}"
+      },
+      "consoleTesting": {
+        "title": "Console Testing",
+        "description": "Alternatively, test offline/online simulation via console:",
+        "offline": "// Simulate going offline",
+        "offlineCommand": "window.dispatchEvent(new Event('offline'));",
+        "online": "// Simulate going online",
+        "onlineCommand": "window.dispatchEvent(new Event('online'));"
+      }
+    },
+    "testTimeout": {
+      "title": "Test Report Generation Timeout",
+      "subtitle": "Testing timeout handling for long-running operations",
+      "settings": {
+        "backendDelay": "Backend Delay (seconds)",
+        "backendDelayHelp": "How long the backend will take to generate the report",
+        "frontendTimeout": "Frontend Timeout (seconds)",
+        "frontendTimeoutHelp": "When to abort the request if it takes too long"
+      },
+      "buttons": {
+        "generate": "Generate Complex Report",
+        "generating": "Generating..."
+      },
+      "progress": {
+        "label": "Progress:",
+        "generating": "Generating report... This may take a while."
+      },
+      "error": {
+        "title": "Error",
+        "timeout": "Request timed out after {seconds} seconds",
+        "notAuthenticated": "Not authenticated",
+        "httpError": "HTTP {status}: {statusText}"
+      },
+      "result": {
+        "title": "Result",
+        "status": "Status:",
+        "message": "Message:",
+        "sectionsCompleted": "Sections Completed: {completed} / {total}",
+        "partialResults": "Partial Results Available:",
+        "partialSummary": "Partial Summary:",
+        "completedSections": "Completed Sections:",
+        "fullResults": "Full Results:"
+      },
+      "status": {
+        "completed": "completed",
+        "timeout": "timeout"
+      }
+    },
+    "testTableScroll": {
+      "title": "Test: Table Horizontal Scroll on Mobile",
+      "subtitle": "This table should scroll horizontally on narrow viewports (375px). Test by resizing your browser or using mobile device.",
+      "columns": {
+        "id": "ID",
+        "companyName": "Company Name",
+        "nip": "VAT ID",
+        "city": "City",
+        "revenue": "Revenue (PLN)",
+        "employees": "Employees",
+        "industry": "Industry",
+        "founded": "Founded",
+        "status": "Status",
+        "website": "Website"
+      },
+      "scrollIndicator": "✓ Scroll indicator: On mobile, you should see a scrollbar at the bottom of the table indicating that more columns are available by scrolling horizontally."
+    },
+    "onboarding": {
+      "welcome": {
+        "title": "Welcome to MI-Navigator!",
+        "subtitle": "Before you begin, help us customize the platform to your needs.",
+        "description": "Answer a few questions - it will only take 2 minutes.",
+        "features": {
+          "personalized": {
+            "title": "Personalized",
+            "description": "Analyses tailored to your industry"
+          },
+          "faster": {
+            "title": "Faster",
+            "description": "Relevant sources and terminology"
+          },
+          "accurate": {
+            "title": "More Accurate",
+            "description": "Industry-specific KPIs and metrics"
+          }
+        },
+        "startButton": "Get Started →"
+      },
+      "progress": {
+        "step": "Step {step} of 5",
+        "percentage": "{percent}%"
+      },
+      "industry": {
+        "title": "What industry do you work in?",
+        "subtitle": "Select your main industry",
+        "segmentCount": "{count} segments",
+        "industries": {
+          "manufacturing": "Manufacturing",
+          "services": "Services",
+          "technology": "Technology",
+          "retail": "Retail",
+          "construction": "Construction",
+          "logistics": "Logistics & Transportation",
+          "other": "Other"
+        },
+        "segments": {
+          "plastics_processing": "Plastics Processing",
+          "injection_molding": "Injection Molding",
+          "tooling": "Tooling / Molds",
+          "cnc_machining": "CNC Machining",
+          "industrial_automation": "Industrial Automation",
+          "metal_processing": "Metal Processing",
+          "consulting": "Consulting",
+          "it_services": "IT Services",
+          "marketing": "Marketing & Advertising",
+          "hr_consulting": "HR Consulting",
+          "legal": "Legal Services",
+          "software_development": "Software Development",
+          "saas": "SaaS",
+          "hardware": "Computer Hardware",
+          "ai_ml": "AI / Machine Learning",
+          "ecommerce": "E-commerce",
+          "retail_store": "Retail Stores",
+          "wholesale": "Wholesale",
+          "general_construction": "General Construction",
+          "real_estate": "Real Estate",
+          "architecture": "Architecture",
+          "shipping": "Shipping & Freight",
+          "warehousing": "Warehousing",
+          "last_mile": "Last Mile Delivery",
+          "other_specify": "Other Industry"
+        }
+      },
+      "segment": {
+        "title": "Select a segment",
+        "subtitle": "{industry}"
+      },
+      "role": {
+        "title": "What is your role?",
+        "subtitle": "This helps us tailor the analysis format",
+        "roles": {
+          "ceo": "Executive / C-level",
+          "bd": "Strategy / Business Development",
+          "sales": "Sales / Marketing",
+          "operations": "Operations",
+          "analyst": "Analyst / Researcher",
+          "other": "Other"
+        }
+      },
+      "useCases": {
+        "title": "How will you use the platform?",
+        "subtitle": "You can select multiple options",
+        "cases": {
+          "competitive_analysis": "Competitive Analysis",
+          "market_research": "Market Research",
+          "due_diligence": "Due Diligence",
+          "lead_generation": "Lead Generation",
+          "monitoring": "Industry Monitoring"
+        }
+      },
+      "navigation": {
+        "back": "← Back",
+        "skip": "Skip →"
+      },
+      "actions": {
+        "saving": "Saving...",
+        "complete": "Complete Setup →"
+      }
+    }
+  }
+}

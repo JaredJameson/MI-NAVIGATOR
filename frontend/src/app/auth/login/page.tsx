@@ -3,9 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { authApi, fetchCsrfToken } from '@/services/api'
 
 export default function LoginPage() {
+  const t = useTranslations('auth')
   const router = useRouter()
   const searchParams = useSearchParams()
   // BUGFIX Session 375 (Feature #122): Get redirect URL from query params
@@ -62,10 +64,10 @@ export default function LoginPage() {
     switch (name) {
       case 'email':
         if (!value.trim()) {
-          errors.email = 'Email is required'
+          errors.email = t('login.errors.emailRequired')
           delete success.email
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          errors.email = 'Please enter a valid email address'
+          errors.email = t('login.errors.invalidEmail')
           delete success.email
         } else {
           delete errors.email
@@ -74,10 +76,10 @@ export default function LoginPage() {
         break
       case 'password':
         if (!value) {
-          errors.password = 'Password is required'
+          errors.password = t('login.errors.passwordRequired')
           delete success.password
         } else if (value.length < 6) {
-          errors.password = 'Password must be at least 6 characters'
+          errors.password = t('login.errors.passwordMinLength')
           delete success.password
         } else {
           delete errors.password
@@ -86,10 +88,10 @@ export default function LoginPage() {
         break
       case 'twoFactorCode':
         if (!value) {
-          errors.twoFactorCode = 'Authentication code is required'
+          errors.twoFactorCode = t('twoFactor.errors.codeRequired')
           delete success.twoFactorCode
         } else if (value.length !== 6) {
-          errors.twoFactorCode = 'Code must be 6 digits'
+          errors.twoFactorCode = t('twoFactor.errors.codeLength')
           delete success.twoFactorCode
         } else {
           delete errors.twoFactorCode
@@ -137,7 +139,7 @@ export default function LoginPage() {
         router.push(redirectUrl)
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
+      setError(t('login.errors.unexpectedError'))
     } finally {
       setLoading(false)
     }
@@ -172,7 +174,7 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.detail || 'Invalid 2FA code')
+        setError(data.detail || t('twoFactor.errors.invalidCode'))
       } else {
         // Store tokens
         localStorage.setItem('mi_navigator_token', data.access_token)
@@ -185,7 +187,7 @@ export default function LoginPage() {
         router.push(redirectUrl)
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
+      setError(t('login.errors.unexpectedError'))
     } finally {
       setLoading(false)
     }
@@ -196,7 +198,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">MI-Navigator</h1>
-          <p className="mt-2 text-gray-600">Market Intelligence Platform</p>
+          <p className="mt-2 text-gray-600">{t('login.subtitle')}</p>
         </div>
 
         {!requires2FA ? (
@@ -219,7 +221,7 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
+                  {t('login.email')}
                 </label>
                 <div className="relative mt-1">
                   <input
@@ -239,9 +241,9 @@ export default function LoginPage() {
                         ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
                         : fieldSuccess.email
                         ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
-                        : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                        : 'border border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
                     }`}
-                    placeholder="you@example.com"
+                    placeholder={t('login.emailPlaceholder')}
                     aria-invalid={fieldErrors.email ? 'true' : 'false'}
                     aria-describedby={fieldErrors.email ? 'email-error' : undefined}
                   />
@@ -269,7 +271,7 @@ export default function LoginPage() {
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
+                  {t('login.password')}
                 </label>
                 <div className="relative mt-1">
                   <input
@@ -289,9 +291,9 @@ export default function LoginPage() {
                         ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
                         : fieldSuccess.password
                         ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
-                        : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                        : 'border border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
                     }`}
-                    placeholder="Enter your password"
+                    placeholder={t('login.passwordPlaceholder')}
                     aria-invalid={fieldErrors.password ? 'true' : 'false'}
                     aria-describedby={fieldErrors.password ? 'password-error' : undefined}
                   />
@@ -325,22 +327,22 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
               <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
-                Remember me
+                {t('login.rememberMe')}
               </label>
             </div>
 
-            <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
-              Forgot password?
+            <Link href="/auth/forgot-password" className="text-sm text-emerald-600 hover:underline">
+              {t('login.forgotPassword')}
             </Link>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full rounded-md bg-emerald-600 px-4 py-2.5 text-white font-medium hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (
               <span className="flex items-center justify-center">
@@ -348,31 +350,31 @@ export default function LoginPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Signing in...
+                {t('login.signingIn')}
               </span>
             ) : (
-              'Sign in'
+              t('login.signIn')
             )}
           </button>
 
           <p className="text-center text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link href="/auth/register" className="font-medium text-blue-600 hover:underline">
-              Sign up
+            {t('login.noAccount')}{' '}
+            <Link href="/auth/register" className="font-medium text-emerald-600 hover:underline">
+              {t('login.signUp')}
             </Link>
           </p>
         </form>
         ) : (
           <form onSubmit={handleTwoFactorSubmit} className="mt-8 space-y-6">
             <div className="text-center mb-6">
-              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="mx-auto w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900">Two-Factor Authentication</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('twoFactor.title')}</h2>
               <p className="mt-2 text-sm text-gray-600">
-                Enter the 6-digit code from your authenticator app
+                {t('twoFactor.description')}
               </p>
             </div>
 
@@ -393,7 +395,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="2faCode" className="block text-sm font-medium text-gray-700 mb-2">
-                Authentication Code
+                {t('twoFactor.codeLabel')}
               </label>
               <div className="relative">
                 <input
@@ -415,9 +417,9 @@ export default function LoginPage() {
                   className={`block w-full text-center text-2xl tracking-widest rounded-md px-3 py-3 shadow-sm focus:outline-none focus:ring-1 ${
                     fieldErrors.twoFactorCode
                       ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
-                      : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                      : 'border border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
                   }`}
-                  placeholder="000000"
+                  placeholder={t('twoFactor.codePlaceholder')}
                   autoFocus
                   aria-invalid={fieldErrors.twoFactorCode ? 'true' : 'false'}
                   aria-describedby={fieldErrors.twoFactorCode ? '2fa-error' : '2fa-help'}
@@ -437,7 +439,7 @@ export default function LoginPage() {
               )}
               {!fieldErrors.twoFactorCode && (
                 <p className="mt-2 text-xs text-gray-500 text-center" id="2fa-help">
-                  Code expires in 30 seconds
+                  {t('twoFactor.codeExpires')}
                 </p>
               )}
             </div>
@@ -445,7 +447,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || twoFactorCode.length !== 6}
-              className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full rounded-md bg-emerald-600 px-4 py-2.5 text-white font-medium hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
                 <span className="flex items-center justify-center">
@@ -453,10 +455,10 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Verifying...
+                  {t('twoFactor.verifying')}
                 </span>
               ) : (
-                'Verify Code'
+                t('twoFactor.verify')
               )}
             </button>
 
@@ -467,9 +469,9 @@ export default function LoginPage() {
                 setTwoFactorCode('')
                 setError('')
               }}
-              className="w-full text-center text-sm text-blue-600 hover:underline"
+              className="w-full text-center text-sm text-emerald-600 hover:underline"
             >
-              ← Back to login
+              {t('twoFactor.backToLogin')}
             </button>
           </form>
         )}

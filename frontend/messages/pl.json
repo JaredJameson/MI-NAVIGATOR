@@ -1,0 +1,3319 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Zapisz",
+      "cancel": "Anuluj",
+      "delete": "Usuń",
+      "edit": "Edytuj",
+      "add": "Dodaj",
+      "create": "Utwórz",
+      "update": "Aktualizuj",
+      "confirm": "Potwierdź",
+      "close": "Zamknij",
+      "back": "Wróć",
+      "next": "Dalej",
+      "previous": "Poprzednia",
+      "submit": "Wyślij",
+      "reset": "Resetuj",
+      "clear": "Wyczyść",
+      "search": "Szukaj",
+      "filter": "Filtruj",
+      "download": "Pobierz",
+      "export": "Eksportuj",
+      "import": "Importuj",
+      "share": "Udostępnij",
+      "copy": "Kopiuj",
+      "print": "Drukuj",
+      "refresh": "Odśwież",
+      "select": "Wybierz",
+      "selectAll": "Zaznacz wszystkie",
+      "deselectAll": "Odznacz wszystkie",
+      "apply": "Zastosuj",
+      "remove": "Usuń",
+      "view": "Zobacz",
+      "manage": "Zarządzaj"
+    },
+    "status": {
+      "loading": "Ładowanie...",
+      "saving": "Zapisywanie...",
+      "deleting": "Usuwanie...",
+      "processing": "Przetwarzanie...",
+      "success": "Sukces",
+      "error": "Błąd",
+      "warning": "Ostrzeżenie",
+      "info": "Informacja",
+      "pending": "Oczekujące",
+      "completed": "Zakończony",
+      "inProgress": "W trakcie",
+      "draft": "Szkic",
+      "active": "Aktywny",
+      "inactive": "Nieaktywny",
+      "enabled": "Włączony",
+      "disabled": "Wyłączony",
+      "archived": "Zarchiwizowany"
+    },
+    "time": {
+      "today": "Dzisiaj",
+      "yesterday": "Wczoraj",
+      "tomorrow": "Jutro",
+      "now": "Teraz",
+      "never": "Nigdy",
+      "lastUpdate": "Ostatnia aktualizacja",
+      "nextUpdate": "Następna aktualizacja",
+      "createdAt": "Utworzono",
+      "updatedAt": "Zaktualizowano"
+    },
+    "errors": {
+      "generic": "Wystąpił błąd",
+      "connectionError": "Błąd połączenia z serwerem",
+      "notFound": "Nie znaleziono",
+      "unauthorized": "Nieautoryzowany",
+      "forbidden": "Brak dostępu",
+      "validationError": "Błąd walidacji",
+      "required": "To pole jest wymagane",
+      "invalidEmail": "Wprowadź poprawny adres email",
+      "invalidFormat": "Nieprawidłowy format",
+      "tryAgain": "Spróbuj ponownie",
+      "reportProblem": "Zgłoś problem"
+    },
+    "actions": {
+      "clearFilters": "Wyczyść wszystkie filtry",
+      "clearSelection": "Wyczyść zaznaczenie",
+      "cancelSelection": "Anuluj zaznaczanie",
+      "exitSelectionMode": "Wyjdź z trybu zaznaczania"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Zaloguj się",
+      "subtitle": "Market Intelligence Platform",
+      "email": "Email",
+      "password": "Hasło",
+      "rememberMe": "Zapamiętaj mnie",
+      "forgotPassword": "Zapomniałeś hasła?",
+      "signIn": "Zaloguj się",
+      "signingIn": "Logowanie...",
+      "noAccount": "Nie masz konta?",
+      "signUp": "Zarejestruj się",
+      "errors": {
+        "emailRequired": "Email jest wymagany",
+        "invalidEmail": "Wprowadź poprawny adres email",
+        "passwordRequired": "Hasło jest wymagane",
+        "passwordMinLength": "Hasło musi mieć co najmniej 6 znaków",
+        "unexpectedError": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie."
+      },
+      "emailPlaceholder": "twoj@email.com",
+      "passwordPlaceholder": "Wprowadź hasło"
+    },
+    "twoFactor": {
+      "title": "Uwierzytelnianie dwuskładnikowe",
+      "description": "Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej",
+      "codeLabel": "Kod uwierzytelniający",
+      "codePlaceholder": "000000",
+      "codeExpires": "Kod wygasa za 30 sekund",
+      "verify": "Weryfikuj kod",
+      "verifying": "Weryfikacja...",
+      "backToLogin": "Wróć do logowania",
+      "errors": {
+        "codeRequired": "Kod uwierzytelniający jest wymagany",
+        "codeLength": "Kod musi mieć 6 cyfr",
+        "invalidCode": "Nieprawidłowy kod 2FA"
+      }
+    },
+    "register": {
+      "title": "Utwórz konto",
+      "subtitle": "Dołącz do MI-Navigator już dziś",
+      "haveAccount": "Masz już konto?",
+      "signIn": "Zaloguj się",
+      "nameLabel": "Imię i nazwisko (opcjonalne)",
+      "namePlaceholder": "Twoje imię",
+      "emailPlaceholder": "twoj@email.com",
+      "passwordPlaceholder": "Min 8 znaków",
+      "passwordHelpText": "Co najmniej 8 znaków, jedna wielka litera i jedna cyfra",
+      "confirmPasswordLabel": "Potwierdź hasło",
+      "confirmPasswordPlaceholder": "Powtórz hasło",
+      "creatingAccount": "Tworzenie konta...",
+      "successMessage": "Konto utworzone pomyślnie! Sprawdź swoją skrzynkę email aby zweryfikować konto...",
+      "errors": {
+        "passwordUppercase": "Hasło musi zawierać co najmniej jedną wielką literę",
+        "passwordDigit": "Hasło musi zawierać co najmniej jedną cyfrę",
+        "passwordMinLength": "Hasło musi mieć co najmniej 8 znaków",
+        "confirmPasswordRequired": "Proszę potwierdzić hasło",
+        "passwordsNotMatch": "Hasła nie są takie same"
+      }
+    },
+    "forgotPassword": {
+      "title": "Resetuj hasło",
+      "subtitle": "Wprowadź swój email aby otrzymać link resetujący",
+      "backToLogin": "Wróć do logowania",
+      "emailLabel": "Adres email",
+      "emailPlaceholder": "twoj@email.com",
+      "sendingButton": "Wysyłanie...",
+      "submitButton": "Wyślij link resetujący",
+      "rememberPassword": "Pamiętasz hasło?",
+      "successTitle": "Sprawdź swoją skrzynkę",
+      "successMessage": "Jeśli konto dla {email} istnieje, wkrótce otrzymasz link do resetowania hasła.",
+      "returnToLogin": "Wróć do logowania",
+      "errors": {
+        "sendFailed": "Nie udało się wysłać linku resetującego"
+      }
+    },
+    "resetPassword": {
+      "title": "Utwórz nowe hasło",
+      "subtitle": "Wprowadź nowe hasło poniżej",
+      "newPasswordLabel": "Nowe hasło",
+      "newPasswordPlaceholder": "Min 8 znaków",
+      "passwordHelpText": "Co najmniej 8 znaków, jedna wielka litera i jedna cyfra",
+      "confirmPasswordLabel": "Potwierdź nowe hasło",
+      "confirmPasswordPlaceholder": "Powtórz hasło",
+      "resettingButton": "Resetowanie...",
+      "submitButton": "Resetuj hasło",
+      "successTitle": "Hasło zresetowane pomyślnie",
+      "successMessage": "Twoje hasło zostało zmienione. Przekierowywanie do logowania...",
+      "goToLogin": "Przejdź do logowania",
+      "errors": {
+        "invalidToken": "Nieprawidłowy lub brakujący token resetujący",
+        "invalidTokenShort": "Nieprawidłowy token resetujący",
+        "passwordMinLength": "Hasło musi mieć co najmniej 8 znaków",
+        "passwordUppercase": "Hasło musi zawierać co najmniej jedną wielką literę",
+        "passwordDigit": "Hasło musi zawierać co najmniej jedną cyfrę",
+        "passwordsNotMatch": "Hasła nie są takie same",
+        "resetFailed": "Nie udało się zresetować hasła"
+      }
+    },
+    "verifyEmail": {
+      "title": "Sprawdź swoją skrzynkę email",
+      "subtitle": "Wysłaliśmy link aktywacyjny na adres:",
+      "instructionsHeading": "📧 Co dalej?",
+      "instructionsStep1": "Otwórz swoją skrzynkę pocztową",
+      "instructionsStep2": "Znajdź email od MI Navigator",
+      "instructionsStep3": "Kliknij w przycisk \"Zweryfikuj Email\"",
+      "instructionsStep4": "Twoje konto zostanie aktywowane!",
+      "expirationWarning": "Link weryfikacyjny wygasa za 24 godziny.",
+      "warningLabel": "Ważne:",
+      "didntReceive": "Nie otrzymałeś emaila?",
+      "resendingButton": "Wysyłanie...",
+      "resendButton": "Wyślij ponownie",
+      "tipsLabel": "Wskazówka:",
+      "tipsSpam": "Sprawdź folder SPAM/Wiadomości niechciane",
+      "tipsAddContact": "Dodaj noreply@mi-navigator.com do kontaktów, aby uniknąć problemów z dostawą.",
+      "backToLogin": "← Powrót do logowania",
+      "errors": {
+        "emailMissing": "Brak adresu email",
+        "tooManyRequests": "Zbyt wiele prób. Proszę poczekać przed ponowną próbą.",
+        "resendFailed": "Nie udało się ponownie wysłać emaila weryfikacyjnego. Spróbuj ponownie później.",
+        "networkError": "Błąd sieci. Sprawdź połączenie."
+      },
+      "success": {
+        "resent": "Email weryfikacyjny wysłany! Sprawdź swoją skrzynkę."
+      }
+    },
+    "verifyToken": {
+      "loading": {
+        "title": "Weryfikacja w toku...",
+        "message": "Proszę czekać, sprawdzamy Twój link weryfikacyjny."
+      },
+      "success": {
+        "title": "🎉 Email zweryfikowany!",
+        "message": "Twoje konto zostało pomyślnie aktywowane.",
+        "redirecting": "Przekierowanie do dashboard za {countdown} sekund...",
+        "accountActiveHeading": "✨ Twoje konto jest teraz aktywne!",
+        "feature1": "Pełny dostęp do wszystkich funkcji",
+        "feature2": "Możliwość tworzenia raportów",
+        "feature3": "Dostęp do AI Chat Assistanta",
+        "feature4": "Analizy i wizualizacje danych",
+        "goToDashboard": "Przejdź do Dashboard"
+      },
+      "alreadyVerified": {
+        "title": "Email już zweryfikowany",
+        "message": "Twoje konto było już wcześniej aktywowane.",
+        "infoMessage": "ℹ️ Możesz się zalogować i korzystać ze wszystkich funkcji platformy.",
+        "goToLogin": "Przejdź do logowania"
+      },
+      "error": {
+        "title": "Weryfikacja nie powiodła się",
+        "messageFallback": "Wystąpił problem z weryfikacją Twojego emaila.",
+        "possibleReasonsHeading": "❌ Możliwe przyczyny:",
+        "reason1": "Link weryfikacyjny wygasł (24 godziny)",
+        "reason2": "Link był już użyty",
+        "reason3": "Nieprawidłowy link",
+        "goToLogin": "Przejdź do logowania",
+        "registerAgain": "Zarejestruj się ponownie",
+        "invalidLink": "Nieprawidłowy link weryfikacyjny",
+        "verificationFailed": "Weryfikacja nie powiodła się",
+        "networkError": "Błąd sieci. Sprawdź połączenie."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Panel Główny",
+    "logout": "Wyloguj",
+    "loggingOut": "Wylogowywanie...",
+    "customizeLayout": "Dostosuj układ",
+    "customizeMode": "Tryb dostosowywania",
+    "customizeModeDescription": "Użyj strzałek aby zmienić kolejność, czerwonej ikony aby ukryć widget",
+    "reset": "Resetuj",
+    "cancel": "Anuluj",
+    "saveLayout": "Zapisz układ",
+    "saving": "Zapisywanie...",
+    "hiddenWidgets": "Ukryte widgety ({count})",
+    "showWidget": "Pokaż widget",
+    "hideWidget": "Ukryj widget",
+    "moveUp": "Przesuń w górę",
+    "moveDown": "Przesuń w dół",
+    "quickSearch": {
+      "title": "Rozpocznij badanie",
+      "placeholder": "Szukaj firmy, osoby, wklej URL do analizy...",
+      "recentSearchesTitle": "Ostatnie wyszukiwania",
+      "noResults": "Brak wyników dla \"{query}\""
+    },
+    "recentSearches": "Ostatnie:",
+    "widgets": {
+      "activeResearch": {
+        "title": "Aktywne Badania",
+        "loading": "Ładowanie...",
+        "noActiveResearch": "Brak aktywnych badań. Rozpocznij nową analizę!",
+        "progress": "Postęp: {percent}%",
+        "startNewResearch": "Rozpocznij Nowe Badanie",
+        "marketAnalysis": "Analiza Rynku",
+        "pkdSearch": "Wyszukiwanie PKD"
+      },
+      "recentActivity": {
+        "title": "Ostatnia Aktywność",
+        "loading": "Ładowanie...",
+        "noActivity": "Brak ostatniej aktywności",
+        "viewAll": "Zobacz wszystkie →"
+      },
+      "usageStats": {
+        "title": "Statystyki Użycia",
+        "loading": "Ładowanie...",
+        "unableToLoad": "Nie można załadować statystyk",
+        "analysesThisMonth": "Analiz w tym miesiącu",
+        "storage": "Miejsce",
+        "apiCalls": "Wywołania API: {count}"
+      },
+      "projects": {
+        "title": "Moje Projekty",
+        "newProject": "+ Nowy",
+        "loading": "Ładowanie projektów...",
+        "noProjects": "Brak projektów",
+        "reports": "raportów",
+        "alerts": "alertów",
+        "updated": "Zaktualizowano: {time}"
+      },
+      "alerts": {
+        "title": "Alerty i Monitorowanie",
+        "loading": "Ładowanie alertów...",
+        "noAlerts": "Brak alertów"
+      }
+    },
+    "messages": {
+      "layout_saved": "Układ zapisany pomyślnie!",
+      "layout_reset": "Układ przywrócony do domyślnego",
+      "layout_save_error": "Błąd zapisu układu"
+    }
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "backToDashboard": "Wróć do dashboardu",
+    "profileInformation": "Informacje o Profilu",
+    "email": "Email",
+    "emailCannotBeChanged": "Email nie może być zmieniony",
+    "displayName": "Nazwa Wyświetlana",
+    "displayNamePlaceholder": "Twoje imię",
+    "industry": "Branża",
+    "industryPlaceholder": "Wybierz branżę...",
+    "role": "Rola",
+    "rolePlaceholder": "Wybierz rolę...",
+    "preferences": "Preferencje",
+    "language": "Język",
+    "defaultAnalysisDepth": "Domyślna Głębokość Analizy",
+    "analysisDepthDescription": "Kontroluje poziom szczegółowości generowanych raportów i analiz",
+    "defaultExportFormat": "Domyślny Format Eksportu",
+    "preferredCurrency": "Preferowana Waluta",
+    "currencyDescription": "Symbol waluty używany do wyświetlania danych finansowych",
+    "timezone": "Strefa Czasowa",
+    "timezoneDescription": "Wszystkie znaczniki czasu w aplikacji będą wyświetlane w Twojej wybranej strefie czasowej",
+    "notifications": "Powiadomienia",
+    "emailNotifications": "Powiadomienia Email",
+    "emailNotificationsDescription": "Otrzymuj powiadomienia email o raportach, alertach i aktualizacjach",
+    "inAppNotifications": "Powiadomienia w Aplikacji",
+    "inAppNotificationsDescription": "Pokazuj powiadomienia w aplikacji",
+    "tags": "Tagi",
+    "tagsDescription": "Organizuj swoje raporty za pomocą niestandardowych tagów",
+    "manageTags": "Zarządzaj Tagami",
+    "customFields": "Niestandardowe Pola",
+    "addField": "+ Dodaj Pole",
+    "noCustomFields": "Nie zdefiniowano jeszcze niestandardowych pól.",
+    "clickAddField": "Kliknij \"Dodaj Pole\" aby utworzyć pierwsze niestandardowe pole.",
+    "cancel": "Anuluj",
+    "saveChanges": "Zapisz Zmiany",
+    "settingsSaved": "Ustawienia zapisane pomyślnie!",
+    "account": "Konto",
+    "securitySettings": "Ustawienia Bezpieczeństwa",
+    "securitySettingsDescription": "Uwierzytelnianie dwuskładnikowe i opcje bezpieczeństwa",
+    "manageSecurity": "Zarządzaj Bezpieczeństwem →",
+    "privacySettings": "Ustawienia Prywatności",
+    "privacySettingsDescription": "Eksportuj swoje dane i zarządzaj opcjami prywatności (RODO)",
+    "managePrivacy": "Zarządzaj Prywatnością →",
+    "featureFlags": "Flagi Funkcji",
+    "featureFlagsDescription": "Kontroluj które funkcje są włączone (tylko Admin)",
+    "manageFeatures": "Zarządzaj Funkcjami →",
+    "auditTrail": "Dziennik Audytu",
+    "auditTrailDescription": "Zobacz dziennik wszystkich wrażliwych operacji",
+    "viewAuditLog": "Zobacz Dziennik Audytu →",
+    "changePassword": "Zmień Hasło",
+    "changePasswordDescription": "Zaktualizuj swoje hasło",
+    "resetPassword": "Resetuj Hasło",
+    "deleteAccount": "Usuń Konto",
+    "deleteAccountDescription": "Trwale usuń swoje konto i wszystkie dane",
+    "deleteComingSoon": "Usuń (Wkrótce)",
+    "workspace": {
+      "title": "Ustawienia Workspace",
+      "backToDashboard": "← Wróć do Dashboardu",
+      "loading": "Ładowanie...",
+      "myWorkspaces": "Moje Workspace'y",
+      "createWorkspace": "Utwórz Workspace",
+      "members": "Członkowie",
+      "membersCount": "{count} członków",
+      "membersCountSingular": "{count} członek",
+      "role": "Rola: {role}",
+      "created": "Utworzono: {date}",
+      "selectWorkspace": "Wybierz workspace, aby zobaczyć szczegóły",
+      "inviteForm": {
+        "emailPlaceholder": "Adres email",
+        "inviteMember": "Zaproś Członka",
+        "roles": {
+          "viewer": "Przeglądający",
+          "member": "Członek",
+          "admin": "Administrator"
+        }
+      },
+      "memberActions": {
+        "transferOwnership": "Przekaż Własność",
+        "remove": "Usuń"
+      },
+      "badges": {
+        "invitationPending": "Zaproszenie Oczekuje"
+      },
+      "empty": {
+        "noWorkspaces": "Nie jesteś jeszcze członkiem żadnego workspace."
+      },
+      "prompts": {
+        "enterWorkspaceName": "Wprowadź nazwę workspace:",
+        "enterWorkspaceDescription": "Wprowadź opis workspace (opcjonalnie):",
+        "confirmRemove": "Czy na pewno chcesz usunąć {email} z tego workspace?",
+        "confirmTransfer": "Czy na pewno chcesz przekazać własność tego workspace do {email}? Staniesz się Administratorem."
+      },
+      "messages": {
+        "loadWorkspacesFailed": "Nie udało się załadować workspace'ów",
+        "loadMembersFailed": "Nie udało się załadować członków",
+        "invalidEmail": "Wprowadź poprawny adres email",
+        "inviteSuccess": "Członek zaproszony pomyślnie",
+        "inviteFailed": "Nie udało się zaprosić członka",
+        "removedMember": "Usunięto {email} z workspace",
+        "removeFailed": "Nie udało się usunąć członka",
+        "transferSuccess": "Własność przekazana do {email}",
+        "transferFailed": "Nie udało się przekazać własności",
+        "workspaceCreated": "Workspace utworzony pomyślnie",
+        "workspaceCreateFailed": "Nie udało się utworzyć workspace"
+      }
+    },
+    "security": {
+      "title": "Ustawienia bezpieczeństwa",
+      "backToSettings": "Wróć do ustawień",
+      "twoFactor": {
+        "title": "Uwierzytelnianie dwuskładnikowe (2FA)",
+        "description": "Dodaj dodatkową warstwę bezpieczeństwa do swojego konta, wymagając kodu weryfikacyjnego oprócz hasła.",
+        "statusTitle": "Status 2FA",
+        "enabled": "Włączone",
+        "disabled": "Wyłączone",
+        "statusEnabled": "Uwierzytelnianie dwuskładnikowe jest włączone",
+        "statusDisabled": "Uwierzytelnianie dwuskładnikowe jest wyłączone",
+        "enableButton": "Włącz 2FA",
+        "disableButton": "Wyłącz 2FA",
+        "settingUp": "Konfigurowanie...",
+        "protectedMessage": "Twoje konto jest chronione 2FA",
+        "protectedDescription": "Będziesz musiał wprowadzić kod weryfikacyjny z aplikacji uwierzytelniającej podczas logowania.",
+        "confirmDisable": "Czy na pewno chcesz wyłączyć uwierzytelnianie dwuskładnikowe? To zmniejszy bezpieczeństwo Twojego konta."
+      },
+      "password": {
+        "title": "Zmień hasło",
+        "description": "Zaktualizuj swoje hasło i unieważnij wszystkie inne aktywne sesje dla bezpieczeństwa.",
+        "currentPassword": "Obecne hasło",
+        "newPassword": "Nowe hasło",
+        "confirmPassword": "Potwierdź nowe hasło",
+        "changeButton": "Zmień hasło",
+        "changingButton": "Zmiana hasła...",
+        "passwordRequirement": "Hasło musi mieć co najmniej 6 znaków",
+        "securityNoticeTitle": "Informacja o bezpieczeństwie",
+        "securityNoticeDescription": "Zmiana hasła spowoduje wylogowanie na wszystkich innych urządzeniach. Pozostaniesz zalogowany na tym urządzeniu."
+      },
+      "twoFactorSetup": {
+        "modalTitle": "Konfiguracja uwierzytelniania dwuskładnikowego",
+        "step1Title": "Krok 1: Zeskanuj kod QR",
+        "step1Description": "Użyj aplikacji uwierzytelniającej (Google Authenticator, Authy, itp.) aby zeskanować ten kod QR:",
+        "manualEntryTitle": "Lub wprowadź ręcznie",
+        "step2Title": "Krok 2: Wprowadź kod weryfikacyjny",
+        "step2Description": "Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej:",
+        "verificationPlaceholder": "000000",
+        "cancel": "Anuluj",
+        "verifyButton": "Zweryfikuj i włącz",
+        "verifying": "Weryfikowanie..."
+      },
+      "errors": {
+        "allFieldsRequired": "Wszystkie pola hasła są wymagane",
+        "passwordTooShort": "Nowe hasło musi mieć co najmniej 6 znaków",
+        "passwordsMismatch": "Nowe hasła nie pasują do siebie",
+        "notAuthenticated": "Nie zalogowano",
+        "sessionNotFound": "Token sesji nie znaleziony",
+        "failedToFetch2FAStatus": "Nie udało się pobrać statusu 2FA",
+        "failedToSetup2FA": "Nie udało się skonfigurować 2FA",
+        "invalidVerificationCode": "Nieprawidłowy kod weryfikacyjny",
+        "verificationFailed": "Weryfikacja nie powiodła się",
+        "failedToDisable2FA": "Nie udało się wyłączyć 2FA",
+        "failedToChangePassword": "Nie udało się zmienić hasła"
+      },
+      "success": {
+        "passwordChanged": "Hasło zostało zmienione",
+        "sessionsInvalidated": "{count} innych sesji wylogowano"
+      }
+    },
+    "industries": {
+      "manufacturing": "Produkcja",
+      "services": "Usługi",
+      "technology": "Technologia",
+      "retail": "Handel Detaliczny",
+      "finance": "Finanse",
+      "healthcare": "Opieka Zdrowotna",
+      "logistics": "Logistyka",
+      "other": "Inne"
+    },
+    "userRoles": {
+      "ceo": "Dyrektor / Prezes",
+      "sales": "Sprzedaż",
+      "analyst": "Analityk",
+      "bd": "Rozwój Biznesu",
+      "operations": "Operacje",
+      "other": "Inne"
+    },
+    "depths": {
+      "quick": "Szybka (Podstawowy przegląd)",
+      "standard": "Standardowa (Szczegółowa analiza)",
+      "deep": "Głęboka (Kompleksowe badanie)"
+    },
+    "formats": {
+      "pdf": "PDF",
+      "docx": "Word (DOCX)",
+      "pptx": "PowerPoint (PPTX)"
+    },
+    "currencies": {
+      "PLN": "PLN (Polski Złoty)",
+      "EUR": "EUR (Euro)",
+      "USD": "USD (Dolar Amerykański)",
+      "GBP": "GBP (Funt Brytyjski)"
+    },
+    "timezones": {
+      "Europe/Warsaw": "Europa/Warszawa (UTC+1/+2)",
+      "Europe/London": "Europa/Londyn (UTC+0/+1)",
+      "Europe/Paris": "Europa/Paryż (UTC+1/+2)",
+      "Europe/Berlin": "Europa/Berlin (UTC+1/+2)",
+      "America/New_York": "Ameryka/Nowy Jork (UTC-5/-4)",
+      "America/Chicago": "Ameryka/Chicago (UTC-6/-5)",
+      "America/Los_Angeles": "Ameryka/Los Angeles (UTC-8/-7)",
+      "Asia/Tokyo": "Azja/Tokio (UTC+9)",
+      "Asia/Shanghai": "Azja/Szanghaj (UTC+8)",
+      "Asia/Dubai": "Azja/Dubaj (UTC+4)",
+      "Australia/Sydney": "Australia/Sydney (UTC+10/+11)"
+    },
+    "fieldTypes": {
+      "text": "Tekst",
+      "number": "Liczba",
+      "date": "Data",
+      "email": "Email",
+      "url": "URL",
+      "select": "Wybór (dropdown)",
+      "multiselect": "Wybór wielokrotny"
+    },
+    "unsavedChangesWarning": "Masz niezapisane zmiany. Czy na pewno chcesz opuścić tę stronę? Twoje zmiany zostaną utracone."
+  },
+  "companies": {
+    "title": "Firmy",
+    "schedules": {
+      "title": "Harmonogramy automatycznych aktualizacji",
+      "subtitle": "Konfiguruj automatyczne odświeżanie danych firmowych",
+      "backToDashboard": "← Powrót do panelu",
+      "addNew": "Dodaj nowy harmonogram",
+      "cancel": "Anuluj",
+      "newSchedule": "Nowy harmonogram",
+      "company": "Firma",
+      "frequency": {
+        "label": "Częstotliwość",
+        "daily": "Codziennie",
+        "weekly": "Co tydzień",
+        "monthly": "Co miesiąc"
+      },
+      "time": "Godzina",
+      "save": "Zapisz harmonogram",
+      "configuredSchedules": "Skonfigurowane harmonogramy ({count})",
+      "noSchedules": "Brak skonfigurowanych harmonogramów",
+      "lastUpdate": "Ostatnia aktualizacja",
+      "nextUpdate": "Następna aktualizacja",
+      "never": "Nigdy",
+      "statusLabel": "Status",
+      "statusActive": "Aktywny",
+      "statusDisabled": "Wyłączony",
+      "delete": "Usuń",
+      "notifications": "Powiadomienia ({count})",
+      "noNotifications": "Brak powiadomień",
+      "loading": "Ładowanie harmonogramów...",
+      "error": "Błąd",
+      "connectionError": "Błąd połączenia z serwerem",
+      "deleteError": "Błąd usuwania harmonogramu",
+      "deleteConfirmation": "Czy na pewno usunąć harmonogram dla {company}?"
+    }
+  },
+  "reports": {
+    "title": "Raporty",
+    "search": {
+      "placeholder": "Szukaj w raportach..."
+    },
+    "filters": {
+      "allTypes": "Wszystkie typy",
+      "allTags": "Wszystkie tagi",
+      "favorites": "Ulubione",
+      "showFavorites": "Pokaż tylko ulubione",
+      "clearAll": "Wyczyść wszystkie",
+      "clearAllTitle": "Wyczyść wszystkie filtry"
+    },
+    "status": {
+      "all": "Wszystkie"
+    },
+    "types": {
+      "companyProfile": "Profil firmy",
+      "marketAnalysis": "Analiza rynku",
+      "dueDiligence": "Due Diligence",
+      "competitive": "Konkurencja"
+    },
+    "viewModes": {
+      "list": "Widok listy",
+      "grid": "Widok siatki",
+      "table": "Widok tabeli"
+    },
+    "table": {
+      "date": "Data",
+      "title": "Tytuł",
+      "type": "Typ",
+      "status": "Status",
+      "company": "Firma",
+      "actions": "Akcje"
+    },
+    "selection": {
+      "select": "Wybierz",
+      "cancelSelection": "Anuluj zaznaczanie",
+      "selectedCount": "{count} z {total} wybranych",
+      "selectPage": "Zaznaczono stronę",
+      "selectAll": "Zaznaczono wszystkie",
+      "selectAllOnPage": "Zaznaczono wszystkie {count} na tej stronie.",
+      "selectAllAcrossPages": "Zaznacz wszystkie {total} raportów",
+      "clearSelection": "Wyczyść zaznaczenie"
+    },
+    "bulkActions": {
+      "delete": "Usuń ({count})",
+      "assignToProject": "Przypisz do projektu ({count})",
+      "export": "Eksportuj ({count})",
+      "exporting": "Eksportowanie...",
+      "confirmDelete": "Potwierdź usunięcie",
+      "confirmDeleteMessage": "Czy na pewno chcesz usunąć {count} raportów?",
+      "irreversible": "Ta operacja jest nieodwracalna.",
+      "deleting": "Usuwanie...",
+      "deleteCount": "Usuń {count} raportów",
+      "exportFormats": {
+        "excel": "Excel (.xlsx)",
+        "excelDescription": "Wszystkie w jednym pliku",
+        "pdf": "PDF (archiwum ZIP)",
+        "pdfDescription": "Osobne pliki w ZIP"
+      },
+      "progress": {
+        "title": "Eksportowanie raportów",
+        "progress": "Postęp",
+        "processing": "Przetwarzanie raportów...",
+        "reportsCount": "{processed}/{total} raportów"
+      }
+    },
+    "projects": {
+      "assignTitle": "Przypisz do projektu",
+      "selectProject": "Wybierz projekt, do którego chcesz przypisać {count} raportów",
+      "loading": "Ładowanie projektów...",
+      "noProjects": "Brak dostępnych projektów",
+      "createFirst": "Utwórz pierwszy projekt →",
+      "reportsCount": "{count} raportów",
+      "types": {
+        "dueDiligence": "Due Diligence",
+        "marketAnalysis": "Analiza rynku",
+        "competitive": "Konkurencja",
+        "research": "Badania"
+      },
+      "assignmentSuccess": "Przypisano {count} raportów do projektu"
+    },
+    "tags": {
+      "manage": "Zarządzaj tagami",
+      "add": "Dodaj tag",
+      "noTags": "Nie masz jeszcze żadnych tagów",
+      "createFirst": "Utwórz pierwszy tag",
+      "close": "Zamknij"
+    },
+    "favorites": {
+      "add": "Dodaj do ulubionych",
+      "remove": "Usuń z ulubionych"
+    },
+    "empty": {
+      "title": "Brak raportów",
+      "description": "Nie znaleziono raportów spełniających kryteria wyszukiwania.",
+      "startNew": "Rozpocznij nową analizę"
+    },
+    "pagination": {
+      "previous": "Poprzednia",
+      "next": "Następna",
+      "showing": "Pokazano {from}-{to} z {total} raportów"
+    },
+    "errors": {
+      "loadFailed": "Nie udało się załadować raportów",
+      "deleteFailed": "Nie udało się usunąć raportów",
+      "assignFailed": "Nie udało się przypisać raportów do projektu",
+      "exportFailed": "Nie udało się wyeksportować raportów",
+      "updateTagsFailed": "Nie udało się zaktualizować tagów",
+      "trackProgressFailed": "Nie udało się śledzić postępu eksportu",
+      "reportProblem": "Zgłoś problem"
+    },
+    "navigation": {
+      "backToDashboard": "Wróć do dashboardu",
+      "dashboard": "Dashboard",
+      "pkdSearch": "PKD Search"
+    },
+    "help": "Pomoc",
+    "helpTitle": "Pomoc dot. raportów"
+  },
+  "analysis": {
+    "title": "Analiza",
+    "swot": {
+      "title": "Analiza SWOT",
+      "loading": "Ładowanie...",
+      "loadingAnalysis": "Ładowanie analizy SWOT...",
+      "strengths": "Mocne strony",
+      "weaknesses": "Słabe strony",
+      "opportunities": "Szanse",
+      "threats": "Zagrożenia",
+      "nav": {
+        "backToAnalyses": "Powrót do analiz",
+        "dashboard": "Dashboard"
+      },
+      "legend": {
+        "strengths": "Mocne strony",
+        "weaknesses": "Słabe strony",
+        "opportunities": "Szanse",
+        "threats": "Zagrożenia"
+      },
+      "axes": {
+        "internal": "Czynniki wewnętrzne",
+        "external": "Czynniki zewnętrzne",
+        "positive": "Pozytywne",
+        "negative": "Negatywne"
+      },
+      "summary": {
+        "title": "Podsumowanie",
+        "strengthsCount": "Mocne strony",
+        "weaknessesCount": "Słabe strony",
+        "opportunitiesCount": "Szanse",
+        "threatsCount": "Zagrożenia",
+        "clickToExpand": "Kliknij na element, aby rozwinąć szczegóły"
+      },
+      "errors": {
+        "loadFailed": "Nie udało się załadować analizy SWOT",
+        "generic": "Wystąpił błąd podczas ładowania analizy"
+      }
+    },
+    "pestle": {
+      "title": "Analiza PESTLE",
+      "political": "Polityczne",
+      "economic": "Ekonomiczne",
+      "social": "Społeczne",
+      "technological": "Technologiczne",
+      "legal": "Prawne",
+      "environmental": "Środowiskowe"
+    },
+    "porter": {
+      "title": "Pięć Sił Portera",
+      "competitiveRivalry": "Rywalizacja konkurencyjna",
+      "supplierPower": "Siła dostawców",
+      "buyerPower": "Siła nabywców",
+      "threatOfSubstitution": "Zagrożenie substytutami",
+      "threatOfNewEntry": "Zagrożenie nowymi uczestnikami"
+    },
+    "market": {
+      "title": "Analiza rynku",
+      "nav": {
+        "dashboard": "Dashboard",
+        "chat": "Czat"
+      },
+      "parameters": {
+        "title": "Parametry analizy",
+        "industry": "Branża",
+        "geography": "Geografia",
+        "segment": "Segment",
+        "segmentDescription": "Opcjonalnie wybierz segment rynku"
+      },
+      "actions": {
+        "startAnalysis": "Rozpocznij analizę",
+        "analyzing": "Analizowanie..."
+      },
+      "results": {
+        "title": "Wyniki analizy rynku",
+        "dataYear": "Dane za rok",
+        "segment": "Segment",
+        "marketData": "Dane rynkowe",
+        "keyInsights": "Kluczowe spostrzeżenia",
+        "trends": "Trendy rynkowe",
+        "timeline": "Harmonogram"
+      },
+      "table": {
+        "region": "Region",
+        "marketSize": "Wielkość rynku",
+        "growth": "Wzrost",
+        "players": "Gracze"
+      },
+      "impact": {
+        "high": "Wysoki",
+        "medium": "Średni",
+        "low": "Niski"
+      },
+      "errors": {
+        "analysisFailed": "Nie udało się przeprowadzić analizy rynku"
+      },
+      "industries": {
+        "manufacturing": "Produkcja / Manufacturing",
+        "technology": "Technologia / IT",
+        "logistics": "Logistyka / Transport",
+        "retail": "Handel detaliczny",
+        "services": "Usługi"
+      },
+      "geographies": {
+        "poland": "Polska",
+        "europe": "Europa (EU)",
+        "cee": "Europa Środkowo-Wschodnia",
+        "global": "Globalnie"
+      },
+      "segments": {
+        "all": "Wszystkie segmenty",
+        "B2B": "B2B (Business-to-Business)",
+        "B2C": "B2C (Business-to-Consumer)",
+        "Enterprise": "Enterprise (Duże przedsiębiorstwa)",
+        "SMB": "SMB (Małe i średnie firmy)"
+      }
+    }
+  },
+  "search": {
+    "title": "Wyszukiwanie",
+    "pageTitle": "Wyszukiwanie PKD",
+    "savedSearches": "Zapisane wyszukiwania",
+    "savedWithCount": "Zapisane ({count})",
+    "saveSearch": "Zapisz wyszukiwanie",
+    "savingSearch": "Zapisuję...",
+    "searchName": "Nazwa wyszukiwania",
+    "nav": {
+      "dashboard": "Dashboard",
+      "marketAnalysis": "Analiza rynku"
+    },
+    "saved": {
+      "title": "Zapisane wyszukiwania",
+      "pkdCode": "Kod PKD:",
+      "savedOn": "Zapisano:",
+      "empty": "Brak zapisanych wyszukiwań"
+    },
+    "form": {
+      "title": "Wyszukaj firmy według kodu PKD",
+      "description": "PKD (Polska Klasyfikacja Działalności) to kod określający rodzaj działalności gospodarczej firmy.",
+      "placeholder": "Wpisz kod PKD (np. 22.21.Z)",
+      "search": "Szukaj",
+      "searching": "Szukam...",
+      "popularLabel": "Popularne kody PKD:"
+    },
+    "popularCodes": {
+      "22_21_Z": "Produkcja tworzyw sztucznych",
+      "62_01_Z": "Oprogramowanie",
+      "49_41_Z": "Transport drogowy",
+      "41_20_Z": "Budownictwo",
+      "69_20_Z": "Księgowość",
+      "46_71_Z": "Handel paliwami"
+    },
+    "results": {
+      "found": "Znaleziono {count} {count, plural, one {firmę} few {firmy} other {firm}} z tym kodem PKD",
+      "companiesWithCode": "Firmy z kodem {code}",
+      "noCompanies": "Brak firm z tym kodem",
+      "noCompaniesDescription": "Nie znaleziono firm z kodem PKD {code}"
+    },
+    "company": {
+      "statusActive": "Aktywna",
+      "pkdCodes": "Kody PKD"
+    },
+    "actions": {
+      "load": "Załaduj",
+      "save": "Zapisz",
+      "saving": "Zapisuję...",
+      "cancel": "Anuluj",
+      "delete": "Usuń"
+    },
+    "saveModal": {
+      "title": "Zapisz wyszukiwanie",
+      "namePlaceholder": "Wprowadź nazwę wyszukiwania...",
+      "examplePlaceholder": "np. Firmy plastikowe",
+      "pkdCode": "Kod PKD:",
+      "description": "Opis:",
+      "results": "Wyniki:",
+      "companiesCount": "{count} firm",
+      "cancel": "Anuluj",
+      "save": "Zapisz"
+    },
+    "empty": "Brak zapisanych wyszukiwań. Wykonaj wyszukiwanie i kliknij \"Zapisz\" aby dodać.",
+    "delete": "Usuń",
+    "errors": {
+      "nameRequired": "Wprowadź nazwę wyszukiwania",
+      "noQuery": "Najpierw wykonaj wyszukiwanie",
+      "saveFailed": "Nie udało się zapisać wyszukiwania",
+      "pkdRequired": "Wprowadź kod PKD",
+      "searchFailed": "Nie udało się wyszukać firm. Spróbuj ponownie."
+    },
+    "success": {
+      "saved": "Wyszukiwanie zapisane!"
+    }
+  },
+  "notFound": {
+    "title": "Strona nie znaleziona",
+    "message": "Strona której szukasz nie istnieje lub została przeniesiona.",
+    "buttons": {
+      "dashboard": "Przejdź do Dashboardu",
+      "chat": "Rozpocznij nowe badanie",
+      "back": "← Wróć"
+    },
+    "help": {
+      "title": "Potrzebujesz pomocy? Wypróbuj:",
+      "reports": "Raporty",
+      "projects": "Projekty",
+      "settings": "Ustawienia",
+      "search": "Wyszukiwanie"
+    }
+  },
+  "chat": {
+    "header": {
+      "newResearch": "Nowe badanie",
+      "connected": "Połączono",
+      "disconnected": "Rozłączono",
+      "saveAsReport": "Zapisz jako raport",
+      "newChat": "Nowy czat"
+    },
+    "welcome": {
+      "title": "Rozpocznij badanie",
+      "subtitle": "Zapytaj mnie o dowolną firmę, rynek lub temat biznesowy. Mogę analizować firmy, generować raporty i dostarczać analizy rynkowe.",
+      "suggestions": {
+        "analyzeCompany": "Analizuj firmę FADO Sp. z o.o.",
+        "dueDiligence": "Generuj raport Due Diligence",
+        "compareCompetitors": "Porównaj konkurentów w logistyce",
+        "marketTrends": "Trendy rynkowe w e-commerce"
+      }
+    },
+    "loading": {
+      "response": "Ładowanie odpowiedzi...",
+      "inProgress": "Badanie w toku"
+    },
+    "progress": {
+      "estimatedTime": "Szacowany czas"
+    },
+    "checkpoint": {
+      "preliminaryFindings": "Wstępne ustalenia:",
+      "modifyScope": "Kliknij \"Modyfikuj zakres\", aby dostosować fokus badania"
+    },
+    "briefQuestion": {
+      "enterAnswer": "Wprowadź swoją odpowiedź...",
+      "pressEnterToSubmit": "Naciśnij Enter, aby wysłać odpowiedź",
+      "yourPreference": "Twoja preferencja"
+    },
+    "researchPlan": {
+      "title": "Wygenerowano plan badania",
+      "objective": "Cel",
+      "scope": "Zakres",
+      "depth": "Głębokość",
+      "researchSteps": "Kroki badania:",
+      "totalEstimatedTime": "Całkowity szacowany czas: ~{minutes} minut",
+      "proceedWithPlan": "Kontynuuj z planem",
+      "modifyPlan": "Modyfikuj plan",
+      "cancel": "Anuluj",
+      "modifyPrompt": "Co chciałbyś zmienić w planie?"
+    },
+    "detection": {
+      "url": {
+        "title": "Wykryto URL",
+        "message": "Czy chcesz przeanalizować tę stronę internetową?",
+        "button": "Analizuj stronę"
+      },
+      "nip": {
+        "title": "Wykryto NIP: {number}",
+        "message": "Czy chcesz wyszukać tę firmę?",
+        "button": "Wyszukaj firmę"
+      },
+      "krs": {
+        "title": "Wykryto KRS: {number}",
+        "message": "Czy chcesz wyszukać tę firmę?",
+        "button": "Wyszukaj firmę"
+      }
+    },
+    "fileUpload": {
+      "waiting": "Oczekiwanie...",
+      "uploadTitle": "Prześlij plik (PDF, DOCX, XLSX, CSV, PNG, JPG - maks. 50MB)",
+      "attached": "Załączono {count} plik(ów): {files}",
+      "fileUploadOnly": "[Przesyłanie pliku]"
+    },
+    "input": {
+      "placeholder": "Zapytaj o firmę, poproś o analizę lub wygeneruj raport...",
+      "disclaimer": "MI-Navigator używa AI do analizy rynków i firm. Wyniki mogą się różnić."
+    },
+    "saveReport": {
+      "title": "Zapisz jako raport",
+      "selectProject": "Wybierz projekt",
+      "selectProjectPlaceholder": "-- Wybierz projekt --",
+      "noProjects": "Nie znaleziono projektów.",
+      "createProject": "Utwórz nowy projekt",
+      "createProjectFirst": "najpierw.",
+      "cancel": "Anuluj",
+      "save": "Zapisz raport",
+      "saving": "Zapisywanie...",
+      "success": "Raport został pomyślnie zapisany!"
+    },
+    "errors": {
+      "webSocketConnection": "Błąd połączenia WebSocket",
+      "failedToConnect": "Nie udało się połączyć z czatem",
+      "failedToCreateConversation": "Nie udało się utworzyć konwersacji",
+      "failedToStartConversation": "Nie udało się rozpocząć konwersacji",
+      "failedToLoadConversation": "Nie udało się załadować historii konwersacji",
+      "webSocketTimeout": "Przekroczono limit czasu połączenia WebSocket",
+      "failedToSend": "Nie udało się wysłać wiadomości. Spróbuj ponownie.",
+      "fileTooLarge": "Plik {filename} jest zbyt duży. Maksymalny rozmiar to 50MB.",
+      "fileTypeNotSupported": "Typ pliku \"{type}\" nie jest obsługiwany. Obsługiwane typy: PDF, DOCX, XLSX, CSV, PNG, JPG.",
+      "failedToUpload": "Nie udało się przesłać {filename}",
+      "failedToParseResponse": "Nie udało się przetworzyć odpowiedzi dla {filename}",
+      "networkError": "Błąd sieci podczas przesyłania {filename}",
+      "noConversationToSave": "Brak konwersacji do zapisania",
+      "notAuthenticated": "Nie uwierzytelniono",
+      "failedToLoadProjects": "Nie udało się załadować projektów",
+      "pleaseSelectProject": "Proszę wybrać projekt",
+      "failedToCreateReport": "Nie udało się utworzyć raportu",
+      "failedToAssignReport": "Nie udało się przypisać raportu do projektu",
+      "failedToSaveReport": "Nie udało się zapisać raportu. Spróbuj ponownie."
+    }
+  },
+  "alerts": {
+    "title": "Alerty",
+    "new": "Nowy alert",
+    "edit": "Edytuj alert",
+    "saving": "Zapisywanie...",
+    "saveChanges": "Zapisz zmiany",
+    "backToDashboard": "Powrót do dashboardu",
+    "backToAlerts": "Powrót do alertów",
+    "loading": "Ładowanie...",
+    "loadingAlert": "Ładowanie alertu...",
+    "loadingConfig": "Ładowanie konfiguracji...",
+    "monitoring": "Monitorowanie",
+    "monitoringDescription": "Śledź najważniejsze informacje o firmach i rynkach",
+    "createNewAlert": "Utwórz nowy alert",
+    "createFirstAlert": "Utwórz pierwszy alert",
+    "activeMonitoring": "Aktywne monitorowanie",
+    "recentAlerts": "Ostatnie alerty",
+    "noConfigurations": "Brak skonfigurowanych alertów. Utwórz pierwszy alert aby rozpocząć monitorowanie.",
+    "noAlerts": "Brak alertów",
+    "confirmDelete": "Czy na pewno chcesz usunąć ten alert?",
+    "created": "Utworzono",
+    "types": {
+      "news": "Aktualności",
+      "financial": "Finanse",
+      "competitor": "Konkurencja"
+    },
+    "status": {
+      "active": "Aktywny",
+      "inactive": "Nieaktywny"
+    },
+    "fields": {
+      "company": "Firma",
+      "keyword": "Słowo kluczowe",
+      "companyName": "Nazwa firmy",
+      "companyPlaceholder": "np. FADO Sp. z o.o.",
+      "companyHelp": "Wprowadź nazwę firmy, którą chcesz monitorować",
+      "keywordPlaceholder": "np. akwizycja, fuzja, reorganizacja",
+      "keywordHelp": "Wprowadź słowa kluczowe do monitorowania (rozdziel przecinkami)",
+      "alertType": "Typ alertu",
+      "conditions": "Warunki alertu",
+      "frequency": "Częstotliwość",
+      "threshold": "Próg powiadomień"
+    },
+    "typeDescriptions": {
+      "news": "Aktualności",
+      "newsHelp": "Śledź najnowsze wiadomości, artykuły prasowe i publikacje medialne",
+      "financial": "Finanse",
+      "financialHelp": "Monitoruj raporty finansowe, wyniki kwartalne i zmiany wskaźników",
+      "competitor": "Konkurencja",
+      "competitorHelp": "Obserwuj działania konkurencji, nowe produkty i zmiany strategiczne"
+    },
+    "frequency": {
+      "realtime": "W czasie rzeczywistym",
+      "daily": "Codziennie",
+      "weekly": "Co tydzień",
+      "label": "Częstotliwość"
+    },
+    "threshold": {
+      "any": "Dowolne zmiany",
+      "significant": "Znaczące zmiany",
+      "critical": "Krytyczne zmiany",
+      "label": "Próg"
+    },
+    "actions": {
+      "enableAlert": "Włącz alert",
+      "disableAlert": "Wyłącz alert",
+      "editAlert": "Edytuj alert",
+      "deleteAlert": "Usuń alert",
+      "viewCompanyDetails": "Zobacz szczegóły firmy",
+      "createAlert": "Utwórz alert",
+      "creating": "Tworzenie..."
+    },
+    "severity": {
+      "label": ""
+    },
+    "details": {
+      "unread": "Nieprzeczytany",
+      "description": "Opis",
+      "source": "Źródło",
+      "created": "Utworzono"
+    },
+    "create": {
+      "title": "Utwórz nowy alert",
+      "description": "Skonfiguruj alert, aby automatycznie otrzymywać powiadomienia o ważnych zmianach"
+    },
+    "editPage": {
+      "title": "Edytuj alert",
+      "description": "Zaktualizuj ustawienia alertu"
+    },
+    "errors": {
+      "fetchConfigs": "Nie udało się pobrać konfiguracji alertów",
+      "fetchAlerts": "Nie udało się pobrać alertów",
+      "loadFailed": "Nie udało się załadować danych",
+      "toggleFailed": "Nie udało się zmienić statusu alertu",
+      "deleteFailed": "Nie udało się usunąć alertu",
+      "validation": "Wypełnij przynajmniej jedno pole: nazwę firmy lub słowo kluczowe",
+      "createFailed": "Nie udało się utworzyć alertu",
+      "updateFailed": "Nie udało się zaktualizować alertu",
+      "loadConfigFailed": "Nie udało się załadować konfiguracji alertu",
+      "notAuthenticated": "Nie zalogowano",
+      "notFound": "Alert nie został znaleziony",
+      "loadAlertFailed": "Nie udało się załadować alertu"
+    }
+  },
+  "activity": {
+    "title": "Historia aktywności",
+    "subtitle": "Przeglądaj swoją ostatnią aktywność w systemie",
+    "export": "Eksportuj",
+    "backToDashboard": "Powrót do dashboardu",
+    "exportModal": {
+      "title": "Eksportuj aktywności",
+      "dateFrom": "Data od",
+      "dateTo": "Data do",
+      "filterInfo": "Eksport będzie zawierać tylko aktywności typu: {type}",
+      "emptyInfo": "Pozostaw puste, aby eksportować wszystkie aktywności.",
+      "cancel": "Anuluj",
+      "exporting": "Eksportowanie...",
+      "exportCsv": "Eksportuj CSV"
+    },
+    "filters": {
+      "filterByType": "Filtruj po typie",
+      "all": "Wszystkie",
+      "filterByDate": "Filtruj po dacie",
+      "allDates": "Wszystkie daty",
+      "today": "Dzisiaj",
+      "yesterday": "Wczoraj",
+      "thisWeek": "Ten tydzień",
+      "last7days": "Ostatnie 7 dni",
+      "last30days": "Ostatnie 30 dni",
+      "thisMonth": "Ten miesiąc",
+      "lastMonth": "Ostatni miesiąc"
+    },
+    "loading": "Ładowanie aktywności...",
+    "empty": "Brak aktywności do wyświetlenia",
+    "pagination": {
+      "page": "Strona {current} z {total} ({count} aktywności)",
+      "previous": "Poprzednia",
+      "next": "Następna"
+    },
+    "errors": {
+      "fetchFailed": "Nie udało się pobrać aktywności",
+      "loadFailed": "Nie udało się załadować aktywności",
+      "exportFailed": "Nie udało się wyeksportować aktywności"
+    }
+  },
+  "watchlist": {
+    "title": "Obserwowane firmy",
+    "loading": "Ładowanie obserwowanych firm...",
+    "error": "Błąd",
+    "noCompanies": "Nie obserwujesz żadnych firm",
+    "watchingCount": "Obserwujesz {count} {count, plural, one {firmę} few {firmy} many {firm} other {firm}}",
+    "backToDashboard": "Powrót do dashboardu",
+    "empty": {
+      "title": "Brak obserwowanych firm",
+      "description": "Dodaj firmy do listy obserwowanych, aby śledzić ich aktualności i zmiany",
+      "searchCompanies": "Wyszukaj firmy"
+    },
+    "companyId": "ID firmy",
+    "clickToView": "Kliknij, aby zobaczyć profil",
+    "viewProfile": "Zobacz profil",
+    "removeFromWatchlist": "Usuń z obserwowanych"
+  },
+  "feedback": {
+    "title": "Prześlij opinię",
+    "subtitle": "Pomóż nam ulepszyć MI-Navigator",
+    "backToDashboard": "Powrót do dashboardu",
+    "form": {
+      "newFeedback": "Nowa opinia",
+      "feedbackType": "Typ opinii *",
+      "errorContext": "Kontekst błędu (automatycznie dodany)",
+      "page": "Strona:",
+      "additionalDescription": "Dodatkowy opis problemu *",
+      "yourMessage": "Twoja wiadomość *",
+      "placeholderError": "Opisz co robiłeś gdy wystąpił błąd...",
+      "placeholderFeedback": "Opisz swoją opinię, sugestię lub problem...",
+      "minChars": "Minimum 10 znaków ({count}/10)",
+      "submitting": "Wysyłanie...",
+      "submit": "Wyślij opinię"
+    },
+    "sidebar": {
+      "title": "Moje opinie",
+      "submitted": "wysłanych",
+      "loading": "Ładowanie...",
+      "empty": "Nie wysłałeś jeszcze żadnej opinii",
+      "statusNew": "Nowa"
+    },
+    "errors": {
+      "selectType": "Wybierz typ opinii",
+      "minLength": "Wiadomość musi zawierać co najmniej 10 znaków",
+      "submitFailed": "Nie udało się przesłać opinii",
+      "generic": "Wystąpił błąd",
+      "errorPrefix": "Błąd"
+    }
+  },
+  "projects": {
+    "title": "Projekty",
+    "backToDashboard": "Powrót do dashboardu",
+    "createNew": "+ Nowy projekt",
+    "loading": "Ładowanie projektów...",
+    "empty": {
+      "title": "Brak projektów",
+      "message": "Nie masz jeszcze żadnych projektów."
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "reports": "Raporty"
+    },
+    "types": {
+      "due_diligence": "Due Diligence",
+      "market_analysis": "Analiza rynku",
+      "competitive": "Konkurencja",
+      "research": "Badania"
+    },
+    "meta": {
+      "reports": "raportów",
+      "updated": "Aktualizacja:"
+    },
+    "delete": {
+      "button": "Usuń projekt",
+      "buttonLabel": "Usuń projekt {name}",
+      "title": "Potwierdź usunięcie projektu",
+      "message": "Czy na pewno chcesz usunąć projekt \"{name}\"? Ta operacja jest nieodwracalna i usunie wszystkie powiązane raporty.",
+      "confirm": "Usuń projekt",
+      "cancel": "Anuluj"
+    },
+    "errors": {
+      "loadFailed": "Nie udało się załadować projektów",
+      "deleteFailed": "Nie udało się usunąć projektu"
+    },
+    "detail": {
+      "loading": "Ładowanie projektu...",
+      "notFound": "Projekt nie został znaleziony",
+      "backToProjects": "← Wróć do projektów",
+      "editButton": "Edit Project",
+      "deleteButton": "Delete",
+      "breadcrumb": {
+        "dashboard": "Dashboard",
+        "projects": "Projects"
+      },
+      "info": {
+        "description": "Opis",
+        "noDescription": "Brak opisu",
+        "created": "Utworzony",
+        "updated": "Ostatnia aktualizacja"
+      },
+      "reportsSection": {
+        "title": "Raporty w projekcie",
+        "count": "Raporty w projekcie ({count})",
+        "addReports": "+ Dodaj raporty",
+        "empty": "Brak raportów w projekcie",
+        "emptyDescription": "Przejdź do listy raportów, aby przypisać raporty do tego projektu"
+      },
+      "reportStatus": {
+        "completed": "Zakończony",
+        "in_progress": "W toku"
+      },
+      "reportTypes": {
+        "company_profile": "Profil firmy",
+        "market_analysis": "Analiza rynku",
+        "due_diligence": "Due Diligence",
+        "competitive": "Konkurencja"
+      },
+      "deleteDialog": {
+        "title": "Delete Project",
+        "subtitle": "This action cannot be undone",
+        "message": "Are you sure you want to delete <strong>{name}</strong>?",
+        "warning": "⚠️ This project has {count} report(s) assigned. They will remain in your reports list.",
+        "cancel": "Cancel",
+        "confirm": "Delete Project",
+        "deleting": "Deleting..."
+      },
+      "errors": {
+        "loadFailed": "Nie udało się załadować projektu",
+        "deleteFailed": "Nie udało się usunąć projektu"
+      }
+    },
+    "edit": {
+      "title": "Edytuj projekt",
+      "loading": "Ładowanie projektu...",
+      "form": {
+        "name": "Nazwa projektu *",
+        "namePlaceholder": "np. Due Diligence - ACME Corp",
+        "type": "Typ projektu",
+        "description": "Opis projektu",
+        "descriptionPlaceholder": "Opisz cel i zakres projektu..."
+      },
+      "actions": {
+        "cancel": "Anuluj",
+        "save": "Zapisz zmiany",
+        "saving": "Zapisywanie..."
+      },
+      "success": {
+        "title": "Projekt zaktualizowany pomyślnie",
+        "description": "Zmiany w projekcie \"{name}\" zostały zapisane"
+      },
+      "errors": {
+        "nameRequired": "Nazwa projektu jest wymagana",
+        "loadFailed": "Nie udało się załadować projektu",
+        "updateFailed": "Nie udało się zaktualizować projektu. Spróbuj ponownie.",
+        "updateFailedShort": "Nie udało się zaktualizować projektu",
+        "tryAgain": "Spróbuj ponownie"
+      }
+    },
+    "new": {
+      "title": "Nowy projekt",
+      "form": {
+        "name": "Nazwa projektu *",
+        "namePlaceholder": "np. Due Diligence - ACME Corp",
+        "type": "Typ projektu",
+        "description": "Opis projektu",
+        "descriptionPlaceholder": "Opisz cel i zakres projektu..."
+      },
+      "actions": {
+        "cancel": "Anuluj",
+        "create": "Utwórz projekt",
+        "creating": "Tworzenie..."
+      },
+      "success": {
+        "title": "Projekt utworzony pomyślnie",
+        "description": "Projekt \"{name}\" został utworzony"
+      },
+      "errors": {
+        "nameRequired": "Nazwa projektu jest wymagana",
+        "createFailed": "Nie udało się utworzyć projektu. Spróbuj ponownie.",
+        "createFailedShort": "Nie udało się utworzyć projektu",
+        "tryAgain": "Spróbuj ponownie"
+      }
+    }
+  },
+  "admin": {
+    "title": "Panel Administracyjny",
+    "subtitle": "Administracja Systemem",
+    "backToDashboard": "Powrót do Dashboardu",
+    "backToAdmin": "Powrót do Panelu Administracyjnego",
+    "verifyingAuth": "Weryfikacja autoryzacji...",
+    "loggedInAs": "Zalogowano jako: {email} ({role})",
+    "accessDenied": {
+      "title": "Brak dostępu",
+      "message": "Nie masz uprawnień do dostępu do panelu administracyjnego. Wymagane są uprawnienia administratora.",
+      "userManagementMessage": "Nie masz uprawnień do zarządzania użytkownikami. Wymagane są uprawnienia administratora.",
+      "goToDashboard": "Przejdź do Dashboardu"
+    },
+    "stats": {
+      "totalUsers": "Wszyscy użytkownicy",
+      "activeUsers": "Aktywni użytkownicy",
+      "reports": "Raporty",
+      "searches": "Wyszukiwania",
+      "analyses": "Analizy"
+    },
+    "quickActions": {
+      "title": "Szybkie akcje",
+      "userManagement": {
+        "title": "Zarządzanie użytkownikami",
+        "description": "Zarządzaj użytkownikami i rolami"
+      },
+      "systemSettings": {
+        "title": "Ustawienia systemowe",
+        "description": "Konfiguruj preferencje systemowe"
+      },
+      "viewReports": {
+        "title": "Zobacz raporty",
+        "description": "Dostęp do wszystkich raportów systemowych"
+      }
+    },
+    "features": {
+      "title": "Funkcje administracyjne",
+      "userManagement": {
+        "title": "Zarządzanie użytkownikami",
+        "description": "Twórz, edytuj i usuwaj konta użytkowników"
+      },
+      "roleAssignment": {
+        "title": "Przypisywanie ról",
+        "description": "Zarządzaj rolami i uprawnieniami użytkowników"
+      },
+      "systemStats": {
+        "title": "Statystyki systemowe",
+        "description": "Zobacz metryki użycia systemu w czasie rzeczywistym"
+      }
+    },
+    "users": {
+      "title": "Zarządzanie użytkownikami",
+      "subtitle": "Zarządzaj kontami użytkowników i rolami",
+      "loading": "Ładowanie użytkowników...",
+      "search": "Szukaj po email, nazwie lub roli...",
+      "resultsCount": "{filtered} z {total} użytkowników",
+      "table": {
+        "user": "Użytkownik",
+        "role": "Rola",
+        "status": "Status",
+        "security": "Bezpieczeństwo",
+        "lastLogin": "Ostatnie logowanie",
+        "noName": "Brak nazwy",
+        "active": "Aktywny",
+        "inactive": "Nieaktywny",
+        "emailVerified": "Email zweryfikowany",
+        "twoFactorEnabled": "2FA Włączone",
+        "no2FA": "Brak 2FA",
+        "never": "Nigdy"
+      },
+      "info": {
+        "title": "Informacja",
+        "description": "Funkcje zarządzania użytkownikami pozwalają przeglądać wszystkich zarejestrowanych użytkowników, ich role i status. Dodatkowe funkcje zarządzania (zmiana ról, włączanie/wyłączanie kont) można zaimplementować w razie potrzeby."
+      },
+      "empty": "Nie znaleziono użytkowników pasujących do wyszukiwania."
+    }
+  },
+  "help": {
+    "title": "Centrum Pomocy",
+    "subtitle": "Znajdź odpowiedzi na swoje pytania",
+    "backToDashboard": "Powrót do dashboardu",
+    "search": {
+      "placeholder": "Szukaj pomocy...",
+      "button": "Szukaj",
+      "results": "Wyniki wyszukiwania dla: {query} ({count} wyników)",
+      "clear": "Wyczyść"
+    },
+    "categories": {
+      "title": "Kategorie",
+      "allArticles": "Wszystkie artykuły"
+    },
+    "contextHelp": {
+      "banner": "Pomoc kontekstowa: Pokazywanie artykułów związanych z {section}",
+      "showAll": "Pokaż wszystkie"
+    },
+    "contextLabels": {
+      "reports": "Raporty",
+      "projects": "Projekty",
+      "search": "Wyszukiwanie",
+      "alerts": "Alerty",
+      "settings": "Ustawienia",
+      "account": "Konto",
+      "dashboard": "Dashboard"
+    },
+    "article": {
+      "backToList": "Powrót do listy artykułów",
+      "tags": "Tagi"
+    },
+    "empty": {
+      "title": "Nie znaleziono artykułów",
+      "message": "Nie znaleziono artykułów"
+    },
+    "loading": "Ładowanie artykułów...",
+    "errors": {
+      "fetchArticles": "Nie udało się pobrać artykułów",
+      "loadArticles": "Nie udało się załadować artykułów"
+    }
+  },
+  "notifications": {
+    "title": "Powiadomienia",
+    "unreadCount": "{count} nieprzeczytanych",
+    "markAllAsRead": "Oznacz wszystkie jako przeczytane",
+    "backToDashboard": "← Powrót do dashboardu",
+    "filters": {
+      "all": "Wszystkie",
+      "unreadOnly": "Tylko nieprzeczytane"
+    },
+    "loading": "Ładowanie powiadomień...",
+    "empty": {
+      "unread": "Brak nieprzeczytanych powiadomień",
+      "all": "Brak powiadomień"
+    },
+    "errors": {
+      "fetchNotifications": "Nie udało się pobrać powiadomień",
+      "loadNotifications": "Nie udało się załadować powiadomień"
+    }
+  },
+  "invitations": {
+    "title": "Zaproszenia do przestrzeni roboczych",
+    "backToDashboard": "Powrót do dashboardu",
+    "manageWorkspaces": "Zarządzaj przestrzeniami",
+    "loading": "Ładowanie zaproszeń...",
+    "empty": {
+      "title": "Brak oczekujących zaproszeń",
+      "message": "Nie masz obecnie żadnych oczekujących zaproszeń do przestrzeni roboczych.",
+      "goToDashboard": "Przejdź do dashboardu"
+    },
+    "count": {
+      "singular": "Masz 1 oczekujące zaproszenie",
+      "plural": "Masz {count} oczekujących zaproszeń"
+    },
+    "invitedAs": "Zaproszono jako:",
+    "invitedOn": "Zaproszono {date}",
+    "buttons": {
+      "accept": "Akceptuj",
+      "decline": "Odrzuć"
+    },
+    "confirm": {
+      "decline": "Czy na pewno chcesz odrzucić to zaproszenie?"
+    },
+    "messages": {
+      "accepted": "Zaproszenie zaakceptowane! Masz teraz dostęp do przestrzeni roboczej.",
+      "declined": "Zaproszenie odrzucone"
+    },
+    "errors": {
+      "loadFailed": "Nie udało się załadować zaproszeń",
+      "acceptFailed": "Nie udało się zaakceptować zaproszenia",
+      "declineFailed": "Nie udało się odrzucić zaproszenia",
+      "csrfFailed": "Nie udało się uzyskać tokenu CSRF"
+    }
+  },
+  "competitive": {
+    "title": "Mapa pozycjonowania konkurencyjnego",
+    "input": {
+      "companyIdLabel": "ID firmy",
+      "placeholder": "np. fado, company_001"
+    },
+    "actions": {
+      "loading": "Ładowanie...",
+      "analyze": "Analizuj"
+    },
+    "tooltip": {
+      "quality": "Jakość",
+      "value": "Wartość",
+      "share": "Udział"
+    },
+    "results": {
+      "positioning": "Pozycjonowanie"
+    },
+    "table": {
+      "title": "Konkurenci",
+      "company": "Firma",
+      "quality": "Jakość / Innowacyjność",
+      "value": "Wartość",
+      "marketShare": "Udział w rynku (%)",
+      "color": "Kolor",
+      "you": "Ty"
+    },
+    "insights": {
+      "title": "Spostrzeżenia",
+      "positioning": "jest pozycjonowana w",
+      "highQualitySegment": "segment wysokiej jakości",
+      "lowQualitySegment": "segment niskiej jakości",
+      "strongestCompetitor": "Najsilniejszy konkurent",
+      "share": "udział",
+      "competitorsCount": "Liczba konkurentów na mapie"
+    },
+    "empty": {
+      "message": "Wprowadź ID firmy i kliknij \"Analizuj\", aby zobaczyć mapę pozycjonowania"
+    },
+    "errors": {
+      "companyIdRequired": "Proszę wprowadzić ID firmy",
+      "loadFailed": "Nie udało się załadować danych"
+    }
+  },
+  "compare": {
+    "title": "Porównaj firmy",
+    "subtitle": "Porównaj dwie firmy obok siebie",
+    "nav": {
+      "back": "Wróć"
+    },
+    "selection": {
+      "title": "Wybierz firmy do porównania",
+      "company1": "Firma 1",
+      "company2": "Firma 2",
+      "placeholder": "Wprowadź NIP, KRS, REGON lub nazwę..."
+    },
+    "actions": {
+      "loading": "Ładowanie...",
+      "compare": "Porównaj"
+    },
+    "results": {
+      "metric": "Metryka",
+      "nip": "NIP",
+      "winner": "Zwycięzca",
+      "noData": "Brak danych"
+    },
+    "summary": {
+      "title": "Podsumowanie",
+      "metricsWon": "Wygrane metryki",
+      "ties": "Remisy"
+    },
+    "empty": {
+      "title": "Wybierz dwie firmy do porównania",
+      "message": "Użyj pól wyboru powyżej, aby wybrać firmy, które chcesz porównać"
+    }
+  },
+  "offline": {
+    "title": "Jesteś offline",
+    "message": "Sprawdź połączenie internetowe i spróbuj ponownie.",
+    "retry": "Spróbuj ponownie"
+  },
+  "onboarding": {
+    "title": "Witamy"
+  },
+  "share": {
+    "title": "Udostępnij"
+  },
+  "maintenance": {
+    "loading": "Ładowanie...",
+    "statusCode": "503",
+    "title": "Konserwacja",
+    "defaultMessage": "System jest obecnie w trakcie konserwacji. Wróć później.",
+    "estimatedTime": "Szacowany czas:",
+    "infoMessage": "Obecnie wykonujemy zaplanowaną konserwację, aby ulepszyć nasze usługi. System wróci do działania wkrótce.",
+    "checkStatus": "Sprawdź status",
+    "autoRefresh": "Ta strona automatycznie sprawdza co 30 sekund"
+  },
+  "companyDetail": {
+    "loading": "Ładowanie profilu firmy...",
+    "errors": {
+      "loadFailed": "Błąd",
+      "back": "Wróć"
+    },
+    "header": {
+      "breadcrumb": "Firma",
+      "navigation": {
+        "reports": "Raporty",
+        "search": "Wyszukiwanie"
+      }
+    },
+    "status": {
+      "active": "Aktywna"
+    },
+    "info": {
+      "founded": "Założona",
+      "employees": "pracowników",
+      "website": "Odwiedź stronę",
+      "addToWatchlist": "Dodaj do obserwowanych",
+      "removeFromWatchlist": "Usuń z obserwowanych"
+    },
+    "tabs": {
+      "overview": "Przegląd",
+      "timeline": "Oś czasu",
+      "news": "Aktualności",
+      "financials": "Finanse",
+      "people": "Ludzie",
+      "dataQuality": "Jakość danych",
+      "conflicts": "Konflikty"
+    },
+    "sections": {
+      "basicInfo": "Informacje podstawowe",
+      "address": "Adres",
+      "industry": "Branża",
+      "description": "Opis",
+      "customFields": "Pola niestandardowe",
+      "recommendations": "Rekomendacje",
+      "financialRatios": "Wskaźniki finansowe",
+      "industryComparison": "Porównanie z branżą",
+      "keyPeople": "Kluczowe osoby",
+      "dataQualityDashboard": "Jakość danych",
+      "dataConflicts": "Konflikty danych"
+    },
+    "empty": {
+      "noData": "Brak danych",
+      "noEvents": "Brak wydarzeń",
+      "noNews": "Brak aktualności",
+      "noFinancials": "Brak danych finansowych",
+      "noPeople": "Brak danych o ludziach",
+      "noCustomFields": "Brak pól niestandardowych",
+      "noConflicts": "Brak konfliktów"
+    },
+    "news": {
+      "category": "Kategoria",
+      "sentiment": "Sentyment",
+      "dateFrom": "Od",
+      "dateTo": "Do",
+      "showDateFilter": "Pokaż filtr dat",
+      "clearFilters": "Wyczyść filtry"
+    },
+    "timeline": {
+      "eventType": "Typ wydarzenia",
+      "impact": "Wpływ",
+      "details": "Szczegóły"
+    },
+    "sentiment": {
+      "positive": "Pozytywny",
+      "negative": "Negatywny",
+      "neutral": "Neutralny"
+    },
+    "categories": {
+      "general": "Ogólne",
+      "financial": "Finanse",
+      "product": "Produkt",
+      "hr": "Kadry",
+      "legal": "Prawne"
+    },
+    "relationships": {
+      "subsidiary": "Spółka zależna",
+      "parent": "Spółka matka",
+      "sister": "Spółka siostra",
+      "affiliate": "Podmiot powiązany",
+      "ownership": "Udział"
+    },
+    "refresh": {
+      "button": "Odśwież dane",
+      "refreshing": "Odświeżanie...",
+      "lastUpdate": "Ostatnia aktualizacja",
+      "error": "Błąd"
+    },
+    "missingData": {
+      "label": "Brak danych",
+      "suggestions": "Sugestie uzupełnienia danych",
+      "addKrs": "Dodaj numer KRS aby zwiększyć wiarygodność profilu",
+      "addRegon": "Uzupełnij REGON z oficjalnych rejestrów",
+      "addFounded": "Podaj rok założenia firmy",
+      "addEmployees": "Określ przedział zatrudnienia",
+      "viewQualityReport": "Zobacz pełny raport jakości danych →"
+    },
+    "fields": {
+      "nip": "NIP",
+      "krs": "KRS",
+      "regon": "REGON",
+      "founded": "Rok założenia",
+      "employment": "Zatrudnienie",
+      "select": "Select...",
+      "save": "Save",
+      "enterValue": "Enter value...",
+      "current": "Current"
+    },
+    "sectionHeaders": {
+      "pkdCodes": "Kody PKD",
+      "location": "Lokalizacja",
+      "relatedCompanies": "Powiązane Spółki",
+      "information": "Informacje",
+      "customFields": "Custom Fields",
+      "actions": "Akcje"
+    },
+    "actions": {
+      "generateReport": "Generuj raport",
+      "processing": "Przetwarzanie...",
+      "watching": "Obserwujesz",
+      "addToWatched": "Dodaj do obserwowanych",
+      "setAlert": "Ustaw alert"
+    },
+    "eventTypes": {
+      "all": "Wszystkie",
+      "founding": "Założenie",
+      "investment": "Inwestycja",
+      "partnership": "Partnerstwo",
+      "product": "Produkt",
+      "legal": "Prawne",
+      "hr": "Kadry",
+      "milestone": "Kamień milowy"
+    },
+    "impactLevels": {
+      "all": "Wszystkie",
+      "high": "Wysoki",
+      "medium": "Średni",
+      "low": "Niski"
+    },
+    "newsCategories": {
+      "all": "Wszystkie",
+      "general": "Ogólne",
+      "financial": "Finanse",
+      "products": "Produkty",
+      "hr": "Kadry",
+      "legal": "Prawne"
+    },
+    "newsSentiments": {
+      "all": "Wszystkie",
+      "positive": "Pozytywny",
+      "neutral": "Neutralny",
+      "negative": "Negatywny"
+    },
+    "conflicts": {
+      "resolving": "Zapisywanie...",
+      "choose": "Wybierz"
+    }
+  },
+  "reportDetail": {
+    "loading": "Ładowanie raportu...",
+    "errors": {
+      "loadFailed": "Nie udało się załadować raportu",
+      "notFound": "Raport nie został znaleziony. Mógł zostać usunięty.",
+      "structureError": "Błąd struktury raportu",
+      "saveFailed": "Nie udało się zapisać zmian",
+      "saveFailedDescription": "Wystąpił błąd podczas zapisywania",
+      "tryAgain": "Spróbuj ponownie",
+      "exportFailed": "Nie udało się wyeksportować raportu",
+      "shareFailed": "Nie udało się udostępnić raportu",
+      "invalidEmail": "Proszę podać prawidłowy adres email",
+      "duplicateFailed": "Nie udało się zduplikować raportu",
+      "duplicateError": "Wystąpił błąd podczas duplikowania raportu",
+      "templateSaveFailed": "Nie udało się zapisać szablonu",
+      "templateSaveError": "Wystąpił błąd podczas zapisywania szablonu",
+      "csrfFailed": "Nie udało się pobrać tokenu CSRF",
+      "versionRestoreFailed": "Nie udało się przywrócić wersji",
+      "versionRestoreError": "Błąd podczas przywracania wersji",
+      "accessLogFailed": "Nie udało się pobrać logu dostępu",
+      "linkGenerateFailed": "Nie udało się wygenerować linku",
+      "linkRevokeFailed": "Nie udało się cofnąć linku",
+      "linkRevokeError": "Wystąpił błąd podczas cofania linku",
+      "uploadFailed": "Nie udało się przesłać obrazu",
+      "unknown": "Nieznany błąd"
+    },
+    "success": {
+      "saved": "Raport zapisany pomyślnie",
+      "savedDescription": "Wszystkie zmiany zostały zapisane",
+      "templateSaved": "Szablon \"{name}\" został utworzony pomyślnie!"
+    },
+    "prompts": {
+      "templateName": "Wprowadź nazwę szablonu:"
+    },
+    "header": {
+      "backToReports": "Wróć do raportów",
+      "actions": {
+        "favorite": "Dodaj do ulubionych",
+        "unfavorite": "Usuń z ulubionych",
+        "archive": "Archiwizuj raport",
+        "unarchive": "Przywróć z archiwum",
+        "duplicate": "Duplikuj raport",
+        "saveAsTemplate": "Zapisz jako szablon",
+        "comments": "Komentarze ({count})",
+        "versions": "Historia wersji",
+        "search": "Szukaj w raporcie (Ctrl+F)",
+        "print": "Drukuj raport (Ctrl+P)",
+        "accessLog": "Log dostępu",
+        "export": "Eksportuj",
+        "exporting": "Eksportowanie...",
+        "share": "Udostępnij",
+        "edit": "Edytuj",
+        "save": "Zapisz zmiany",
+        "cancel": "Anuluj",
+        "delete": "Usuń raport",
+        "autoSaved": "Auto-zapisano {time}"
+      }
+    },
+    "metadata": {
+      "type": "Typ",
+      "company": "Firma",
+      "created": "Utworzono",
+      "updated": "Zaktualizowano",
+      "createdLabel": "Utworzono",
+      "updatedLabel": "Aktualizacja",
+      "status": "Status",
+      "types": {
+        "company_profile": "Profil firmy",
+        "market_analysis": "Analiza rynku",
+        "due_diligence": "Due Diligence"
+      }
+    },
+    "tableOfContents": {
+      "title": "Spis treści"
+    },
+    "search": {
+      "placeholder": "Szukaj w raporcie...",
+      "matches": "{current} z {total}",
+      "noMatches": "Brak wyników",
+      "previous": "Poprzedni",
+      "next": "Następny",
+      "close": "Zamknij wyszukiwanie"
+    },
+    "sections": {
+      "collapse": "Zwiń sekcję",
+      "expand": "Rozwiń sekcję",
+      "edit": "Edytuj sekcję",
+      "delete": "Usuń sekcję",
+      "addNew": "Dodaj nową sekcję",
+      "newTitle": "Nowa sekcja",
+      "newContent": "Wpisz treść sekcji...",
+      "dragToReorder": "Przeciągnij aby zmienić kolejność"
+    },
+    "comments": {
+      "title": "Komentarze ({count})",
+      "empty": "Brak komentarzy. Bądź pierwszą osobą, która doda komentarz!",
+      "placeholder": "Dodaj komentarz...",
+      "submit": "Dodaj komentarz",
+      "reply": "Odpowiedz",
+      "delete": "Usuń komentarz",
+      "deleteReply": "Usuń odpowiedź",
+      "resolve": "Rozwiąż",
+      "unresolve": "Oznacz jako nierozwiązany",
+      "resolved": "Rozwiązany",
+      "resolvedBy": "• Rozwiązał: {name}",
+      "resolvedCount": "({count} rozwiązanych)",
+      "showResolved": "Pokaż rozwiązane",
+      "hideResolved": "Ukryj rozwiązane",
+      "replyPlaceholder": "Odpowiedz na komentarz {name}...",
+      "escToCancel": "Esc aby anulować"
+    },
+    "versions": {
+      "title": "Historia wersji",
+      "empty": "Brak historii wersji",
+      "current": "Aktualna wersja",
+      "version": "Wersja {number}",
+      "author": "Autor",
+      "changes": "Zmiany",
+      "created": "Utworzono",
+      "load": "Załaduj wersję",
+      "restore": "Przywróć",
+      "restoring": "Przywracanie...",
+      "restoreTitle": "Przywróć wersję",
+      "restoreConfirm": "Czy na pewno chcesz przywrócić wersję {version}? Spowoduje to utworzenie nowej wersji z przywróconą treścią.",
+      "restoreSuccess": "Przywrócono wersję {oldVersion}. Utworzono nową wersję {newVersion}.",
+      "cancel": "Anuluj",
+      "confirm": "Potwierdź"
+    },
+    "annotations": {
+      "title": "Dodaj adnotacje",
+      "selectedText": "Zaznaczony tekst",
+      "commentLabel": "Komentarz",
+      "commentPlaceholder": "Wpisz swój komentarz...",
+      "save": "Zapisz",
+      "saving": "Zapisywanie...",
+      "cancel": "Anuluj",
+      "delete": "Usuń adnotację",
+      "deleteTooltip": "Usuń adnotację",
+      "sectionTitle": "Adnotacje",
+      "count": "Adnotacje ({count})"
+    },
+    "edit": {
+      "mode": "Tryb edycji",
+      "title": "Tytuł raportu",
+      "titlePlaceholder": "Tytuł raportu...",
+      "sectionTitle": "Tytuł sekcji",
+      "content": "Treść",
+      "contentPlaceholder": "Wpisz treść sekcji...",
+      "newSection": "Nowa sekcja",
+      "dragInstruction": "Przeciągnij aby zmienić kolejność",
+      "saving": "Zapisywanie...",
+      "autoSaved": "Automatycznie zapisano",
+      "interactiveDiagram": "Diagram interaktywny",
+      "unsavedDraft": "Znaleziono niezapisane zmiany. Czy chcesz je przywrócić?",
+      "conflictDetected": "Ten raport został zmodyfikowany przez innego użytkownika.",
+      "conflictAction": "Kliknij OK aby odświeżyć i zobaczyć najnowszą wersję (twoje zmiany zostaną utracone), lub Anuluj aby kontynuować edycję.",
+      "annotationsTitle": "Adnotacje w tej sekcji",
+      "deleteAnnotation": "Usuń adnotację",
+      "formatting": {
+        "bold": "Pogrubienie",
+        "italic": "Kursywa",
+        "boldShortcut": "Bold (Ctrl+B)",
+        "italicShortcut": "Italic (Ctrl+I)",
+        "link": "Link",
+        "linkPrompt": "Wprowadź URL:",
+        "bulletList": "Lista punktowana",
+        "insertImage": "Insert image",
+        "insertLink": "Insert link",
+        "table": "Tabela"
+      },
+      "table": {
+        "title": "Wstaw tabelę",
+        "rows": "Liczba wierszy",
+        "columns": "Liczba kolumn",
+        "insert": "Wstaw",
+        "cancel": "Anuluj"
+      },
+      "deleteSection": {
+        "title": "Usuń sekcję?",
+        "irreversible": "Ta operacja jest nieodwracalna",
+        "confirm": "Czy na pewno chcesz usunąć sekcję \"{title}\"?",
+        "cancel": "Anuluj",
+        "delete": "Usuń sekcję",
+        "tooltip": "Usuń sekcję"
+      }
+    },
+    "export": {
+      "title": "Eksportuj raport",
+      "selectSections": "Wybierz sekcje do eksportu",
+      "selectAll": "Zaznacz wszystkie",
+      "deselectAll": "Odznacz wszystkie",
+      "minOneSection": "Wybierz przynajmniej jedną sekcję",
+      "format": "Format eksportu",
+      "formats": {
+        "pdf": "PDF",
+        "pdfDescription": "Plik PDF z pełnym formatowaniem",
+        "excel": "Excel (.xlsx)",
+        "excelDescription": "Z formułami finansowymi",
+        "word": "Word (.docx)",
+        "wordDescription": "Do edycji dokumentu",
+        "powerpoint": "PowerPoint (.pptx)",
+        "powerpointDescription": "Do prezentacji",
+        "markdown": "Markdown",
+        "markdownDescription": "Tekst markdown",
+        "default": "Domyślny"
+      },
+      "exporting": "Eksportowanie...",
+      "cancel": "Anuluj",
+      "close": "Zamknij"
+    },
+    "share": {
+      "title": "Udostępnij raport",
+      "tabs": {
+        "link": "Link",
+        "email": "Email",
+        "embed": "Osadź"
+      },
+      "link": {
+        "generate": "Wygeneruj link",
+        "generating": "Generowanie...",
+        "generateTitle": "Wygeneruj link udostępniania",
+        "generateDescription": "Stwórz publiczny link do tego raportu",
+        "copy": "Kopiuj link",
+        "copied": "Skopiowano!",
+        "copyShort": "Kopiuj",
+        "successTitle": "Link utworzony pomyślnie!",
+        "successDescription": "Każdy kto ma ten link może zobaczyć raport",
+        "shareLink": "Link do udostępnienia",
+        "expiresWarning": "Link wygasa po 30 dniach. Możesz cofnąć dostęp w dowolnym momencie.",
+        "revoke": "Cofnij link",
+        "revoking": "Cofanie...",
+        "revokeButton": "Cofnij",
+        "revokeConfirm": "Czy na pewno chcesz cofnąć ten link? Wszyscy użytkownicy stracą dostęp.",
+        "passwordProtection": "Ochrona hasłem",
+        "password": "Hasło",
+        "passwordPlaceholder": "Wprowadź hasło...",
+        "expiresIn": "Wygasa za",
+        "expiresNever": "Nigdy",
+        "expires24h": "24 godziny",
+        "expires7d": "7 dni",
+        "expires30d": "30 dni",
+        "permissions": "Uprawnienia",
+        "viewOnly": "Tylko do odczytu",
+        "canComment": "Może komentować",
+        "canEdit": "Może edytować"
+      },
+      "email": {
+        "emailPlaceholder": "Wprowadź adres email...",
+        "recipientEmail": "Adres email odbiorcy *",
+        "message": "Wiadomość (opcjonalnie)",
+        "messagePlaceholder": "Dodaj krótką wiadomość...",
+        "send": "Wyślij",
+        "sending": "Wysyłanie...",
+        "success": "Raport został udostępniony",
+        "successMessage": "Raport został pomyślnie udostępniony!"
+      },
+      "revokeWarning": "Cofnij udostępnienie - link przestanie działać",
+      "embed": {
+        "title": "Kod osadzenia",
+        "description": "Skopiuj poniższy kod aby osadzić raport na swojej stronie",
+        "generateTitle": "Wygeneruj kod osadzania",
+        "generateDescription": "Stwórz kod HTML do osadzenia raportu na swojej stronie",
+        "generate": "Wygeneruj kod",
+        "successTitle": "Kod osadzania wygenerowany!",
+        "successDescription": "Skopiuj poniższy kod i wklej na swojej stronie",
+        "codeLabel": "Kod HTML (iframe)",
+        "copy": "Kopiuj kod",
+        "copied": "Skopiowano!",
+        "howToUse": "Jak użyć:",
+        "step1": "Skopiuj powyższy kod HTML",
+        "step2": "Wklej go w miejscu gdzie chcesz osadzić raport",
+        "step3": "Raport będzie wyświetlany w iframe o szerokości 100% i wysokości 800px",
+        "height": "Wysokość",
+        "width": "Szerokość"
+      },
+      "cancel": "Anuluj",
+      "close": "Zamknij"
+    },
+    "accessLog": {
+      "title": "Log dostępu do raportu",
+      "loading": "Ładowanie...",
+      "empty": "Brak udostępnień",
+      "emptyDescription": "Ten raport nie był jeszcze udostępniany",
+      "summary": "Podsumowanie",
+      "sharedCount": "Raport został udostępniony {count} razy",
+      "totalViews": "Całkowite wyświetlenia",
+      "shareLink": "Link udostępnienia #{number}",
+      "created": "Utworzono",
+      "expires": "Wygasa",
+      "views": "wyświetleń",
+      "accessHistory": "Historia dostępu:",
+      "totalAccesses": "Łączna liczba wyświetleń",
+      "uniqueUsers": "Unikalni użytkownicy",
+      "columns": {
+        "user": "Użytkownik",
+        "accessedAt": "Data dostępu",
+        "ipAddress": "Adres IP",
+        "action": "Akcja"
+      },
+      "close": "Zamknij"
+    },
+    "swot": {
+      "title": "Analiza SWOT",
+      "strengths": "Mocne strony",
+      "strengthsEn": "Strengths",
+      "weaknesses": "Słabe strony",
+      "weaknessesEn": "Weaknesses",
+      "opportunities": "Szanse",
+      "opportunitiesEn": "Opportunities",
+      "threats": "Zagrożenia",
+      "threatsEn": "Threats",
+      "internalFactors": "Czynniki wewnętrzne",
+      "externalFactors": "Czynniki zewnętrzne",
+      "positive": "Pozytywne",
+      "negative": "Negatywne",
+      "summary": "Razem: {total} czynników",
+      "tip": "Kliknij nagłówek sekcji, aby ją rozwinąć"
+    },
+    "porter": {
+      "title": "Model Portera - 5 Sił",
+      "subtitle": "Model Portera - 5 sił wpływających na atrakcyjność branży",
+      "supplierPower": "Siła dostawców",
+      "supplierPowerEn": "Supplier Power",
+      "buyerPower": "Siła nabywców",
+      "buyerPowerEn": "Buyer Power",
+      "substitutes": "Zagrożenie substytutów",
+      "substitutesEn": "Threat of Substitutes",
+      "newEntrants": "Nowi wchodzący",
+      "newEntrantsEn": "Threat of New Entrants",
+      "industryRivalry": "Rywalizacja",
+      "industryRivalryEn": "Industry Rivalry",
+      "strength": {
+        "low": "Niska",
+        "medium": "Średnia",
+        "high": "Wysoka",
+        "lowUpper": "NISKA",
+        "mediumUpper": "ŚREDNIA",
+        "highUpper": "WYSOKA"
+      },
+      "strengthDescription": {
+        "low": "Niska - korzystne dla firmy",
+        "medium": "Średnia - neutralne",
+        "high": "Wysoka - wyzwanie"
+      },
+      "keyFactors": "Kluczowe czynniki:",
+      "tip": "Kliknij siłę, aby zobaczyć szczegóły",
+      "dataUnavailable": "Dane niedostępne"
+    },
+    "tamSamSom": {
+      "title": "Model TAM SAM SOM",
+      "subtitle": "Model TAM SAM SOM - Analiza wielkości rynku",
+      "tam": "TAM - Całkowity Rynek",
+      "tamDescription": "Całkowity Rynek",
+      "sam": "SAM - Rynek Docelowy",
+      "samDescription": "Rynek Docelowy",
+      "som": "SOM - Rynek Osiągalny",
+      "somDescription": "Rynek Osiągalny",
+      "methodology": "Metodologia kalkulacji:",
+      "growth": "Prognoza wzrostu:",
+      "estimated": "Szacunkowa",
+      "estimatedDescription": "Wartość szacunkowa",
+      "tip": "Kliknij okrąg, aby zobaczyć szczegóły"
+    },
+    "trendTimeline": {
+      "title": "Oś czasu trendów",
+      "subtitle": "Oś czasu trendów",
+      "categories": {
+        "technology": "Technologia",
+        "regulations": "Regulacje",
+        "market": "Rynek",
+        "social": "Społeczne"
+      },
+      "status": {
+        "growing": "Rosnący",
+        "mature": "Dojrzały",
+        "stable": "Stabilny",
+        "declining": "Malejący"
+      },
+      "impact": "Wpływ",
+      "impactLevel": {
+        "high": "Wysoki",
+        "medium": "Średni",
+        "low": "Niski"
+      },
+      "forecast": "Prognoza",
+      "summary": "{trendCount} trendów z {pointCount} punktami czasowymi",
+      "tip": "Kliknij trend, aby rozwinąć szczegółową oś czasu. Najedź na punkt, aby zobaczyć opis."
+    },
+    "ownership": {
+      "title": "Struktura własności",
+      "company": "Spółka główna",
+      "shareholder": "Udziałowiec",
+      "ubo": "Beneficjent rzeczywisty (UBO)",
+      "shareholders": "Udziałowcy",
+      "beneficiaries": "Beneficjenci",
+      "share": "Udział",
+      "role": "Rola",
+      "type": "Typ",
+      "entityType": "Typ podmiotu",
+      "krs": "KRS",
+      "country": "Kraj",
+      "description": "Opis",
+      "direct": "Bezpośrednio",
+      "showTable": "Pokaż tabelę udziałowców",
+      "hideTable": "Ukryj tabelę udziałowców",
+      "columns": {
+        "name": "Nazwa",
+        "share": "Udział",
+        "type": "Typ",
+        "role": "Rola"
+      },
+      "tip": "Kliknij węzeł drzewa, aby zobaczyć szczegóły. Użyj strzałek, aby rozwinąć/zwinąć gałęzie."
+    },
+    "financialRatios": {
+      "title": "Wskaźniki finansowe",
+      "showBenchmark": "Pokaż benchmark branżowy",
+      "categories": {
+        "profitability": "Rentowność",
+        "liquidity": "Płynność",
+        "leverage": "Zadłużenie",
+        "efficiency": "Efektywność"
+      },
+      "companyValue": "Wartość firmy",
+      "industryBenchmark": "Benchmark branżowy",
+      "comparison": "Porównanie z benchmarkiem:",
+      "comparisonStatus": {
+        "above": "Powyżej benchmarku",
+        "below": "Poniżej benchmarku",
+        "equal": "Na poziomie benchmarku"
+      },
+      "better": "lepiej",
+      "description": "Opis:",
+      "summary": "Podsumowanie analizy",
+      "indicators": "Wskaźniki",
+      "chart": "Wykres radarowy - {count} wskaźników finansowych",
+      "chartWithBenchmark": "Wykres radarowy - {count} wskaźników finansowych z benchmarkiem branżowym",
+      "tip": "Kliknij punkt lub kafelek, aby zobaczyć szczegóły wskaźnika"
+    },
+    "competitorMap": {
+      "title": "Mapa pozycjonowania konkurentów",
+      "quadrants": {
+        "innovators": "Innowatorzy",
+        "leaders": "Liderzy",
+        "niche": "Nisza",
+        "consolidators": "Konsolidatorzy"
+      },
+      "revenue": "Przychody",
+      "position": "Pozycja",
+      "segment": "Segment",
+      "quadrantAnalysis": "Analiza kwadrantów",
+      "conclusions": "Wnioski",
+      "competitors": "Konkurenci",
+      "segments": "Segmenty",
+      "tip": "Kliknij na bąbelek, aby zobaczyć szczegóły firmy. Rozmiar bąbelka odzwierciedla przychody."
+    }
+  },
+  "settingsPrivacy": {
+    "header": {
+      "title": "Ustawienia Prywatności",
+      "backToSettings": "← Wróć do Ustawień"
+    },
+    "export": {
+      "title": "Eksportuj Swoje Dane",
+      "description": "Pobierz kopię wszystkich swoich danych osobowych przechowywanych w MI-Navigator. Zawiera to informacje o profilu, preferencje, dzienniki aktywności i więcej. Ten eksport jest dostarczany zgodnie z przepisami RODO.",
+      "includedTitle": "Co zawiera eksport:",
+      "includedItems": {
+        "profile": "Profil użytkownika (email, imię, rola, branża)",
+        "preferences": "Preferencje (język, format, głębokość)",
+        "security": "Ustawienia bezpieczeństwa (status 2FA, status konta)",
+        "activity": "Dziennik aktywności (wszystkie działania wykonane w systemie)"
+      },
+      "buttonExporting": "Eksportowanie...",
+      "buttonDownload": "Pobierz Moje Dane"
+    },
+    "retention": {
+      "title": "Przechowywanie Danych",
+      "description": "Przechowujemy Twoje dane osobowe tak długo, jak Twoje konto jest aktywne. Jeśli chcesz usunąć swoje konto i wszystkie powiązane dane, użyj opcji \"Usuń Konto\" poniżej. Usunięcie konta jest trwałe i nie można go cofnąć."
+    },
+    "delete": {
+      "title": "Usuń Konto",
+      "description": "Trwale usuń swoje konto i wszystkie powiązane dane. Tej czynności nie można cofnąć. Wszystkie Twoje raporty, projekty i ustawienia zostaną trwale usunięte.",
+      "warningTitle": "⚠️ Ostrzeżenie: To usunie:",
+      "warningItems": {
+        "account": "Twoje konto użytkownika i profil",
+        "logs": "Wszystkie dzienniki audytu i historię aktywności",
+        "templates": "Wszystkie zapisane szablony raportów",
+        "preferences": "Wszystkie preferencje i ustawienia"
+      },
+      "button": "Usuń Moje Konto"
+    },
+    "modal": {
+      "title": "Potwierdź Usunięcie Konta",
+      "subtitle": "Ta czynność jest trwała i nie można jej cofnąć.",
+      "passwordLabel": "Wprowadź swoje hasło, aby potwierdzić",
+      "passwordPlaceholder": "Twoje hasło",
+      "confirmLabel": "Wpisz DELETE, aby potwierdzić",
+      "confirmPlaceholder": "DELETE",
+      "buttonCancel": "Anuluj",
+      "buttonDeleting": "Usuwanie...",
+      "buttonDelete": "Usuń Moje Konto"
+    },
+    "messages": {
+      "notAuthenticated": "Nie uwierzytelniono",
+      "exportSuccess": "Dane wyeksportowane pomyślnie!",
+      "exportFailed": "Nie udało się wyeksportować danych. Spróbuj ponownie.",
+      "passwordRequired": "Proszę wprowadzić hasło",
+      "confirmationRequired": "Proszę wpisać DELETE, aby potwierdzić",
+      "deleteFailed": "Nie udało się usunąć konta. Spróbuj ponownie."
+    }
+  },
+  "settingsApiKeys": {
+    "header": {
+      "title": "Klucze API",
+      "subtitle": "Generuj i zarządzaj kluczami API do programowego dostępu do MI-Navigator",
+      "backToSettings": "← Wróć do Ustawień",
+      "generateButton": "+ Wygeneruj Nowy Klucz"
+    },
+    "table": {
+      "columnKey": "Klucz",
+      "columnNameDescription": "Nazwa / Opis",
+      "columnCreated": "Utworzono",
+      "columnLastUsed": "Ostatnio Używany",
+      "columnStatus": "Status",
+      "columnActions": "Działania",
+      "unnamedKey": "Klucz bez nazwy",
+      "never": "Nigdy",
+      "statusActive": "Aktywny",
+      "statusInactive": "Nieaktywny",
+      "deleteButton": "Usuń"
+    },
+    "createForm": {
+      "title": "Wygeneruj Nowy Klucz API",
+      "nameLabel": "Nazwa Klucza (opcjonalna)",
+      "namePlaceholder": "np. Serwer Produkcyjny",
+      "descriptionLabel": "Opis (opcjonalny)",
+      "descriptionPlaceholder": "Krótki opis do czego będzie używany ten klucz...",
+      "buttonCancel": "Anuluj",
+      "buttonGenerate": "Wygeneruj Klucz"
+    },
+    "createdModal": {
+      "title": "Klucz API Utworzony!",
+      "warning": "⚠️ Skopiuj swój klucz API teraz. Nie będziesz mógł go ponownie zobaczyć!",
+      "yourKeyLabel": "Twój Klucz API",
+      "buttonCopy": "📋 Kopiuj",
+      "buttonCopied": "✓ Skopiowano!",
+      "nameLabel": "Nazwa: ",
+      "securityWarning": "Ważne: Przechowuj ten klucz bezpiecznie. Zapewnia pełny dostęp do Twojego konta przez API.",
+      "buttonClose": "Zapisałem Mój Klucz"
+    },
+    "empty": {
+      "title": "Brak Kluczy API",
+      "description": "Nie wygenerowałeś jeszcze żadnych kluczy API. Utwórz jeden, aby rozpocząć korzystanie z programowego dostępu.",
+      "buttonCreate": "Wygeneruj Swój Pierwszy Klucz"
+    },
+    "documentation": {
+      "title": "Używanie Twojego Klucza API",
+      "description": "Dołącz swój klucz API w nagłówku Authorization swoich żądań HTTP:",
+      "codeExample": "Authorization: Bearer TWOJ_KLUCZ_API",
+      "docsLink": "Aby uzyskać pełną dokumentację API, odwiedź",
+      "docsLinkText": "Dokumentacja API"
+    },
+    "messages": {
+      "loading": "Ładowanie kluczy API...",
+      "loadFailed": "Nie udało się załadować kluczy API",
+      "notAuthenticated": "Nie uwierzytelniono. Proszę się zalogować.",
+      "createSuccess": "Klucz API utworzony pomyślnie",
+      "createSuccessDescription": "Upewnij się, że skopiowałeś swój klucz teraz. Nie będziesz mógł go ponownie zobaczyć!",
+      "createFailed": "Nie udało się utworzyć klucza API",
+      "deleteConfirm": "Czy na pewno chcesz usunąć ten klucz API? Tej czynności nie można cofnąć.",
+      "deleteSuccess": "Klucz API usunięty pomyślnie",
+      "deleteFailed": "Nie udało się usunąć klucza API",
+      "copySuccess": "Klucz API skopiowany do schowka",
+      "copyFailed": "Nie udało się skopiować do schowka",
+      "retryButton": "Ponów"
+    }
+  },
+  "settingsApiUsage": {
+    "header": {
+      "title": "Monitorowanie Użycia API",
+      "subtitle": "Śledź swoje użycie API i monitoruj limity",
+      "backToSettings": "← Wróć do Ustawień"
+    },
+    "quotaWarning": {
+      "title": "Ostrzeżenie o Limicie",
+      "upgradePlanButton": "Ulepsz Plan"
+    },
+    "currentMonth": {
+      "title": "Użycie w Bieżącym Miesiącu",
+      "requests": "żądań",
+      "of": "z",
+      "remaining": "pozostało",
+      "used": "użyto"
+    },
+    "dailyChart": {
+      "title": "Dzienne Żądania (Ostatnie 7 Dni)",
+      "comingSoon": "Śledzenie dziennego użycia wkrótce"
+    },
+    "topEvents": {
+      "title": "Najpopularniejsze Typy Zdarzeń",
+      "noEventsYet": "Nie śledzono jeszcze żadnych zdarzeń",
+      "ofTotal": "całości",
+      "events": "zdarzeń"
+    },
+    "stats": {
+      "averageDaily": "Średnie Dzienne Żądania",
+      "peakDaily": "Szczytowe Dzienne Żądania",
+      "daysUntilReset": "Dni do Resetu"
+    },
+    "messages": {
+      "loading": "Ładowanie danych analitycznych...",
+      "loadFailed": "Nie udało się załadować analityki",
+      "notAuthenticated": "Nie uwierzytelniono. Proszę się zalogować.",
+      "unknownError": "Wystąpił nieznany błąd",
+      "backToSettings": "Wróć do Ustawień"
+    }
+  },
+  "settingsAudit": {
+    "header": {
+      "title": "Dziennik Audytu",
+      "dashboard": "Dashboard",
+      "settings": "Ustawienia"
+    },
+    "description": {
+      "title": "Dziennik Aktywności",
+      "subtitle": "Śledź wszystkie wrażliwe operacje wykonane na Twoim koncie, w tym usunięcia, udostępnienia i eksporty."
+    },
+    "empty": {
+      "title": "Nie ma jeszcze dzienników audytu",
+      "subtitle": "Wrażliwe operacje będą rejestrowane tutaj w celach śledzenia i bezpieczeństwa."
+    },
+    "log": {
+      "ipLabel": "IP:",
+      "viewDetails": "Zobacz Szczegóły"
+    },
+    "messages": {
+      "loading": "Ładowanie...",
+      "notAuthenticated": "Nie uwierzytelniono",
+      "loadFailed": "Nie udało się załadować dzienników audytu"
+    }
+  },
+  "settingsWebhooks": {
+    "header": {
+      "title": "Ustawienia Webhooków",
+      "subtitle": "Konfiguruj webhooki do odbierania powiadomień w czasie rzeczywistym o zdarzeniach na Twoim koncie.",
+      "backToSettings": "← Wróć do Ustawień",
+      "addButton": "+ Dodaj Webhook"
+    },
+    "createForm": {
+      "title": "Dodaj Nowy Webhook",
+      "urlLabel": "URL Webhooka *",
+      "urlPlaceholder": "https://your-domain.com/webhook",
+      "urlHelp": "URL, na który będą wysyłane powiadomienia webhook",
+      "eventsLabel": "Wybierz Zdarzenia * (wybierz jedno lub więcej)",
+      "buttonCreate": "Utwórz Webhook",
+      "buttonCancel": "Anuluj"
+    },
+    "eventTypes": {
+      "reportCreated": "Raport Utworzony",
+      "reportUpdated": "Raport Zaktualizowany",
+      "reportDeleted": "Raport Usunięty",
+      "analysisCompleted": "Analiza Zakończona",
+      "alertTriggered": "Alert Wyzwolony"
+    },
+    "table": {
+      "columnUrl": "URL",
+      "columnEvent": "Zdarzenie",
+      "columnStatus": "Status",
+      "columnCreated": "Utworzono",
+      "columnLastTriggered": "Ostatnio Wyzwolony",
+      "columnLastDelivered": "Ostatnio Dostarczony",
+      "columnRetryCount": "Liczba Ponowień",
+      "columnLastError": "Ostatni Błąd",
+      "columnActions": "Działania",
+      "statusDelivered": "dostarczony",
+      "statusFailed": "niepowodzenie",
+      "statusRetrying": "ponowienie",
+      "statusPending": "oczekujący",
+      "statusActive": "Aktywny",
+      "statusInactive": "Nieaktywny",
+      "buttonTest": "🧪 Test",
+      "buttonDelete": "🗑️ Usuń",
+      "never": "Nigdy"
+    },
+    "empty": {
+      "emoji": "🔔",
+      "title": "Brak Webhooków",
+      "description": "Nie skonfigurowałeś jeszcze żadnych webhooków. Dodaj swój pierwszy webhook, aby zacząć otrzymywać powiadomienia.",
+      "buttonCreate": "Dodaj Swój Pierwszy Webhook"
+    },
+    "documentation": {
+      "title": "📚 Dokumentacja Webhooków",
+      "format": "Format Webhooka: Wszystkie webhooki są wysyłane jako żądania POST z payload JSON.",
+      "authentication": "Uwierzytelnianie: Webhooki zawierają podpis HMAC w nagłówku",
+      "authenticationCode": "X-Webhook-Signature",
+      "retryPolicy": "Polityka Ponowień: Nieudane webhooki są ponawiane do 5 razy z wykładniczym wycofywaniem.",
+      "timeout": "Limit Czasu: Żądania webhook przekraczają limit czasu po 10 sekundach.",
+      "examplePayload": "Przykładowy Payload:"
+    },
+    "messages": {
+      "loading": "Ładowanie webhooków...",
+      "notAuthenticated": "Nie uwierzytelniono. Proszę się zalogować.",
+      "loadFailed": "Nie udało się załadować webhooków",
+      "validationError": "Proszę podać URL i wybrać co najmniej jeden typ zdarzenia",
+      "createSuccess": "Webhook(i) utworzone pomyślnie",
+      "createFailed": "Nie udało się utworzyć webhooka",
+      "deleteConfirm": "Czy na pewno chcesz usunąć ten webhook?",
+      "deleteSuccess": "Webhook usunięty pomyślnie",
+      "deleteFailed": "Nie udało się usunąć webhooka",
+      "testSuccess": "Test webhooka wyzwolony pomyślnie",
+      "testFailed": "Test webhooka nie powiódł się:"
+    }
+  },
+  "settingsFeatureFlags": {
+    "header": {
+      "title": "Flagi Funkcji",
+      "subtitle": "Kontroluj, które funkcje są widoczne i włączone w aplikacji"
+    },
+    "flag": {
+      "keyLabel": "Klucz:",
+      "statusEnabled": "Włączony",
+      "statusDisabled": "Wyłączony",
+      "buttonEnable": "Włącz",
+      "buttonDisable": "Wyłącz",
+      "buttonUpdating": "Aktualizowanie..."
+    },
+    "empty": {
+      "message": "Nie znaleziono flag funkcji"
+    },
+    "howItWorks": {
+      "title": "Jak to działa:",
+      "point1": "• Flagi funkcji kontrolują widoczność funkcji w całej aplikacji",
+      "point2": "• Zmiany zaczynają obowiązywać natychmiast po przełączeniu",
+      "point3": "• Odśwież stronę, aby zobaczyć zmiany widoczności funkcji",
+      "point4": "• Tylko użytkownicy administratorzy mogą zarządzać flagami funkcji"
+    },
+    "messages": {
+      "loading": "Ładowanie flag funkcji...",
+      "loadFailed": "Nie udało się załadować flag funkcji",
+      "toggleFailed": "Nie udało się przełączyć"
+    }
+  },
+  "settingsTags": {
+    "header": {
+      "title": "Zarządzanie Tagami",
+      "buttonNew": "+ Nowy Tag"
+    },
+    "info": {
+      "title": "Czym są tagi?",
+      "description": "Tagi pozwalają organizować raporty według własnych kategorii. Możesz przypisać wiele tagów do jednego raportu."
+    },
+    "form": {
+      "titleCreate": "Utwórz Nowy Tag",
+      "titleEdit": "Edytuj Tag",
+      "nameLabel": "Nazwa Tagu *",
+      "namePlaceholder": "np. Priorytet Wysoki",
+      "colorLabel": "Kolor *",
+      "descriptionLabel": "Opis (opcjonalny)",
+      "descriptionPlaceholder": "Krótki opis przeznaczenia tagu...",
+      "buttonCancel": "Anuluj",
+      "buttonCreate": "Utwórz Tag",
+      "buttonEdit": "Zapisz Zmiany",
+      "buttonSaving": "Zapisywanie..."
+    },
+    "colors": {
+      "red": "Czerwony",
+      "amber": "Bursztynowy",
+      "green": "Zielony",
+      "blue": "Niebieski",
+      "purple": "Fioletowy",
+      "pink": "Różowy",
+      "gray": "Szary"
+    },
+    "list": {
+      "createdLabel": "Utworzony:",
+      "buttonEdit": "Edytuj tag",
+      "buttonDelete": "Usuń tag"
+    },
+    "empty": {
+      "title": "Brak Tagów",
+      "description": "Utwórz pierwszy tag, aby rozpocząć organizację raportów.",
+      "buttonCreate": "+ Utwórz Pierwszy Tag"
+    },
+    "deleteConfirm": {
+      "title": "Potwierdź Usunięcie",
+      "message": "Czy na pewno chcesz usunąć tag",
+      "warning": "Tag zostanie usunięty ze wszystkich raportów.",
+      "buttonCancel": "Anuluj",
+      "buttonDelete": "Usuń Tag",
+      "buttonDeleting": "Usuwanie..."
+    },
+    "messages": {
+      "loading": "Ładowanie tagów...",
+      "loadFailed": "Nie udało się załadować tagów",
+      "nameRequired": "Nazwa tagu jest wymagana",
+      "createSuccess": "Tag został utworzony",
+      "updateSuccess": "Tag został zaktualizowany",
+      "saveFailed": "Nie udało się zapisać tagu",
+      "deleteSuccess": "Tag został usunięty",
+      "deleteFailed": "Nie udało się usunąć tagu"
+    }
+  },
+  "settingsBilling": {
+    "header": {
+      "title": "Rozliczenia i Użycie",
+      "backToSettings": "← Wróć do Ustawień"
+    },
+    "currentPlan": {
+      "title": "Obecny Plan",
+      "billingPeriod": "Okres rozliczeniowy:",
+      "buttonDowngrade": "Obniż Plan",
+      "buttonUpgrade": "Ulepsz Plan"
+    },
+    "usage": {
+      "title": "Statystyki Użycia",
+      "analysesTitle": "Analizy",
+      "analysesDescription": "Profile firm, raporty rynkowe itp.",
+      "storageTitle": "Przestrzeń Dyskowa",
+      "storageDescription": "Raporty, eksporty, przesłane pliki",
+      "apiCallsTitle": "Wywołania API",
+      "apiCallsDescription": "Użycie zewnętrznych źródeł danych",
+      "used": "użyto"
+    },
+    "billingPeriod": {
+      "title": "Okres Rozliczeniowy",
+      "start": "Początek Okresu",
+      "end": "Koniec Okresu",
+      "daysRemaining": "Pozostało Dni",
+      "nextBilling": "Następna Data Rozliczenia",
+      "daysLabel": "dni"
+    },
+    "paymentMethods": {
+      "title": "Metody Płatności",
+      "manage": "Zarządzaj →",
+      "description": "Zarządzaj swoimi kartami kredytowymi i metodami płatności"
+    },
+    "billingHistory": {
+      "title": "Historia Rozliczeń",
+      "columnInvoice": "Faktura",
+      "columnDate": "Data",
+      "columnAmount": "Kwota",
+      "columnStatus": "Status",
+      "columnAction": "Działanie",
+      "statusPaid": "Opłacona",
+      "buttonDownload": "Pobierz PDF"
+    },
+    "planFeatures": {
+      "title": "Funkcje Planu",
+      "analyses": "analizy miesięcznie",
+      "storage": "przestrzeń dyskowa",
+      "apiCallsUnlimited": "Nielimitowane wywołania API",
+      "exports": "Eksporty PDF, DOCX, PPTX",
+      "support": "Wsparcie priorytetowe"
+    }
+  },
+  "shareReport": {
+    "loading": "Ładowanie...",
+    "passwordProtected": {
+      "title": "Chroniony Hasłem",
+      "description": "Ten raport jest chroniony. Wprowadź hasło, aby kontynuować.",
+      "label": "Hasło",
+      "placeholder": "Wprowadź hasło...",
+      "button": "Dostęp do Raportu",
+      "verifying": "Weryfikacja...",
+      "backHome": "← Wróć do Strony Głównej"
+    },
+    "errors": {
+      "notFound": "Link udostępnienia nie został znaleziony lub wygasł",
+      "expired": "Ten link udostępnienia wygasł",
+      "forbidden": "Wymagane hasło",
+      "loadFailed": "Nie udało się załadować udostępnionego raportu",
+      "incorrectPassword": "Nieprawidłowe hasło",
+      "verificationFailed": "Weryfikacja nie powiodła się"
+    },
+    "errorPage": {
+      "title": "Link Nie Znaleziony",
+      "button": "Przejdź do Strony Głównej"
+    },
+    "header": {
+      "appName": "MI-Navigator",
+      "subtitle": "Udostępniony Raport",
+      "signInCTA": "Zaloguj się, aby tworzyć własne raporty →"
+    },
+    "notice": {
+      "sharedBy": "Ten raport został udostępniony przez",
+      "you": "Ciebie"
+    },
+    "report": {
+      "created": "Utworzono:"
+    },
+    "cta": {
+      "title": "Chcesz tworzyć takie raporty?",
+      "description": "MI-Navigator pomaga analizować firmy, rynki i konkurentów dzięki inteligencji opartej na AI.",
+      "button": "Rozpocznij Za Darmo"
+    }
+  },
+  "reportsTemplates": {
+    "loading": "Ładowanie szablonów...",
+    "header": {
+      "appName": "MI-Navigator",
+      "breadcrumbReports": "Raporty",
+      "breadcrumbTemplates": "Szablony",
+      "linkReports": "Lista raportów",
+      "linkDashboard": "Dashboard",
+      "title": "Szablony raportów",
+      "subtitle": "Zarządzaj szablonami raportów. Twórz nowe raporty bazując na istniejących szablonach."
+    },
+    "empty": {
+      "icon": "📋",
+      "title": "Brak szablonów",
+      "description": "Nie masz jeszcze żadnych szablonów raportów. Utwórz szablon z istniejącego raportu używając przycisku \"Zapisz jako szablon\".",
+      "button": "Przejdź do raportów"
+    },
+    "card": {
+      "basedOn": "Bazuje na:",
+      "created": "Utworzony:",
+      "used": "Użyty:",
+      "usedTimes": "raz",
+      "usedTimesPlural": "razy",
+      "lastUsed": "Ostatnio:",
+      "useTemplate": "Użyj szablonu",
+      "deleteTemplate": "Usuń szablon"
+    },
+    "types": {
+      "company_profile": "Profil firmy",
+      "market_analysis": "Analiza rynku",
+      "competitive": "Analiza konkurencji",
+      "financial": "Analiza finansowa"
+    },
+    "messages": {
+      "loadFailed": "Nie udało się załadować szablonów",
+      "deleteConfirm": "Czy na pewno chcesz usunąć ten szablon?",
+      "deleteSuccess": "Szablon został usunięty",
+      "deleteFailed": "Nie udało się usunąć szablonu",
+      "promptTitle": "Wprowadź tytuł nowego raportu bazującego na szablonie",
+      "createFailed": "Nie udało się utworzyć raportu z szablonu"
+    }
+  },
+  "reportsInfinite": {
+    "header": {
+      "title": "Raporty (Infinite Scroll)",
+      "performanceMode": "Performance Test Mode",
+      "backToPagination": "← Tryb paginacji",
+      "backAriaLabel": "Wróć do raportów (paginacja)",
+      "dashboard": "Dashboard"
+    },
+    "stats": {
+      "title": "Załadowane raporty",
+      "ofReports": "z {total} raportów",
+      "page": "Strona {page}"
+    },
+    "loading": {
+      "message": "Ładowanie kolejnych raportów..."
+    },
+    "endOfList": {
+      "title": "Koniec listy",
+      "description": "Załadowano wszystkie {count} raportów"
+    },
+    "empty": {
+      "title": "Brak raportów",
+      "description": "Nie znaleziono żadnych raportów.",
+      "button": "Rozpocznij nową analizę"
+    },
+    "error": {
+      "loadFailed": "Nie udało się załadować raportów"
+    },
+    "types": {
+      "company_profile": "Profil firmy",
+      "market_analysis": "Analiza rynku",
+      "due_diligence": "Due Diligence",
+      "competitive": "Konkurencja"
+    },
+    "status": {
+      "completed": "Zakończony",
+      "in_progress": "W trakcie",
+      "draft": "Szkic"
+    }
+  },
+  "testPages": {
+    "common": {
+      "backToDashboard": "← Powrót do Dashboard",
+      "testMode": "Tryb testowy - NIE używaj w produkcji",
+      "loading": "Ładowanie...",
+      "error": "Błąd",
+      "success": "Sukces"
+    },
+    "testError": {
+      "title": "Test śledzenia błędów",
+      "subtitle": "Testuj różne typy błędów aby sprawdzić czy śledzenie błędów działa poprawnie",
+      "scenarios": {
+        "title": "Scenariusze testowe",
+        "jsError": "Błąd JavaScript",
+        "apiError": "Błąd API",
+        "networkError": "Błąd sieci",
+        "validationError": "Błąd walidacji",
+        "trigger": "Wywołaj {type}"
+      },
+      "status": {
+        "title": "Status śledzenia błędów",
+        "checking": "Sprawdzanie...",
+        "enabled": "Włączony",
+        "disabled": "Wyłączony"
+      },
+      "instructions": {
+        "title": "Instrukcje testowe",
+        "step1": "Krok 1: Kliknij przycisk testowy powyżej",
+        "step2": "Krok 2: Sprawdź konsolę przeglądarki",
+        "step3": "Krok 3: Zweryfikuj że błąd został zalogowany",
+        "step4": "Krok 4: Sprawdź czy error boundary wyświetla się poprawnie"
+      }
+    },
+    "testPwa": {
+      "title": "Test PWA Service Worker",
+      "subtitle": "Sprawdzanie statusu service workera i funkcjonalności PWA",
+      "swStatus": {
+        "title": "Status Service Workera",
+        "checking": "Sprawdzanie...",
+        "registered": "Zarejestrowany",
+        "notRegistered": "Nie zarejestrowany",
+        "updating": "Aktualizacja...",
+        "error": "Błąd rejestracji"
+      },
+      "instructions": {
+        "title": "Instrukcje testowe",
+        "step1": "Załaduj tę stronę (Krok 1: Załaduj aplikację) ✅",
+        "step2": "Sprawdź status rejestracji service workera powyżej (Krok 2) ✅",
+        "step3": "Przejdź offline (ustaw throttling na 'Offline' w DevTools) 🔧",
+        "step4": "Odśwież stronę - powinna załadować się z cache (Krok 4) 📱",
+        "step5": "Sprawdź czy ikona offline pojawia się w górnym prawym rogu (Krok 5) 🔴"
+      }
+    },
+    "testOffline": {
+      "title": "Feature #370: Test wskaźnika offline",
+      "subtitle": "Testowanie wskaźnika stanu połączenia",
+      "status": {
+        "online": "🟢 Online",
+        "offline": "🔴 Offline",
+        "title": "Status połączenia"
+      },
+      "instructions": {
+        "title": "Instrukcje testowe",
+        "step1": "Otwórz DevTools (F12) i przejdź do zakładki Network",
+        "step2": "Ustaw throttling na 'Offline'",
+        "step3": "Sprawdź czy czerwony wskaźnik offline pojawia się w prawym górnym rogu",
+        "step4": "Ustaw throttling z powrotem na 'No throttling'",
+        "step5": "Sprawdź czy zielony wskaźnik online pojawia się ponownie",
+        "step6": "Opcjonalnie: Użyj konsoli przeglądarki do symulacji"
+      },
+      "consoleCommands": {
+        "title": "Komendy konsolowe",
+        "offline": "// Symuluj offline",
+        "online": "// Symuluj online"
+      }
+    },
+    "testAb": {
+      "title": "Demo testów A/B",
+      "subtitle": "Testowanie przypisania wariantu A/B i śledzenia",
+      "variants": {
+        "loading": "Ładowanie wariantu...",
+        "error": "Błąd ładowania wariantu",
+        "variantA": {
+          "title": "Wersja A: Klasyczny design",
+          "description": "To jest wariant kontrolny z tradycyjną niebieską paletą kolorów."
+        },
+        "variantB": {
+          "title": "Wersja B: Nowoczesny design",
+          "description": "To jest wariant testowy ze świeżą zieloną paletą kolorów."
+        }
+      },
+      "tracking": {
+        "title": "Śledzenie zdarzeń",
+        "button": "Śledź kliknięcie",
+        "success": "Zdarzenie śledzone pomyślnie",
+        "error": "Błąd śledzenia zdarzenia"
+      },
+      "info": {
+        "title": "Informacje o teście",
+        "testName": "Nazwa testu:",
+        "yourVariant": "Twój wariant:",
+        "explanation": "Każdy użytkownik losowo otrzymuje wariant A lub B. Wariant jest zapisywany w localStorage więc pozostaje spójny między sesjami."
+      }
+    },
+    "testSkeleton": {
+      "title": "Demo ekranów szkieletowych",
+      "subtitle": "Ta strona demonstruje ekrany szkieletowe ładowania. Przełączaj między różnymi typami szkieletów poniżej.",
+      "controls": {
+        "toggleLoading": "Przełącz ładowanie",
+        "dashboard": "Szkielet dashboardu",
+        "reportList": "Szkielet listy raportów",
+        "reportDetail": "Szkielet szczegółów raportu",
+        "table": "Szkielet tabeli",
+        "chart": "Szkielet wykresu"
+      },
+      "info": {
+        "title": "ℹ️ O ekranach szkieletowych",
+        "point1": "Ekrany szkieletowe poprawiają postrzeganą wydajność podczas ładowania danych",
+        "point2": "Pokazują układ strony zanim dane są gotowe",
+        "point3": "Redukują postrzegany czas oczekiwania i frustrację użytkownika",
+        "point4": "Używane są w całej aplikacji MI-Navigator dla lepszego UX"
+      },
+      "content": {
+        "loaded": "Zawartość załadowana! 🎉",
+        "description": "Ta sekcja pokazuje rzeczywistą zawartość po zakończeniu ładowania."
+      }
+    },
+    "testRetry": {
+      "title": "Test: Ponowienie nieudanej operacji",
+      "subtitle": "Feature #369 - Test możliwości ponowienia operacji",
+      "status": {
+        "idle": "Bezczynny",
+        "running": "Wykonywanie",
+        "failed": "Nieudany",
+        "success": "Sukces"
+      },
+      "buttons": {
+        "startFail": "Rozpocznij zadanie (zakończy się niepowodzeniem)",
+        "startNew": "Rozpocznij nowe zadanie",
+        "retry": "Ponów próbę",
+        "clear": "Wyczyść"
+      },
+      "messages": {
+        "taskRunning": "Zadanie w trakcie...",
+        "taskFailed": "Zadanie nie powiodło się! Spróbuj ponowić.",
+        "taskSuccess": "Zadanie zakończone pomyślnie! ✅",
+        "retrying": "Ponawiam próbę..."
+      },
+      "logs": {
+        "title": "Dziennik operacji",
+        "empty": "Brak wpisów w dzienniku"
+      },
+      "instructions": {
+        "title": "Instrukcje testowe (Feature #369)",
+        "step1": "Kliknij \"Rozpocznij zadanie\" (zakończy się niepowodzeniem po 2 sekundach)",
+        "step2": "Sprawdź czy przycisk \"Ponów próbę\" pojawia się",
+        "step3": "Kliknij \"Ponów próbę\" (tym razem powiedzie się)",
+        "step4": "Sprawdź czy status zmienia się na \"Sukces\"",
+        "step5": "Zweryfikuj komunikaty w dzienniku operacji"
+      }
+    },
+    "testTableSorting": {
+      "title": "Feature #222: Test sortowania tabeli",
+      "subtitle": "To jest samodzielna strona testowa dla funkcjonalności sortowania tabel. Nie wymaga uwierzytelnienia.",
+      "columns": {
+        "company": "Firma",
+        "revenue": "Przychód (PLN)",
+        "employees": "Pracownicy",
+        "year": "Rok",
+        "status": "Status"
+      },
+      "instructions": {
+        "title": "Instrukcje testowe:",
+        "step1": "Krok 1: Kliknij nagłówek \"Firma\" aby posortować alfabetycznie (A-Z)",
+        "step2": "Krok 2: Kliknij ponownie aby odwrócić kolejność (Z-A)",
+        "step3": "Krok 3: Kliknij \"Przychód\" aby posortować według przychodów",
+        "step4": "Krok 4: Przetestuj sortowanie \"Pracownicy\" i \"Rok\"",
+        "step5": "Krok 5: Sprawdź czy strzałki sortowania (↑/↓) wyświetlają się poprawnie"
+      }
+    },
+    "testBatchProgress": {
+      "title": "Test: Śledzenie postępu operacji wsadowej",
+      "subtitle": "Feature #367 - Śledzenie postępu operacji wsadowych",
+      "buttons": {
+        "start": "Rozpocznij eksport wsadowy (10 elementów)",
+        "processing": "Przetwarzanie..."
+      },
+      "progress": {
+        "title": "Postęp eksportu",
+        "label": "Postęp",
+        "itemsProcessed": "Przetworzone elementy:",
+        "status": "Status:",
+        "taskId": "ID zadania:"
+      },
+      "status": {
+        "processing": "Przetwarzanie",
+        "completed": "Zakończony",
+        "failed": "Nieudany"
+      },
+      "completion": {
+        "success": "Operacja wsadowa zakończona!",
+        "failed": "Nie powiodło się:"
+      },
+      "instructions": {
+        "title": "Kroki testowe (Feature #367):",
+        "step1": "✅ Krok 1: Rozpocznij operację wsadową (kliknij przycisk powyżej)",
+        "step2": "✅ Krok 2: Sprawdź czy pasek postępu się pojawia",
+        "step3": "✅ Krok 3: Sprawdź czy procenty są aktualizowane (0% → 100%)",
+        "step4": "✅ Krok 4: Sprawdź czy liczba elementów jest pokazana (0/10 → 10/10)",
+        "step5": "✅ Krok 5: Sprawdź powiadomienie o zakończeniu (zielony komunikat sukcesu)"
+      }
+    },
+    "testCancel": {
+      "title": "Test: Anulowanie długotrwałej operacji",
+      "subtitle": "Feature #368 - Test anulowania zadań w trakcie wykonywania",
+      "buttons": {
+        "start": "Rozpocznij długą operację",
+        "starting": "Rozpoczynanie...",
+        "cancel": "Anuluj operację",
+        "cancelling": "Anulowanie...",
+        "reset": "Resetuj stan"
+      },
+      "status": {
+        "label": "Status:",
+        "idle": "bezczynny",
+        "starting": "rozpoczynanie",
+        "running": "wykonywanie",
+        "cancelling": "anulowanie...",
+        "completed": "zakończony",
+        "cancelled": "anulowany",
+        "error": "błąd"
+      },
+      "progress": {
+        "label": "Postęp:",
+        "step": "Krok {current} z {total}"
+      },
+      "result": {
+        "title": "Wynik:",
+        "message": "Komunikat",
+        "completedSteps": "Ukończono {completed} z {total} kroków",
+        "partialResults": "Wyniki częściowe:",
+        "completeResults": "Pełne wyniki:",
+        "noResults": "Brak wyników"
+      },
+      "error": {
+        "label": "Błąd:",
+        "notAuthenticated": "Proszę się zalogować",
+        "loginFirst": "Proszę najpierw się zalogować"
+      },
+      "instructions": {
+        "title": "Kroki testowe:",
+        "step1": "Kliknij \"Rozpocznij długą operację\" aby rozpocząć zadanie 10-krokowe",
+        "step2": "Poczekaj kilka kroków na zakończenie (obserwuj pasek postępu)",
+        "step3": "Kliknij \"Anuluj operację\" aby zatrzymać zadanie",
+        "step4": "Sprawdź czy zadanie zatrzymuje się po zakończeniu bieżącego kroku",
+        "step5": "Sprawdź czy wyniki częściowe są wyświetlane",
+        "step6": "Kliknij \"Resetuj stan\" aby przywrócić czysty stan"
+      }
+    },
+    "testChartColors": {
+      "title": "Test dostępności kolorów wykresów - Feature #194",
+      "subtitle": "Testowanie kolorów wykresów pod kątem rozróżnialności i dostępności (włącznie z symulacją daltonizmu)",
+      "guidelines": {
+        "title": "🎨 Wytyczne dostępności kolorów",
+        "intro": "✓ Dobra paleta powinna:",
+        "point1": "Używać kolorów rozróżnialnych przez osoby z zaburzeniami widzenia barw",
+        "point2": "Utrzymywać wystarczające współczynniki kontrastu (minimum WCAG 2.1 AA)",
+        "point3": "Używać wzorów/kształtów oprócz kolorów gdy to możliwe",
+        "point4": "Zapewniać alternatywne opisy tekstowe danych",
+        "point5": "Zawierać legendy z czytelnymi etykietami"
+      },
+      "palette": {
+        "title": "Bieżąca paleta kolorów",
+        "blue": "Niebieski (Przychód)",
+        "green": "Zielony (Zysk)",
+        "purple": "Fioletowy (Aktywa)",
+        "amber": "Bursztynowy (Kapitał własny)"
+      },
+      "testSteps": {
+        "title": "📋 Kroki testowe",
+        "step1": "Inspekcja wizualna: Sprawdź czy kolory są od siebie rozróżnialne",
+        "step2": "Symulacja daltonizmu: Użyj rozszerzeń przeglądarki lub narzędzi do symulacji różnych typów zaburzeń widzenia barw",
+        "step3": "Czytelność legendy: Sprawdź czy etykiety legendy są czytelne i jasne",
+        "step4": "Alternatywa tabeli danych: Sprawdź czy przyciski \"Pokaż tabelę danych\" działają i zapewniają dostępne alternatywy",
+        "step5": "Wsparcie wzorów: Rozważ czy wzory/kreski powinny zostać dodane do wykresów liniowych"
+      },
+      "charts": {
+        "chart1": "1. Podstawowy wykres trendu (pojedyncza seria)",
+        "chart2": "2. Wykres słupkowy",
+        "chart3": "3. Sprawozdania finansowe (wykresy liniowe wieloseryjne)"
+      },
+      "colorblindTools": {
+        "title": "🔍 Narzędzia symulacji daltonizmu",
+        "browserExtensions": "Rozszerzenia przeglądarki:",
+        "chrome": "Chrome/Edge: \"Colorblindly\" lub \"NoCoffee Vision Simulator\"",
+        "firefox": "Firefox: Wbudowany symulator dostępności w DevTools",
+        "testWith": "Testuj z tymi typami widzenia:",
+        "protanopia": "Protanopia: Daltonizm czerwieni (dotyczy ~1% mężczyzn)",
+        "deuteranopia": "Deuteranopia: Daltonizm zieleni (dotyczy ~1% mężczyzn)",
+        "tritanopia": "Tritanopia: Daltonizm niebieskiego (rzadki, dotyczy ~0.001% populacji)",
+        "achromatopsia": "Achromatopsia: Całkowity daltonizm (bardzo rzadki)"
+      }
+    },
+    "testPrintPreview": {
+      "title": "Test podglądu wydruku - Feature #224",
+      "subtitle": "Kliknij przycisk \"Drukuj\" aby zobaczyć podgląd wydruku (Ctrl+P)",
+      "buttons": {
+        "share": "Udostępnij",
+        "print": "Drukuj",
+        "printTitle": "Drukuj raport (Ctrl+P)",
+        "exportPdf": "Eksportuj PDF"
+      },
+      "report": {
+        "title": "Analiza Rynku: Branża Automotive w Polsce",
+        "created": "Data utworzenia: 20 stycznia 2026",
+        "type": "Typ: Analiza rynku",
+        "status": "Status: Ukończony",
+        "executiveSummary": "Podsumowanie wykonawcze",
+        "marketSize": "Wielkość rynku",
+        "competitiveLandscape": "Krajobraz konkurencyjny",
+        "keyFindings": "Kluczowe wnioski",
+        "recommendations": "Rekomendacje",
+        "footer": "Raport wygenerowany przez MI-Navigator • Market Intelligence Platform",
+        "copyright": "© 2026 MI-Navigator. Wszystkie prawa zastrzeżone."
+      },
+      "instructions": {
+        "title": "Instrukcje testowania:",
+        "step1": "Krok 1: Kliknij przycisk \"Drukuj\" powyżej lub naciśnij Ctrl+P",
+        "step2": "Krok 2: Sprawdź czy podgląd wydruku się pojawił",
+        "step3": "Krok 3: Zweryfikuj że przyciski akcji (Udostępnij, Drukuj, Eksportuj) NIE są widoczne",
+        "step4": "Krok 4: Zweryfikuj że formatowanie jest poprawne (czcionki, odstępy, kolory)",
+        "step5": "Krok 5: Zweryfikuj że podziały stron są odpowiednie (brak ciętych nagłówków/tabel)"
+      }
+    },
+    "testSync": {
+      "title": "Feature #371: Test synchronizacji danych po ponownym połączeniu",
+      "subtitle": "Testowanie synchronizacji danych po przywróceniu połączenia",
+      "connectionStatus": {
+        "title": "Status połączenia",
+        "online": "🟢 Online",
+        "offline": "🔴 Offline",
+        "pendingOperations": "Oczekujące operacje:",
+        "syncing": "Synchronizowanie:",
+        "yes": "✅ Tak",
+        "no": "❌ Nie",
+        "lastSync": "Ostatnia synchronizacja:"
+      },
+      "addOperation": {
+        "title": "Dodaj operację",
+        "titleLabel": "Tytuł *",
+        "titlePlaceholder": "Wprowadź tytuł...",
+        "descriptionLabel": "Opis",
+        "descriptionPlaceholder": "Wprowadź opis...",
+        "addButton": "Dodaj do kolejki",
+        "titleRequired": "❌ Tytuł jest wymagany",
+        "added": "✅ Dodano operację {id} do kolejki ({status})",
+        "willSyncNow": "zsynchronizuje się natychmiast",
+        "willSyncLater": "zsynchronizuje się gdy będzie online"
+      },
+      "manualControls": {
+        "title": "Kontrola ręczna",
+        "manualSync": "Ręczna synchronizacja",
+        "syncing": "Synchronizowanie...",
+        "clearQueue": "Wyczyść kolejkę"
+      },
+      "manualSyncMessages": {
+        "syncing": "⏳ Synchronizowanie...",
+        "success": "✅ Synchronizacja zakończona: {success} sukces, {failed} niepowodzenie",
+        "queueCleared": "🗑️ Kolejka wyczyszczona"
+      },
+      "instructions": {
+        "title": "Instrukcje testowe",
+        "step1": {
+          "title": "Krok 1: Wprowadź zmiany offline",
+          "point1": "Otwórz DevTools (F12) → zakładka Network",
+          "point2": "Ustaw throttling na \"Offline\"",
+          "point3": "Dodaj 2-3 operacje używając formularza",
+          "point4": "Sprawdź czy pojawiają się w kolejce poniżej"
+        },
+        "step2": {
+          "title": "Krok 2: Przejdź online",
+          "point1": "Ustaw throttling z powrotem na \"No throttling\"",
+          "point2": "Poczekaj chwilę na ponowne połączenie"
+        },
+        "step3": {
+          "title": "Krok 3: Sprawdź czy następuje synchronizacja",
+          "point1": "Zielony baner powinien pojawić się na krótko",
+          "point2": "Automatyczna synchronizacja powinna się uruchomić",
+          "point3": "Sprawdź konsolę pod kątem logów synchronizacji"
+        },
+        "step4": {
+          "title": "Krok 4: Sprawdź czy zmiany zostały zachowane",
+          "point1": "Kolejka powinna być pusta (lub zmniejszona)",
+          "point2": "Sprawdź znacznik czasu \"Ostatnia synchronizacja\"",
+          "point3": "Sprawdź liczby sukces/niepowodzenie"
+        }
+      },
+      "pendingOperations": {
+        "title": "Oczekujące operacje",
+        "empty": "Brak oczekujących operacji",
+        "emptyDescription": "Dodaj operacje używając formularza powyżej",
+        "retries": "Ponowienia: {count}"
+      },
+      "consoleTesting": {
+        "title": "Testowanie konsolowe",
+        "description": "Alternatywnie, testuj symulację offline/online przez konsolę:",
+        "offline": "// Symuluj przejście offline",
+        "offlineCommand": "window.dispatchEvent(new Event('offline'));",
+        "online": "// Symuluj przejście online",
+        "onlineCommand": "window.dispatchEvent(new Event('online'));"
+      }
+    },
+    "testTimeout": {
+      "title": "Test przekroczenia czasu generowania raportu",
+      "subtitle": "Testowanie obsługi przekroczenia czasu dla długotrwałych operacji",
+      "settings": {
+        "backendDelay": "Opóźnienie backendu (sekundy)",
+        "backendDelayHelp": "Jak długo backend będzie generować raport",
+        "frontendTimeout": "Timeout frontendu (sekundy)",
+        "frontendTimeoutHelp": "Kiedy przerwać żądanie jeśli trwa zbyt długo"
+      },
+      "buttons": {
+        "generate": "Generuj złożony raport",
+        "generating": "Generowanie..."
+      },
+      "progress": {
+        "label": "Postęp:",
+        "generating": "Generowanie raportu... To może chwilę potrwać."
+      },
+      "error": {
+        "title": "Błąd",
+        "timeout": "Żądanie przekroczyło czas po {seconds} sekundach",
+        "notAuthenticated": "Nie uwierzytelniono",
+        "httpError": "HTTP {status}: {statusText}"
+      },
+      "result": {
+        "title": "Wynik",
+        "status": "Status:",
+        "message": "Komunikat:",
+        "sectionsCompleted": "Sekcje ukończone: {completed} / {total}",
+        "partialResults": "Dostępne wyniki częściowe:",
+        "partialSummary": "Podsumowanie częściowe:",
+        "completedSections": "Ukończone sekcje:",
+        "fullResults": "Pełne wyniki:"
+      },
+      "status": {
+        "completed": "zakończony",
+        "timeout": "przekroczenie czasu"
+      }
+    },
+    "testTableScroll": {
+      "title": "Test: Poziome przewijanie tabeli na urządzeniach mobilnych",
+      "subtitle": "Ta tabela powinna przewijać się poziomo na wąskich ekranach (375px). Testuj zmieniając rozmiar przeglądarki lub używając urządzenia mobilnego.",
+      "columns": {
+        "id": "ID",
+        "companyName": "Nazwa firmy",
+        "nip": "NIP",
+        "city": "Miasto",
+        "revenue": "Przychód (PLN)",
+        "employees": "Pracownicy",
+        "industry": "Branża",
+        "founded": "Założona",
+        "status": "Status",
+        "website": "Strona www"
+      },
+      "scrollIndicator": "✓ Wskaźnik przewijania: Na urządzeniach mobilnych powinieneś zobaczyć pasek przewijania na dole tabeli wskazujący, że więcej kolumn jest dostępnych poprzez przewijanie w poziomie."
+    },
+    "onboarding": {
+      "welcome": {
+        "title": "Witaj w MI-Navigator!",
+        "subtitle": "Zanim rozpoczniesz, pomóż nam dostosować platformę do Twoich potrzeb.",
+        "description": "Odpowiedz na kilka pytań - zajmie to tylko 2 minuty.",
+        "features": {
+          "personalized": {
+            "title": "Spersonalizowane",
+            "description": "Analizy dostosowane do Twojej branży"
+          },
+          "faster": {
+            "title": "Szybsze",
+            "description": "Relevantne źródła i terminologia"
+          },
+          "accurate": {
+            "title": "Dokładniejsze",
+            "description": "Branżowe KPI i metryki"
+          }
+        },
+        "startButton": "Rozpocznij →"
+      },
+      "progress": {
+        "step": "Krok {step} z 5",
+        "percentage": "{percent}%"
+      },
+      "industry": {
+        "title": "W jakiej branży działasz?",
+        "subtitle": "Wybierz główną branżę Twojej działalności",
+        "segmentCount": "{count} segmentów",
+        "industries": {
+          "manufacturing": "Przemysł produkcyjny",
+          "services": "Usługi",
+          "technology": "Technologia",
+          "retail": "Handel detaliczny",
+          "construction": "Budownictwo",
+          "logistics": "Logistyka i transport",
+          "other": "Inne"
+        },
+        "segments": {
+          "plastics_processing": "Przetwórstwo tworzyw sztucznych",
+          "injection_molding": "Wtrysk tworzyw sztucznych",
+          "tooling": "Narzędziownie / Formy",
+          "cnc_machining": "Obróbka CNC",
+          "industrial_automation": "Automatyka przemysłowa",
+          "metal_processing": "Obróbka metali",
+          "consulting": "Doradztwo",
+          "it_services": "Usługi IT",
+          "marketing": "Marketing i reklama",
+          "hr_consulting": "Doradztwo HR",
+          "legal": "Usługi prawne",
+          "software_development": "Tworzenie oprogramowania",
+          "saas": "SaaS",
+          "hardware": "Sprzęt komputerowy",
+          "ai_ml": "AI / Machine Learning",
+          "ecommerce": "E-commerce",
+          "retail_store": "Sklepy stacjonarne",
+          "wholesale": "Handel hurtowy",
+          "general_construction": "Budownictwo ogólne",
+          "real_estate": "Nieruchomości",
+          "architecture": "Architektura",
+          "shipping": "Transport i spedycja",
+          "warehousing": "Magazynowanie",
+          "last_mile": "Dostawa ostatniej mili",
+          "other_specify": "Inna branża"
+        }
+      },
+      "segment": {
+        "title": "Wybierz segment",
+        "subtitle": "{industry}"
+      },
+      "role": {
+        "title": "Jaka jest Twoja rola?",
+        "subtitle": "Pomoże nam dopasować format analiz",
+        "roles": {
+          "ceo": "Zarząd / C-level",
+          "bd": "Strategy / Business Development",
+          "sales": "Sales / Marketing",
+          "operations": "Operations",
+          "analyst": "Analyst / Researcher",
+          "other": "Inne"
+        }
+      },
+      "useCases": {
+        "title": "Do czego będziesz używać platformy?",
+        "subtitle": "Możesz wybrać kilka opcji",
+        "cases": {
+          "competitive_analysis": "Analiza konkurencji",
+          "market_research": "Market research",
+          "due_diligence": "Due diligence",
+          "lead_generation": "Lead generation",
+          "monitoring": "Monitoring branży"
+        }
+      },
+      "navigation": {
+        "back": "← Wstecz",
+        "skip": "Pomiń →"
+      },
+      "actions": {
+        "saving": "Zapisywanie...",
+        "complete": "Zakończ konfigurację →"
+      }
+    }
+  }
+}

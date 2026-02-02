@@ -2,10 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('auth')
+  const tCommon = useTranslations('common')
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -27,12 +30,12 @@ export default function ForgotPasswordPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.detail || 'Failed to send reset link')
+        throw new Error(data.detail || t('forgotPassword.errors.sendFailed'))
       }
 
       setSubmitted(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : tCommon('errors.generic'))
     } finally {
       setIsLoading(false)
     }
@@ -40,7 +43,7 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 px-4">
         <div className="w-full max-w-md">
           <div className="rounded-2xl bg-white/10 p-8 backdrop-blur-lg">
             <div className="text-center">
@@ -49,15 +52,15 @@ export default function ForgotPasswordPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h1 className="mb-2 text-2xl font-bold text-white">Check Your Email</h1>
+              <h1 className="mb-2 text-2xl font-bold text-white">{t('forgotPassword.successTitle')}</h1>
               <p className="mb-6 text-gray-300">
-                If an account exists for {email}, you will receive a password reset link shortly.
+                {t('forgotPassword.successMessage', { email })}
               </p>
               <Link
                 href="/auth/login"
-                className="inline-block rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+                className="inline-block rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-emerald-700"
               >
-                Return to Login
+                {t('forgotPassword.returnToLogin')}
               </Link>
             </div>
           </div>
@@ -67,11 +70,11 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white">Reset Password</h1>
-          <p className="mt-2 text-gray-400">Enter your email to receive a reset link</p>
+          <h1 className="text-3xl font-bold text-white">{t('forgotPassword.title')}</h1>
+          <p className="mt-2 text-gray-400">{t('forgotPassword.subtitle')}</p>
         </div>
 
         {error && (
@@ -87,32 +90,32 @@ export default function ForgotPasswordPage() {
           <div className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email Address
+                {t('forgotPassword.emailLabel')}
               </label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t('forgotPassword.emailPlaceholder')}
                 required
-                className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isLoading ? 'Sending...' : 'Send Reset Link'}
+              {isLoading ? t('forgotPassword.sendingButton') : t('forgotPassword.submitButton')}
             </button>
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-400">
-            Remember your password?{' '}
-            <Link href="/auth/login" className="font-medium text-blue-400 hover:text-blue-300">
-              Sign in
+            {t('forgotPassword.rememberPassword')}{' '}
+            <Link href="/auth/login" className="font-medium text-emerald-400 hover:text-emerald-300">
+              {t('login.signIn')}
             </Link>
           </p>
         </form>

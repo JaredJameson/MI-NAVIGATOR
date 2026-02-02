@@ -3,9 +3,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { authApi } from '@/services/api'
 
 export default function RegisterPage() {
+  const t = useTranslations('auth')
+  const tCommon = useTranslations('common')
   const router = useRouter()
   const [formData, setFormData] = useState({
     email: '',
@@ -45,10 +48,10 @@ export default function RegisterPage() {
     switch (name) {
       case 'email':
         if (!value) {
-          newErrors.email = 'Email is required'
+          newErrors.email = tCommon('errors.required')
           delete newSuccess.email
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors.email = 'Invalid email format'
+          newErrors.email = tCommon('errors.invalidEmail')
           delete newSuccess.email
         } else {
           delete newErrors.email
@@ -57,16 +60,16 @@ export default function RegisterPage() {
         break
       case 'password':
         if (!value) {
-          newErrors.password = 'Password is required'
+          newErrors.password = tCommon('errors.required')
           delete newSuccess.password
         } else if (value.length < 8) {
-          newErrors.password = 'Password must be at least 8 characters'
+          newErrors.password = t('register.errors.passwordMinLength')
           delete newSuccess.password
         } else if (!/[A-Z]/.test(value)) {
-          newErrors.password = 'Password must contain at least one uppercase letter'
+          newErrors.password = t('register.errors.passwordUppercase')
           delete newSuccess.password
         } else if (!/[0-9]/.test(value)) {
-          newErrors.password = 'Password must contain at least one digit'
+          newErrors.password = t('register.errors.passwordDigit')
           delete newSuccess.password
         } else {
           delete newErrors.password
@@ -75,10 +78,10 @@ export default function RegisterPage() {
         break
       case 'confirmPassword':
         if (!value) {
-          newErrors.confirmPassword = 'Please confirm your password'
+          newErrors.confirmPassword = t('register.errors.confirmPasswordRequired')
           delete newSuccess.confirmPassword
         } else if (formData.password !== value) {
-          newErrors.confirmPassword = 'Passwords do not match'
+          newErrors.confirmPassword = t('register.errors.passwordsNotMatch')
           delete newSuccess.confirmPassword
         } else {
           delete newErrors.confirmPassword
@@ -97,27 +100,27 @@ export default function RegisterPage() {
 
     // Email validation
     if (!formData.email) {
-      newErrors.email = 'Email is required'
+      newErrors.email = tCommon('errors.required')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format'
+      newErrors.email = tCommon('errors.invalidEmail')
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = tCommon('errors.required')
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters'
+      newErrors.password = t('register.errors.passwordMinLength')
     } else if (!/[A-Z]/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter'
+      newErrors.password = t('register.errors.passwordUppercase')
     } else if (!/[0-9]/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one digit'
+      newErrors.password = t('register.errors.passwordDigit')
     }
 
     // Confirm password
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password'
+      newErrors.confirmPassword = t('register.errors.confirmPasswordRequired')
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      newErrors.confirmPassword = t('register.errors.passwordsNotMatch')
     }
 
     setErrors(newErrors)
@@ -163,13 +166,13 @@ export default function RegisterPage() {
         setGeneralError(result.error)
       } else {
         setSuccess(true)
-        // Redirect to login after short delay
+        // Redirect to email verification page
         setTimeout(() => {
-          router.push('/auth/login')
+          router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`)
         }, 2000)
       }
     } catch (err) {
-      setGeneralError('An unexpected error occurred. Please try again.')
+      setGeneralError(tCommon('errors.generic'))
     } finally {
       setLoading(false)
     }
@@ -179,8 +182,8 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-          <p className="mt-2 text-gray-600">Join MI-Navigator today</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('register.title')}</h1>
+          <p className="mt-2 text-gray-600">{t('register.subtitle')}</p>
         </div>
 
         {success && (
@@ -189,7 +192,7 @@ export default function RegisterPage() {
               <svg className="mr-2 h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
               </svg>
-              Account created successfully! Redirecting to login...
+              {t('register.successMessage')}
             </div>
           </div>
         )}
@@ -214,7 +217,7 @@ export default function RegisterPage() {
             {/* Name field */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Name (optional)
+                {t('register.nameLabel')}
               </label>
               <input
                 id="name"
@@ -222,15 +225,15 @@ export default function RegisterPage() {
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Your name"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                placeholder={t('register.namePlaceholder')}
               />
             </div>
 
             {/* Email field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email <span className="text-red-500">*</span>
+                {t('login.email')} <span className="text-red-500">*</span>
               </label>
               <div className="relative mt-1">
                 <input
@@ -246,9 +249,9 @@ export default function RegisterPage() {
                       ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
                       : fieldSuccess.email
                       ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
-                      : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                      : 'border border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
                   }`}
-                  placeholder="you@example.com"
+                  placeholder={t('register.emailPlaceholder')}
                   aria-invalid={errors.email ? 'true' : 'false'}
                   aria-describedby={errors.email ? 'email-error' : undefined}
                 />
@@ -277,7 +280,7 @@ export default function RegisterPage() {
             {/* Password field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password <span className="text-red-500">*</span>
+                {t('login.password')} <span className="text-red-500">*</span>
               </label>
               <div className="relative mt-1">
                 <input
@@ -293,9 +296,9 @@ export default function RegisterPage() {
                       ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
                       : fieldSuccess.password
                       ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
-                      : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                      : 'border border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
                   }`}
-                  placeholder="Min 8 characters"
+                  placeholder={t('register.passwordPlaceholder')}
                   aria-invalid={errors.password ? 'true' : 'false'}
                   aria-describedby={errors.password ? 'password-error' : 'password-help'}
                 />
@@ -321,7 +324,7 @@ export default function RegisterPage() {
               )}
               {!errors.password && (
                 <p className="mt-1 text-xs text-gray-500" id="password-help">
-                  At least 8 characters, one uppercase letter, and one digit
+                  {t('register.passwordHelpText')}
                 </p>
               )}
             </div>
@@ -329,7 +332,7 @@ export default function RegisterPage() {
             {/* Confirm Password field */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password <span className="text-red-500">*</span>
+                {t('register.confirmPasswordLabel')} <span className="text-red-500">*</span>
               </label>
               <div className="relative mt-1">
                 <input
@@ -345,9 +348,9 @@ export default function RegisterPage() {
                       ? 'border-2 border-red-500 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
                       : fieldSuccess.confirmPassword
                       ? 'border-2 border-green-500 focus:border-green-500 focus:ring-green-500'
-                      : 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                      : 'border border-gray-300 focus:border-emerald-500 focus:ring-emerald-500'
                   }`}
-                  placeholder="Repeat password"
+                  placeholder={t('register.confirmPasswordPlaceholder')}
                   aria-invalid={errors.confirmPassword ? 'true' : 'false'}
                   aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
                 />
@@ -377,7 +380,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading || success}
-            className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full rounded-md bg-emerald-600 px-4 py-2.5 text-white font-medium hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (
               <span className="flex items-center justify-center">
@@ -385,17 +388,17 @@ export default function RegisterPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Creating account...
+                {t('register.creatingAccount')}
               </span>
             ) : (
-              'Create Account'
+              t('register.title')
             )}
           </button>
 
           <p className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:underline">
-              Sign in
+            {t('register.haveAccount')}{' '}
+            <Link href="/auth/login" className="font-medium text-emerald-600 hover:underline">
+              {t('register.signIn')}
             </Link>
           </p>
         </form>
