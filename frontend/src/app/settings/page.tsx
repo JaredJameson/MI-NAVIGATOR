@@ -128,6 +128,15 @@ export default function SettingsPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  // Helper functions to get translated dropdown options
+  const getIndustries = () => INDUSTRIES.map(item => ({ value: item.value, label: t(`settings.industries.${item.value}`, item.label) }))
+  const getUserRoles = () => USER_ROLES.map(item => ({ value: item.value, label: t(`settings.userRoles.${item.value}`, item.label) }))
+  const getDepths = () => DEPTHS.map(item => ({ value: item.value, label: t(`settings.depths.${item.value}`, item.label) }))
+  const getFormats = () => FORMATS.map(item => ({ value: item.value, label: t(`settings.formats.${item.value}`, item.label) }))
+  const getCurrencies = () => CURRENCIES.map(item => ({ value: item.value, label: t(`settings.currencies.${item.value}`, item.label) }))
+  const getTimezones = () => TIMEZONES.map(item => ({ value: item.value, label: t(`settings.timezones.${item.value}`, item.label) }))
+  const getFieldTypes = () => FIELD_TYPES.map(item => ({ value: item.value, label: t(`settings.fieldTypes.${item.value}`, item.label) }))
+
   // Form fields
   const [name, setName] = useState('')
   const [industry, setIndustry] = useState('')
@@ -266,7 +275,7 @@ export default function SettingsPage() {
       setReportBranding(values.reportBranding)
       setInitialValues(values)
     } catch (err) {
-      setError('Failed to load profile')
+      setError(t('settings.errors.failedToLoadProfile', 'Failed to load profile'))
     } finally {
       setIsLoading(false)
     }
@@ -324,12 +333,12 @@ export default function SettingsPage() {
 
     // Validation
     if (!newFieldName.trim()) {
-      setFieldError('Field name is required')
+      setFieldError(t('settings.errors.fieldNameRequired', 'Field name is required'))
       return
     }
 
     if ((newFieldType === 'select' || newFieldType === 'multiselect') && !newFieldOptions.trim()) {
-      setFieldError('Options are required for select and multiselect fields')
+      setFieldError(t('settings.errors.optionsRequired', 'Options are required for select and multiselect fields'))
       return
     }
 
@@ -337,7 +346,7 @@ export default function SettingsPage() {
       // Get CSRF token
       const csrfToken = await getCsrfToken()
       if (!csrfToken) {
-        throw new Error('Failed to get CSRF token')
+        throw new Error(t('settings.errors.failedToGetCsrfToken', 'Failed to get CSRF token'))
       }
 
       const options = (newFieldType === 'select' || newFieldType === 'multiselect')
@@ -362,7 +371,7 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.detail || 'Failed to create custom field')
+        throw new Error(error.detail || t('settings.errors.failedToCreateField', 'Failed to create custom field'))
       }
 
       // Reset form
@@ -375,10 +384,10 @@ export default function SettingsPage() {
 
       // Refresh list
       fetchCustomFields()
-      setSuccess('Custom field created successfully!')
+      setSuccess(t('settings.success.fieldCreated', 'Custom field created successfully!'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setFieldError(err instanceof Error ? err.message : 'Failed to create custom field')
+      setFieldError(err instanceof Error ? err.message : t('settings.errors.failedToCreateField', 'Failed to create custom field'))
     }
   }
 
@@ -386,7 +395,7 @@ export default function SettingsPage() {
     const token = getStoredToken()
     if (!token) return
 
-    if (!confirm('Are you sure you want to delete this custom field? All associated data will be lost.')) {
+    if (!confirm(t('settings.confirmDeleteField', 'Are you sure you want to delete this custom field? All associated data will be lost.'))) {
       return
     }
 
@@ -394,7 +403,7 @@ export default function SettingsPage() {
       // Get CSRF token
       const csrfToken = await getCsrfToken()
       if (!csrfToken) {
-        throw new Error('Failed to get CSRF token')
+        throw new Error(t('settings.errors.failedToGetCsrfToken', 'Failed to get CSRF token'))
       }
 
       const response = await fetch(`${API_BASE_URL}/custom-fields/definitions/${fieldId}`, {
@@ -406,14 +415,14 @@ export default function SettingsPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to delete custom field')
+        throw new Error(t('settings.errors.failedToDeleteField', 'Failed to delete custom field'))
       }
 
       fetchCustomFields()
-      setSuccess('Custom field deleted successfully!')
+      setSuccess(t('settings.success.fieldDeleted', 'Custom field deleted successfully!'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete custom field')
+      setError(err instanceof Error ? err.message : t('settings.errors.failedToDeleteField', 'Failed to delete custom field'))
     }
   }
 
@@ -429,7 +438,7 @@ export default function SettingsPage() {
       // Get CSRF token
       const csrfToken = await getCsrfToken()
       if (!csrfToken) {
-        throw new Error('Failed to get CSRF token')
+        throw new Error(t('settings.errors.failedToGetCsrfToken', 'Failed to get CSRF token'))
       }
 
       // Update profile
@@ -448,7 +457,7 @@ export default function SettingsPage() {
       })
 
       if (!profileResponse.ok) {
-        throw new Error('Failed to update profile')
+        throw new Error(t('settings.errors.failedToUpdateProfile', 'Failed to update profile'))
       }
 
       // Update preferences
@@ -470,7 +479,7 @@ export default function SettingsPage() {
       })
 
       if (!prefsResponse.ok) {
-        throw new Error('Failed to update preferences')
+        throw new Error(t('settings.errors.failedToUpdatePreferences', 'Failed to update preferences'))
       }
 
       // Update notification preferences
@@ -488,7 +497,7 @@ export default function SettingsPage() {
       })
 
       if (!notifResponse.ok) {
-        throw new Error('Failed to update notification preferences')
+        throw new Error(t('settings.errors.failedToUpdateNotifications', 'Failed to update notification preferences'))
       }
 
       // Reset unsaved changes tracking after successful save
@@ -505,7 +514,7 @@ export default function SettingsPage() {
       setInitialValues(newValues)
       setHasUnsavedChanges(false)
 
-      setSuccess('Settings saved successfully!')
+      setSuccess(t('settings.success.settingsSaved', 'Settings saved successfully!'))
 
       // If language changed, reload page to apply new translations
       if (language !== initialValues?.language) {
@@ -516,7 +525,7 @@ export default function SettingsPage() {
         setTimeout(() => setSuccess(''), 3000)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings')
+      setError(err instanceof Error ? err.message : t('settings.errors.failedToSave', 'Failed to save settings'))
     } finally {
       setIsSaving(false)
     }
@@ -537,7 +546,7 @@ export default function SettingsPage() {
   const handleNavigateAway = (href: string) => {
     if (hasUnsavedChanges) {
       const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to leave this page? Your changes will be lost.'
+        t('settings.unsavedChangesWarning', 'You have unsaved changes. Are you sure you want to leave this page? Your changes will be lost.')
       )
       if (confirmed) {
         router.push(href)
@@ -550,7 +559,7 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
       </div>
     )
   }
@@ -562,7 +571,7 @@ export default function SettingsPage() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button onClick={() => handleNavigateAway('/dashboard')} className="text-gray-600 hover:text-gray-900" aria-label="Wróć do dashboardu">
+              <button onClick={() => handleNavigateAway('/dashboard')} className="text-gray-600 hover:text-gray-900" aria-label={t('settings.backToDashboard', 'Back to dashboard')}>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
@@ -571,17 +580,17 @@ export default function SettingsPage() {
             </div>
             <nav className="flex items-center gap-2 sm:gap-4">
               <button onClick={() => handleNavigateAway('/dashboard')} className="hidden sm:inline text-gray-600 hover:text-gray-900">
-                Dashboard
+                {t('settings.navigation.dashboard', 'Dashboard')}
               </button>
               <button onClick={() => handleNavigateAway('/chat')} className="hidden sm:inline text-gray-600 hover:text-gray-900">
-                Chat
+                {t('settings.navigation.chat', 'Chat')}
               </button>
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
                 className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700 disabled:opacity-50 whitespace-nowrap"
               >
-                {isLoggingOut ? 'Logging out...' : 'Logout'}
+                {isLoggingOut ? t('settings.loggingOut', 'Logging out...') : t('settings.logout', 'Logout')}
               </button>
             </nav>
           </div>
@@ -615,7 +624,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
+                {t('settings.email', 'Email')}
               </label>
               <input
                 type="email"
@@ -624,36 +633,36 @@ export default function SettingsPage() {
                 disabled
                 className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-gray-500"
               />
-              <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+              <p className="mt-1 text-xs text-gray-500">{t('settings.emailCannotChange', 'Email cannot be changed')}</p>
             </div>
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Display Name
+                {t('settings.displayName', 'Display Name')}
               </label>
               <input
                 type="text"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder={t('settings.displayNamePlaceholder', 'Your name')}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
               <div>
                 <label htmlFor="industry" className="block text-sm font-medium text-gray-700">
-                  Industry
+                  {t('settings.industry', 'Industry')}
                 </label>
                 <select
                   id="industry"
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
-                  <option value="">Select industry...</option>
-                  {INDUSTRIES.map((ind) => (
+                  <option value="">{t('settings.industryPlaceholder', 'Select industry...')}</option>
+                  {getIndustries().map((ind) => (
                     <option key={ind.value} value={ind.value}>
                       {ind.label}
                     </option>
@@ -663,16 +672,16 @@ export default function SettingsPage() {
 
               <div>
                 <label htmlFor="userRole" className="block text-sm font-medium text-gray-700">
-                  Role
+                  {t('settings.role', 'Role')}
                 </label>
                 <select
                   id="userRole"
                   value={userRole}
                   onChange={(e) => setUserRole(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
-                  <option value="">Select role...</option>
-                  {USER_ROLES.map((role) => (
+                  <option value="">{t('settings.rolePlaceholder', 'Select role...')}</option>
+                  {getUserRoles().map((role) => (
                     <option key={role.value} value={role.value}>
                       {role.label}
                     </option>
@@ -690,13 +699,13 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div>
               <label htmlFor="language" className="block text-sm font-medium text-gray-700">
-                Language
+                {t('settings.language', 'Language')}
               </label>
               <select
                 id="language"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
                 {LANGUAGES.map((lang) => (
                   <option key={lang.value} value={lang.value}>
@@ -708,36 +717,36 @@ export default function SettingsPage() {
 
             <div>
               <label htmlFor="depth" className="block text-sm font-medium text-gray-700">
-                Default Analysis Depth
+                {t('settings.defaultAnalysisDepth', 'Default Analysis Depth')}
               </label>
               <select
                 id="depth"
                 value={depth}
                 onChange={(e) => setDepth(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
-                {DEPTHS.map((d) => (
+                {getDepths().map((d) => (
                   <option key={d.value} value={d.value}>
                     {d.label}
                   </option>
                 ))}
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                Controls the detail level of generated reports and analyses
+                {t('settings.depthHelpText', 'Controls the detail level of generated reports and analyses')}
               </p>
             </div>
 
             <div>
               <label htmlFor="format" className="block text-sm font-medium text-gray-700">
-                Default Export Format
+                {t('settings.defaultExportFormat', 'Default Export Format')}
               </label>
               <select
                 id="format"
                 value={format}
                 onChange={(e) => setFormat(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
-                {FORMATS.map((f) => (
+                {getFormats().map((f) => (
                   <option key={f.value} value={f.value}>
                     {f.label}
                   </option>
@@ -747,53 +756,53 @@ export default function SettingsPage() {
 
             <div>
               <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
-                Preferred Currency
+                {t('settings.preferredCurrency', 'Preferred Currency')}
               </label>
               <select
                 id="currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
-                {CURRENCIES.map((c) => (
+                {getCurrencies().map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
                   </option>
                 ))}
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                Currency symbol used for displaying financial data
+                {t('settings.currencyHelpText', 'Currency symbol used for displaying financial data')}
               </p>
             </div>
 
             <div>
               <label htmlFor="timezone" className="block text-sm font-medium text-gray-700">
-                Timezone
+                {t('settings.timezone', 'Timezone')}
               </label>
               <select
                 id="timezone"
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
-                {TIMEZONES.map((tz) => (
+                {getTimezones().map((tz) => (
                   <option key={tz.value} value={tz.value}>
                     {tz.label}
                   </option>
                 ))}
               </select>
               <p className="mt-1 text-sm text-gray-500">
-                All timestamps in the application will be displayed in your selected timezone
+                {t('settings.timezoneHelpText', 'All timestamps in the application will be displayed in your selected timezone')}
               </p>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
                 <label htmlFor="reportBranding" className="block text-sm font-medium text-gray-900">
-                  Report Branding
+                  {t('settings.reportBranding', 'Report Branding')}
                 </label>
                 <p className="text-sm text-gray-500">
-                  Include company logo in exported reports (PDF, DOCX, PPTX)
+                  {t('settings.reportBrandingDescription', 'Include company logo in exported reports (PDF, DOCX, PPTX)')}
                 </p>
               </div>
               <button
@@ -802,8 +811,8 @@ export default function SettingsPage() {
                 aria-checked={reportBranding}
                 onClick={() => setReportBranding(!reportBranding)}
                 className={`${
-                  reportBranding ? 'bg-blue-600' : 'bg-gray-200'
-                } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2`}
+                  reportBranding ? 'bg-emerald-600' : 'bg-gray-200'
+                } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2`}
               >
                 <span
                   aria-hidden="true"
@@ -824,10 +833,10 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <label htmlFor="emailNotifications" className="block text-sm font-medium text-gray-900">
-                  Email Notifications
+                  {t('settings.emailNotifications', 'Email Notifications')}
                 </label>
                 <p className="text-sm text-gray-500">
-                  Receive email notifications about reports, alerts, and updates
+                  {t('settings.emailNotificationsDescription', 'Receive email notifications about reports, alerts, and updates')}
                 </p>
               </div>
               <button
@@ -835,8 +844,8 @@ export default function SettingsPage() {
                 role="switch"
                 aria-checked={emailNotifications}
                 onClick={() => setEmailNotifications(!emailNotifications)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  emailNotifications ? 'bg-blue-600' : 'bg-gray-200'
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                  emailNotifications ? 'bg-emerald-600' : 'bg-gray-200'
                 }`}
               >
                 <span
@@ -850,10 +859,10 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <label htmlFor="inAppNotifications" className="block text-sm font-medium text-gray-900">
-                  In-App Notifications
+                  {t('settings.inAppNotifications', 'In-App Notifications')}
                 </label>
                 <p className="text-sm text-gray-500">
-                  Show notifications within the application
+                  {t('settings.inAppNotificationsDescription', 'Show notifications within the application')}
                 </p>
               </div>
               <button
@@ -861,8 +870,8 @@ export default function SettingsPage() {
                 role="switch"
                 aria-checked={inAppNotifications}
                 onClick={() => setInAppNotifications(!inAppNotifications)}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  inAppNotifications ? 'bg-blue-600' : 'bg-gray-200'
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                  inAppNotifications ? 'bg-emerald-600' : 'bg-gray-200'
                 }`}
               >
                 <span
@@ -879,17 +888,17 @@ export default function SettingsPage() {
         <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Tags</h2>
-              <p className="text-sm text-gray-500 mt-1">Organize your reports with custom tags</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('settings.tags', 'Tags')}</h2>
+              <p className="text-sm text-gray-500 mt-1">{t('settings.tagsDescription', 'Organize your reports with custom tags')}</p>
             </div>
             <button
               onClick={() => handleNavigateAway('/settings/tags')}
-              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
-              Manage Tags
+              {t('settings.manageTags', 'Manage Tags')}
             </button>
           </div>
         </section>
@@ -897,19 +906,19 @@ export default function SettingsPage() {
         {/* Custom Fields Section */}
         <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Custom Fields</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('settings.customFields', 'Custom Fields')}</h2>
             <button
               onClick={() => setShowAddFieldForm(!showAddFieldForm)}
-              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+              className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg"
             >
-              {showAddFieldForm ? 'Cancel' : '+ Add Field'}
+              {showAddFieldForm ? t('settings.cancel', 'Cancel') : t('settings.addField', '+ Add Field')}
             </button>
           </div>
 
           {/* Add Field Form */}
           {showAddFieldForm && (
             <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">New Custom Field</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-4">{t('settings.newCustomField', 'New Custom Field')}</h3>
 
               {fieldError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
@@ -920,29 +929,29 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="newFieldName" className="block text-sm font-medium text-gray-700">
-                    Field Name *
+                    {t('settings.fieldNameLabel', 'Field Name *')}
                   </label>
                   <input
                     type="text"
                     id="newFieldName"
                     value={newFieldName}
                     onChange={(e) => setNewFieldName(e.target.value)}
-                    placeholder="e.g., Industry Specialization"
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder={t('settings.fieldNamePlaceholder', 'e.g., Industry Specialization')}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="newFieldType" className="block text-sm font-medium text-gray-700">
-                    Field Type *
+                    {t('settings.fieldTypeLabel', 'Field Type *')}
                   </label>
                   <select
                     id="newFieldType"
                     value={newFieldType}
                     onChange={(e) => setNewFieldType(e.target.value)}
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   >
-                    {FIELD_TYPES.map((type) => (
+                    {getFieldTypes().map((type) => (
                       <option key={type.value} value={type.value}>
                         {type.label}
                       </option>
@@ -952,30 +961,30 @@ export default function SettingsPage() {
 
                 <div>
                   <label htmlFor="newFieldDescription" className="block text-sm font-medium text-gray-700">
-                    Description
+                    {t('settings.description', 'Description')}
                   </label>
                   <textarea
                     id="newFieldDescription"
                     value={newFieldDescription}
                     onChange={(e) => setNewFieldDescription(e.target.value)}
-                    placeholder="Optional description"
+                    placeholder={t('settings.descriptionPlaceholder', 'Optional description')}
                     rows={2}
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
 
                 {(newFieldType === 'select' || newFieldType === 'multiselect') && (
                   <div>
                     <label htmlFor="newFieldOptions" className="block text-sm font-medium text-gray-700">
-                      Options * (comma-separated)
+                      {t('settings.optionsLabel', 'Options * (comma-separated)')}
                     </label>
                     <input
                       type="text"
                       id="newFieldOptions"
                       value={newFieldOptions}
                       onChange={(e) => setNewFieldOptions(e.target.value)}
-                      placeholder="e.g., Option 1, Option 2, Option 3"
-                      className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder={t('settings.optionsPlaceholder', 'e.g., Option 1, Option 2, Option 3')}
+                      className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
                 )}
@@ -986,10 +995,10 @@ export default function SettingsPage() {
                     id="newFieldRequired"
                     checked={newFieldRequired}
                     onChange={(e) => setNewFieldRequired(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                   />
                   <label htmlFor="newFieldRequired" className="ml-2 block text-sm text-gray-700">
-                    Required field
+                    {t('settings.requiredField', 'Required field')}
                   </label>
                 </div>
 
@@ -1006,13 +1015,13 @@ export default function SettingsPage() {
                     }}
                     className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
                   >
-                    Cancel
+                    {t('settings.cancel', 'Cancel')}
                   </button>
                   <button
                     onClick={handleAddCustomField}
-                    className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                    className="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
                   >
-                    Create Field
+                    {t('settings.createField', 'Create Field')}
                   </button>
                 </div>
               </div>
@@ -1022,12 +1031,12 @@ export default function SettingsPage() {
           {/* Custom Fields List */}
           {isLoadingFields ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
             </div>
           ) : customFields.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>No custom fields defined yet.</p>
-              <p className="text-sm mt-1">Click "Add Field" to create your first custom field.</p>
+              <p>{t('settings.noCustomFieldsYet', 'No custom fields defined yet.')}</p>
+              <p className="text-sm mt-1">{t('settings.clickAddField', 'Click "Add Field" to create your first custom field.')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -1040,7 +1049,7 @@ export default function SettingsPage() {
                         {FIELD_TYPES.find(t => t.value === field.field_type)?.label || field.field_type}
                       </span>
                       {field.is_required && (
-                        <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Required</span>
+                        <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">{t('settings.required', 'Required')}</span>
                       )}
                     </div>
                     {field.description && (
@@ -1048,7 +1057,7 @@ export default function SettingsPage() {
                     )}
                     {field.options && field.options.length > 0 && (
                       <p className="text-xs text-gray-400 mt-1">
-                        Options: {field.options.join(', ')}
+                        {t('settings.optionsPrefix', 'Options: ')}{field.options.join(', ')}
                       </p>
                     )}
                   </div>
@@ -1056,7 +1065,7 @@ export default function SettingsPage() {
                     onClick={() => handleDeleteCustomField(field.id)}
                     className="ml-4 text-red-600 hover:text-red-700 text-sm font-medium"
                   >
-                    Delete
+                    {t('settings.delete', 'Delete')}
                   </button>
                 </div>
               ))}
@@ -1070,98 +1079,98 @@ export default function SettingsPage() {
             onClick={() => handleNavigateAway('/dashboard')}
             className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
           >
-            Cancel
+            {t('settings.cancel', 'Cancel')}
           </button>
           <button
             onClick={handleSaveProfile}
             disabled={isSaving}
-            className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-emerald-600 px-6 py-2 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? t('settings.saving', 'Saving...') : t('settings.saveChanges', 'Save Changes')}
           </button>
         </div>
 
         {/* Account Section */}
         <section className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">Account</h2>
+          <h2 className="mb-6 text-lg font-semibold text-gray-900">{t('settings.account', 'Account')}</h2>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between py-4 border-b">
               <div>
-                <h3 className="font-medium text-gray-900">Security Settings</h3>
-                <p className="text-sm text-gray-500">Two-factor authentication and security options</p>
+                <h3 className="font-medium text-gray-900">{t('settings.securitySettings', 'Security Settings')}</h3>
+                <p className="text-sm text-gray-500">{t('settings.securitySettingsDescription', 'Two-factor authentication and security options')}</p>
               </div>
               <button
                 onClick={() => handleNavigateAway('/settings/security')}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
               >
-                Manage Security →
+                {t('settings.manageSecurity', 'Manage Security →')}
               </button>
             </div>
 
             {/* Privacy Settings */}
             <div className="flex items-center justify-between py-4 border-b">
               <div>
-                <h3 className="font-medium text-gray-900">Privacy Settings</h3>
-                <p className="text-sm text-gray-500">Export your data and manage privacy options (GDPR)</p>
+                <h3 className="font-medium text-gray-900">{t('settings.privacySettings', 'Privacy Settings')}</h3>
+                <p className="text-sm text-gray-500">{t('settings.privacySettingsDescription', 'Export your data and manage privacy options (GDPR)')}</p>
               </div>
               <button
                 onClick={() => handleNavigateAway('/settings/privacy')}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
               >
-                Manage Privacy →
+                {t('settings.managePrivacy', 'Manage Privacy →')}
               </button>
             </div>
 
             <div className="flex items-center justify-between py-4 border-b">
               <div>
-                <h3 className="font-medium text-gray-900">Feature Flags</h3>
-                <p className="text-sm text-gray-500">Control which features are enabled (Admin only)</p>
+                <h3 className="font-medium text-gray-900">{t('settings.featureFlags', 'Feature Flags')}</h3>
+                <p className="text-sm text-gray-500">{t('settings.featureFlagsDescription', 'Control which features are enabled (Admin only)')}</p>
               </div>
               <button
                 onClick={() => handleNavigateAway('/settings/feature-flags')}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
               >
-                Manage Features →
+                {t('settings.manageFeatures', 'Manage Features →')}
               </button>
             </div>
 
             <div className="flex items-center justify-between py-4 border-b">
               <div>
-                <h3 className="font-medium text-gray-900">Audit Trail</h3>
-                <p className="text-sm text-gray-500">View log of all sensitive operations</p>
+                <h3 className="font-medium text-gray-900">{t('settings.auditTrail', 'Audit Trail')}</h3>
+                <p className="text-sm text-gray-500">{t('settings.auditTrailDescription', 'View log of all sensitive operations')}</p>
               </div>
               <button
                 onClick={() => handleNavigateAway('/settings/audit')}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
               >
-                View Audit Log →
+                {t('settings.viewAuditLog', 'View Audit Log →')}
               </button>
             </div>
 
             <div className="flex items-center justify-between py-4 border-b">
               <div>
-                <h3 className="font-medium text-gray-900">Change Password</h3>
-                <p className="text-sm text-gray-500">Update your password</p>
+                <h3 className="font-medium text-gray-900">{t('settings.changePassword', 'Change Password')}</h3>
+                <p className="text-sm text-gray-500">{t('settings.changePasswordDescription', 'Update your password')}</p>
               </div>
               <button
                 onClick={() => handleNavigateAway('/auth/forgot-password')}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
               >
-                Reset Password
+                {t('settings.resetPassword', 'Reset Password')}
               </button>
             </div>
 
             <div className="flex items-center justify-between py-4">
               <div>
-                <h3 className="font-medium text-red-600">Delete Account</h3>
-                <p className="text-sm text-gray-500">Permanently delete your account and all data</p>
+                <h3 className="font-medium text-red-600">{t('settings.deleteAccount', 'Delete Account')}</h3>
+                <p className="text-sm text-gray-500">{t('settings.deleteAccountDescription', 'Permanently delete your account and all data')}</p>
               </div>
               <button
                 className="text-red-600 hover:text-red-700 text-sm font-medium"
                 disabled
               >
-                Delete (Coming soon)
+                {t('settings.deleteComingSoon', 'Delete (Coming soon)')}
               </button>
             </div>
           </div>
