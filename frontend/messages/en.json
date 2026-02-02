@@ -587,7 +587,10 @@
       "clearAllTitle": "Clear all filters"
     },
     "status": {
-      "all": "All"
+      "all": "All",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "draft": "Draft"
     },
     "types": {
       "companyProfile": "Company profile",
@@ -614,9 +617,18 @@
       "selectedCount": "{count} of {total} selected",
       "selectPage": "Page selected",
       "selectAll": "All selected",
+      "selectAllButton": "Select all",
       "selectAllOnPage": "All {count} on this page selected.",
       "selectAllAcrossPages": "Select all {total} reports",
-      "clearSelection": "Clear selection"
+      "clearSelection": "Clear selection",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "assignSuccess": "Assigned {count} reports to project",
+      "deleteSuccess": "Deleted {count} reports"
+    },
+    "modals": {
+      "cancel": "Cancel"
     },
     "bulkActions": {
       "delete": "Delete ({count})",

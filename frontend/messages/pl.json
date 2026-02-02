@@ -587,7 +587,10 @@
       "clearAllTitle": "Wyczyść wszystkie filtry"
     },
     "status": {
-      "all": "Wszystkie"
+      "all": "Wszystkie",
+      "completed": "Zakończony",
+      "inProgress": "W trakcie",
+      "draft": "Szkic"
     },
     "types": {
       "companyProfile": "Profil firmy",
@@ -614,9 +617,18 @@
       "selectedCount": "{count} z {total} wybranych",
       "selectPage": "Zaznaczono stronę",
       "selectAll": "Zaznaczono wszystkie",
+      "selectAllButton": "Zaznacz wszystkie",
       "selectAllOnPage": "Zaznaczono wszystkie {count} na tej stronie.",
       "selectAllAcrossPages": "Zaznacz wszystkie {total} raportów",
-      "clearSelection": "Wyczyść zaznaczenie"
+      "clearSelection": "Wyczyść zaznaczenie",
+      "cancel": "Anuluj"
+    },
+    "messages": {
+      "assignSuccess": "Przypisano {count} raportów do projektu",
+      "deleteSuccess": "Usunięto {count} raportów"
+    },
+    "modals": {
+      "cancel": "Anuluj"
     },
     "bulkActions": {
       "delete": "Usuń ({count})",

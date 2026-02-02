@@ -3,10 +3,23 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { getStoredToken } from '@/services/api'
 import { useUserTimezone, useUserLocale } from '@/hooks/useUserTimezone'
 import { formatDateInTimezone } from '@/utils/date'
 import { ReportListSkeleton } from '@/components/Skeleton'
+import {
+  BuildingIcon,
+  ChartIcon,
+  MagnifyingGlassIcon,
+  ExplosionIcon,
+  DocumentIcon,
+  PencilIcon,
+  ClockIcon,
+  CheckIcon,
+  FolderIcon,
+  InfoIcon
+} from '@/components/icons/CommonIcons'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -69,18 +82,13 @@ interface Project {
   report_ids: string[]
 }
 
-const REPORT_TYPE_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  company_profile: { label: 'Profil firmy', color: 'bg-blue-100 text-blue-800', icon: '🏢' },
-  market_analysis: { label: 'Analiza rynku', color: 'bg-green-100 text-green-800', icon: '📊' },
-  due_diligence: { label: 'Due Diligence', color: 'bg-purple-100 text-purple-800', icon: '🔍' },
-  competitive: { label: 'Konkurencja', color: 'bg-orange-100 text-orange-800', icon: '⚔️' },
-}
-
 export default function ReportsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userTimezone = useUserTimezone()
   const userLocale = useUserLocale()
+  const t = useTranslations('reports')
+  const tCommon = useTranslations('common')
   const [reports, setReports] = useState<ReportSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -188,7 +196,7 @@ export default function ReportsPage() {
       setTotalPages(data.pages)
       setTotalReports(data.total)
     } catch (err) {
-      setError('Nie udało się załadować raportów')
+      setError(t('errors.loadFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -253,7 +261,13 @@ export default function ReportsPage() {
   }
 
   const getTypeInfo = (type: string) => {
-    return REPORT_TYPE_LABELS[type] || { label: type, color: 'bg-gray-100 text-gray-800', icon: '📄' }
+    const typeLabels: Record<string, { label: string; color: string; icon: React.ReactElement }> = {
+      company_profile: { label: t('types.companyProfile'), color: 'bg-emerald-100 text-emerald-800', icon: <BuildingIcon className="w-5 h-5" /> },
+      market_analysis: { label: t('types.marketAnalysis'), color: 'bg-green-100 text-green-800', icon: <ChartIcon className="w-5 h-5" /> },
+      due_diligence: { label: t('types.dueDiligence'), color: 'bg-purple-100 text-purple-800', icon: <MagnifyingGlassIcon className="w-5 h-5" /> },
+      competitive: { label: t('types.competitive'), color: 'bg-orange-100 text-orange-800', icon: <ExplosionIcon className="w-5 h-5" /> },
+    }
+    return typeLabels[type] || { label: type, color: 'bg-gray-100 text-gray-800', icon: <DocumentIcon className="w-5 h-5" /> }
   }
 
   // Selection functions
@@ -376,7 +390,7 @@ export default function ReportsPage() {
       }
 
       const data = await response.json()
-      setAssignmentSuccess(data.message || `Przypisano ${selectedReports.size} raportów do projektu`)
+      setAssignmentSuccess(data.message || t('messages.assignSuccess', {count: selectedReports.size}))
 
       // Clear selection after successful assignment
       setTimeout(() => {
@@ -384,7 +398,7 @@ export default function ReportsPage() {
         setAssignmentSuccess('')
       }, 2000)
     } catch (err) {
-      setError('Nie udało się przypisać raportów do projektu')
+      setError(t('errors.assignFailed'))
     } finally {
       setIsAssigning(false)
     }
@@ -424,7 +438,7 @@ export default function ReportsPage() {
       }
 
       const data = await response.json()
-      setDeleteSuccess(data.message || `Usunięto ${selectedReports.size} raportów`)
+      setDeleteSuccess(data.message || t('messages.deleteSuccess', {count: selectedReports.size}))
 
       // Close confirm modal and refresh reports
       setShowDeleteConfirm(false)
@@ -438,7 +452,7 @@ export default function ReportsPage() {
         setDeleteSuccess('')
       }, 2000)
     } catch (err) {
-      setError('Nie udało się usunąć raportów')
+      setError(t('errors.deleteFailed'))
       setShowDeleteConfirm(false)
     } finally {
       setIsDeleting(false)
@@ -555,7 +569,7 @@ export default function ReportsPage() {
         } catch (err) {
           clearInterval(pollInterval)
           console.error('Progress polling failed:', err)
-          setError('Nie udało się śledzić postępu eksportu')
+          setError(t('errors.trackProgressFailed'))
           setIsBulkExporting(false)
           setExportProgress(null)
         }
@@ -563,7 +577,7 @@ export default function ReportsPage() {
 
     } catch (err) {
       console.error('Bulk export failed:', err)
-      setError('Nie udało się wyeksportować raportów')
+      setError(t('errors.exportFailed'))
       setIsBulkExporting(false)
       setExportProgress(null)
     }
@@ -679,7 +693,7 @@ export default function ReportsPage() {
       }
     } catch (err) {
       console.error('Failed to toggle tag:', err)
-      setError('Nie udało się zaktualizować tagów')
+      setError(t('errors.updateTagsFailed'))
     } finally {
       setIsLoadingTags(false)
     }
@@ -765,22 +779,22 @@ export default function ReportsPage() {
       <header className="sticky top-0 z-50 border-b bg-white px-4 py-3">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900" aria-label="Wróć do dashboardu">
+            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900" aria-label={t('navigation.backToDashboard')}>
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </Link>
-            <h1 className="text-xl font-semibold text-gray-900">Raporty</h1>
+            <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
           </div>
           <nav className="flex items-center gap-4">
             {/* Context-sensitive help button */}
             <Link
               href="/help?context=reports"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
-              title="Pomoc dot. raportow"
+              title={t('helpTitle')}
             >
-              <span className="text-lg">❓</span>
-              <span className="hidden sm:inline">Pomoc</span>
+              <InfoIcon className="w-5 h-5" />
+              <span className="hidden sm:inline">{t('help')}</span>
             </Link>
 
             {/* Selection mode toggle */}
@@ -788,14 +802,14 @@ export default function ReportsPage() {
               onClick={() => isSelectionMode ? exitSelectionMode() : setIsSelectionMode(true)}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
                 isSelectionMode
-                  ? 'bg-blue-100 text-blue-700'
+                  ? 'bg-emerald-100 text-emerald-700'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              {isSelectionMode ? 'Anuluj zaznaczanie' : 'Wybierz'}
+              {isSelectionMode ? t('selection.cancelSelection') : t('selection.select')}
             </button>
 
             {/* Bulk action buttons - only visible when reports are selected */}
@@ -809,7 +823,7 @@ export default function ReportsPage() {
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Usuń ({selectedReports.size})
+                  {t('bulkActions.delete', { count: selectedReports.size })}
                 </button>
 
                 {/* Assign to project button */}
@@ -820,7 +834,7 @@ export default function ReportsPage() {
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                   </svg>
-                  Przypisz do projektu ({selectedReports.size})
+                  {t('bulkActions.assignToProject', { count: selectedReports.size })}
                 </button>
 
                 {/* Bulk export button */}
@@ -836,7 +850,7 @@ export default function ReportsPage() {
                       {exportProgress ? (
                         <span>{exportProgress.processed}/{exportProgress.total} ({exportProgress.percentage}%)</span>
                       ) : (
-                        <span>Eksportowanie...</span>
+                        <span>{t('bulkActions.exporting')}</span>
                       )}
                     </>
                   ) : (
@@ -844,7 +858,7 @@ export default function ReportsPage() {
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
-                      Eksportuj ({selectedReports.size})
+                      {t('bulkActions.export', { count: selectedReports.size })}
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
@@ -866,8 +880,8 @@ export default function ReportsPage() {
                           </svg>
                         </div>
                         <div>
-                          <div className="font-medium">Excel (.xlsx)</div>
-                          <div className="text-xs text-gray-500">Wszystkie w jednym pliku</div>
+                          <div className="font-medium">{t('bulkActions.exportFormats.excel')}</div>
+                          <div className="text-xs text-gray-500">{t('bulkActions.exportFormats.excelDescription')}</div>
                         </div>
                       </button>
                       <button
@@ -880,8 +894,8 @@ export default function ReportsPage() {
                           </svg>
                         </div>
                         <div>
-                          <div className="font-medium">PDF (archiwum ZIP)</div>
-                          <div className="text-xs text-gray-500">Osobne pliki w ZIP</div>
+                          <div className="font-medium">{t('bulkActions.exportFormats.pdf')}</div>
+                          <div className="text-xs text-gray-500">{t('bulkActions.exportFormats.pdfDescription')}</div>
                         </div>
                       </button>
                     </div>
@@ -891,15 +905,15 @@ export default function ReportsPage() {
               </>
             )}
 
-            <Link href="/dashboard" className="hidden sm:inline text-gray-600 hover:text-gray-900">Dashboard</Link>
-            <Link href="/search" className="hidden sm:inline text-gray-600 hover:text-gray-900">PKD Search</Link>
+            <Link href="/dashboard" className="hidden sm:inline text-gray-600 hover:text-gray-900">{t('navigation.dashboard')}</Link>
+            <Link href="/search" className="hidden sm:inline text-gray-600 hover:text-gray-900">{t('navigation.pkdSearch')}</Link>
           </nav>
         </div>
       </header>
 
       {/* Selection mode banner */}
       {isSelectionMode && (
-        <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+        <div className="bg-emerald-50 border-b border-emerald-200 px-4 py-3">
           <div className="mx-auto max-w-6xl flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Select all checkbox */}
@@ -911,12 +925,12 @@ export default function ReportsPage() {
                 <div
                   className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors ${
                     allOnPageSelected
-                      ? 'bg-blue-600 border-blue-600'
+                      ? 'bg-emerald-600 border-emerald-600'
                       : allAcrossPagesSelected
-                        ? 'bg-blue-600 border-blue-600'
+                        ? 'bg-emerald-600 border-emerald-600'
                         : selectedReports.size > 0
-                          ? 'bg-blue-200 border-blue-400'
-                          : 'bg-white border-gray-300 hover:border-blue-400'
+                          ? 'bg-emerald-200 border-emerald-400'
+                          : 'bg-white border-gray-300 hover:border-emerald-400'
                   }`}
                 >
                   {(allOnPageSelected || allAcrossPagesSelected) && (
@@ -925,27 +939,27 @@ export default function ReportsPage() {
                     </svg>
                   )}
                   {!allOnPageSelected && !allAcrossPagesSelected && selectedReports.size > 0 && (
-                    <div className="h-2 w-2 bg-blue-600 rounded-sm"></div>
+                    <div className="h-2 w-2 bg-emerald-600 rounded-sm"></div>
                   )}
                 </div>
-                <span className="text-sm text-blue-700">
-                  {allAcrossPagesSelected ? 'Zaznaczono wszystkie' : allOnPageSelected ? 'Zaznaczono stronę' : 'Zaznacz wszystkie'}
+                <span className="text-sm text-emerald-700">
+                  {allAcrossPagesSelected ? t('selection.selectAll') : allOnPageSelected ? t('selection.selectPage') : t('selection.selectAllButton')}
                 </span>
               </button>
-              <span className="text-sm text-blue-600 font-medium">
-                {selectedReports.size} z {totalReports} wybranych
+              <span className="text-sm text-emerald-600 font-medium">
+                {t('selection.selectedCount', {selected: selectedReports.size, total: totalReports})}
               </span>
               {/* Select all across pages notification */}
               {showSelectAllModal && totalPages > 1 && !allAcrossPagesSelected && (
                 <div className="flex items-center gap-2 ml-2 px-3 py-1 bg-yellow-100 rounded-lg border border-yellow-300">
                   <span className="text-sm text-yellow-800">
-                    Zaznaczono wszystkie {reports.length} na tej stronie.
+                    {t('selection.allOnPageSelected', {count: reports.length})}
                   </span>
                   <button
                     onClick={selectAllAcrossPages}
-                    className="text-sm font-medium text-blue-700 hover:text-blue-900 underline"
+                    className="text-sm font-medium text-emerald-700 hover:text-emerald-900 underline"
                   >
-                    Zaznacz wszystkie {totalReports} raportów
+                    {t('selection.selectAllAcrossPages', {total: totalReports})}
                   </button>
                 </div>
               )}
@@ -956,14 +970,14 @@ export default function ReportsPage() {
                   onClick={clearSelection}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
-                  Wyczyść zaznaczenie
+                  {t('selection.clearSelection')}
                 </button>
               )}
               <button
                 onClick={exitSelectionMode}
-                className="text-sm text-blue-700 hover:text-blue-900"
+                className="text-sm text-emerald-700 hover:text-emerald-900"
               >
-                Anuluj
+                {t('selection.cancel')}
               </button>
             </div>
           </div>
@@ -979,8 +993,8 @@ export default function ReportsPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Szukaj w raportach..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder={t('search.placeholder')}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
             <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -995,7 +1009,7 @@ export default function ReportsPage() {
                   ? 'bg-yellow-100 text-yellow-800 border-2 border-yellow-500'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
-              title="Pokaż tylko ulubione"
+              title={t('filters.showFavorites')}
             >
               <svg
                 className={`h-5 w-5 ${showFavoritesOnly ? 'fill-yellow-500' : 'fill-none stroke-current'}`}
@@ -1005,18 +1019,18 @@ export default function ReportsPage() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
               </svg>
-              <span className="hidden sm:inline">Ulubione</span>
+              <span className="hidden sm:inline">{t('filters.favorites')}</span>
             </button>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              <option value="">Wszystkie typy</option>
-              <option value="company_profile">Profil firmy</option>
-              <option value="market_analysis">Analiza rynku</option>
-              <option value="due_diligence">Due Diligence</option>
-              <option value="competitive">Konkurencja</option>
+              <option value="">{t('filters.allTypes')}</option>
+              <option value="company_profile">{t('types.companyProfile')}</option>
+              <option value="market_analysis">{t('types.marketAnalysis')}</option>
+              <option value="due_diligence">{t('types.dueDiligence')}</option>
+              <option value="competitive">{t('types.competitive')}</option>
             </select>
             <select
               value={filterTag}
@@ -1024,9 +1038,9 @@ export default function ReportsPage() {
                 setFilterTag(e.target.value)
                 setCurrentPage(1)
               }}
-              className="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              <option value="">Wszystkie tagi</option>
+              <option value="">{t('filters.allTags')}</option>
               {allTags.map((tag) => (
                 <option key={tag.id} value={tag.id}>
                   {tag.name}
@@ -1035,18 +1049,18 @@ export default function ReportsPage() {
             </select>
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-4 sm:px-6 py-2 text-sm sm:text-base text-white hover:bg-blue-700 whitespace-nowrap"
+              className="rounded-lg bg-emerald-600 px-4 sm:px-6 py-2 text-sm sm:text-base text-white hover:bg-emerald-700 whitespace-nowrap"
             >
-              Szukaj
+              {tCommon('buttons.search')}
             </button>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={clearAllFilters}
                 className="rounded-lg bg-gray-100 px-4 sm:px-6 py-2 text-sm sm:text-base text-gray-700 hover:bg-gray-200 transition-colors whitespace-nowrap"
-                title="Wyczyść wszystkie filtry"
+                title={t('filters.clearAllTitle')}
               >
-                Wyczyść wszystkie
+                {t('filters.clearAll')}
               </button>
             )}
             </div>
@@ -1064,11 +1078,11 @@ export default function ReportsPage() {
             }}
             className={`rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filterStatus === '' && !showArchived
-                ? 'bg-blue-600 text-white'
+                ? 'bg-emerald-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            📊 Wszystkie
+            <ChartIcon className="w-4 h-4 inline mr-1" /> {t('status.all')}
           </button>
           <button
             onClick={() => {
@@ -1082,7 +1096,7 @@ export default function ReportsPage() {
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            📝 Szkice
+            <PencilIcon className="w-4 h-4 inline mr-1" /> {tCommon('status.draft')}
           </button>
           <button
             onClick={() => {
@@ -1092,11 +1106,11 @@ export default function ReportsPage() {
             }}
             className={`rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               filterStatus === 'in_progress' && !showArchived
-                ? 'bg-blue-600 text-white'
+                ? 'bg-emerald-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            ⏳ W trakcie
+            <ClockIcon className="w-4 h-4 inline mr-1" /> {tCommon('status.inProgress')}
           </button>
           <button
             onClick={() => {
@@ -1110,7 +1124,7 @@ export default function ReportsPage() {
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            ✅ Zakończone
+            <CheckIcon className="w-4 h-4 inline mr-1" /> {tCommon('status.completed')}
           </button>
           <button
             onClick={() => {
@@ -1123,7 +1137,7 @@ export default function ReportsPage() {
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            📦 Archiwum
+            <FolderIcon className="w-4 h-4 inline mr-1" /> {tCommon('status.archived')}
           </button>
           </div>
 
@@ -1136,8 +1150,8 @@ export default function ReportsPage() {
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
-              title="Widok listy"
-              aria-label="Widok listy"
+              title={t('viewModes.list')}
+              aria-label={t('viewModes.list')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -1150,8 +1164,8 @@ export default function ReportsPage() {
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
-              title="Widok siatki"
-              aria-label="Widok siatki"
+              title={t('viewModes.grid')}
+              aria-label={t('viewModes.grid')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
@@ -1164,8 +1178,8 @@ export default function ReportsPage() {
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
-              title="Widok tabeli"
-              aria-label="Widok tabeli"
+              title={t('viewModes.table')}
+              aria-label={t('viewModes.table')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1183,7 +1197,7 @@ export default function ReportsPage() {
                 href={`/feedback?type=bug&error=${encodeURIComponent(error)}&page=${encodeURIComponent('/reports')}`}
                 className="text-sm text-red-600 hover:text-red-800 underline"
               >
-                Zgłoś problem
+                {t('errors.reportProblem')}
               </Link>
             </div>
           </div>
@@ -1200,13 +1214,13 @@ export default function ReportsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900">Brak raportów</h3>
-            <p className="mt-2 text-gray-600">Nie znaleziono raportów spełniających kryteria wyszukiwania.</p>
+            <h3 className="text-lg font-medium text-gray-900">{t('empty.title')}</h3>
+            <p className="mt-2 text-gray-600">{t('empty.description')}</p>
             <Link
               href="/chat"
-              className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="mt-4 inline-block rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
             >
-              Rozpocznij nową analizę
+              {t('empty.startNew')}
             </Link>
           </div>
         ) : viewMode === 'table' ? (
@@ -1225,10 +1239,10 @@ export default function ReportsPage() {
                           <div
                             className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors ${
                               allOnPageSelected
-                                ? 'bg-blue-600 border-blue-600'
+                                ? 'bg-emerald-600 border-emerald-600'
                                 : selectedReports.size > 0
-                                  ? 'bg-blue-200 border-blue-400'
-                                  : 'bg-white border-gray-300 hover:border-blue-400'
+                                  ? 'bg-emerald-200 border-emerald-400'
+                                  : 'bg-white border-gray-300 hover:border-emerald-400'
                             }`}
                           >
                             {allOnPageSelected && (
@@ -1245,7 +1259,7 @@ export default function ReportsPage() {
                         onClick={() => handleSort('created_at')}
                         className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
                       >
-                        Data
+                        {t('table.date')}
                         {sortField === 'created_at' && (
                           <svg
                             className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
@@ -1264,7 +1278,7 @@ export default function ReportsPage() {
                         onClick={() => handleSort('title')}
                         className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
                       >
-                        Tytuł
+                        {t('table.title')}
                         {sortField === 'title' && (
                           <svg
                             className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
@@ -1283,7 +1297,7 @@ export default function ReportsPage() {
                         onClick={() => handleSort('type')}
                         className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
                       >
-                        Typ
+                        {t('table.type')}
                         {sortField === 'type' && (
                           <svg
                             className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
@@ -1302,7 +1316,7 @@ export default function ReportsPage() {
                         onClick={() => handleSort('status')}
                         className="flex items-center gap-2 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900"
                       >
-                        Status
+                        {t('table.status')}
                         {sortField === 'status' && (
                           <svg
                             className={`h-4 w-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
@@ -1317,10 +1331,10 @@ export default function ReportsPage() {
                       </button>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Firma
+                      {t('table.company')}
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Akcje
+                      {t('table.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -1331,7 +1345,7 @@ export default function ReportsPage() {
                     return (
                       <tr
                         key={report.id}
-                        className={`${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'} ${isSelectionMode ? 'cursor-pointer' : ''}`}
+                        className={`${isSelected ? 'bg-emerald-50' : 'hover:bg-gray-50'} ${isSelectionMode ? 'cursor-pointer' : ''}`}
                         onClick={(e) => isSelectionMode ? toggleReportSelection(report.id, e) : undefined}
                       >
                         {isSelectionMode && (
@@ -1339,8 +1353,8 @@ export default function ReportsPage() {
                             <div
                               className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
                                 isSelected
-                                  ? 'bg-blue-600 border-blue-600'
-                                  : 'bg-white border-gray-300 hover:border-blue-400'
+                                  ? 'bg-emerald-600 border-emerald-600'
+                                  : 'bg-white border-gray-300 hover:border-emerald-400'
                               }`}
                             >
                               {isSelected && (
@@ -1357,7 +1371,7 @@ export default function ReportsPage() {
                         <td className="px-6 py-4 text-sm">
                           <Link
                             href={`/reports/${report.id}`}
-                            className="font-medium text-gray-900 hover:text-blue-600"
+                            className="font-medium text-gray-900 hover:text-emerald-600"
                             onClick={(e) => isSelectionMode && e.preventDefault()}
                           >
                             {report.title}
@@ -1385,12 +1399,12 @@ export default function ReportsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             report.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            report.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            report.status === 'in_progress' ? 'bg-emerald-100 text-emerald-800' :
                             'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {report.status === 'completed' ? 'Zakończony' :
-                             report.status === 'in_progress' ? 'W trakcie' :
-                             'Szkic'}
+                            {report.status === 'completed' ? t('status.completed') :
+                             report.status === 'in_progress' ? t('status.inProgress') :
+                             t('status.draft')}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -1402,8 +1416,8 @@ export default function ReportsPage() {
                               <button
                                 onClick={(e) => toggleFavorite(report.id, e)}
                                 className="p-1 rounded hover:bg-gray-100"
-                                title={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
-                                aria-label={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+                                title={report.is_favorite ? t('favorites.remove') : t('favorites.add')}
+                                aria-label={report.is_favorite ? t('favorites.remove') : t('favorites.add')}
                               >
                                 <svg
                                   className={`h-4 w-4 ${report.is_favorite ? 'fill-yellow-400 stroke-yellow-500' : 'fill-none stroke-gray-400'}`}
@@ -1417,7 +1431,7 @@ export default function ReportsPage() {
                               <button
                                 onClick={(e) => openTagModal(report.id, e)}
                                 className="p-1 rounded hover:bg-gray-100"
-                                title="Dodaj tag"
+                                title={t('tags.add')}
                               >
                                 <svg className="h-4 w-4 stroke-gray-400" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -1443,7 +1457,7 @@ export default function ReportsPage() {
                 <div
                   key={report.id}
                   className={`relative rounded-xl bg-white p-6 shadow-sm transition-all ${
-                    isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
+                    isSelected ? 'ring-2 ring-emerald-500 bg-emerald-50' : 'hover:shadow-md'
                   } ${isSelectionMode ? 'cursor-pointer' : ''}`}
                   onClick={(e) => isSelectionMode ? toggleReportSelection(report.id, e) : undefined}
                 >
@@ -1453,8 +1467,8 @@ export default function ReportsPage() {
                       <div
                         className={`h-6 w-6 rounded border-2 flex items-center justify-center ${
                           isSelected
-                            ? 'bg-blue-600 border-blue-600'
-                            : 'bg-white border-gray-300 hover:border-blue-400'
+                            ? 'bg-emerald-600 border-emerald-600'
+                            : 'bg-white border-gray-300 hover:border-emerald-400'
                         }`}
                       >
                         {isSelected && (
@@ -1519,8 +1533,8 @@ export default function ReportsPage() {
                             <button
                               onClick={(e) => toggleFavorite(report.id, e)}
                               className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                              title={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
-                              aria-label={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+                              title={report.is_favorite ? t('favorites.remove') : t('favorites.add')}
+                                aria-label={report.is_favorite ? t('favorites.remove') : t('favorites.add')}
                             >
                               <svg
                                 className={`h-5 w-5 ${report.is_favorite ? 'fill-yellow-400 stroke-yellow-500' : 'fill-none stroke-gray-400'}`}
@@ -1534,12 +1548,12 @@ export default function ReportsPage() {
                           )}
                           <span className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
                             report.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            report.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            report.status === 'in_progress' ? 'bg-emerald-100 text-emerald-800' :
                             'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {report.status === 'completed' ? 'Zakończony' :
-                             report.status === 'in_progress' ? 'W trakcie' :
-                             'Szkic'}
+                            {report.status === 'completed' ? t('status.completed') :
+                             report.status === 'in_progress' ? t('status.inProgress') :
+                             t('status.draft')}
                           </span>
                         </div>
                         <p className="text-xs text-gray-400">{formatDate(report.created_at)}</p>
@@ -1562,7 +1576,7 @@ export default function ReportsPage() {
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
-                  Poprzednia
+                  {t('pagination.previous')}
                 </button>
 
                 {/* Page numbers */}
@@ -1573,7 +1587,7 @@ export default function ReportsPage() {
                       onClick={() => setCurrentPage(page)}
                       className={`h-10 w-10 rounded-lg text-sm font-medium transition-colors ${
                         page === currentPage
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
@@ -1587,8 +1601,8 @@ export default function ReportsPage() {
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                   className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Następna
+                
+                  {t('pagination.next')}
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -1599,7 +1613,11 @@ export default function ReportsPage() {
             {/* Page info */}
             {totalReports > 0 && (
               <div className="mt-4 text-center text-sm text-gray-500">
-                Pokazano {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalReports)} z {totalReports} raportów
+                {t('pagination.showing', {
+                  from: ((currentPage - 1) * pageSize) + 1,
+                  to: Math.min(currentPage * pageSize, totalReports),
+                  total: totalReports
+                })}
               </div>
             )}
           </div>
@@ -1641,12 +1659,12 @@ export default function ReportsPage() {
                 </svg>
               </div>
               <h2 className="mb-2 text-center text-lg font-semibold text-gray-900">
-                Potwierdź usunięcie
+                {t('bulkActions.confirmDelete')}
               </h2>
               <p className="mb-6 text-center text-gray-600">
-                Czy na pewno chcesz usunąć <span className="font-semibold text-red-600">{selectedReports.size}</span> {selectedReports.size === 1 ? 'raport' : selectedReports.size < 5 ? 'raporty' : 'raportów'}?
+                {t('bulkActions.confirmDeleteMessage', {count: selectedReports.size})}
                 <br />
-                <span className="text-sm text-gray-500">Ta operacja jest nieodwracalna.</span>
+                <span className="text-sm text-gray-500">{t('bulkActions.irreversible')}</span>
               </p>
               <div className="flex gap-3">
                 <button
@@ -1654,7 +1672,7 @@ export default function ReportsPage() {
                   disabled={isDeleting}
                   className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
-                  Anuluj
+                  {t('modals.cancel')}
                 </button>
                 <button
                   onClick={handleBulkDelete}
@@ -1664,10 +1682,10 @@ export default function ReportsPage() {
                   {isDeleting ? (
                     <span className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                      Usuwanie...
+                      {t('bulkActions.deleting')}
                     </span>
                   ) : (
-                    `Usuń ${selectedReports.size} ${selectedReports.size === 1 ? 'raport' : selectedReports.size < 5 ? 'raporty' : 'raportów'}`
+                    t('bulkActions.deleteCount', {count: selectedReports.size})
                   )}
                 </button>
               </div>
@@ -1682,7 +1700,7 @@ export default function ReportsPage() {
           <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
             <div className="border-b px-6 py-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Przypisz do projektu</h2>
+                <h2 className="text-lg font-semibold text-gray-900">{t('projects.assignTitle')}</h2>
                 <button
                   onClick={() => setShowProjectModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -1693,7 +1711,7 @@ export default function ReportsPage() {
                 </button>
               </div>
               <p className="mt-1 text-sm text-gray-500">
-                Wybierz projekt, do którego chcesz przypisać {selectedReports.size} raportów
+                {t('projects.selectProject', {count: selectedReports.size})}
               </p>
             </div>
 
@@ -1701,19 +1719,19 @@ export default function ReportsPage() {
               {isLoadingProjects ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-purple-600 border-t-transparent"></div>
-                  <span className="ml-2 text-gray-600">Ładowanie projektów...</span>
+                  <span className="ml-2 text-gray-600">{t('projects.loading')}</span>
                 </div>
               ) : projects.length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
                   <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                   </svg>
-                  <p className="mt-2">Brak dostępnych projektów</p>
+                  <p className="mt-2">{t('projects.noProjects')}</p>
                   <Link
                     href="/projects"
                     className="mt-4 inline-block text-purple-600 hover:text-purple-700"
                   >
-                    Utwórz pierwszy projekt →
+                    {t('projects.createFirst')}
                   </Link>
                 </div>
               ) : (
@@ -1733,12 +1751,12 @@ export default function ReportsPage() {
                           )}
                           <div className="mt-2 flex items-center gap-2">
                             <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                              {project.type === 'due_diligence' ? 'Due Diligence' :
-                               project.type === 'market_analysis' ? 'Analiza rynku' :
-                               project.type === 'competitive' ? 'Konkurencja' : 'Badania'}
+                              {project.type === 'due_diligence' ? tCommon('projectTypes.dueDiligence') :
+                               project.type === 'market_analysis' ? tCommon('projectTypes.marketAnalysis') :
+                               project.type === 'competitive' ? tCommon('projectTypes.competitive') : tCommon('projectTypes.research')}
                             </span>
                             <span className="text-xs text-gray-400">
-                              {project.report_ids?.length || 0} raportów
+                              {t('projects.reportsCount', {count: project.report_ids?.length || 0})}
                             </span>
                           </div>
                         </div>
@@ -1770,7 +1788,7 @@ export default function ReportsPage() {
           <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
             <div className="border-b px-6 py-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Zarządzaj tagami</h2>
+                <h2 className="text-lg font-semibold text-gray-900">{t('tags.manage')}</h2>
                 <button
                   onClick={() => setShowTagModal(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -1785,12 +1803,12 @@ export default function ReportsPage() {
             <div className="px-6 py-4 max-h-96 overflow-y-auto">
               {allTags.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">Nie masz jeszcze żadnych tagów</p>
+                  <p className="text-gray-500 mb-4">{t('tags.noTags')}</p>
                   <Link
                     href="/settings/tags"
-                    className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+                    className="inline-block rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700"
                   >
-                    Utwórz pierwszy tag
+                    {t('tags.createFirst')}
                   </Link>
                 </div>
               ) : (
@@ -1804,7 +1822,7 @@ export default function ReportsPage() {
                         disabled={isLoadingTags}
                         className={`w-full flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all ${
                           isAssigned
-                            ? 'border-blue-500 bg-blue-50'
+                            ? 'border-emerald-500 bg-emerald-50'
                             : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         } ${isLoadingTags ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
@@ -1839,7 +1857,7 @@ export default function ReportsPage() {
                 onClick={() => setShowTagModal(false)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
               >
-                Zamknij
+                {t('tags.close')}
               </button>
             </div>
           </div>
@@ -1850,14 +1868,14 @@ export default function ReportsPage() {
       {isBulkExporting && exportProgress && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">Eksportowanie raportów</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('bulkActions.progress.title')}</h3>
 
             {/* Progress bar */}
             <div className="mb-4">
               <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="text-gray-600">Postęp</span>
+                <span className="text-gray-600">{t('bulkActions.progress.progress')}</span>
                 <span className="font-semibold text-gray-900">
-                  {exportProgress.processed}/{exportProgress.total} raportów
+                  {t('bulkActions.progress.reportsCount', {processed: exportProgress.processed, total: exportProgress.total})}
                 </span>
               </div>
 
@@ -1875,7 +1893,7 @@ export default function ReportsPage() {
 
             <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-green-600 border-t-transparent"></div>
-              <span>Przetwarzanie raportów...</span>
+              <span>{t('bulkActions.progress.processing')}</span>
             </div>
           </div>
         </div>
