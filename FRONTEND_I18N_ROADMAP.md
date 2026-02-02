@@ -2,17 +2,17 @@
 ## Complete Internationalization Strategy (Polish + English)
 
 **Created**: 2026-01-29
-**Updated**: 2026-02-02 (Session 418 - Core Detail Pages STARTED)
-**Status**: 🔄 **IN PROGRESS** (55% complete - 29/53 pages)
+**Updated**: 2026-02-02 (Session 419 - Report Pages & Accessibility COMPLETE)
+**Status**: 🔄 **IN PROGRESS** (64% complete - 34/53 pages)
 **Framework**: next-intl with cookie-based locale detection
 **Languages**: Polish (pl - default), English (en)
 **Target**: 100% frontend i18n coverage across all 53 pages
 
 ---
 
-## 📊 Current Status (Session 418 - 2026-02-02)
+## 📊 Current Status (Session 419 COMPLETE - 2026-02-02)
 
-### ✅ Completed Pages (30/53 = 57%)
+### ✅ Completed Pages (34/53 = 64%)
 
 **Session 381** (2026-01-28):
 1. ✅ **Activity page** (`/activity`) - User activity log
@@ -50,19 +50,26 @@
 27. ✅ **auth/verify-email** - Email verification instructions
 28. ✅ **auth/verify/[token]** - Token verification (4 states)
 
-**Session 418** (2026-02-02) - Core Detail Pages (STARTED):
+**Session 418** (2026-02-02) - Core Detail Pages:
 29. ✅ **page.tsx** (root) - Root landing page with redirect
-30. ✅ **companies/[id]/page.tsx** - COMPLETE (All sections internationalized)
+30. ✅ **companies/[id]/page.tsx** - Company detail page (all sections)
+
+**Session 419** (2026-02-02) - Report Pages & Accessibility:
+31. ✅ **reports/[id]/page.tsx** - Report detail viewer (6,794 lines - LARGEST FILE)
+32. ✅ **dashboard/page.tsx** - Fixed translation key path mismatches
+33. ✅ **reports/page.tsx** - Reports list with bulk operations (1,900 lines)
+34. ✅ **chat/page.tsx** - Accessibility aria-labels (1,518 lines)
 
 ### 📈 Translation Coverage
 
 **Translation Keys**:
-- **Total**: ~1,525 keys across pl.json + en.json
+- **Total**: ~1,610 keys across pl.json + en.json
 - **Session 381**: ~120 keys (activity, feedback, onboarding, offline, maintenance)
 - **Session 382**: ~105 keys (notifications, invitations, chat)
 - **Session 394**: ~920 keys (14 test pages, ~460 per language)
 - **Session 417**: ~300 keys (6 Authentication pages, ~150 per language)
 - **Session 418**: ~80 keys (root + companies/[id] complete, ~40 per language)
+- **Session 419**: ~85 keys (reports detail + reports list + chat aria-labels)
 
 **Test Pages Translation Keys Breakdown**:
 - test-error: ~35 keys
@@ -99,6 +106,25 @@
   - people.*: 1 key (comingSoon)
   - Status: FULLY internationalized - all sections complete
 
+**Report Pages & Accessibility Translation Keys Breakdown** (Session 419):
+- dashboard/page.tsx: Fixed 3 translation key path mismatches (messages.layout_saved, messages.layout_save_error, messages.layout_reset)
+- reports/[id]/page.tsx: ~20 keys per language:
+  - reportDetail.errors.*: 7 keys (reportNotFound, reportModifiedByAnother, conflictDialogMessage, checkReportHelp, reportInvalid, missingSections)
+  - reportDetail.edit.*: 3 keys (newSectionTitle, newSectionPlaceholder, addSection)
+  - reportDetail.versions.*: 1 key (restoreDescription)
+  - reportDetail.annotations.*: 3 keys (inSection, howToTitle, howToDescription)
+  - reportDetail.collaboration.*: 3 keys (replyAbove, addComment, enterToSend)
+  - reportDetail.sources.*: 2 keys (title, confidence)
+  - reportDetail.sharing.*: 2 keys (revokeConfirm, linkNotOpenedYet)
+- reports/page.tsx: ~10 new keys per language:
+  - selection.*: 2 keys (selectAllButton, cancel)
+  - status.*: 3 keys (completed, inProgress, draft)
+  - messages.*: 2 keys (assignSuccess, deleteSuccess)
+  - modals.*: 1 key (cancel)
+- chat/page.tsx: ~6 aria-label keys per language:
+  - header.backToDashboard, loading.ariaLabel, research.ariaLabel, research.progressAriaLabel, fileUpload.ariaLabel, input.sendAriaLabel
+  - Impact: Full accessibility support for screen readers in both languages
+
 **Key Features Implemented**:
 - ✅ Cookie-based locale detection (NEXT_LOCALE)
 - ✅ Header propagation for SSR (x-locale)
@@ -109,69 +135,48 @@
 
 ---
 
-## 🎯 Remaining Work (25 pages = 47%)
+## 🎯 Remaining Work (19 pages = 36%)
 
-### **High Priority Pages** (12 pages) - Core User Journeys
+### **High Priority Pages** (9 pages) - Core User Journeys
 
-**Estimated Effort**: 8-10 hours total
+**Estimated Effort**: 5-6 hours total
 
-1. **Dashboard** (`/dashboard`) - Main landing page
-   - **Complexity**: HIGH (charts, widgets, real-time data)
-   - **Estimated**: 1.5 hours
-   - **Keys**: ~40 (metrics, widgets, actions)
-
-2. **Reports List** (`/reports`) - Report listing and management
-   - **Complexity**: HIGH (tables, filters, sorting)
-   - **Estimated**: 1 hour
-   - **Keys**: ~35 (columns, filters, actions)
-
-3. **Report Detail** (`/reports/[id]`) - Individual report view (6,794 lines - LARGEST FILE)
-   - **Complexity**: VERY HIGH (54 functions, complex visualizations)
-   - **Estimated**: 2.5 hours
-   - **Keys**: ~80 (sections, charts, metrics, actions)
-
-4. **Settings** (`/settings`) - User settings hub
+1. **Settings** (`/settings`) - User settings hub
    - **Complexity**: MEDIUM (navigation, sections)
    - **Estimated**: 0.5 hours
    - **Keys**: ~25 (navigation, sections)
 
-5. **Settings - Workspace** (`/settings/workspace`) - Workspace configuration
+2. **Settings - Workspace** (`/settings/workspace`) - Workspace configuration
    - **Complexity**: MEDIUM (forms, validation)
    - **Estimated**: 0.5 hours
    - **Keys**: ~30 (fields, validation, actions)
 
-6. **Settings - Security** (`/settings/security`) - Security settings (2FA, etc.)
+3. **Settings - Security** (`/settings/security`) - Security settings (2FA, etc.)
    - **Complexity**: MEDIUM (forms, sensitive operations)
    - **Estimated**: 0.5 hours
    - **Keys**: ~30 (fields, warnings, actions)
 
-7. **Companies List** (`/companies`) - Company directory
+4. **Companies List** (`/companies`) - Company directory
    - **Complexity**: MEDIUM (search, filters, cards)
    - **Estimated**: 0.5 hours
    - **Keys**: ~30 (filters, sorting, actions)
 
-8. 🔄 **Company Detail** (`/companies/[id]`) - Individual company view (1,997 lines) - **PARTIAL**
-   - **Complexity**: HIGH (multiple sections, data visualization)
-   - **Estimated**: 1.5 hours total, ~0.5 hours remaining
-   - **Keys**: ~50 total (~19 done, ~31 remaining)
-   - **Status**: Session 418 - Data Quality & Conflicts sections COMPLETE, Timeline/News/Financials/People sections have hardcoded Polish strings remaining
-
-9. **Search** (`/search`) - Global search interface
+5. **Search** (`/search`) - Global search interface
    - **Complexity**: HIGH (filters, results, facets)
    - **Estimated**: 1 hour
    - **Keys**: ~35 (filters, results, actions)
 
-10. **Analysis** (`/analysis`) - Analysis tools hub
-    - **Complexity**: MEDIUM (navigation, tools)
-    - **Estimated**: 0.5 hours
-    - **Keys**: ~25 (tools, descriptions, actions)
+6. **Analysis** (`/analysis`) - Analysis tools hub
+   - **Complexity**: MEDIUM (navigation, tools)
+   - **Estimated**: 0.5 hours
+   - **Keys**: ~25 (tools, descriptions, actions)
 
-11. **Analysis - SWOT** (`/analysis/swot`) - SWOT analysis tool
-    - **Complexity**: HIGH (interactive forms, visualization)
-    - **Estimated**: 0.5 hours
-    - **Keys**: ~30 (quadrants, fields, actions)
+7. **Analysis - SWOT** (`/analysis/swot`) - SWOT analysis tool
+   - **Complexity**: HIGH (interactive forms, visualization)
+   - **Estimated**: 0.5 hours
+   - **Keys**: ~30 (quadrants, fields, actions)
 
-12. **Not Found** (`/not-found`) - 404 error page
+8. **Not Found** (`/not-found`) - 404 error page
     - **Complexity**: LOW (simple error page)
     - **Estimated**: 0.25 hours
     - **Keys**: ~10 (message, actions)
