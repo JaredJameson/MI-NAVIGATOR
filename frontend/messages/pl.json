@@ -1841,7 +1841,13 @@
       "linkRevokeFailed": "Nie udało się cofnąć linku",
       "linkRevokeError": "Wystąpił błąd podczas cofania linku",
       "uploadFailed": "Nie udało się przesłać obrazu",
-      "unknown": "Nieznany błąd"
+      "unknown": "Nieznany błąd",
+      "reportNotFound": "Raport nie został znaleziony. Mógł zostać usunięty.",
+      "reportModifiedByAnother": "Ten raport został zmodyfikowany przez innego użytkownika.",
+      "conflictDialogMessage": "Kliknij OK aby odświeżyć i zobaczyć najnowszą wersję (twoje zmiany zostaną utracone), lub Anuluj aby kontynuować edycję.",
+      "checkReportHelp": "Sprawdź czy raport istnieje lub spróbuj ponownie później.",
+      "reportInvalid": "Raport jest nieprawidłowy lub uszkodzony",
+      "missingSections": "Dane raportu nie zawierają wymaganych sekcji."
     },
     "success": {
       "saved": "Raport zapisany pomyślnie",
@@ -1940,7 +1946,8 @@
       "restore": "Przywróć",
       "restoring": "Przywracanie...",
       "restoreTitle": "Przywróć wersję",
-      "restoreConfirm": "Czy na pewno chcesz przywrócić wersję {version}? Spowoduje to utworzenie nowej wersji z przywróconą treścią.",
+      "restoreConfirm": "Czy na pewno chcesz przywrócić wersję {version}?",
+      "restoreDescription": "Zostanie utworzona nowa wersja z zawartością wybranej wersji historycznej. Obecna wersja nie zostanie utracona.",
       "restoreSuccess": "Przywrócono wersję {oldVersion}. Utworzono nową wersję {newVersion}.",
       "cancel": "Anuluj",
       "confirm": "Potwierdź"
@@ -1956,7 +1963,10 @@
       "delete": "Usuń adnotację",
       "deleteTooltip": "Usuń adnotację",
       "sectionTitle": "Adnotacje",
-      "count": "Adnotacje ({count})"
+      "count": "Adnotacje ({count})",
+      "inSection": "Adnotacje w tej sekcji:",
+      "howToTitle": "Jak dodać adnotacje?",
+      "howToDescription": "Zaznacz dowolny tekst w raporcie, a pojawi się opcja dodania komentarza. Twoje adnotacje zostaną zapisane i będą widoczne przy kolejnych wizytach."
     },
     "edit": {
       "mode": "Tryb edycji",
@@ -1966,6 +1976,9 @@
       "content": "Treść",
       "contentPlaceholder": "Wpisz treść sekcji...",
       "newSection": "Nowa sekcja",
+      "newSectionTitle": "Nowa sekcja",
+      "newSectionPlaceholder": "Wpisz treść sekcji...",
+      "addSection": "Dodaj sekcję",
       "dragInstruction": "Przeciągnij aby zmienić kolejność",
       "saving": "Zapisywanie...",
       "autoSaved": "Automatycznie zapisano",
@@ -2271,6 +2284,19 @@
       "competitors": "Konkurenci",
       "segments": "Segmenty",
       "tip": "Kliknij na bąbelek, aby zobaczyć szczegóły firmy. Rozmiar bąbelka odzwierciedla przychody."
+    },
+    "collaboration": {
+      "replyAbove": "Wpisz odpowiedź powyżej...",
+      "addComment": "Dodaj komentarz...",
+      "enterToSend": "Naciśnij Enter, aby wysłać. Shift+Enter dla nowej linii."
+    },
+    "sources": {
+      "title": "Źródła",
+      "confidence": "Pewność:"
+    },
+    "sharing": {
+      "revokeConfirm": "Czy na pewno chcesz cofnąć ten link udostępnienia? Link przestanie działać.",
+      "linkNotOpenedYet": "Ten link nie został jeszcze otwarty"
     }
   },
   "settingsPrivacy": {

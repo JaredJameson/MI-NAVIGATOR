@@ -1841,7 +1841,13 @@
       "linkRevokeFailed": "Failed to revoke link",
       "linkRevokeError": "An error occurred while revoking the link",
       "uploadFailed": "Failed to upload image",
-      "unknown": "Unknown error"
+      "unknown": "Unknown error",
+      "reportNotFound": "Report not found. It may have been deleted.",
+      "reportModifiedByAnother": "This report was modified by another user.",
+      "conflictDialogMessage": "Click OK to refresh and see the latest version (your changes will be lost), or Cancel to keep editing.",
+      "checkReportHelp": "Check if the report exists or try again later.",
+      "reportInvalid": "Report is invalid or corrupted",
+      "missingSections": "Report data does not contain required sections."
     },
     "success": {
       "saved": "Report saved successfully",
@@ -1940,7 +1946,8 @@
       "restore": "Restore",
       "restoring": "Restoring...",
       "restoreTitle": "Restore version",
-      "restoreConfirm": "Are you sure you want to restore version {version}? This will create a new version with the restored content.",
+      "restoreConfirm": "Are you sure you want to restore the report to version {version}?",
+      "restoreDescription": "A new version will be created with the content of the selected historical version. The current version will not be lost.",
       "restoreSuccess": "Restored version {oldVersion}. Created new version {newVersion}.",
       "cancel": "Cancel",
       "confirm": "Confirm"
@@ -1956,7 +1963,10 @@
       "delete": "Delete annotation",
       "deleteTooltip": "Delete annotation",
       "sectionTitle": "Annotations",
-      "count": "Annotations ({count})"
+      "count": "Annotations ({count})",
+      "inSection": "Annotations in this section:",
+      "howToTitle": "How to add annotations?",
+      "howToDescription": "Select any text in the report and an option to add a comment will appear. Your annotations will be saved and visible on subsequent visits."
     },
     "edit": {
       "mode": "Edit mode",
@@ -1966,6 +1976,9 @@
       "content": "Content",
       "contentPlaceholder": "Enter section content...",
       "newSection": "New section",
+      "newSectionTitle": "New Section",
+      "newSectionPlaceholder": "Enter section content...",
+      "addSection": "Add Section",
       "dragInstruction": "Drag to reorder",
       "saving": "Saving...",
       "autoSaved": "Auto-saved",
@@ -2271,6 +2284,19 @@
       "competitors": "Competitors",
       "segments": "Segments",
       "tip": "Click a bubble to see company details. Bubble size reflects revenue."
+    },
+    "collaboration": {
+      "replyAbove": "Enter reply above...",
+      "addComment": "Add comment...",
+      "enterToSend": "Press Enter to send. Shift+Enter for new line."
+    },
+    "sources": {
+      "title": "Sources",
+      "confidence": "Confidence:"
+    },
+    "sharing": {
+      "revokeConfirm": "Are you sure you want to revoke this share link? The link will stop working.",
+      "linkNotOpenedYet": "This link has not been opened yet"
     }
   },
   "settingsPrivacy": {

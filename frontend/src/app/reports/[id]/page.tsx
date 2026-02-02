@@ -7,6 +7,7 @@ import { getStoredToken } from '@/services/api'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
+import { useTranslations, useLocale } from 'next-intl'
 import {
   DndContext,
   closestCenter,
@@ -24,6 +25,35 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import {
+  MuscleIcon,
+  WarningIcon,
+  RocketIcon,
+  BoltIcon,
+  LightbulbIcon,
+  TrendUpIcon,
+  TrendDownIcon,
+  ArrowPathIcon,
+  BuildingIcon,
+  ChartIcon,
+  UserIcon,
+  SwordsIcon,
+  DoorIcon,
+  ShoppingBagIcon,
+  RefreshIcon,
+  LaptopIcon,
+  DocumentIcon,
+  TagIcon,
+  GroupIcon,
+  ConstructionIcon,
+  BookIcon,
+  ScaleIcon,
+  CheckIcon,
+  EnvelopeIcon,
+  MapIcon,
+  PhotoIcon,
+  CalendarIcon
+} from '@/components/icons/CommonIcons'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -125,6 +155,14 @@ function parseSWOTContent(content: string): SWOTData | null {
   const opportunities: string[] = []
   const threats: string[] = []
 
+  // Multilingual keywords for SWOT detection
+  const SWOT_KEYWORDS = {
+    strengths: ['mocne strony', 'strengths', 'strong points', 'zalety'],
+    weaknesses: ['słabe strony', 'weaknesses', 'weak points', 'wady'],
+    opportunities: ['szanse', 'opportunities', 'możliwości'],
+    threats: ['zagrożenia', 'threats', 'ryzyko']
+  }
+
   // Identify which quadrant we're currently parsing
   let currentSection: 'strengths' | 'weaknesses' | 'opportunities' | 'threats' | null = null
 
@@ -132,18 +170,19 @@ function parseSWOTContent(content: string): SWOTData | null {
 
   for (const line of lines) {
     const trimmedLine = line.trim()
+    const lowerLine = trimmedLine.toLowerCase()
 
-    // Detect section headers
-    if (trimmedLine.toLowerCase().includes('mocne strony') || trimmedLine.toLowerCase().includes('strengths')) {
+    // Detect section headers using multilingual keywords
+    if (SWOT_KEYWORDS.strengths.some(keyword => lowerLine.includes(keyword))) {
       currentSection = 'strengths'
       continue
-    } else if (trimmedLine.toLowerCase().includes('słabe strony') || trimmedLine.toLowerCase().includes('weaknesses')) {
+    } else if (SWOT_KEYWORDS.weaknesses.some(keyword => lowerLine.includes(keyword))) {
       currentSection = 'weaknesses'
       continue
-    } else if (trimmedLine.toLowerCase().includes('szanse') || trimmedLine.toLowerCase().includes('opportunities')) {
+    } else if (SWOT_KEYWORDS.opportunities.some(keyword => lowerLine.includes(keyword))) {
       currentSection = 'opportunities'
       continue
-    } else if (trimmedLine.toLowerCase().includes('zagrożenia') || trimmedLine.toLowerCase().includes('threats')) {
+    } else if (SWOT_KEYWORDS.threats.some(keyword => lowerLine.includes(keyword))) {
       currentSection = 'threats'
       continue
     }
@@ -180,14 +219,15 @@ function parseSWOTContent(content: string): SWOTData | null {
 
 // SWOT Diagram Component
 function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (quadrant: string, item: string) => void }) {
+  const t = useTranslations('reportDetail')
   const [expandedQuadrant, setExpandedQuadrant] = useState<string | null>(null)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
   const quadrants = [
     {
       key: 'strengths',
-      title: 'Mocne strony',
-      subtitle: 'Strengths',
+      title: t('swot.strengths'),
+      subtitle: t('swot.strengthsEn'),
       items: data.strengths,
       bgColor: 'bg-green-50',
       borderColor: 'border-green-300',
@@ -195,13 +235,13 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
       headerText: 'text-white',
       itemBg: 'bg-green-100',
       itemText: 'text-green-800',
-      icon: '💪',
+      icon: <MuscleIcon className="w-6 h-6" />,
       hoverBg: 'hover:bg-green-200',
     },
     {
       key: 'weaknesses',
-      title: 'Słabe strony',
-      subtitle: 'Weaknesses',
+      title: t('swot.weaknesses'),
+      subtitle: t('swot.weaknessesEn'),
       items: data.weaknesses,
       bgColor: 'bg-red-50',
       borderColor: 'border-red-300',
@@ -209,27 +249,27 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
       headerText: 'text-white',
       itemBg: 'bg-red-100',
       itemText: 'text-red-800',
-      icon: '⚠️',
+      icon: <WarningIcon className="w-6 h-6" />,
       hoverBg: 'hover:bg-red-200',
     },
     {
       key: 'opportunities',
-      title: 'Szanse',
-      subtitle: 'Opportunities',
+      title: t('swot.opportunities'),
+      subtitle: t('swot.opportunitiesEn'),
       items: data.opportunities,
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-300',
-      headerBg: 'bg-blue-500',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-300',
+      headerBg: 'bg-emerald-500',
       headerText: 'text-white',
-      itemBg: 'bg-blue-100',
-      itemText: 'text-blue-800',
-      icon: '🚀',
-      hoverBg: 'hover:bg-blue-200',
+      itemBg: 'bg-emerald-100',
+      itemText: 'text-emerald-800',
+      icon: <RocketIcon className="w-6 h-6" />,
+      hoverBg: 'hover:bg-emerald-200',
     },
     {
       key: 'threats',
-      title: 'Zagrożenia',
-      subtitle: 'Threats',
+      title: t('swot.threats'),
+      subtitle: t('swot.threatsEn'),
       items: data.threats,
       bgColor: 'bg-amber-50',
       borderColor: 'border-amber-300',
@@ -237,7 +277,7 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
       headerText: 'text-white',
       itemBg: 'bg-amber-100',
       itemText: 'text-amber-800',
-      icon: '⚡',
+      icon: <BoltIcon className="w-6 h-6" />,
       hoverBg: 'hover:bg-amber-200',
     },
   ]
@@ -254,18 +294,18 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
         <div className="col-span-2 flex items-center justify-center">
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <span className="flex items-center gap-1">
-              <span className="text-green-500">●</span> Pozytywne
+              <span className="text-green-500">●</span> {t('swot.positive')}
             </span>
             <span className="mx-4 text-gray-300">|</span>
             <span className="flex items-center gap-1">
-              <span className="text-red-500">●</span> Negatywne
+              <span className="text-red-500">●</span> {t('swot.negative')}
             </span>
           </div>
         </div>
 
         {/* Row 1: Internal factors */}
         <div className="col-span-2 text-center text-xs text-gray-400 uppercase tracking-wider mb-1">
-          Czynniki wewnętrzne
+          {t('swot.internalFactors')}
         </div>
 
         {/* Strengths */}
@@ -305,7 +345,7 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
                   onMouseEnter={() => setHoveredItem(`strengths-${idx}`)}
                   onMouseLeave={() => setHoveredItem(null)}
                 >
-                  <span className="mr-2">✓</span>
+                  <CheckIcon className="w-4 h-4 mr-2" />
                   {item}
                 </li>
               ))}
@@ -360,12 +400,12 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
 
         {/* Row 2: External factors */}
         <div className="col-span-2 text-center text-xs text-gray-400 uppercase tracking-wider mt-2 mb-1">
-          Czynniki zewnętrzne
+          {t('swot.externalFactors')}
         </div>
 
         {/* Opportunities */}
         <div
-          className={`${quadrants[2].bgColor} ${quadrants[2].borderColor} border-2 rounded-xl overflow-hidden transition-all duration-300 ${expandedQuadrant === 'opportunities' ? 'ring-2 ring-blue-400 shadow-lg' : ''}`}
+          className={`${quadrants[2].bgColor} ${quadrants[2].borderColor} border-2 rounded-xl overflow-hidden transition-all duration-300 ${expandedQuadrant === 'opportunities' ? 'ring-2 ring-emerald-400 shadow-lg' : ''}`}
         >
           <div
             className={`${quadrants[2].headerBg} ${quadrants[2].headerText} px-4 py-3 flex items-center justify-between cursor-pointer`}
@@ -465,7 +505,7 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
           <span>W: {data.weaknesses.length}</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-blue-500"></span>
+          <span className="h-3 w-3 rounded bg-emerald-500"></span>
           <span>O: {data.opportunities.length}</span>
         </div>
         <div className="flex items-center gap-1">
@@ -473,12 +513,12 @@ function SWOTDiagram({ data, onItemClick }: { data: SWOTData, onItemClick?: (qua
           <span>T: {data.threats.length}</span>
         </div>
         <span className="text-gray-400">|</span>
-        <span>Razem: {data.strengths.length + data.weaknesses.length + data.opportunities.length + data.threats.length} czynników</span>
+        <span>{t('swot.summary', { total: data.strengths.length + data.weaknesses.length + data.opportunities.length + data.threats.length })}</span>
       </div>
 
       {/* Tip for interaction */}
       <div className="mt-3 text-center text-xs text-gray-400">
-        💡 Kliknij nagłówek sekcji, aby ją rozwinąć
+        <LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('swot.tip')}
       </div>
     </div>
   )
@@ -510,16 +550,31 @@ interface PorterData {
 }
 
 // Parse Porter Five Forces content
-function parsePorterContent(content: string): PorterData | null {
+function parsePorterContent(content: string, t: (key: string) => string): PorterData | null {
   const forces: Partial<PorterData> = {}
 
-  // Define patterns for each force
+  // Multilingual keyword patterns for each force
   const forcePatterns = [
-    { key: 'supplierPower', patterns: ['siła przetargowa dostawców', 'supplier power'] },
-    { key: 'buyerPower', patterns: ['siła przetargowa nabywców', 'buyer power'] },
-    { key: 'substitutes', patterns: ['zagrożenie ze strony substytutów', 'threat of substitutes'] },
-    { key: 'newEntrants', patterns: ['zagrożenie ze strony nowych', 'threat of new entrants'] },
-    { key: 'industryRivalry', patterns: ['rywalizacja wewnątrz', 'industry rivalry', 'rivalry'] }
+    {
+      key: 'supplierPower',
+      patterns: ['siła przetargowa dostawców', 'siła dostawców', 'supplier power', 'suppliers', 'dostawcy']
+    },
+    {
+      key: 'buyerPower',
+      patterns: ['siła przetargowa nabywców', 'siła nabywców', 'buyer power', 'buyers', 'nabywcy', 'klienci']
+    },
+    {
+      key: 'substitutes',
+      patterns: ['zagrożenie ze strony substytutów', 'zagrożenie substytutów', 'threat of substitutes', 'substitutes', 'substytuty']
+    },
+    {
+      key: 'newEntrants',
+      patterns: ['zagrożenie ze strony nowych', 'nowi wchodzący', 'threat of new entrants', 'new entrants', 'nowe firmy']
+    },
+    {
+      key: 'industryRivalry',
+      patterns: ['rywalizacja wewnątrz', 'rywalizacja w branży', 'industry rivalry', 'rivalry', 'konkurencja', 'rywalizacja']
+    }
   ]
 
   const forceNames: Record<string, { name: string; englishName: string }> = {
@@ -620,7 +675,7 @@ function parsePorterContent(content: string): PorterData | null {
     englishName,
     strength: 'ŚREDNIA',
     strengthValue: 2,
-    points: ['Dane niedostępne']
+    points: [t('porter.dataUnavailable')]
   })
 
   return {
@@ -661,14 +716,14 @@ interface TAMSAMSOMData {
 }
 
 // Parse TAM SAM SOM content
-function parseTAMSAMSOMContent(content: string): TAMSAMSOMData | null {
+function parseTAMSAMSOMContent(content: string, t: (key: string) => string): TAMSAMSOMData | null {
   const data: Partial<TAMSAMSOMData> = {}
 
-  // Patterns to detect TAM, SAM, SOM sections
+  // Multilingual keyword patterns to detect TAM, SAM, SOM sections
   const patterns = {
-    tam: ['tam', 'total addressable market', 'całkowity rynek'],
-    sam: ['sam', 'serviceable addressable market', 'rynek docelowy'],
-    som: ['som', 'serviceable obtainable market', 'rynek osiągalny']
+    tam: ['tam', 'total addressable market', 'całkowity rynek', 'total market', 'rynek całkowity'],
+    sam: ['sam', 'serviceable addressable market', 'rynek docelowy', 'serviceable market', 'addressable market', 'rynek dostępny'],
+    som: ['som', 'serviceable obtainable market', 'rynek osiągalny', 'obtainable market', 'rynek dostępny']
   }
 
   const lines = content.split('\n')
@@ -816,13 +871,15 @@ function parseTAMSAMSOMContent(content: string): TAMSAMSOMData | null {
   }
 
   // Fill in SAM if missing (estimate as average)
+  // Note: Translation keys would be needed here in a real-world scenario
+  // For now, using Polish hardcoded values that will be displayed in UI via translations
   if (!data.sam) {
     data.sam = {
       name: 'SAM',
       englishName: 'Serviceable Addressable Market',
       value: (data.tam.value + data.som.value) / 2,
-      valueFormatted: 'Szacunkowa',
-      description: 'Wartość szacunkowa',
+      valueFormatted: t('tamSamSom.estimated'),
+      description: t('tamSamSom.estimatedDescription'),
       color: 'green'
     }
   }
@@ -847,6 +904,7 @@ function isTAMSAMSOMSection(title: string): boolean {
 
 // TAM SAM SOM Diagram Component - Concentric Circles
 function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSegmentClick?: (segment: string) => void }) {
+  const t = useTranslations('reportDetail')
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null)
 
@@ -868,7 +926,7 @@ function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSeg
   const somRadius = Math.max(tamRadius * (somSize / 100), minSize / 2)
 
   const segments = [
-    { key: 'tam', data: data.tam, radius: tamRadius, color: 'bg-blue-500', borderColor: 'border-blue-600', textColor: 'text-blue-700', lightBg: 'bg-blue-100' },
+    { key: 'tam', data: data.tam, radius: tamRadius, color: 'bg-emerald-500', borderColor: 'border-emerald-600', textColor: 'text-emerald-700', lightBg: 'bg-emerald-100' },
     { key: 'sam', data: data.sam, radius: samRadius, color: 'bg-green-500', borderColor: 'border-green-600', textColor: 'text-green-700', lightBg: 'bg-green-100' },
     { key: 'som', data: data.som, radius: somRadius, color: 'bg-purple-500', borderColor: 'border-purple-600', textColor: 'text-purple-700', lightBg: 'bg-purple-100' }
   ]
@@ -882,8 +940,8 @@ function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSeg
           <div
             className={`absolute rounded-full border-4 transition-all duration-300 cursor-pointer flex items-center justify-center z-[1] ${
               selectedSegment === 'tam' || hoveredSegment === 'tam'
-                ? 'border-blue-600 bg-blue-100 shadow-lg scale-105'
-                : 'border-blue-400 bg-blue-50'
+                ? 'border-emerald-600 bg-emerald-100 shadow-lg scale-105'
+                : 'border-emerald-400 bg-emerald-50'
             }`}
             style={{ width: `${tamRadius * 2}%`, height: `${tamRadius * 2}%` }}
             onClick={() => handleClick('tam')}
@@ -892,8 +950,8 @@ function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSeg
           >
             {/* TAM Label - top */}
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
-              <div className="font-bold text-blue-700">TAM</div>
-              <div className="text-sm text-blue-600">{data.tam.valueFormatted}</div>
+              <div className="font-bold text-emerald-700">TAM</div>
+              <div className="text-sm text-emerald-600">{data.tam.valueFormatted}</div>
             </div>
           </div>
 
@@ -961,26 +1019,26 @@ function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSeg
       {/* Legend */}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded-full bg-blue-500"></span>
+          <span className="h-4 w-4 rounded-full bg-emerald-500"></span>
           <span className="text-gray-700 font-medium">TAM</span>
-          <span className="text-gray-500">- Całkowity Rynek</span>
+          <span className="text-gray-500">- {t('tamSamSom.tamDescription')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-4 w-4 rounded-full bg-green-500"></span>
           <span className="text-gray-700 font-medium">SAM</span>
-          <span className="text-gray-500">- Rynek Docelowy</span>
+          <span className="text-gray-500">- {t('tamSamSom.samDescription')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-4 w-4 rounded-full bg-purple-500"></span>
           <span className="text-gray-700 font-medium">SOM</span>
-          <span className="text-gray-500">- Rynek Osiągalny</span>
+          <span className="text-gray-500">- {t('tamSamSom.somDescription')}</span>
         </div>
       </div>
 
       {/* Methodology if available */}
       {data.methodology && data.methodology.length > 0 && (
         <div className="mt-6 rounded-lg bg-gray-50 p-4">
-          <h4 className="font-semibold text-gray-700 mb-2">📐 Metodologia kalkulacji:</h4>
+          <h4 className="font-semibold text-gray-700 mb-2"><MapIcon className="w-4 h-4 inline mr-1" /> {t('tamSamSom.methodology')}</h4>
           <ul className="space-y-1">
             {data.methodology.map((point, idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
@@ -994,13 +1052,13 @@ function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSeg
 
       {/* Growth Projections if available */}
       {data.growth && data.growth.length > 0 && (
-        <div className="mt-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 p-4">
-          <h4 className="font-semibold text-gray-700 mb-2">📈 Prognoza wzrostu:</h4>
+        <div className="mt-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 p-4">
+          <h4 className="font-semibold text-gray-700 mb-2"><TrendUpIcon className="w-4 h-4 inline mr-1" /> {t('tamSamSom.growth')}</h4>
           <div className="flex flex-wrap gap-4">
             {data.growth.map((item, idx) => (
               <div key={idx} className="flex items-center gap-2 text-sm">
                 <span className={`font-bold ${
-                  item.label.toUpperCase() === 'TAM' ? 'text-blue-600' :
+                  item.label.toUpperCase() === 'TAM' ? 'text-emerald-600' :
                   item.label.toUpperCase() === 'SAM' ? 'text-green-600' :
                   'text-purple-600'
                 }`}>{item.label}:</span>
@@ -1014,13 +1072,13 @@ function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSeg
       {/* Summary Stats */}
       <div className="mt-4 text-center text-xs text-gray-500">
         <span className="inline-flex items-center gap-1">
-          📊 Model TAM SAM SOM - Analiza wielkości rynku
+          <ChartIcon className="w-4 h-4 inline mr-1" /> {t('tamSamSom.subtitle')}
         </span>
       </div>
 
       {/* Tip */}
       <div className="mt-3 text-center text-xs text-gray-400">
-        💡 Kliknij okrąg, aby zobaczyć szczegóły
+        <LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('tamSamSom.tip')}
       </div>
     </div>
   )
@@ -1028,23 +1086,29 @@ function TAMSAMSOMDiagram({ data, onSegmentClick }: { data: TAMSAMSOMData; onSeg
 
 // Porter Five Forces Diagram Component
 function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?: (force: string) => void }) {
+  const t = useTranslations('reportDetail')
   const [selectedForce, setSelectedForce] = useState<string | null>(null)
   const [hoveredForce, setHoveredForce] = useState<string | null>(null)
 
   const forces = [
-    { key: 'supplierPower', data: data.supplierPower, position: 'top', icon: '🏭', color: 'purple' },
-    { key: 'newEntrants', data: data.newEntrants, position: 'top-right', icon: '🚪', color: 'orange' },
-    { key: 'buyerPower', data: data.buyerPower, position: 'bottom-right', icon: '🛒', color: 'blue' },
-    { key: 'substitutes', data: data.substitutes, position: 'bottom-left', icon: '🔄', color: 'green' },
-    { key: 'industryRivalry', data: data.industryRivalry, position: 'center', icon: '⚔️', color: 'red' }
+    { key: 'supplierPower', data: data.supplierPower, position: 'top', icon: <LaptopIcon className="w-6 h-6" />, color: 'purple' },
+    { key: 'newEntrants', data: data.newEntrants, position: 'top-right', icon: <DoorIcon className="w-6 h-6" />, color: 'orange' },
+    { key: 'buyerPower', data: data.buyerPower, position: 'bottom-right', icon: <ShoppingBagIcon className="w-6 h-6" />, color: 'blue' },
+    { key: 'substitutes', data: data.substitutes, position: 'bottom-left', icon: <RefreshIcon className="w-6 h-6" />, color: 'green' },
+    { key: 'industryRivalry', data: data.industryRivalry, position: 'center', icon: <SwordsIcon className="w-6 h-6" />, color: 'red' }
   ]
 
   const getStrengthColor = (strength: string) => {
-    switch (strength) {
-      case 'WYSOKA': return { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-700', fill: 'bg-red-500' }
-      case 'ŚREDNIA': return { bg: 'bg-yellow-100', border: 'border-yellow-400', text: 'text-yellow-700', fill: 'bg-yellow-500' }
-      case 'NISKA': return { bg: 'bg-green-100', border: 'border-green-400', text: 'text-green-700', fill: 'bg-green-500' }
-      default: return { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-700', fill: 'bg-gray-500' }
+    const upperStrength = strength.toUpperCase()
+    // Support both Polish and English strength values
+    if (upperStrength === 'WYSOKA' || upperStrength === 'HIGH') {
+      return { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-700', fill: 'bg-red-500' }
+    } else if (upperStrength === 'ŚREDNIA' || upperStrength === 'MEDIUM') {
+      return { bg: 'bg-yellow-100', border: 'border-yellow-400', text: 'text-yellow-700', fill: 'bg-yellow-500' }
+    } else if (upperStrength === 'NISKA' || upperStrength === 'LOW') {
+      return { bg: 'bg-green-100', border: 'border-green-400', text: 'text-green-700', fill: 'bg-green-500' }
+    } else {
+      return { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-700', fill: 'bg-gray-500' }
     }
   }
 
@@ -1068,7 +1132,7 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
         >
           <div className={`rounded-xl border-2 p-4 shadow-lg ${getStrengthColor(data.industryRivalry.strength).bg} ${getStrengthColor(data.industryRivalry.strength).border}`}>
             <div className="text-center">
-              <span className="text-3xl">⚔️</span>
+              <div className="text-3xl"><SwordsIcon className="w-8 h-8" /></div>
               <div className="font-bold text-gray-800 mt-2">{data.industryRivalry.name}</div>
               <div className="text-xs text-gray-500">{data.industryRivalry.englishName}</div>
               <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold ${getStrengthColor(data.industryRivalry.strength).fill} text-white`}>
@@ -1089,7 +1153,7 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
         >
           <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.supplierPower.strength).bg} ${getStrengthColor(data.supplierPower.strength).border}`}>
             <div className="text-center">
-              <span className="text-2xl">🏭</span>
+              <div className="text-2xl"><LaptopIcon className="w-6 h-6" /></div>
               <div className="font-semibold text-gray-800 text-sm mt-1">{data.supplierPower.name}</div>
               <div className="text-xs text-gray-500">{data.supplierPower.englishName}</div>
               <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.supplierPower.strength).fill} text-white`}>
@@ -1114,7 +1178,7 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
         >
           <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.newEntrants.strength).bg} ${getStrengthColor(data.newEntrants.strength).border}`}>
             <div className="text-center">
-              <span className="text-2xl">🚪</span>
+              <div className="text-2xl"><DoorIcon className="w-6 h-6" /></div>
               <div className="font-semibold text-gray-800 text-sm mt-1">{data.newEntrants.name}</div>
               <div className="text-xs text-gray-500">{data.newEntrants.englishName}</div>
               <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.newEntrants.strength).fill} text-white`}>
@@ -1135,7 +1199,7 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
         >
           <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.buyerPower.strength).bg} ${getStrengthColor(data.buyerPower.strength).border}`}>
             <div className="text-center">
-              <span className="text-2xl">🛒</span>
+              <div className="text-2xl"><ShoppingBagIcon className="w-6 h-6" /></div>
               <div className="font-semibold text-gray-800 text-sm mt-1">{data.buyerPower.name}</div>
               <div className="text-xs text-gray-500">{data.buyerPower.englishName}</div>
               <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.buyerPower.strength).fill} text-white`}>
@@ -1156,7 +1220,7 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
         >
           <div className={`rounded-xl border-2 p-3 shadow-md ${getStrengthColor(data.substitutes.strength).bg} ${getStrengthColor(data.substitutes.strength).border}`}>
             <div className="text-center">
-              <span className="text-2xl">🔄</span>
+              <div className="text-2xl"><RefreshIcon className="w-6 h-6" /></div>
               <div className="font-semibold text-gray-800 text-sm mt-1">{data.substitutes.name}</div>
               <div className="text-xs text-gray-500">{data.substitutes.englishName}</div>
               <div className={`mt-2 inline-block px-2 py-0.5 rounded-full text-xs font-bold ${getStrengthColor(data.substitutes.strength).fill} text-white`}>
@@ -1193,7 +1257,7 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
                 </span>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold text-gray-700 text-sm">Kluczowe czynniki:</h4>
+                <h4 className="font-semibold text-gray-700 text-sm">{t('porter.keyFactors')}</h4>
                 <ul className="space-y-2">
                   {force.data.points.map((point, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
@@ -1212,28 +1276,28 @@ function PorterDiagram({ data, onForceClick }: { data: PorterData; onForceClick?
       <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-green-500"></span>
-          <span className="text-gray-600">Niska - korzystne dla firmy</span>
+          <span className="text-gray-600">{t('porter.strengthDescription.low')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-yellow-500"></span>
-          <span className="text-gray-600">Średnia - neutralne</span>
+          <span className="text-gray-600">{t('porter.strengthDescription.medium')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-red-500"></span>
-          <span className="text-gray-600">Wysoka - wyzwanie</span>
+          <span className="text-gray-600">{t('porter.strengthDescription.high')}</span>
         </div>
       </div>
 
       {/* Summary Stats */}
       <div className="mt-4 text-center text-xs text-gray-500">
         <span className="inline-flex items-center gap-1">
-          📊 Model Portera - 5 sił wpływających na atrakcyjność branży
+          <ChartIcon className="w-4 h-4 inline mr-1" /> {t('porter.subtitle')}
         </span>
       </div>
 
       {/* Tip */}
       <div className="mt-3 text-center text-xs text-gray-400">
-        💡 Kliknij siłę, aby zobaczyć szczegóły
+        <LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('porter.tip')}
       </div>
     </div>
   )
@@ -1341,6 +1405,7 @@ function isTrendTimelineSection(title: string): boolean {
 
 // Trend Timeline Diagram Component
 function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData; onTrendClick?: (trend: string) => void }) {
+  const t = useTranslations('reportDetail')
   const [selectedTrend, setSelectedTrend] = useState<string | null>(null)
   const [hoveredTimepoint, setHoveredTimepoint] = useState<{ trendIdx: number; pointIdx: number } | null>(null)
 
@@ -1357,45 +1422,48 @@ function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData;
   }
 
   const getCategoryStyle = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'technologia':
-        return { bg: 'bg-blue-500', light: 'bg-blue-100', border: 'border-blue-300', text: 'text-blue-700', icon: '🔬' }
-      case 'regulacje':
-        return { bg: 'bg-purple-500', light: 'bg-purple-100', border: 'border-purple-300', text: 'text-purple-700', icon: '📜' }
-      case 'rynek':
-        return { bg: 'bg-green-500', light: 'bg-green-100', border: 'border-green-300', text: 'text-green-700', icon: '📈' }
-      case 'społeczne':
-        return { bg: 'bg-orange-500', light: 'bg-orange-100', border: 'border-orange-300', text: 'text-orange-700', icon: '👥' }
-      default:
-        return { bg: 'bg-gray-500', light: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-700', icon: '📌' }
+    const lowerCategory = category.toLowerCase()
+    // Support both Polish and English category names
+    if (lowerCategory === 'technologia' || lowerCategory === 'technology') {
+      return { bg: 'bg-emerald-500', light: 'bg-emerald-100', border: 'border-emerald-300', text: 'text-emerald-700', icon: <ConstructionIcon className="w-4 h-4" /> }
+    } else if (lowerCategory === 'regulacje' || lowerCategory === 'regulations') {
+      return { bg: 'bg-purple-500', light: 'bg-purple-100', border: 'border-purple-300', text: 'text-purple-700', icon: <BookIcon className="w-4 h-4" /> }
+    } else if (lowerCategory === 'rynek' || lowerCategory === 'market') {
+      return { bg: 'bg-green-500', light: 'bg-green-100', border: 'border-green-300', text: 'text-green-700', icon: <TrendUpIcon className="w-4 h-4" /> }
+    } else if (lowerCategory === 'społeczne' || lowerCategory === 'social') {
+      return { bg: 'bg-orange-500', light: 'bg-orange-100', border: 'border-orange-300', text: 'text-orange-700', icon: <GroupIcon className="w-4 h-4" /> }
+    } else {
+      return { bg: 'bg-gray-500', light: 'bg-gray-100', border: 'border-gray-300', text: 'text-gray-700', icon: <TagIcon className="w-4 h-4" /> }
     }
   }
 
   const getStatusStyle = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'rosnący':
-        return { color: 'text-green-600', badge: 'bg-green-100 text-green-800', icon: '📈' }
-      case 'dojrzały':
-        return { color: 'text-blue-600', badge: 'bg-blue-100 text-blue-800', icon: '✓' }
-      case 'stabilny':
-        return { color: 'text-gray-600', badge: 'bg-gray-100 text-gray-800', icon: '➡️' }
-      case 'malejący':
-        return { color: 'text-red-600', badge: 'bg-red-100 text-red-800', icon: '📉' }
-      default:
-        return { color: 'text-gray-600', badge: 'bg-gray-100 text-gray-800', icon: '•' }
+    const lowerStatus = status.toLowerCase()
+    // Support both Polish and English status values
+    if (lowerStatus === 'rosnący' || lowerStatus === 'growing') {
+      return { color: 'text-green-600', badge: 'bg-green-100 text-green-800', icon: <TrendUpIcon className="w-4 h-4" /> }
+    } else if (lowerStatus === 'dojrzały' || lowerStatus === 'mature') {
+      return { color: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-800', icon: <CheckIcon className="w-4 h-4" /> }
+    } else if (lowerStatus === 'stabilny' || lowerStatus === 'stable') {
+      return { color: 'text-gray-600', badge: 'bg-gray-100 text-gray-800', icon: <ArrowPathIcon className="w-4 h-4" /> }
+    } else if (lowerStatus === 'malejący' || lowerStatus === 'declining') {
+      return { color: 'text-red-600', badge: 'bg-red-100 text-red-800', icon: <TrendDownIcon className="w-4 h-4" /> }
+    } else {
+      return { color: 'text-gray-600', badge: 'bg-gray-100 text-gray-800', icon: <CheckIcon className="w-3 h-3" /> }
     }
   }
 
   const getImpactStyle = (impact: string) => {
-    switch (impact.toLowerCase()) {
-      case 'wysoki':
-        return { badge: 'bg-red-100 text-red-800 border-red-300' }
-      case 'średni':
-        return { badge: 'bg-yellow-100 text-yellow-800 border-yellow-300' }
-      case 'niski':
-        return { badge: 'bg-green-100 text-green-800 border-green-300' }
-      default:
-        return { badge: 'bg-gray-100 text-gray-800 border-gray-300' }
+    const lowerImpact = impact.toLowerCase()
+    // Support both Polish and English impact values
+    if (lowerImpact === 'wysoki' || lowerImpact === 'high') {
+      return { badge: 'bg-red-100 text-red-800 border-red-300' }
+    } else if (lowerImpact === 'średni' || lowerImpact === 'medium') {
+      return { badge: 'bg-yellow-100 text-yellow-800 border-yellow-300' }
+    } else if (lowerImpact === 'niski' || lowerImpact === 'low') {
+      return { badge: 'bg-green-100 text-green-800 border-green-300' }
+    } else {
+      return { badge: 'bg-gray-100 text-gray-800 border-gray-300' }
     }
   }
 
@@ -1414,20 +1482,20 @@ function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData;
       {/* Category Legend */}
       <div className="mb-6 flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-blue-500"></span>
-          <span className="text-gray-600">Technologia</span>
+          <span className="h-3 w-3 rounded bg-emerald-500"></span>
+          <span className="text-gray-600">{t('trendTimeline.categories.technology')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-purple-500"></span>
-          <span className="text-gray-600">Regulacje</span>
+          <span className="text-gray-600">{t('trendTimeline.categories.regulations')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-green-500"></span>
-          <span className="text-gray-600">Rynek</span>
+          <span className="text-gray-600">{t('trendTimeline.categories.market')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-orange-500"></span>
-          <span className="text-gray-600">Społeczne</span>
+          <span className="text-gray-600">{t('trendTimeline.categories.social')}</span>
         </div>
       </div>
 
@@ -1480,7 +1548,7 @@ function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData;
                         {statusStyle.icon} {trend.status}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${impactStyle.badge}`}>
-                        Wpływ: {trend.impact}
+                        {t('trendTimeline.impact')}: {trend.impact}
                       </span>
                       <svg
                         className={`h-5 w-5 transition-transform duration-300 text-gray-400 ${isSelected ? 'rotate-180' : ''}`}
@@ -1532,7 +1600,7 @@ function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData;
                               <div className="font-semibold text-gray-800 mb-1">{tp.year}</div>
                               <div className={`${categoryStyle.text}`}>{tp.description}</div>
                               {isFuture && (
-                                <div className="mt-2 text-xs text-gray-500 italic">📅 Prognoza</div>
+                                <div className="mt-2 text-xs text-gray-500 italic"><CalendarIcon className="w-3 h-3 inline mr-1" /> {t('trendTimeline.forecast')}</div>
                               )}
                             </div>
                           )}
@@ -1550,13 +1618,13 @@ function TrendTimelineDiagram({ data, onTrendClick }: { data: TrendTimelineData;
       {/* Summary Stats */}
       <div className="mt-6 text-center text-xs text-gray-500">
         <span className="inline-flex items-center gap-1">
-          📊 Oś czasu trendów - {data.trends.length} trendów z {allYears.length} punktami czasowymi
+          <ChartIcon className="w-4 h-4 inline mr-1" /> {t('trendTimeline.subtitle')} - {t('trendTimeline.summary', { trendCount: data.trends.length, pointCount: allYears.length })}
         </span>
       </div>
 
       {/* Tip */}
       <div className="mt-3 text-center text-xs text-gray-400">
-        💡 Kliknij trend, aby rozwinąć szczegółową oś czasu. Najedź na punkt, aby zobaczyć opis.
+        <LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('trendTimeline.tip')}
       </div>
     </div>
   )
@@ -1785,6 +1853,7 @@ function isOwnershipSection(title: string): boolean {
 
 // Ownership Tree Diagram Component
 function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNodeClick?: (node: OwnershipNode) => void }) {
+  const t = useTranslations('reportDetail')
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['node_0']))
   const [selectedNode, setSelectedNode] = useState<OwnershipNode | null>(null)
   const [showShareholderDetails, setShowShareholderDetails] = useState(false)
@@ -1808,19 +1877,19 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
     switch (type) {
       case 'ROOT':
         return {
-          bg: 'bg-indigo-500',
-          border: 'border-indigo-600',
-          light: 'bg-indigo-50',
-          text: 'text-indigo-800',
-          icon: '🏢'
+          bg: 'bg-teal-500',
+          border: 'border-teal-600',
+          light: 'bg-teal-50',
+          text: 'text-teal-800',
+          icon: <BuildingIcon className="w-4 h-4" />
         }
       case 'SHAREHOLDER':
         return {
-          bg: 'bg-blue-500',
-          border: 'border-blue-600',
-          light: 'bg-blue-50',
-          text: 'text-blue-800',
-          icon: '📊'
+          bg: 'bg-emerald-500',
+          border: 'border-emerald-600',
+          light: 'bg-emerald-50',
+          text: 'text-emerald-800',
+          icon: <ChartIcon className="w-4 h-4" />
         }
       case 'UBO':
         return {
@@ -1828,7 +1897,7 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
           border: 'border-green-600',
           light: 'bg-green-50',
           text: 'text-green-800',
-          icon: '👤'
+          icon: <UserIcon className="w-4 h-4" />
         }
     }
   }
@@ -1895,7 +1964,7 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
                   {node.percentage}%
                 </span>
                 <span className="text-gray-500">
-                  {node.type === 'ROOT' ? 'Spółka' : node.type === 'SHAREHOLDER' ? 'Udziałowiec' : 'Beneficjent rzeczywisty'}
+                  {node.type === 'ROOT' ? t('ownership.company') : node.type === 'SHAREHOLDER' ? t('ownership.shareholder') : t('ownership.ubo')}
                 </span>
               </div>
             </div>
@@ -1936,16 +2005,16 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
       {/* Legend */}
       <div className="mb-6 flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-indigo-500 text-white text-xs">🏢</span>
-          <span className="text-gray-600">Spółka główna</span>
+          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-teal-500 text-white text-xs"><BuildingIcon className="w-3 h-3" /></span>
+          <span className="text-gray-600">{t('ownership.company')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-500 text-white text-xs">📊</span>
-          <span className="text-gray-600">Udziałowiec</span>
+          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-500 text-white text-xs"><ChartIcon className="w-3 h-3" /></span>
+          <span className="text-gray-600">{t('ownership.shareholder')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white text-xs">👤</span>
-          <span className="text-gray-600">Beneficjent rzeczywisty (UBO)</span>
+          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white text-xs"><UserIcon className="w-3 h-3" /></span>
+          <span className="text-gray-600">{t('ownership.ubo')}</span>
         </div>
       </div>
 
@@ -1974,20 +2043,20 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
 
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <span className="text-gray-500">Typ:</span>
+              <span className="text-gray-500">{t('ownership.type')}:</span>
               <span className="ml-2 font-medium">
-                {selectedNode.type === 'ROOT' ? 'Spółka główna' :
-                 selectedNode.type === 'SHAREHOLDER' ? 'Udziałowiec' :
-                 'Beneficjent rzeczywisty'}
+                {selectedNode.type === 'ROOT' ? t('ownership.company') :
+                 selectedNode.type === 'SHAREHOLDER' ? t('ownership.shareholder') :
+                 t('ownership.ubo')}
               </span>
             </div>
             <div>
-              <span className="text-gray-500">Udział:</span>
+              <span className="text-gray-500">{t('ownership.share')}:</span>
               <span className="ml-2 font-medium">{selectedNode.percentage}%</span>
             </div>
             {selectedNode.details?.role && (
               <div className="col-span-2">
-                <span className="text-gray-500">Rola:</span>
+                <span className="text-gray-500">{t('ownership.role')}:</span>
                 <span className="ml-2 font-medium">{selectedNode.details.role}</span>
               </div>
             )}
@@ -2000,25 +2069,25 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
                 <div key={idx} className="mt-3 pt-3 border-t border-gray-100">
                   {sh.type && (
                     <div className="text-sm">
-                      <span className="text-gray-500">Typ podmiotu:</span>
+                      <span className="text-gray-500">{t('ownership.entityType')}:</span>
                       <span className="ml-2">{sh.type}</span>
                     </div>
                   )}
                   {sh.krs && (
                     <div className="text-sm">
-                      <span className="text-gray-500">KRS:</span>
+                      <span className="text-gray-500">{t('ownership.krs')}:</span>
                       <span className="ml-2 font-mono">{sh.krs}</span>
                     </div>
                   )}
                   {sh.country && (
                     <div className="text-sm">
-                      <span className="text-gray-500">Kraj:</span>
+                      <span className="text-gray-500">{t('ownership.country')}:</span>
                       <span className="ml-2">{sh.country}</span>
                     </div>
                   )}
                   {sh.description && (
                     <div className="text-sm mt-2">
-                      <span className="text-gray-500">Opis:</span>
+                      <span className="text-gray-500">{t('ownership.description')}:</span>
                       <p className="mt-1 text-gray-700">{sh.description}</p>
                     </div>
                   )}
@@ -2034,19 +2103,19 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
       {data.ubos.length > 0 && (
         <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
           <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
-            👤 Beneficjenci rzeczywiści (UBO)
+            <UserIcon className="w-4 h-4 inline mr-1" /> {t('ownership.ubo')}
           </h4>
           <div className="space-y-2">
             {data.ubos.map((ubo, idx) => (
               <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-2 border border-green-100">
                 <div className="flex items-center gap-2">
                   <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white text-xs">
-                    {ubo.isDirect ? '✓' : '↗'}
+                    {ubo.isDirect ? <CheckIcon className="w-3 h-3" /> : <ArrowPathIcon className="w-3 h-3" />}
                   </span>
                   <span className="font-medium text-gray-800">{ubo.name}</span>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded ${ubo.isDirect ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {ubo.isDirect ? 'Bezpośrednio' : ubo.path}
+                <span className={`text-xs px-2 py-1 rounded ${ubo.isDirect ? 'bg-green-100 text-green-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {ubo.isDirect ? t('ownership.direct') : ubo.path}
                 </span>
               </div>
             ))}
@@ -2068,7 +2137,7 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          {showShareholderDetails ? 'Ukryj tabelę udziałowców' : 'Pokaż tabelę udziałowców'}
+          {showShareholderDetails ? t('ownership.hideTable') : t('ownership.showTable')}
         </button>
 
         {showShareholderDetails && data.shareholders.length > 0 && (
@@ -2076,10 +2145,10 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nazwa</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Udział</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typ</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rola</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('ownership.columns.name')}</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('ownership.columns.share')}</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('ownership.columns.type')}</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('ownership.columns.role')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -2087,7 +2156,7 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
                   <tr key={idx} className="hover:bg-gray-50">
                     <td className="px-4 py-2 text-sm font-medium text-gray-900">{sh.name}</td>
                     <td className="px-4 py-2 text-sm text-gray-600">
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-medium">{sh.percentage}%</span>
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-medium">{sh.percentage}%</span>
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-600">{sh.type || '-'}</td>
                     <td className="px-4 py-2 text-sm text-gray-600">{sh.role || '-'}</td>
@@ -2102,18 +2171,18 @@ function OwnershipTreeDiagram({ data, onNodeClick }: { data: OwnershipData; onNo
       {/* Summary Stats */}
       <div className="mt-4 flex items-center justify-center gap-6 text-xs text-gray-500">
         <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-blue-500"></span>
-          <span>Udziałowcy: {data.shareholders.length}</span>
+          <span className="h-3 w-3 rounded bg-emerald-500"></span>
+          <span>{t('ownership.shareholders')}: {data.shareholders.length}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="h-3 w-3 rounded bg-green-500"></span>
-          <span>Beneficjenci: {data.ubos.length}</span>
+          <span>{t('ownership.beneficiaries')}: {data.ubos.length}</span>
         </div>
       </div>
 
       {/* Tip */}
       <div className="mt-3 text-center text-xs text-gray-400">
-        💡 Kliknij węzeł drzewa, aby zobaczyć szczegóły. Użyj strzałek, aby rozwinąć/zwinąć gałęzie.
+        <LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('ownership.tip')}
       </div>
     </div>
   )
@@ -2138,7 +2207,7 @@ interface FinancialRatiosData {
 }
 
 // Parse financial ratios content
-function parseFinancialRatiosContent(content: string): FinancialRatiosData | null {
+function parseFinancialRatiosContent(content: string, t: (key: string) => string): FinancialRatiosData | null {
   if (!content.includes('[FINANCIAL_RATIOS_RADAR]') && !content.includes('[RATIO]')) {
     return null
   }
@@ -2152,15 +2221,15 @@ function parseFinancialRatiosContent(content: string): FinancialRatiosData | nul
   while (i < lines.length) {
     const line = lines[i].trim()
 
-    // Detect category headers
-    if (line.startsWith('**Wskaźniki rentowności')) {
-      currentCategory = 'Rentowność'
-    } else if (line.startsWith('**Wskaźniki płynności')) {
-      currentCategory = 'Płynność'
-    } else if (line.startsWith('**Wskaźniki zadłużenia')) {
-      currentCategory = 'Zadłużenie'
-    } else if (line.startsWith('**Wskaźniki efektywności')) {
-      currentCategory = 'Efektywność'
+    // Detect category headers (Polish and English)
+    if (line.startsWith('**Wskaźniki rentowności') || line.startsWith('**Profitability ratios') || line.startsWith('**Profitability Ratios')) {
+      currentCategory = t('financialRatios.profitability')
+    } else if (line.startsWith('**Wskaźniki płynności') || line.startsWith('**Liquidity ratios') || line.startsWith('**Liquidity Ratios')) {
+      currentCategory = t('financialRatios.liquidity')
+    } else if (line.startsWith('**Wskaźniki zadłużenia') || line.startsWith('**Leverage ratios') || line.startsWith('**Leverage Ratios')) {
+      currentCategory = t('financialRatios.leverage')
+    } else if (line.startsWith('**Wskaźniki efektywności') || line.startsWith('**Efficiency ratios') || line.startsWith('**Efficiency Ratios')) {
+      currentCategory = t('financialRatios.efficiency')
     }
 
     // Parse ratio entries
@@ -2182,12 +2251,12 @@ function parseFinancialRatiosContent(content: string): FinancialRatiosData | nul
         for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
           const nextLine = lines[j].trim()
 
-          if (nextLine.startsWith('Wartość:')) {
-            const valueMatch = nextLine.match(/Wartość:\s*([\d.,]+)\s*(%|dni)?/)
+          if (nextLine.startsWith('Wartość:') || nextLine.startsWith('Value:')) {
+            const valueMatch = nextLine.match(/(Wartość|Value):\s*([\d.,]+)\s*(%|dni|days)?/)
             if (valueMatch) {
-              value = parseFloat(valueMatch[1].replace(',', '.'))
-              if (valueMatch[2]) {
-                unit = valueMatch[2]
+              value = parseFloat(valueMatch[2].replace(',', '.'))
+              if (valueMatch[3]) {
+                unit = valueMatch[3]
               }
             }
           } else if (nextLine.startsWith('Benchmark')) {
@@ -2195,8 +2264,8 @@ function parseFinancialRatiosContent(content: string): FinancialRatiosData | nul
             if (benchmarkMatch) {
               benchmark = parseFloat(benchmarkMatch[1].replace(',', '.'))
             }
-          } else if (nextLine.startsWith('Opis:')) {
-            description = nextLine.replace('Opis:', '').trim()
+          } else if (nextLine.startsWith('Opis:') || nextLine.startsWith('Description:')) {
+            description = nextLine.replace(/^(Opis|Description):\s*/, '').trim()
           }
         }
 
@@ -2246,6 +2315,7 @@ function isFinancialRatiosSection(title: string): boolean {
 
 // Financial Ratio Radar Chart Component
 function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatiosData; onRatioClick?: (ratio: FinancialRatio) => void }) {
+  const t = useTranslations('reportDetail')
   const [selectedRatio, setSelectedRatio] = useState<FinancialRatio | null>(null)
   const [hoveredRatio, setHoveredRatio] = useState<string | null>(null)
   const [showBenchmark, setShowBenchmark] = useState(true)
@@ -2331,13 +2401,18 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
   }
 
   const getCategoryColor = (category: string): string => {
-    switch (category) {
-      case 'Rentowność': return '#22c55e' // green
-      case 'Płynność': return '#3b82f6' // blue
-      case 'Zadłużenie': return '#ef4444' // red
-      case 'Efektywność': return '#f59e0b' // amber
-      default: return '#6b7280' // gray
+    const lowerCategory = category.toLowerCase()
+    // Support both Polish and English
+    if (lowerCategory === 'rentowność' || lowerCategory === 'profitability') {
+      return '#22c55e' // green
+    } else if (lowerCategory === 'płynność' || lowerCategory === 'liquidity') {
+      return '#10b981' // blue
+    } else if (lowerCategory === 'zadłużenie' || lowerCategory === 'leverage') {
+      return '#ef4444' // red
+    } else if (lowerCategory === 'efektywność' || lowerCategory === 'efficiency') {
+      return '#f59e0b' // amber
     }
+    return '#6b7280' // gray
   }
 
   const handleRatioClick = (ratio: FinancialRatio) => {
@@ -2352,11 +2427,11 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
       : ratio.value - ratio.benchmark
 
     if (diff > 0) {
-      return { label: 'Powyżej benchmarku', color: 'text-green-600', icon: '▲' }
+      return { label: t('financialRatios.comparisonStatus.above'), color: 'text-green-600', icon: '▲' }
     } else if (diff < 0) {
-      return { label: 'Poniżej benchmarku', color: 'text-red-600', icon: '▼' }
+      return { label: t('financialRatios.comparisonStatus.below'), color: 'text-red-600', icon: '▼' }
     }
-    return { label: 'Na poziomie benchmarku', color: 'text-gray-600', icon: '●' }
+    return { label: t('financialRatios.comparisonStatus.equal'), color: 'text-gray-600', icon: '●' }
   }
 
   return (
@@ -2368,9 +2443,9 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
             type="checkbox"
             checked={showBenchmark}
             onChange={(e) => setShowBenchmark(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+            className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
           />
-          <span className="text-sm text-gray-600">Pokaż benchmark branżowy</span>
+          <span className="text-sm text-gray-600">{t('financialRatios.showBenchmark')}</span>
         </label>
       </div>
 
@@ -2422,7 +2497,7 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
           <polygon
             points={getPolygonPoints(normalizeValue)}
             fill="rgba(59, 130, 246, 0.3)"
-            stroke="#3b82f6"
+            stroke="#10b981"
             strokeWidth="2"
           />
 
@@ -2498,7 +2573,7 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
             className="text-xs"
             fill="#9ca3af"
           >
-            Wskaźniki
+            {t('financialRatios.indicators')}
           </text>
         </svg>
       </div>
@@ -2507,26 +2582,26 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
       <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-green-500"></span>
-          <span className="text-gray-600">Rentowność</span>
+          <span className="text-gray-600">{t('financialRatios.categories.profitability')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded bg-blue-500"></span>
-          <span className="text-gray-600">Płynność</span>
+          <span className="h-3 w-3 rounded bg-emerald-500"></span>
+          <span className="text-gray-600">{t('financialRatios.categories.liquidity')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-red-500"></span>
-          <span className="text-gray-600">Zadłużenie</span>
+          <span className="text-gray-600">{t('financialRatios.categories.leverage')}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded bg-amber-500"></span>
-          <span className="text-gray-600">Efektywność</span>
+          <span className="text-gray-600">{t('financialRatios.categories.efficiency')}</span>
         </div>
         {showBenchmark && (
           <>
             <span className="text-gray-300">|</span>
             <div className="flex items-center gap-2">
               <span className="h-0.5 w-4 bg-gray-400" style={{ borderStyle: 'dashed', borderWidth: '2px' }}></span>
-              <span className="text-gray-600">Benchmark branżowy</span>
+              <span className="text-gray-600">{t('financialRatios.industryBenchmark')}</span>
             </div>
           </>
         )}
@@ -2543,7 +2618,7 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
               key={ratio.name}
               className={`p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
                 isSelected
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-emerald-500 bg-emerald-50'
                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
               }`}
               onClick={() => handleRatioClick(ratio)}
@@ -2566,7 +2641,7 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
 
       {/* Selected Ratio Details */}
       {selectedRatio && (
-        <div className="mt-6 rounded-xl bg-white border-2 border-blue-200 p-6 shadow-md">
+        <div className="mt-6 rounded-xl bg-white border-2 border-emerald-200 p-6 shadow-md">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="font-bold text-lg text-gray-800">{selectedRatio.name}</h3>
@@ -2580,13 +2655,13 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500">Wartość firmy</div>
+              <div className="text-sm text-gray-500">{t('financialRatios.companyValue')}</div>
               <div className="text-2xl font-bold text-gray-800">
                 {selectedRatio.value}{selectedRatio.unit}
               </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-500">Benchmark branżowy</div>
+              <div className="text-sm text-gray-500">{t('financialRatios.industryBenchmark')}</div>
               <div className="text-2xl font-bold text-gray-500">
                 {selectedRatio.benchmark}{selectedRatio.unit}
               </div>
@@ -2594,7 +2669,7 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
           </div>
 
           <div className="mb-4">
-            <div className="text-sm font-semibold text-gray-700 mb-2">Porównanie z benchmarkiem:</div>
+            <div className="text-sm font-semibold text-gray-700 mb-2">{t('financialRatios.comparison')}</div>
             <div className={`flex items-center gap-2 ${getComparisonStatus(selectedRatio).color}`}>
               <span className="text-xl">{getComparisonStatus(selectedRatio).icon}</span>
               <span className="font-medium">{getComparisonStatus(selectedRatio).label}</span>
@@ -2606,15 +2681,15 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
               ) : (
                 <span className="text-sm">
                   ({selectedRatio.value < selectedRatio.benchmark ? '+' : ''}
-                  {(selectedRatio.benchmark - selectedRatio.value).toFixed(1)}{selectedRatio.unit} lepiej)
+                  {(selectedRatio.benchmark - selectedRatio.value).toFixed(1)}{selectedRatio.unit} {t('financialRatios.better')})
                 </span>
               )}
             </div>
           </div>
 
           {selectedRatio.description && (
-            <div className="text-sm text-gray-600 bg-blue-50 rounded-lg p-3">
-              <strong>Opis:</strong> {selectedRatio.description}
+            <div className="text-sm text-gray-600 bg-emerald-50 rounded-lg p-3">
+              <strong>{t('financialRatios.description')}</strong> {selectedRatio.description}
             </div>
           )}
         </div>
@@ -2622,11 +2697,11 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
 
       {/* Summary */}
       {data.summary && (
-        <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+        <div className="mt-6 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-200">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">📊</span>
+            <div className="text-2xl"><ChartIcon className="w-6 h-6" /></div>
             <div>
-              <div className="font-semibold text-gray-800 mb-1">Podsumowanie analizy</div>
+              <div className="font-semibold text-gray-800 mb-1">{t('financialRatios.summary')}</div>
               <div className="text-sm text-gray-600">{data.summary}</div>
             </div>
           </div>
@@ -2636,14 +2711,17 @@ function FinancialRatioRadarChart({ data, onRatioClick }: { data: FinancialRatio
       {/* Stats summary */}
       <div className="mt-6 text-center text-xs text-gray-500">
         <span className="inline-flex items-center gap-1">
-          📊 Wykres radarowy - {data.ratios.length} wskaźników finansowych
-          {showBenchmark && ' z benchmarkiem branżowym'}
+          <ChartIcon className="w-4 h-4 inline mr-1" />
+          {showBenchmark
+            ? t('financialRatios.chartWithBenchmark', { count: data.ratios.length })
+            : t('financialRatios.chart', { count: data.ratios.length })
+          }
         </span>
       </div>
 
       {/* Tip */}
       <div className="mt-3 text-center text-xs text-gray-400">
-        💡 Kliknij punkt lub kafelek, aby zobaczyć szczegóły wskaźnika
+        <LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('financialRatios.tip')}
       </div>
     </div>
   )
@@ -2693,20 +2771,20 @@ function parsePositioningMapContent(content: string): PositioningMapData | null 
   for (const line of lines) {
     const trimmedLine = line.trim()
 
-    // Parse axis definitions
-    if (trimmedLine.startsWith('Oś X:')) {
-      const match = trimmedLine.match(/Oś X:\s*([^|]+)\|\s*min:\s*([\d.]+)\s*\|\s*max:\s*([\d.]+)/)
+    // Parse axis definitions (Polish and English)
+    if (trimmedLine.startsWith('Oś X:') || trimmedLine.startsWith('X Axis:')) {
+      const match = trimmedLine.match(/(Oś X|X Axis):\s*([^|]+)\|\s*min:\s*([\d.]+)\s*\|\s*max:\s*([\d.]+)/)
       if (match) {
-        xAxisLabel = match[1].trim()
-        xMin = parseFloat(match[2])
-        xMax = parseFloat(match[3])
+        xAxisLabel = match[2].trim()
+        xMin = parseFloat(match[3])
+        xMax = parseFloat(match[4])
       }
-    } else if (trimmedLine.startsWith('Oś Y:')) {
-      const match = trimmedLine.match(/Oś Y:\s*([^|]+)\|\s*min:\s*([\d.]+)\s*\|\s*max:\s*([\d.]+)/)
+    } else if (trimmedLine.startsWith('Oś Y:') || trimmedLine.startsWith('Y Axis:')) {
+      const match = trimmedLine.match(/(Oś Y|Y Axis):\s*([^|]+)\|\s*min:\s*([\d.]+)\s*\|\s*max:\s*([\d.]+)/)
       if (match) {
-        yAxisLabel = match[1].trim()
-        yMin = parseFloat(match[2])
-        yMax = parseFloat(match[3])
+        yAxisLabel = match[2].trim()
+        yMin = parseFloat(match[3])
+        yMax = parseFloat(match[4])
       }
     }
     // Parse competitor entry
@@ -2725,23 +2803,23 @@ function parsePositioningMapContent(content: string): PositioningMapData | null 
       }
     }
     else if (currentCompetitor) {
-      if (trimmedLine.startsWith('Pozycja:')) {
-        const match = trimmedLine.match(/Pozycja:\s*([\d.]+),\s*([\d.]+)/)
+      if (trimmedLine.startsWith('Pozycja:') || trimmedLine.startsWith('Position:')) {
+        const match = trimmedLine.match(/(Pozycja|Position):\s*([\d.]+),\s*([\d.]+)/)
         if (match) {
-          currentCompetitor.x = parseFloat(match[1])
-          currentCompetitor.y = parseFloat(match[2])
+          currentCompetitor.x = parseFloat(match[2])
+          currentCompetitor.y = parseFloat(match[3])
         }
-      } else if (trimmedLine.startsWith('Przychody:')) {
-        currentCompetitor.revenue = trimmedLine.replace('Przychody:', '').trim()
+      } else if (trimmedLine.startsWith('Przychody:') || trimmedLine.startsWith('Revenue:')) {
+        currentCompetitor.revenue = trimmedLine.replace(/^(Przychody|Revenue):\s*/, '').trim()
       } else if (trimmedLine.startsWith('Segment:')) {
         currentCompetitor.segment = trimmedLine.replace('Segment:', '').trim()
-      } else if (trimmedLine.startsWith('Opis:')) {
-        currentCompetitor.description = trimmedLine.replace('Opis:', '').trim()
+      } else if (trimmedLine.startsWith('Opis:') || trimmedLine.startsWith('Description:')) {
+        currentCompetitor.description = trimmedLine.replace(/^(Opis|Description):\s*/, '').trim()
       }
     }
 
-    // Parse legend
-    if (trimmedLine.includes('Legenda segmentów') || trimmedLine.includes('**Legenda')) {
+    // Parse legend (Polish and English)
+    if (trimmedLine.includes('Legenda segmentów') || trimmedLine.includes('Segment Legend') || trimmedLine.includes('**Legenda') || trimmedLine.includes('**Legend')) {
       inLegend = true
       inAnalysis = false
       inConclusions = false
@@ -2772,20 +2850,20 @@ function parsePositioningMapContent(content: string): PositioningMapData | null 
       }
     }
 
-    // Parse quadrant analysis
-    if (trimmedLine.includes('Analiza pozycjonowania') || trimmedLine.includes('**Analiza')) {
+    // Parse quadrant analysis (Polish and English)
+    if (trimmedLine.includes('Analiza pozycjonowania') || trimmedLine.includes('Positioning Analysis') || trimmedLine.includes('**Analiza') || trimmedLine.includes('**Analysis')) {
       inLegend = false
       inAnalysis = true
       inConclusions = false
       continue
     }
 
-    if (inAnalysis && trimmedLine.startsWith('- Kwadrant')) {
+    if (inAnalysis && (trimmedLine.startsWith('- Kwadrant') || trimmedLine.startsWith('- Quadrant'))) {
       quadrantAnalysis.push(trimmedLine.substring(2))
     }
 
-    // Parse conclusions
-    if (trimmedLine.includes('**Wnioski') || trimmedLine.includes('Wnioski:')) {
+    // Parse conclusions (Polish and English)
+    if (trimmedLine.includes('**Wnioski') || trimmedLine.includes('**Conclusions') || trimmedLine.includes('Wnioski:') || trimmedLine.includes('Conclusions:')) {
       inLegend = false
       inAnalysis = false
       inConclusions = true
@@ -2831,6 +2909,7 @@ function isPositioningMapSection(title: string): boolean {
 
 // Competitor Positioning Map Component
 function CompetitorPositioningMap({ data, onCompetitorClick }: { data: PositioningMapData; onCompetitorClick?: (competitor: Competitor) => void }) {
+  const t = useTranslations('reportDetail')
   const [selectedCompetitor, setSelectedCompetitor] = useState<Competitor | null>(null)
   const [hoveredCompetitor, setHoveredCompetitor] = useState<Competitor | null>(null)
 
@@ -2980,16 +3059,16 @@ function CompetitorPositioningMap({ data, onCompetitorClick }: { data: Positioni
 
           {/* Quadrant labels */}
           <text x={padding.left + 10} y={padding.top + 20} fill="#64748B" fontSize="10" fontWeight="500">
-            Innowatorzy
+            {t('competitorMap.quadrants.innovators')}
           </text>
           <text x={plotWidth - padding.right - 60} y={padding.top + 20} fill="#64748B" fontSize="10" fontWeight="500">
-            Liderzy
+            {t('competitorMap.quadrants.leaders')}
           </text>
           <text x={padding.left + 10} y={plotHeight - padding.bottom - 10} fill="#64748B" fontSize="10" fontWeight="500">
-            Nisza
+            {t('competitorMap.quadrants.niche')}
           </text>
           <text x={plotWidth - padding.right - 80} y={plotHeight - padding.bottom - 10} fill="#64748B" fontSize="10" fontWeight="500">
-            Konsolidatorzy
+            {t('competitorMap.quadrants.consolidators')}
           </text>
 
           {/* X Axis */}
@@ -3139,11 +3218,11 @@ function CompetitorPositioningMap({ data, onCompetitorClick }: { data: Positioni
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-gray-500">Przychody:</span>{' '}
+              <span className="text-gray-500">{t('competitorMap.revenue')}:</span>{' '}
               <span className="font-medium text-gray-900">{(selectedCompetitor || hoveredCompetitor)!.revenue}</span>
             </div>
             <div>
-              <span className="text-gray-500">Pozycja:</span>{' '}
+              <span className="text-gray-500">{t('competitorMap.position')}:</span>{' '}
               <span className="font-medium text-gray-900">
                 X: {(selectedCompetitor || hoveredCompetitor)!.x.toFixed(1)}, Y: {(selectedCompetitor || hoveredCompetitor)!.y.toFixed(1)}
               </span>
@@ -3158,11 +3237,11 @@ function CompetitorPositioningMap({ data, onCompetitorClick }: { data: Positioni
       {/* Quadrant Analysis */}
       {data.quadrantAnalysis.length > 0 && (
         <div className="mt-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
-          <h4 className="font-semibold text-gray-800 mb-2">📊 Analiza kwadrantów</h4>
+          <h4 className="font-semibold text-gray-800 mb-2"><ChartIcon className="w-4 h-4 inline mr-1" /> {t('competitorMap.quadrantAnalysis')}</h4>
           <ul className="text-sm text-gray-600 space-y-1">
             {data.quadrantAnalysis.map((item, idx) => (
               <li key={idx} className="flex items-start gap-2">
-                <span className="text-indigo-500 mt-1">•</span>
+                <span className="text-teal-500 mt-1">•</span>
                 <span>{item}</span>
               </li>
             ))}
@@ -3172,9 +3251,9 @@ function CompetitorPositioningMap({ data, onCompetitorClick }: { data: Positioni
 
       {/* Conclusions */}
       {data.conclusions.length > 0 && (
-        <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-          <h4 className="font-semibold text-blue-800 mb-2">💡 Wnioski</h4>
-          <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+        <div className="mt-4 p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+          <h4 className="font-semibold text-emerald-800 mb-2"><LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('competitorMap.conclusions')}</h4>
+          <ol className="text-sm text-emerald-700 space-y-1 list-decimal list-inside">
             {data.conclusions.map((item, idx) => (
               <li key={idx}>{item}</li>
             ))}
@@ -3184,17 +3263,17 @@ function CompetitorPositioningMap({ data, onCompetitorClick }: { data: Positioni
 
       {/* Stats */}
       <div className="mt-4 flex justify-center gap-6 text-sm">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700">
-          <span className="font-medium">Konkurenci: {data.competitors.length}</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-100 text-teal-700">
+          <span className="font-medium">{t('competitorMap.competitors')}: {data.competitors.length}</span>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700">
-          <span className="font-medium">Segmenty: {data.legend.length}</span>
+          <span className="font-medium">{t('competitorMap.segments')}: {data.legend.length}</span>
         </div>
       </div>
 
       {/* Tip */}
       <div className="mt-3 text-center text-xs text-gray-400">
-        💡 Kliknij na bąbelek, aby zobaczyć szczegóły firmy. Rozmiar bąbelka odzwierciedla przychody.
+        <LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('competitorMap.tip')}
       </div>
     </div>
   )
@@ -3297,6 +3376,7 @@ function insertTable(text: string, textarea: HTMLTextAreaElement, rows: number, 
 
 // Sortable Section Wrapper Component for Drag & Drop
 function SortableSectionWrapper({ section, children }: { section: { id: string }, children: React.ReactNode }) {
+  const t = useTranslations('reportDetail')
   const {
     attributes,
     listeners,
@@ -3319,7 +3399,7 @@ function SortableSectionWrapper({ section, children }: { section: { id: string }
         {...attributes}
         {...listeners}
         className="absolute -left-8 top-6 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
-        title="Przeciągnij aby zmienić kolejność"
+        title={t('edit.dragInstruction')}
       >
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
           <path d="M9 3h2v2H9V3zm0 4h2v2H9V7zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm0 4h2v2H9v-2zM13 3h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
@@ -3334,6 +3414,8 @@ export default function ReportViewerPage() {
   const router = useRouter()
   const params = useParams()
   const reportId = params.id as string
+  const t = useTranslations('reportDetail')
+  const locale = useLocale()
 
   const [report, setReport] = useState<ReportDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -3645,7 +3727,7 @@ export default function ReportViewerPage() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error('Raport nie został znaleziony. Mógł zostać usunięty.')
+          throw new Error(t('errors.reportNotFound'))
         }
         throw new Error('Failed to fetch report')
       }
@@ -3656,7 +3738,7 @@ export default function ReportViewerPage() {
       if (err instanceof Error && err.message.includes('znaleziony')) {
         setError(err.message)
       } else {
-        setError('Nie udalo sie zaladowac raportu')
+        setError(t('errors.loadFailed'))
       }
     } finally {
       setIsLoading(false)
@@ -3690,8 +3772,8 @@ export default function ReportViewerPage() {
   const addNewSection = () => {
     const newSection: ReportSection = {
       id: `section_new_${Date.now()}`,
-      title: 'Nowa sekcja',
-      content: 'Wpisz treść sekcji...'
+      title: t('edit.newSectionTitle'),
+      content: t('edit.newSectionPlaceholder')
     }
 
     setSortedSections([...sortedSections, newSection])
@@ -3744,14 +3826,16 @@ export default function ReportViewerPage() {
         setEditedSections({})
         setEditedTitle('')
         // Show success toast
-        toast.success('Raport zapisany pomyślnie', {
-          description: 'Wszystkie zmiany zostały zapisane'
+        toast.success(t('success.saved'), {
+          description: t('success.savedDescription')
         })
       } else if (response.status === 409) {
         // Edit conflict detected
         const errorData = await response.json()
-        const conflictMessage = errorData.detail?.message || 'This report was modified by another user.'
-        if (confirm(`${conflictMessage}\n\nClick OK to refresh and see the latest version (your changes will be lost), or Cancel to keep editing.`)) {
+        const conflictMessage = errorData.detail?.message || t('errors.reportModifiedByAnother')
+        if (confirm(`${conflictMessage}
+
+${t('errors.conflictDialogMessage')}`)) {
           // User chose to refresh - reload the report
           await fetchReport()
           setIsEditing(false)
@@ -3761,14 +3845,14 @@ export default function ReportViewerPage() {
         }
         // If user cancelled, they stay in edit mode with their changes
       } else {
-        toast.error('Nie udało się zapisać zmian', {
-          description: 'Spróbuj ponownie'
+        toast.error(t('errors.saveFailed'), {
+          description: t('errors.tryAgain')
         })
       }
     } catch (err) {
       console.error('Failed to save report:', err)
-      toast.error('Nie udało się zapisać zmian', {
-        description: 'Wystąpił błąd podczas zapisywania'
+      toast.error(t('errors.saveFailed'), {
+        description: t('errors.saveFailedDescription')
       })
     } finally {
       setIsSaving(false)
@@ -3825,7 +3909,7 @@ export default function ReportViewerPage() {
           const oneHour = 60 * 60 * 1000
 
           // Only restore if draft is less than 1 hour old
-          if (draftAge < oneHour && confirm('Znaleziono niezapisane zmiany. Czy chcesz je przywrócić?')) {
+          if (draftAge < oneHour && confirm(t('edit.unsavedDraft'))) {
             initialEdited = draft.sections
             setLastAutoSave(new Date(draft.timestamp))
           } else {
@@ -3932,17 +4016,17 @@ export default function ReportViewerPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setRestoreMessage(`Przywrócono wersję ${versionToRestore}. Utworzono nową wersję ${data.new_version}.`)
+        setRestoreMessage(t('versions.restoreSuccess', { oldVersion: versionToRestore, newVersion: data.new_version }))
         setShowRestoreConfirm(false)
         // Refresh versions and report
         await fetchVersions()
         await loadVersion(data.new_version)
       } else {
-        setRestoreMessage('Nie udało się przywrócić wersji')
+        setRestoreMessage(t('errors.versionRestoreFailed'))
       }
     } catch (err) {
       console.error('Failed to restore version:', err)
-      setRestoreMessage('Błąd podczas przywracania wersji')
+      setRestoreMessage(t('errors.versionRestoreError'))
     } finally {
       setIsRestoring(false)
     }
@@ -4184,11 +4268,11 @@ export default function ReportViewerPage() {
         router.push(`/reports/${data.new_id}`)
       } else {
         console.error('Failed to duplicate report:', await response.text())
-        alert('Nie udało się zduplikować raportu')
+        alert(t('errors.duplicateFailed'))
       }
     } catch (err) {
       console.error('Failed to duplicate report:', err)
-      alert('Wystąpił błąd podczas duplikowania raportu')
+      alert(t('errors.duplicateError'))
     }
   }
 
@@ -4197,14 +4281,14 @@ export default function ReportViewerPage() {
     const token = getStoredToken()
     if (!token || !reportId) return
 
-    const templateName = prompt('Wprowadź nazwę szablonu:')
+    const templateName = prompt(t('prompts.templateName'))
     if (!templateName || templateName.trim() === '') return
 
     try {
       // Get CSRF token
       const csrfToken = await getCsrfToken()
       if (!csrfToken) {
-        alert('Nie udało się pobrać tokenu CSRF')
+        alert(t('errors.csrfFailed'))
         return
       }
 
@@ -4218,14 +4302,14 @@ export default function ReportViewerPage() {
 
       if (response.ok) {
         const data = await response.json()
-        alert(`Szablon "${templateName}" został utworzony pomyślnie!`)
+        alert(t('success.templateSaved', { name: templateName }))
       } else {
         console.error('Failed to save template:', await response.text())
-        alert('Nie udało się zapisać szablonu')
+        alert(t('errors.templateSaveFailed'))
       }
     } catch (err) {
       console.error('Failed to save template:', err)
-      alert('Wystąpił błąd podczas zapisywania szablonu')
+      alert(t('errors.templateSaveError'))
     }
   }
 
@@ -4574,7 +4658,7 @@ export default function ReportViewerPage() {
       }
     } catch (err) {
       console.error('Export failed:', err)
-      setExportError('Nie udało się wyeksportować raportu')
+      setExportError(t('errors.exportFailed'))
     } finally {
       setIsExporting(false)
     }
@@ -4595,7 +4679,7 @@ export default function ReportViewerPage() {
 
     // Validate email
     if (!shareEmail || !shareEmail.includes('@')) {
-      setShareError('Proszę podać prawidłowy adres email')
+      setShareError(t('errors.invalidEmail'))
       return
     }
 
@@ -4644,7 +4728,7 @@ export default function ReportViewerPage() {
       }, 2000)
     } catch (err) {
       console.error('Share failed:', err)
-      setShareError('Nie udało się udostępnić raportu')
+      setShareError(t('errors.shareFailed'))
     } finally {
       setIsSharing(false)
     }
@@ -4684,7 +4768,7 @@ export default function ReportViewerPage() {
       setShareLink(data.share_url)
     } catch (err) {
       console.error('Generate link failed:', err)
-      setShareError('Nie udało się wygenerować linku')
+      setShareError(t('errors.linkGenerateFailed'))
     } finally {
       setIsGeneratingLink(false)
     }
@@ -4760,15 +4844,15 @@ export default function ReportViewerPage() {
       setAccessLogData(data)
     } catch (err) {
       console.error('Fetch access log failed:', err)
-      setAccessLogData({ error: 'Nie udało się pobrać logu dostępu' })
-    } finally {
+      setAccessLogData({ error: t('errors.accessLogFailed') })
+    } finally{
       setIsLoadingAccessLog(false)
     }
   }
 
   // Revoke share link
   const handleRevokeShareLink = async (shareToken: string) => {
-    if (!confirm('Czy na pewno chcesz cofnąć ten link udostępnienia? Link przestanie działać.')) {
+    if (!confirm(t('sharing.revokeConfirm'))) {
       return
     }
 
@@ -4794,11 +4878,11 @@ export default function ReportViewerPage() {
         await handleViewAccessLog()
       } else {
         const errorData = await response.json()
-        alert(`Nie udało się cofnąć linku: ${errorData.detail || 'Nieznany błąd'}`)
+        alert(`${t('errors.linkRevokeFailed')}: ${errorData.detail || t('errors.unknown')}`)
       }
     } catch (error) {
       console.error('Error revoking share link:', error)
-      alert('Wystąpił błąd podczas cofania linku')
+      alert(t('errors.linkRevokeError'))
     }
   }
 
@@ -4806,8 +4890,8 @@ export default function ReportViewerPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="h-8 w-8 mx-auto animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          <p className="mt-3 text-gray-600">Ladowanie raportu...</p>
+          <div className="h-8 w-8 mx-auto animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
+          <p className="mt-3 text-gray-600">{t('loading')}</p>
         </div>
       </div>
     )
@@ -4817,12 +4901,14 @@ export default function ReportViewerPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="mb-4 text-6xl">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Nie udało się załadować raportu</h1>
-          <p className="text-red-600 mb-4">{error || 'Raport nie został znaleziony'}</p>
-          <p className="text-gray-600 mb-6">Sprawdź czy raport istnieje lub spróbuj ponownie później.</p>
-          <Link href="/reports" className="inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700">
-            Wróć do listy raportów
+          <div className="mb-4 text-6xl text-amber-600">
+              <WarningIcon className="w-16 h-16" />
+            </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('errors.loadFailed')}</h1>
+          <p className="text-red-600 mb-4">{error || t('errors.notFound')}</p>
+          <p className="text-gray-600 mb-6">{t('errors.checkReportHelp')}</p>
+          <Link href="/reports" className="inline-block rounded-lg bg-emerald-600 px-6 py-3 text-white hover:bg-emerald-700">
+            {t('header.backToReports')}
           </Link>
         </div>
       </div>
@@ -4834,12 +4920,14 @@ export default function ReportViewerPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="mb-4 text-6xl">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Błąd struktury raportu</h1>
-          <p className="text-red-600 mb-4">Raport jest nieprawidłowy lub uszkodzony</p>
-          <p className="text-gray-600 mb-6">Dane raportu nie zawierają wymaganych sekcji.</p>
-          <Link href="/reports" className="inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700">
-            Wróć do listy raportów
+          <div className="mb-4 text-6xl text-amber-600">
+              <WarningIcon className="w-16 h-16" />
+            </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('errors.structureError')}</h1>
+          <p className="text-red-600 mb-4">{t('errors.reportInvalid')}</p>
+          <p className="text-gray-600 mb-6">{t('errors.missingSections')}</p>
+          <Link href="/reports" className="inline-block rounded-lg bg-emerald-600 px-6 py-3 text-white hover:bg-emerald-700">
+            {t('header.backToReports')}
           </Link>
         </div>
       </div>
@@ -4863,13 +4951,13 @@ export default function ReportViewerPage() {
             <button
               onClick={() => setShowCommentsPanel(!showCommentsPanel)}
               className="relative rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-              title="Komentarze"
+              title={t('comments.title', { count: comments.length })}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               {comments.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-xs text-white">
                   {comments.length}
                 </span>
               )}
@@ -4877,7 +4965,7 @@ export default function ReportViewerPage() {
             <button
               onClick={() => setShowVersionHistory(!showVersionHistory)}
               className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-              title="Historia wersji"
+              title={t('versions.title')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -4886,8 +4974,8 @@ export default function ReportViewerPage() {
             <button
               onClick={toggleFavorite}
               className="rounded-lg border border-gray-300 p-2 hover:bg-gray-50"
-              title={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
-              aria-label={report.is_favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+              title={report.is_favorite ? t('header.actions.unfavorite') : t('header.actions.favorite')}
+              aria-label={report.is_favorite ? t('header.actions.unfavorite') : t('header.actions.favorite')}
             >
               <svg
                 className={`h-5 w-5 ${report.is_favorite ? 'fill-yellow-400 stroke-yellow-500' : 'fill-none stroke-gray-600'}`}
@@ -4900,7 +4988,7 @@ export default function ReportViewerPage() {
             <button
               onClick={report?.is_archived ? unarchiveReport : archiveReport}
               className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-              title={report?.is_archived ? "Przywróć z archiwum" : "Archiwizuj raport"}
+              title={report?.is_archived ? t('header.actions.unarchive') : t('header.actions.archive')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -4909,7 +4997,7 @@ export default function ReportViewerPage() {
             <button
               onClick={duplicateReport}
               className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-              title="Duplikuj raport"
+              title={t('header.actions.duplicate')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -4918,7 +5006,7 @@ export default function ReportViewerPage() {
             <button
               onClick={saveAsTemplate}
               className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-              title="Zapisz jako szablon"
+              title={t('header.actions.saveAsTemplate')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -4928,8 +5016,8 @@ export default function ReportViewerPage() {
             {!isEditing ? (
               <button
                 onClick={toggleEditMode}
-                className="rounded-lg border border-blue-500 bg-blue-500 p-2 text-white hover:bg-blue-600"
-                title="Edit report"
+                className="rounded-lg border border-emerald-500 bg-emerald-500 p-2 text-white hover:bg-emerald-600"
+                title={t('header.actions.edit')}
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -4941,31 +5029,31 @@ export default function ReportViewerPage() {
                   onClick={saveReportChanges}
                   disabled={isSaving}
                   className="rounded-lg border border-green-500 bg-green-500 px-3 py-2 text-white hover:bg-green-600 disabled:opacity-50"
-                  title="Save changes"
+                  title={t('header.actions.save')}
                 >
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? t('edit.saving') : t('header.actions.save')}
                 </button>
                 <button
                   onClick={toggleEditMode}
                   disabled={isSaving}
                   className="rounded-lg border border-gray-300 px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                  title="Cancel editing"
+                  title={t('header.actions.cancel')}
                 >
-                  Cancel
+                  {t('header.actions.cancel')}
                 </button>
                 {/* Auto-save indicator */}
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   {isAutoSaving ? (
                     <>
                       <div className="h-3 w-3 animate-spin rounded-full border-2 border-gray-400 border-t-transparent"></div>
-                      <span>Zapisywanie...</span>
+                      <span>{t('edit.saving')}</span>
                     </>
                   ) : lastAutoSave ? (
                     <>
                       <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Auto-zapisano {new Date(lastAutoSave).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>{t('header.actions.autoSaved', { time: new Date(lastAutoSave).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) })}</span>
                     </>
                   ) : null}
                 </div>
@@ -4979,7 +5067,7 @@ export default function ReportViewerPage() {
                 }
               }}
               className="no-print rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-              title="Szukaj w raporcie (Ctrl+F)"
+              title={t('header.actions.search')}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -4988,56 +5076,56 @@ export default function ReportViewerPage() {
             {/* Share button */}
             <button
               onClick={() => setShowShareModal(true)}
-              className="no-print flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
-              title="Udostępnij raport przez email"
+              className="no-print flex items-center gap-2 rounded-lg border border-emerald-600 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50"
+              title={t('header.actions.share')}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
-              Udostępnij
+              {t('header.actions.share')}
             </button>
 
             {/* View Access Log button */}
             <button
               onClick={handleViewAccessLog}
               className="no-print flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              title="Zobacz kto otworzył udostępniony raport"
+              title={t('header.actions.accessLog')}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              Log dostępu
+              {t('header.actions.accessLog')}
             </button>
 
             {/* Print button */}
             <button
               onClick={handlePrint}
               className="no-print flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              title="Drukuj raport (Ctrl+P)"
+              title={t('header.actions.print')}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Drukuj
+              {t('header.actions.print')}
             </button>
 
             <div className="relative no-print">
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
                 disabled={isExporting}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-50"
               >
                 {isExporting ? (
                   <>
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    Eksportowanie...
+                    {t('header.actions.exporting')}
                   </>
                 ) : (
                   <>
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Eksportuj
+                    {t('header.actions.export')}
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -5051,12 +5139,12 @@ export default function ReportViewerPage() {
                   {/* Section selection */}
                   <div className="border-b px-4 py-3">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium text-gray-900">Wybierz sekcje</h4>
+                      <h4 className="text-sm font-medium text-gray-900">{t('export.selectSections')}</h4>
                       <button
                         onClick={toggleAllSections}
-                        className="text-xs text-blue-600 hover:text-blue-800"
+                        className="text-xs text-emerald-600 hover:text-emerald-800"
                       >
-                        {selectedSections.length === report?.sections.length ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
+                        {selectedSections.length === report?.sections.length ? t('export.deselectAll') : t('export.selectAll')}
                       </button>
                     </div>
                     <div className="max-h-48 overflow-y-auto space-y-1">
@@ -5069,7 +5157,7 @@ export default function ReportViewerPage() {
                             type="checkbox"
                             checked={selectedSections.includes(section.id)}
                             onChange={() => toggleSectionSelection(section.id)}
-                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            className="h-4 w-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                           />
                           <span className="text-sm text-gray-700">
                             {index + 1}. {section.title}
@@ -5078,19 +5166,19 @@ export default function ReportViewerPage() {
                       ))}
                     </div>
                     {selectedSections.length === 0 && (
-                      <p className="text-xs text-red-600 mt-2">Wybierz przynajmniej jedną sekcję</p>
+                      <p className="text-xs text-red-600 mt-2">{t('export.minOneSection')}</p>
                     )}
                   </div>
 
                   {/* Export format buttons */}
                   <div className="py-1">
                     <div className="px-4 py-2">
-                      <h4 className="text-xs font-medium text-gray-500 uppercase">Format eksportu</h4>
+                      <h4 className="text-xs font-medium text-gray-500 uppercase">{t('export.format')}</h4>
                     </div>
                     <button
                       onClick={() => handleExport('xlsx')}
                       disabled={selectedSections.length === 0}
-                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'xlsx' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'xlsx' ? 'ring-2 ring-emerald-500 bg-emerald-50' : ''}`}
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded bg-green-100">
                         <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -5099,18 +5187,18 @@ export default function ReportViewerPage() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">Excel (.xlsx)</span>
+                          <span className="font-medium">{t('export.formats.excel')}</span>
                           {preferredFormat === 'xlsx' && (
-                            <span className="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">Domyślny</span>
+                            <span className="text-xs px-2 py-0.5 bg-emerald-600 text-white rounded-full">{t('export.default')}</span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">Z formułami finansowymi</div>
+                        <div className="text-xs text-gray-500">{t('export.formats.excelDescription')}</div>
                       </div>
                     </button>
                     <button
                       onClick={() => handleExport('pdf')}
                       disabled={selectedSections.length === 0}
-                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'pdf' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'pdf' ? 'ring-2 ring-emerald-500 bg-emerald-50' : ''}`}
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded bg-red-100">
                         <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -5119,38 +5207,38 @@ export default function ReportViewerPage() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">PDF</span>
+                          <span className="font-medium">{t('export.formats.pdf')}</span>
                           {preferredFormat === 'pdf' && (
-                            <span className="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">Domyślny</span>
+                            <span className="text-xs px-2 py-0.5 bg-emerald-600 text-white rounded-full">{t('export.default')}</span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">Do wydruku i udostępnienia</div>
+                        <div className="text-xs text-gray-500">{t('export.formats.pdfDescription')}</div>
                       </div>
                     </button>
                     <button
                       onClick={() => handleExport('docx')}
                       disabled={selectedSections.length === 0}
-                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'docx' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'docx' ? 'ring-2 ring-emerald-500 bg-emerald-50' : ''}`}
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
-                        <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="flex h-8 w-8 items-center justify-center rounded bg-emerald-100">
+                        <svg className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">Word (.docx)</span>
+                          <span className="font-medium">{t('export.formats.word')}</span>
                           {preferredFormat === 'docx' && (
-                            <span className="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">Domyślny</span>
+                            <span className="text-xs px-2 py-0.5 bg-emerald-600 text-white rounded-full">{t('export.default')}</span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">Do edycji dokumentu</div>
+                        <div className="text-xs text-gray-500">{t('export.formats.wordDescription')}</div>
                       </div>
                     </button>
                     <button
                       onClick={() => handleExport('pptx')}
                       disabled={selectedSections.length === 0}
-                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'pptx' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${preferredFormat === 'pptx' ? 'ring-2 ring-emerald-500 bg-emerald-50' : ''}`}
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded bg-orange-100">
                         <svg className="h-5 w-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -5159,12 +5247,12 @@ export default function ReportViewerPage() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">PowerPoint (.pptx)</span>
+                          <span className="font-medium">{t('export.formats.powerpoint')}</span>
                           {preferredFormat === 'pptx' && (
-                            <span className="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">Domyślny</span>
+                            <span className="text-xs px-2 py-0.5 bg-emerald-600 text-white rounded-full">{t('export.default')}</span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">Do prezentacji slajdów</div>
+                        <div className="text-xs text-gray-500">{t('export.formats.powerpointDescription')}</div>
                       </div>
                     </button>
                   </div>
@@ -5181,7 +5269,7 @@ export default function ReportViewerPage() {
           <div className="h-full w-full max-w-md bg-white shadow-xl overflow-y-auto flex flex-col">
             <div className="sticky top-0 bg-white border-b px-4 py-3">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold text-gray-900">Komentarze ({comments.length})</h2>
+                <h2 className="text-lg font-semibold text-gray-900">{t('comments.title', { count: comments.length })}</h2>
                 <button
                   onClick={() => setShowCommentsPanel(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -5204,16 +5292,16 @@ export default function ReportViewerPage() {
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  {showResolvedComments ? 'Pokaż rozwiązane' : 'Ukryj rozwiązane'}
+                  {showResolvedComments ? t('comments.showResolved') : t('comments.hideResolved')}
                 </button>
                 <span className="text-gray-500">
-                  ({comments.filter(c => c.resolved && !c.parent_id).length} rozwiązanych)
+                  {t('comments.resolvedCount', { count: comments.filter(c => c.resolved && !c.parent_id).length })}
                 </span>
               </div>
             </div>
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
               {comments.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">Brak komentarzy. Bądź pierwszą osobą, która doda komentarz!</p>
+                <p className="text-gray-500 text-center py-8">{t('comments.empty')}</p>
               ) : (
                 // Show only top-level comments (no parent_id), filtered by resolved status
                 comments
@@ -5232,14 +5320,14 @@ export default function ReportViewerPage() {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                              comment.resolved ? 'bg-green-200' : 'bg-blue-100'
+                              comment.resolved ? 'bg-green-200' : 'bg-emerald-100'
                             }`}>
                               {comment.resolved ? (
                                 <svg className="h-5 w-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                               ) : (
-                                <span className="text-blue-700 font-medium text-sm">
+                                <span className="text-emerald-700 font-medium text-sm">
                                   {comment.user_name.charAt(0).toUpperCase()}
                                 </span>
                               )}
@@ -5249,7 +5337,7 @@ export default function ReportViewerPage() {
                                 {comment.user_name}
                                 {comment.resolved && (
                                   <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
-                                    Rozwiązany
+                                    {t('comments.resolved')}
                                   </span>
                                 )}
                               </div>
@@ -5263,7 +5351,7 @@ export default function ReportViewerPage() {
                                 })}
                                 {comment.resolved && comment.resolved_by_name && (
                                   <span className="ml-2 text-green-600">
-                                    • Rozwiązał: {comment.resolved_by_name}
+                                    {t('comments.resolvedBy', { name: comment.resolved_by_name })}
                                   </span>
                                 )}
                               </div>
@@ -5279,7 +5367,7 @@ export default function ReportViewerPage() {
                                   ? 'text-green-600 hover:text-amber-600'
                                   : 'text-gray-400 hover:text-green-500'
                               }`}
-                              title={comment.resolved ? 'Oznacz jako nierozwiązany' : 'Rozwiąż'}
+                              title={comment.resolved ? t('comments.unresolve') : t('comments.resolve')}
                             >
                               {isResolvingComment === comment.id ? (
                                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
@@ -5291,8 +5379,8 @@ export default function ReportViewerPage() {
                             </button>
                             <button
                               onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                              className="text-gray-400 hover:text-blue-500"
-                              title="Odpowiedz"
+                              className="text-gray-400 hover:text-emerald-500"
+                              title={t('comments.reply')}
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -5301,7 +5389,7 @@ export default function ReportViewerPage() {
                             <button
                               onClick={() => deleteComment(comment.id)}
                               className="text-gray-400 hover:text-red-500"
-                              title="Usuń komentarz"
+                              title={t('comments.delete')}
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -5318,8 +5406,8 @@ export default function ReportViewerPage() {
                               <textarea
                                 value={newCommentText}
                                 onChange={(e) => setNewCommentText(e.target.value)}
-                                placeholder={`Odpowiedz na komentarz ${comment.user_name}...`}
-                                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                                placeholder={t('comments.replyPlaceholder', { name: comment.user_name })}
+                                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
                                 rows={2}
                                 autoFocus
                                 onKeyDown={(e) => {
@@ -5336,7 +5424,7 @@ export default function ReportViewerPage() {
                               <button
                                 onClick={() => submitComment(comment.id)}
                                 disabled={!newCommentText.trim() || isSubmittingComment}
-                                className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 self-end"
+                                className="rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-50 self-end"
                               >
                                 {isSubmittingComment ? (
                                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -5347,7 +5435,7 @@ export default function ReportViewerPage() {
                                 )}
                               </button>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Esc aby anulować</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('comments.escToCancel')}</p>
                           </div>
                         )}
                       </div>
@@ -5379,7 +5467,7 @@ export default function ReportViewerPage() {
                                 <button
                                   onClick={() => deleteComment(reply.id)}
                                   className="text-gray-400 hover:text-red-500"
-                                  title="Usuń odpowiedź"
+                                  title={t('comments.deleteReply')}
                                 >
                                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -5401,8 +5489,8 @@ export default function ReportViewerPage() {
                 <textarea
                   value={replyingTo ? '' : newCommentText}
                   onChange={(e) => !replyingTo && setNewCommentText(e.target.value)}
-                  placeholder={replyingTo ? 'Wpisz odpowiedź powyżej...' : 'Dodaj komentarz...'}
-                  className={`flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${replyingTo ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  placeholder={replyingTo ? t('collaboration.replyAbove') : t('collaboration.addComment')}
+                  className={`flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none ${replyingTo ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   rows={2}
                   disabled={!!replyingTo}
                   onKeyDown={(e) => {
@@ -5415,7 +5503,7 @@ export default function ReportViewerPage() {
                 <button
                   onClick={() => submitComment(null)}
                   disabled={!newCommentText.trim() || isSubmittingComment || !!replyingTo}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 self-end"
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-50 self-end"
                 >
                   {isSubmittingComment ? (
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -5427,7 +5515,7 @@ export default function ReportViewerPage() {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Naciśnij Enter, aby wysłać. Shift+Enter dla nowej linii.
+                {t('collaboration.enterToSend')}
               </p>
             </div>
           </div>
@@ -5439,7 +5527,7 @@ export default function ReportViewerPage() {
         <div className="fixed inset-0 z-50 flex items-start justify-end bg-black/30">
           <div className="h-full w-full max-w-md bg-white shadow-xl overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Historia wersji</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('versions.title')}</h2>
               <button
                 onClick={() => setShowVersionHistory(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -5451,24 +5539,24 @@ export default function ReportViewerPage() {
             </div>
             <div className="p-4 space-y-3">
               {versions.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">Brak historii wersji</p>
+                <p className="text-gray-500 text-center py-8">{t('versions.empty')}</p>
               ) : (
                 versions.map((version) => (
                   <div
                     key={version.version}
                     className={`rounded-lg border p-4 cursor-pointer transition-colors ${
                       currentVersion === version.version
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-gray-200 hover:border-emerald-300 hover:bg-gray-50'
                     }`}
                     onClick={() => loadVersion(version.version)}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-gray-900">
-                        Wersja {version.version}
+                        {t('versions.version', { number: version.version })}
                         {version.is_current && (
                           <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                            Aktualna
+                            {t('versions.current')}
                           </span>
                         )}
                       </span>
@@ -5477,13 +5565,13 @@ export default function ReportViewerPage() {
                           <button
                             onClick={(e) => handleRestoreClick(version.version, e)}
                             className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200 transition-colors"
-                            title="Przywróć tę wersję"
+                            title={t('versions.restore')}
                           >
-                            Przywróć
+                            {t('versions.restore')}
                           </button>
                         )}
                         {isLoadingVersion && currentVersion === version.version && (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent"></div>
                         )}
                       </div>
                     </div>
@@ -5509,13 +5597,12 @@ export default function ReportViewerPage() {
       {showRestoreConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Przywróć wersję</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('versions.restoreTitle')}</h3>
             <p className="text-gray-600 mb-4">
-              Czy na pewno chcesz przywrócić raport do wersji {versionToRestore}?
+              {t('versions.restoreConfirm', { version: versionToRestore })}
             </p>
             <p className="text-sm text-gray-500 mb-6">
-              Zostanie utworzona nowa wersja z zawartością wybranej wersji historycznej.
-              Obecna wersja nie zostanie utracona.
+              {t('versions.restoreDescription')}
             </p>
             {restoreMessage && (
               <div className={`mb-4 p-3 rounded-lg text-sm ${
@@ -5536,14 +5623,14 @@ export default function ReportViewerPage() {
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 disabled={isRestoring}
               >
-                Anuluj
+                {t('common.cancel')}
               </button>
               <button
                 onClick={restoreVersion}
                 disabled={isRestoring}
                 className="rounded-lg bg-amber-600 px-4 py-2 text-sm text-white hover:bg-amber-700 disabled:opacity-50"
               >
-                {isRestoring ? 'Przywracanie...' : 'Przywróć'}
+                {isRestoring ? t('versions.restoring') : t('versions.restore')}
               </button>
             </div>
           </div>
@@ -5560,8 +5647,8 @@ export default function ReportViewerPage() {
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                placeholder="Szukaj w raporcie..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 pr-20 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder={t('search.placeholder')}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 pr-20 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 autoFocus
               />
               {searchMatches.length > 0 && (
@@ -5575,7 +5662,7 @@ export default function ReportViewerPage() {
                 onClick={goToPrevMatch}
                 disabled={searchMatches.length === 0}
                 className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                title="Poprzedni wynik"
+                title={t('search.previous')}
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -5585,7 +5672,7 @@ export default function ReportViewerPage() {
                 onClick={goToNextMatch}
                 disabled={searchMatches.length === 0}
                 className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                title="Nastepny wynik"
+                title={t('search.next')}
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -5599,7 +5686,7 @@ export default function ReportViewerPage() {
                 setSearchMatches([])
               }}
               className="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-              title="Zamknij (Esc)"
+              title={t('search.close')}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -5621,7 +5708,7 @@ export default function ReportViewerPage() {
         >
           <button
             onClick={() => setShowAnnotationModal(true)}
-            className="flex items-center gap-2 hover:text-blue-300"
+            className="flex items-center gap-2 hover:text-emerald-300"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
@@ -5635,10 +5722,10 @@ export default function ReportViewerPage() {
       {showAnnotationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Dodaj adnotacje</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('annotations.title')}</h3>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Zaznaczony tekst:
+                {t('annotations.selectedText')}:
               </label>
               <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-gray-700">
                 &quot;{selectedText.substring(0, 100)}{selectedText.length > 100 ? '...' : ''}&quot;
@@ -5646,13 +5733,13 @@ export default function ReportViewerPage() {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Komentarz:
+                {t('annotations.commentLabel')}:
               </label>
               <textarea
                 value={annotationComment}
                 onChange={(e) => setAnnotationComment(e.target.value)}
-                placeholder="Wpisz swoj komentarz..."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder={t('annotations.commentPlaceholder')}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 rows={3}
                 autoFocus
               />
@@ -5665,14 +5752,14 @@ export default function ReportViewerPage() {
                 }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                Anuluj
+                {t('annotations.cancel')}
               </button>
               <button
                 onClick={saveAnnotation}
                 disabled={!annotationComment.trim() || isSavingAnnotation}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-50"
               >
-                {isSavingAnnotation ? 'Zapisywanie...' : 'Zapisz'}
+                {isSavingAnnotation ? t('annotations.saving') : t('annotations.save')}
               </button>
             </div>
           </div>
@@ -5683,10 +5770,10 @@ export default function ReportViewerPage() {
       {showTableModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Wstaw tabelę</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('edit.table.title')}</h3>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Liczba wierszy:
+                {t('edit.table.rows')}:
               </label>
               <input
                 type="number"
@@ -5694,13 +5781,13 @@ export default function ReportViewerPage() {
                 max="20"
                 value={tableRows}
                 onChange={(e) => setTableRows(parseInt(e.target.value) || 3)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 autoFocus
               />
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Liczba kolumn:
+                {t('edit.table.columns')}:
               </label>
               <input
                 type="number"
@@ -5708,7 +5795,7 @@ export default function ReportViewerPage() {
                 max="10"
                 value={tableCols}
                 onChange={(e) => setTableCols(parseInt(e.target.value) || 3)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
             <div className="flex justify-end gap-3">
@@ -5719,7 +5806,7 @@ export default function ReportViewerPage() {
                 }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                Anuluj
+                {t('edit.table.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -5736,9 +5823,9 @@ export default function ReportViewerPage() {
                   setShowTableModal(false)
                   setCurrentSectionForTable(null)
                 }}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700"
               >
-                Wstaw
+                {t('edit.table.insert')}
               </button>
             </div>
           </div>
@@ -5756,12 +5843,12 @@ export default function ReportViewerPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Usuń sekcję?</h3>
-                <p className="text-sm text-gray-500 mt-1">Ta operacja jest nieodwracalna</p>
+                <h3 className="text-lg font-semibold text-gray-900">{t('edit.deleteSection.title')}</h3>
+                <p className="text-sm text-gray-500 mt-1">{t('edit.deleteSection.irreversible')}</p>
               </div>
             </div>
             <p className="text-gray-700 mb-6">
-              Czy na pewno chcesz usunąć sekcję <strong>&quot;{sectionToDelete.title}&quot;</strong>?
+              {t('edit.deleteSection.confirm', { title: sectionToDelete.title })}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -5771,13 +5858,13 @@ export default function ReportViewerPage() {
                 }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
-                Anuluj
+                {t('edit.deleteSection.cancel')}
               </button>
               <button
                 onClick={confirmDeleteSection}
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
               >
-                Usuń sekcję
+                {t('edit.deleteSection.delete')}
               </button>
             </div>
           </div>
@@ -5786,15 +5873,13 @@ export default function ReportViewerPage() {
 
       <main className="mx-auto max-w-4xl px-4 py-8">
         {/* Report Header */}
-        <div className="mb-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
+        <div className="mb-8 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 p-8 text-white">
           <div className="mb-4 flex items-center gap-3">
             <span className="rounded-full bg-white/20 px-3 py-1 text-sm">
-              {report.type === 'company_profile' ? 'Profil firmy' :
-               report.type === 'market_analysis' ? 'Analiza rynku' :
-               report.type === 'due_diligence' ? 'Due Diligence' : report.type}
+              {t(`metadata.types.${report.type}`, { defaultValue: report.type })}
             </span>
             {report.company && (
-              <span className="text-blue-100">&#x2022; {report.company}</span>
+              <span className="text-emerald-100">&#x2022; {report.company}</span>
             )}
           </div>
           {isEditing ? (
@@ -5803,27 +5888,27 @@ export default function ReportViewerPage() {
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
               className="text-2xl font-bold bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-4 py-2 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 w-full"
-              placeholder="Tytuł raportu..."
+              placeholder={t('edit.titlePlaceholder')}
             />
           ) : (
             <h1 className="text-2xl font-bold">{report.title}</h1>
           )}
-          <p className="mt-3 text-blue-100">{report.summary}</p>
-          <div className="mt-4 flex gap-4 text-sm text-blue-200">
-            <span>Utworzono: {formatDate(report.created_at)}</span>
-            <span>Aktualizacja: {formatDate(report.updated_at)}</span>
+          <p className="mt-3 text-emerald-100">{report.summary}</p>
+          <div className="mt-4 flex gap-4 text-sm text-emerald-200">
+            <span>{t('metadata.createdLabel')}: {formatDate(report.created_at)}</span>
+            <span>{t('metadata.updatedLabel')}: {formatDate(report.updated_at)}</span>
           </div>
         </div>
 
         {/* Table of Contents */}
         <div className="mb-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 font-semibold text-gray-900">Spis tresci</h2>
+          <h2 className="mb-4 font-semibold text-gray-900">{t('tableOfContents.title')}</h2>
           <nav className="space-y-2">
             {report.sections.map((section, index) => (
               <a
                 key={section.id}
                 href={`#section-${section.id}`}
-                className="block text-gray-600 hover:text-blue-600"
+                className="block text-gray-600 hover:text-emerald-600"
               >
                 {index + 1}. {section.title}
               </a>
@@ -5838,7 +5923,7 @@ export default function ReportViewerPage() {
               <svg className="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
               </svg>
-              Adnotacje ({annotations.length})
+              {t('annotations.count', { count: annotations.length })}
             </h2>
             <div className="space-y-3">
               {annotations.map((annotation) => (
@@ -5846,7 +5931,7 @@ export default function ReportViewerPage() {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="text-sm text-gray-500 mb-1">
-                        Zaznaczony tekst:
+                        {t('annotations.selectedText')}:
                       </div>
                       <div className="text-sm text-gray-700 italic mb-2">
                         &quot;{annotation.selected_text.substring(0, 80)}{annotation.selected_text.length > 80 ? '...' : ''}&quot;
@@ -5856,7 +5941,7 @@ export default function ReportViewerPage() {
                     <button
                       onClick={() => deleteAnnotation(annotation.id)}
                       className="ml-2 text-gray-400 hover:text-red-500"
-                      title="Usun adnotacje"
+                      title={t('annotations.deleteTooltip')}
                     >
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -5877,12 +5962,12 @@ export default function ReportViewerPage() {
                 {sortedSections.map((section, index) => {
                   // Parse section data for special visualizations
                   const swotData = isSWOTSection(section.title) ? parseSWOTContent(section.content) : null
-                  const porterData = isPorterSection(section.title) ? parsePorterContent(section.content) : null
-                  const tamSamSomData = isTAMSAMSOMSection(section.title) ? parseTAMSAMSOMContent(section.content) : null
+                  const porterData = isPorterSection(section.title) ? parsePorterContent(section.content, t) : null
+                  const tamSamSomData = isTAMSAMSOMSection(section.title) ? parseTAMSAMSOMContent(section.content, t) : null
                   const trendTimelineData = isTrendTimelineSection(section.title) ? parseTrendTimelineContent(section.content) : null
                   const ownershipData = isOwnershipSection(section.title) ? parseOwnershipContent(section.content) : null
                   const positioningMapData = isPositioningMapSection(section.title) ? parsePositioningMapContent(section.content) : null
-                  const financialRatiosData = isFinancialRatiosSection(section.title) ? parseFinancialRatiosContent(section.content) : null
+                  const financialRatiosData = isFinancialRatiosSection(section.title) ? parseFinancialRatiosContent(section.content, t) : null
 
                   return (
                     <SortableSectionWrapper key={section.id} section={section}>
@@ -5896,18 +5981,18 @@ export default function ReportViewerPage() {
                             type="text"
                             value={editedSectionTitles[section.id] || section.title}
                             onChange={(e) => setEditedSectionTitles({ ...editedSectionTitles, [section.id]: e.target.value })}
-                            className="flex-1 text-xl font-semibold text-gray-900 border-b-2 border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-2 py-1 rounded transition-colors"
+                            className="flex-1 text-xl font-semibold text-gray-900 border-b-2 border-transparent hover:border-gray-300 focus:border-emerald-500 focus:outline-none px-2 py-1 rounded transition-colors"
                           />
                           {(swotData || porterData || tamSamSomData || trendTimelineData || ownershipData || positioningMapData || financialRatiosData) && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                              📊 Diagram interaktywny
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                              <ChartIcon className="w-4 h-4 inline mr-1" /> {t('edit.interactiveDiagram')}
                             </span>
                           )}
                           {/* Delete Section Button */}
                           <button
                             onClick={() => handleDeleteSectionClick(section.id, editedSectionTitles[section.id] || section.title)}
                             className="ml-auto text-gray-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
-                            title="Usuń sekcję"
+                            title={t('edit.deleteSection.tooltip')}
                           >
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -5991,7 +6076,7 @@ export default function ReportViewerPage() {
                         className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
                         title="Insert link"
                       >
-                        🔗 Link
+                        <MapIcon className="w-4 h-4 inline" /> Link
                       </button>
                       <button
                         onClick={() => {
@@ -6004,7 +6089,7 @@ export default function ReportViewerPage() {
                         className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
                         title="Insert image"
                       >
-                        🖼️ Image
+                        <PhotoIcon className="w-4 h-4 inline" /> Image
                       </button>
                       <input
                         id={`image-upload-${section.id}`}
@@ -6069,7 +6154,7 @@ export default function ReportViewerPage() {
                         className="rounded border border-gray-300 bg-white px-3 py-1 text-sm hover:bg-gray-100"
                         title="Insert table"
                       >
-                        📊 Table
+                        <ChartIcon className="w-4 h-4 inline" /> Table
                       </button>
                     </div>
                     <textarea
@@ -6078,7 +6163,7 @@ export default function ReportViewerPage() {
                       onChange={(e) => {
                         setEditedSections({ ...editedSections, [section.id]: e.target.value })
                       }}
-                      className="w-full rounded-b-lg border border-gray-300 p-4 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-b-lg border border-gray-300 p-4 font-mono text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       rows={20}
                     />
                     {/* Preview */}
@@ -6090,7 +6175,7 @@ export default function ReportViewerPage() {
                           className="text-gray-700"
                           components={{
                             a: ({ node, ...props }) => (
-                              <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline" />
+                              <a {...props} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-800 underline" />
                             ),
                             p: ({ node, children, ...props }) => (
                               <p {...props} className="mb-4">{children}</p>
@@ -6123,7 +6208,7 @@ export default function ReportViewerPage() {
                       components={{
                         // Custom link component to open in new tab
                         a: ({ node, ...props }) => (
-                          <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline" />
+                          <a {...props} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:text-emerald-800 underline" />
                         ),
                         // Custom paragraph to apply highlighting
                         p: ({ node, children, ...props }) => (
@@ -6164,7 +6249,7 @@ export default function ReportViewerPage() {
                 {getSectionAnnotations(section.id).length > 0 && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="text-sm font-medium text-yellow-700 mb-2">
-                      Adnotacje w tej sekcji:
+                      {t('annotations.inSection')}
                     </div>
                     {getSectionAnnotations(section.id).map((annotation) => (
                       <div key={annotation.id} className="bg-yellow-50 rounded-lg p-3 mb-2 text-sm">
@@ -6185,12 +6270,12 @@ export default function ReportViewerPage() {
                 <div className="mt-6 flex justify-center">
                   <button
                     onClick={addNewSection}
-                    className="flex items-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700"
+                    className="flex items-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Dodaj sekcję
+                    {t('edit.addSection')}
                   </button>
                 </div>
               </div>
@@ -6202,9 +6287,9 @@ export default function ReportViewerPage() {
               // Check if this is a SWOT section
               const swotData = isSWOTSection(section.title) ? parseSWOTContent(section.content) : null
               // Check if this is a Porter Five Forces section
-              const porterData = isPorterSection(section.title) ? parsePorterContent(section.content) : null
+              const porterData = isPorterSection(section.title) ? parsePorterContent(section.content, t) : null
               // Check if this is a TAM SAM SOM section
-              const tamSamSomData = isTAMSAMSOMSection(section.title) ? parseTAMSAMSOMContent(section.content) : null
+              const tamSamSomData = isTAMSAMSOMSection(section.title) ? parseTAMSAMSOMContent(section.content, t) : null
               // Check if this is a Trend Timeline section
               const trendTimelineData = isTrendTimelineSection(section.title) ? parseTrendTimelineContent(section.content) : null
               // Check if this is an Ownership section
@@ -6212,7 +6297,7 @@ export default function ReportViewerPage() {
               // Check if this is a Competitor Positioning Map section
               const positioningMapData = isPositioningMapSection(section.title) ? parsePositioningMapContent(section.content) : null
               // Check if this is a Financial Ratios Radar section
-              const financialRatiosData = isFinancialRatiosSection(section.title) ? parseFinancialRatiosContent(section.content) : null
+              const financialRatiosData = isFinancialRatiosSection(section.title) ? parseFinancialRatiosContent(section.content, t) : null
 
               return (
                 <section
@@ -6269,18 +6354,18 @@ export default function ReportViewerPage() {
 
         {/* Sources */}
         <div className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 font-semibold text-gray-900">Zrodla</h2>
+          <h2 className="mb-4 font-semibold text-gray-900">{t('sources.title')}</h2>
           <div className="space-y-3">
             {report.sources.map((source, idx) => (
               <div key={idx} className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
                 <div className="flex items-center gap-3">
                   <span className="text-gray-600">{source.name}</span>
-                  <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                  <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-sm text-emerald-600 hover:underline">
                     {source.url}
                   </a>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Pewnosc:</span>
+                  <span className="text-sm text-gray-500">{t('sources.confidence')}</span>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                     source.confidence >= 0.9 ? 'bg-green-100 text-green-800' :
                     source.confidence >= 0.75 ? 'bg-yellow-100 text-yellow-800' :
@@ -6295,9 +6380,9 @@ export default function ReportViewerPage() {
         </div>
 
         {/* Annotation Instructions */}
-        <div className="mt-8 rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-700">
-          <div className="font-medium mb-1">Jak dodac adnotacje?</div>
-          <p>Zaznacz dowolny tekst w raporcie, a pojawi sie opcja dodania komentarza. Twoje adnotacje zostana zapisane i beda widoczne przy kolejnych wizytach.</p>
+        <div className="mt-8 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-700">
+          <div className="font-medium mb-1">{t('annotations.howToTitle')}</div>
+          <p>{t('annotations.howToDescription')}</p>
         </div>
       </main>
 
@@ -6307,7 +6392,7 @@ export default function ReportViewerPage() {
           <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
             <div className="border-b border-gray-200 p-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Udostępnij raport</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('share.title')}</h3>
                 <button
                   onClick={() => {
                     setShowShareModal(false)
@@ -6335,31 +6420,31 @@ export default function ReportViewerPage() {
                 onClick={() => setShareTab('link')}
                 className={`flex-1 px-4 py-3 text-sm font-medium ${
                   shareTab === 'link'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    ? 'border-b-2 border-emerald-600 text-emerald-600'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                🔗 Link
+                <MapIcon className="w-4 h-4 inline" /> Link
               </button>
               <button
                 onClick={() => setShareTab('email')}
                 className={`flex-1 px-4 py-3 text-sm font-medium ${
                   shareTab === 'email'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    ? 'border-b-2 border-emerald-600 text-emerald-600'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                ✉️ Email
+                <EnvelopeIcon className="w-4 h-4 inline mr-1" /> Email
               </button>
               <button
                 onClick={() => setShareTab('embed')}
                 className={`flex-1 px-4 py-3 text-sm font-medium ${
                   shareTab === 'embed'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    ? 'border-b-2 border-emerald-600 text-emerald-600'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                📋 Embed
+                <DocumentIcon className="w-4 h-4 inline mr-1" /> Embed
               </button>
             </div>
 
@@ -6378,8 +6463,8 @@ export default function ReportViewerPage() {
                       <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                       </svg>
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">Wygeneruj link udostępniania</h3>
-                      <p className="mt-1 text-sm text-gray-500">Stwórz publiczny link do tego raportu</p>
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">{t('share.link.generateTitle')}</h3>
+                      <p className="mt-1 text-sm text-gray-500">{t('share.link.generateDescription')}</p>
 
                       {/* Password protection option */}
                       <div className="mt-4 space-y-3 max-w-sm mx-auto">
@@ -6394,24 +6479,24 @@ export default function ReportViewerPage() {
                                 setSharePassword('')
                               }
                             }}
-                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            className="h-4 w-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                           />
                           <label htmlFor="password-protect" className="ml-2 text-sm text-gray-700">
-                            Chroń hasłem
+                            {t('share.link.passwordProtection')}
                           </label>
                         </div>
 
                         {passwordProtected && (
                           <div className="text-left">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Hasło
+                              {t('share.link.password')}
                             </label>
                             <input
                               type="password"
                               value={sharePassword}
                               onChange={(e) => setSharePassword(e.target.value)}
-                              placeholder="Wpisz hasło..."
-                              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                              placeholder={t('share.link.passwordPlaceholder')}
+                              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                             />
                           </div>
                         )}
@@ -6421,19 +6506,19 @@ export default function ReportViewerPage() {
                         <button
                           onClick={handleGenerateShareLink}
                           disabled={isGeneratingLink || (passwordProtected && !sharePassword)}
-                          className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                          className="inline-flex items-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                         >
                           {isGeneratingLink ? (
                             <>
                               <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                              Generowanie...
+                              {t('share.link.generating')}
                             </>
                           ) : (
                             <>
                               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                               </svg>
-                              Wygeneruj link
+                              {t('share.link.generate')}
                             </>
                           )}
                         </button>
@@ -6447,15 +6532,15 @@ export default function ReportViewerPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-green-800">Link utworzony pomyślnie!</p>
-                            <p className="text-xs text-green-700 mt-1">Każdy kto ma ten link może zobaczyć raport</p>
+                            <p className="text-sm font-medium text-green-800">{t('share.link.successTitle')}</p>
+                            <p className="text-xs text-green-700 mt-1">{t('share.link.successDescription')}</p>
                           </div>
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Link do udostępnienia
+                          {t('share.link.shareLink')}
                         </label>
                         <div className="flex gap-2">
                           <input
@@ -6466,7 +6551,7 @@ export default function ReportViewerPage() {
                           />
                           <button
                             onClick={handleCopyShareLink}
-                            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                           >
                             {linkCopied ? (
                               <>
@@ -6475,14 +6560,14 @@ export default function ReportViewerPage() {
                                 </svg>
                               </>
                             ) : (
-                              'Kopiuj'
+                              t('share.link.copyShort')
                             )}
                           </button>
                         </div>
                       </div>
 
                       <div className="rounded-md bg-yellow-50 p-3 text-xs text-yellow-800">
-                        ⚠️ Link wygasa po 30 dniach. Możesz cofnąć dostęp w dowolnym momencie.
+                        <WarningIcon className="w-4 h-4 inline mr-1" /> {t('share.link.expiresWarning')}
                       </div>
                     </>
                   )}
@@ -6498,7 +6583,7 @@ export default function ReportViewerPage() {
                         <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <p className="text-sm text-green-700">Raport został pomyślnie udostępniony!</p>
+                        <p className="text-sm text-green-700">{t('share.email.successMessage')}</p>
                       </div>
                     </div>
                   ) : (
@@ -6511,30 +6596,30 @@ export default function ReportViewerPage() {
 
                       <div>
                         <label htmlFor="share-email" className="block text-sm font-medium text-gray-700 mb-1">
-                          Adres email odbiorcy *
+                          {t('share.email.recipientEmail')}
                         </label>
                         <input
                           id="share-email"
                           type="email"
                           value={shareEmail}
                           onChange={(e) => setShareEmail(e.target.value)}
-                          placeholder="email@example.com"
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          placeholder={t('share.email.emailPlaceholder')}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                           required
                         />
                       </div>
 
                       <div>
                         <label htmlFor="share-message" className="block text-sm font-medium text-gray-700 mb-1">
-                          Wiadomość (opcjonalnie)
+                          {t('share.email.message')}
                         </label>
                         <textarea
                           id="share-message"
                           value={shareMessage}
                           onChange={(e) => setShareMessage(e.target.value)}
-                          placeholder="Dodaj krótką wiadomość..."
+                          placeholder={t('share.email.messagePlaceholder')}
                           rows={4}
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         />
                       </div>
 
@@ -6549,20 +6634,20 @@ export default function ReportViewerPage() {
                           className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                           disabled={isSharing}
                         >
-                          Anuluj
+                          {t('share.cancel')}
                         </button>
                         <button
                           onClick={handleShareEmail}
                           disabled={isSharing || !shareEmail}
-                          className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isSharing ? (
                             <span className="flex items-center justify-center">
                               <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                              Wysyłanie...
+                              {t('share.email.sending')}
                             </span>
                           ) : (
-                            'Wyślij'
+                            t('share.email.send')
                           )}
                         </button>
                       </div>
@@ -6579,18 +6664,18 @@ export default function ReportViewerPage() {
                       <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                       </svg>
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">Wygeneruj kod osadzania</h3>
-                      <p className="mt-1 text-sm text-gray-500">Stwórz kod HTML do osadzenia raportu na swojej stronie</p>
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">{t('share.embed.generateTitle')}</h3>
+                      <p className="mt-1 text-sm text-gray-500">{t('share.embed.generateDescription')}</p>
 
                       <div className="mt-6">
                         <button
                           onClick={handleGenerateEmbedCode}
-                          className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                          className="inline-flex items-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                         >
                           <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                           </svg>
-                          Wygeneruj kod
+                          {t('share.embed.generate')}
                         </button>
                       </div>
                     </div>
@@ -6602,15 +6687,15 @@ export default function ReportViewerPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-green-800">Kod osadzania wygenerowany!</p>
-                            <p className="text-xs text-green-700 mt-1">Skopiuj poniższy kod i wklej na swojej stronie</p>
+                            <p className="text-sm font-medium text-green-800">{t('share.embed.successTitle')}</p>
+                            <p className="text-xs text-green-700 mt-1">{t('share.embed.successDescription')}</p>
                           </div>
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Kod HTML (iframe)
+                          {t('share.embed.codeLabel')}
                         </label>
                         <div className="space-y-2">
                           <textarea
@@ -6621,33 +6706,33 @@ export default function ReportViewerPage() {
                           />
                           <button
                             onClick={handleCopyEmbedCode}
-                            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center"
+                            className="w-full rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 flex items-center justify-center"
                           >
                             {embedCopied ? (
                               <>
                                 <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
-                                Skopiowano!
+                                {t('share.embed.copied')}
                               </>
                             ) : (
                               <>
                                 <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
-                                Kopiuj kod
+                                {t('share.embed.copy')}
                               </>
                             )}
                           </button>
                         </div>
                       </div>
 
-                      <div className="rounded-md bg-blue-50 p-3 text-xs text-blue-800">
-                        <p className="font-medium mb-1">💡 Jak użyć:</p>
+                      <div className="rounded-md bg-emerald-50 p-3 text-xs text-emerald-800">
+                        <p className="font-medium mb-1"><LightbulbIcon className="w-4 h-4 inline mr-1" /> {t('share.embed.howToUse')}</p>
                         <ol className="list-decimal list-inside space-y-1">
-                          <li>Skopiuj powyższy kod HTML</li>
-                          <li>Wklej go w miejscu gdzie chcesz osadzić raport</li>
-                          <li>Raport będzie wyświetlany w iframe o szerokości 100% i wysokości 800px</li>
+                          <li>{t('share.embed.step1')}</li>
+                          <li>{t('share.embed.step2')}</li>
+                          <li>{t('share.embed.step3')}</li>
                         </ol>
                       </div>
                     </>
@@ -6664,7 +6749,7 @@ export default function ReportViewerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="w-full max-w-4xl rounded-lg bg-white shadow-xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between border-b p-4">
-              <h3 className="text-lg font-semibold text-gray-900">Log dostępu do raportu</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('accessLog.title')}</h3>
               <button
                 onClick={() => setShowAccessLogModal(false)}
                 className="rounded-lg p-1 hover:bg-gray-100"
@@ -6677,7 +6762,7 @@ export default function ReportViewerPage() {
             <div className="overflow-y-auto p-4">
               {isLoadingAccessLog ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
                 </div>
               ) : accessLogData?.error ? (
                 <div className="text-center py-12 text-red-600">
@@ -6688,22 +6773,22 @@ export default function ReportViewerPage() {
                   <svg className="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="font-medium">Brak udostępnień</p>
-                  <p className="text-sm mt-1">Ten raport nie był jeszcze udostępniany</p>
+                  <p className="font-medium">{t('accessLog.empty')}</p>
+                  <p className="text-sm mt-1">{t('accessLog.emptyDescription')}</p>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="rounded-lg bg-blue-50 p-4">
+                  <div className="rounded-lg bg-emerald-50 p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-gray-900">Podsumowanie</h4>
+                        <h4 className="font-medium text-gray-900">{t('accessLog.summary')}</h4>
                         <p className="text-sm text-gray-600 mt-1">
-                          Raport został udostępniony {accessLogData?.share_links?.length || 0} razy
+                          {t('accessLog.sharedCount', { count: accessLogData?.share_links?.length || 0 })}
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-bold text-blue-600">{accessLogData?.total_accesses || 0}</div>
-                        <div className="text-sm text-gray-600">Całkowite wyświetlenia</div>
+                        <div className="text-3xl font-bold text-emerald-600">{accessLogData?.total_accesses || 0}</div>
+                        <div className="text-sm text-gray-600">{t('accessLog.totalViews')}</div>
                       </div>
                     </div>
                   </div>
@@ -6712,35 +6797,35 @@ export default function ReportViewerPage() {
                     <div key={idx} className="rounded-lg border border-gray-200 p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h5 className="font-medium text-gray-900">Link udostępnienia #{idx + 1}</h5>
+                          <h5 className="font-medium text-gray-900">{t('accessLog.shareLink', { number: idx + 1 })}</h5>
                           <p className="text-sm text-gray-500 mt-1">
-                            Utworzono: {new Date(shareLink.created_at).toLocaleString('pl-PL')}
+                            {t('accessLog.created')}: {new Date(shareLink.created_at).toLocaleString('pl-PL')}
                           </p>
                           <p className="text-sm text-gray-500">
-                            Wygasa: {new Date(shareLink.expires_at).toLocaleString('pl-PL')}
+                            {t('accessLog.expires')}: {new Date(shareLink.expires_at).toLocaleString('pl-PL')}
                           </p>
                         </div>
                         <div className="flex items-start gap-3">
                           <div className="text-right">
                             <div className="text-2xl font-bold text-gray-900">{shareLink.access_count}</div>
-                            <div className="text-xs text-gray-500">wyświetleń</div>
+                            <div className="text-xs text-gray-500">{t('accessLog.views')}</div>
                           </div>
                           <button
                             onClick={() => handleRevokeShareLink(shareLink.share_token)}
                             className="flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                            title="Cofnij udostępnienie - link przestanie działać"
+                            title={t('share.revokeWarning')}
                           >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                             </svg>
-                            Cofnij
+                            {t('share.link.revokeButton')}
                           </button>
                         </div>
                       </div>
 
                       {shareLink.accesses && shareLink.accesses.length > 0 ? (
                         <div className="mt-4">
-                          <h6 className="text-sm font-medium text-gray-700 mb-2">Historia dostępu:</h6>
+                          <h6 className="text-sm font-medium text-gray-700 mb-2">{t('accessLog.accessHistory')}</h6>
                           <div className="space-y-2 max-h-60 overflow-y-auto">
                             {shareLink.accesses.map((access: any, accessIdx: number) => (
                               <div key={accessIdx} className="flex items-start gap-3 text-sm bg-gray-50 rounded p-3">
@@ -6778,7 +6863,7 @@ export default function ReportViewerPage() {
                         </div>
                       ) : (
                         <p className="text-sm text-gray-500 mt-3 text-center py-4">
-                          Ten link nie został jeszcze otwarty
+                          {t('sharing.linkNotOpenedYet')}
                         </p>
                       )}
                     </div>
