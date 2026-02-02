@@ -1662,6 +1662,8 @@
       "noConflicts": "No conflicts"
     },
     "news": {
+      "loading": "Loading news...",
+      "noArticlesDescription": "No articles found for selected criteria.",
       "category": "Category",
       "sentiment": "Sentiment",
       "dateFrom": "From",
@@ -1670,9 +1672,12 @@
       "clearFilters": "Clear filters"
     },
     "timeline": {
+      "loading": "Loading timeline...",
+      "noEventsDescription": "No events found for selected criteria.",
       "eventType": "Event type",
       "impact": "Impact",
-      "details": "Details"
+      "details": "Details",
+      "source": "Source"
     },
     "sentiment": {
       "positive": "Positive",
@@ -1765,8 +1770,26 @@
       "negative": "Negative"
     },
     "conflicts": {
+      "title": "Data Conflicts",
+      "description": "Fields with different values from multiple sources. Choose preferred value to resolve conflict.",
+      "loading": "Loading conflicts...",
+      "foundValues": "Found {count} different values from different sources",
+      "verified": "Verified",
+      "recommended": "Recommended",
+      "source": "Source:",
+      "confidence": "Confidence:",
+      "lastUpdated": "Last updated:",
+      "noConflicts": "No conflicts",
+      "allConsistent": "All data is consistent. No conflicts detected between sources.",
       "resolving": "Saving...",
       "choose": "Choose"
+    },
+    "dataQuality": {
+      "title": "Data Quality",
+      "improvements": "Improvement Suggestions",
+      "loadingMetrics": "Loading quality metrics...",
+      "noData": "No data",
+      "loadError": "Cannot load data quality metrics."
     }
   },
   "reportDetail": {

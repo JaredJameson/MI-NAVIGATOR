@@ -1662,6 +1662,8 @@
       "noConflicts": "Brak konfliktów"
     },
     "news": {
+      "loading": "Ładowanie aktualności...",
+      "noArticlesDescription": "Nie znaleziono artykułów dla wybranych kryteriów.",
       "category": "Kategoria",
       "sentiment": "Sentyment",
       "dateFrom": "Od",
@@ -1670,9 +1672,12 @@
       "clearFilters": "Wyczyść filtry"
     },
     "timeline": {
+      "loading": "Ładowanie osi czasu...",
+      "noEventsDescription": "Nie znaleziono wydarzeń dla wybranych kryteriów.",
       "eventType": "Typ wydarzenia",
       "impact": "Wpływ",
-      "details": "Szczegóły"
+      "details": "Szczegóły",
+      "source": "Źródło"
     },
     "sentiment": {
       "positive": "Pozytywny",
@@ -1765,8 +1770,26 @@
       "negative": "Negatywny"
     },
     "conflicts": {
+      "title": "Konflikty danych",
+      "description": "Pola z różnymi wartościami z wielu źródeł. Wybierz preferowaną wartość aby rozwiązać konflikt.",
+      "loading": "Ładowanie konfliktów...",
+      "foundValues": "Znaleziono {count} różne wartości z różnych źródeł",
+      "verified": "Zweryfikowane",
+      "recommended": "Rekomendowane",
+      "source": "Źródło:",
+      "confidence": "Pewność:",
+      "lastUpdated": "Ostatnia aktualizacja:",
+      "noConflicts": "Brak konfliktów",
+      "allConsistent": "Wszystkie dane są spójne. Nie wykryto konfliktów między źródłami.",
       "resolving": "Zapisywanie...",
       "choose": "Wybierz"
+    },
+    "dataQuality": {
+      "title": "Jakość danych",
+      "improvements": "Sugestie poprawy",
+      "loadingMetrics": "Ładowanie metryk jakości...",
+      "noData": "Brak danych",
+      "loadError": "Nie można załadować metryk jakości danych."
     }
   },
   "reportDetail": {

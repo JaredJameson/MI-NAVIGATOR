@@ -5,6 +5,41 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { companyApi, CompanyProfile, NewsArticle, TimelineEvent, RefreshResponse, DataQualityDashboard, customFieldsApi, CompanyCustomField, CompanyFinancials, conflictsApi, DataConflictsResponse } from '@/services/api';
 import { formatRelativeTime } from '@/utils/date';
+import { useTranslations, useLocale } from 'next-intl';
+import {
+  NewspaperIcon,
+  MoneyIcon,
+  ShoppingBagIcon,
+  GroupIcon,
+  ScaleIcon,
+  ChartIcon,
+  WarningIcon,
+  LocationIcon,
+  BuildingIcon,
+  CalendarIcon,
+  GlobeIcon,
+  ArrowPathIcon,
+  DocumentIcon,
+  TargetIcon,
+  CheckIcon,
+  CircleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  LightbulbIcon,
+  StarIcon,
+  BellIcon,
+  TimerIcon,
+  EnvelopeIcon,
+  ClockIcon,
+  BuildingLibraryIcon,
+  HandshakeIcon,
+  ShieldIcon,
+  CheckBadgeIcon,
+  ThumbsUpIcon,
+  TrendUpIcon,
+  XIcon,
+  MagnifyingGlassIcon
+} from '@/components/icons/CommonIcons';
 
 type Tab = 'overview' | 'timeline' | 'news' | 'financials' | 'people' | 'data-quality' | 'conflicts';
 
@@ -12,6 +47,8 @@ export default function CompanyProfilePage() {
   const params = useParams();
   const router = useRouter();
   const companyId = params.id as string;
+  const t = useTranslations('companyDetail');
+  const locale = useLocale();
 
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [news, setNews] = useState<NewsArticle[]>([]);
@@ -190,7 +227,7 @@ export default function CompanyProfilePage() {
     const result = await companyApi.refreshCompanyData(companyId);
 
     if (result.error) {
-      setRefreshMessage(`Błąd: ${result.error}`);
+      setRefreshMessage(`${t('refresh.error')}: ${result.error}`);
     } else if (result.data) {
       setRefreshMessage(result.data.message);
 
@@ -291,32 +328,32 @@ export default function CompanyProfilePage() {
 
   // Sentiment badge
   const getSentimentBadge = (sentiment: string) => {
-    const styles: Record<string, { bg: string; text: string; label: string }> = {
-      positive: { bg: 'bg-green-100', text: 'text-green-800', label: 'Pozytywny' },
-      negative: { bg: 'bg-red-100', text: 'text-red-800', label: 'Negatywny' },
-      neutral: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Neutralny' },
+    const styles: Record<string, { bg: string; text: string }> = {
+      positive: { bg: 'bg-green-100', text: 'text-green-800' },
+      negative: { bg: 'bg-red-100', text: 'text-red-800' },
+      neutral: { bg: 'bg-gray-100', text: 'text-gray-800' },
     };
     const style = styles[sentiment] || styles.neutral;
     return (
       <span className={`px-2 py-0.5 text-xs rounded-full ${style.bg} ${style.text}`}>
-        {style.label}
+        {t(`sentiment.${sentiment}` as any)}
       </span>
     );
   };
 
   // Category badge
   const getCategoryBadge = (category: string) => {
-    const labels: Record<string, { icon: string; label: string }> = {
-      general: { icon: '📰', label: 'Ogólne' },
-      financial: { icon: '💰', label: 'Finanse' },
-      product: { icon: '📦', label: 'Produkt' },
-      hr: { icon: '👥', label: 'Kadry' },
-      legal: { icon: '⚖️', label: 'Prawne' },
+    const icons: Record<string, React.ReactElement> = {
+      general: <NewspaperIcon className="w-4 h-4" />,
+      financial: <MoneyIcon className="w-4 h-4" />,
+      product: <ShoppingBagIcon className="w-4 h-4" />,
+      hr: <GroupIcon className="w-4 h-4" />,
+      legal: <ScaleIcon className="w-4 h-4" />,
     };
-    const cat = labels[category] || labels.general;
+    const icon = icons[category] || icons.general;
     return (
-      <span className="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded-full">
-        {cat.icon} {cat.label}
+      <span className="px-2 py-0.5 text-xs bg-emerald-50 text-emerald-700 rounded-full">
+        {icon} {t(`categories.${category}` as any)}
       </span>
     );
   };
@@ -325,8 +362,8 @@ export default function CompanyProfilePage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Ładowanie profilu firmy...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -336,14 +373,14 @@ export default function CompanyProfilePage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Błąd</h2>
+          <WarningIcon className="w-16 h-16 mx-auto text-red-500 mb-4" />
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">{t('errors.loadFailed')}</h2>
           <p className="text-slate-600 mb-4">{error}</p>
           <button
             onClick={() => router.back()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
           >
-            Wróć
+            {t('errors.back')}
           </button>
         </div>
       </div>
@@ -361,18 +398,18 @@ export default function CompanyProfilePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-2xl font-bold text-blue-600">
+              <Link href="/dashboard" className="text-2xl font-bold text-emerald-600">
                 MI-Navigator
               </Link>
               <span className="text-slate-300">/</span>
-              <span className="text-slate-600">Firma</span>
+              <span className="text-slate-600">{t('header.breadcrumb')}</span>
             </div>
             <nav className="flex items-center gap-4">
-              <Link href="/reports" className="text-slate-600 hover:text-blue-600">
-                Raporty
+              <Link href="/reports" className="text-slate-600 hover:text-emerald-600">
+                {t('header.navigation.reports')}
               </Link>
-              <Link href="/search" className="text-slate-600 hover:text-blue-600">
-                Wyszukiwanie
+              <Link href="/search" className="text-slate-600 hover:text-emerald-600">
+                {t('header.navigation.search')}
               </Link>
             </nav>
           </div>
@@ -383,8 +420,8 @@ export default function CompanyProfilePage() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-start gap-6">
-            <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-              <span className="text-2xl font-bold text-blue-600">
+            <div className="w-16 h-16 bg-emerald-100 rounded-xl flex items-center justify-center">
+              <span className="text-2xl font-bold text-emerald-600">
                 {company.name.charAt(0)}
               </span>
             </div>
@@ -398,17 +435,17 @@ export default function CompanyProfilePage() {
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  {company.status === 'active' ? 'Aktywna' : company.status}
+                  {company.status === 'active' ? t('status.active') : company.status}
                 </span>
               </div>
               <p className="text-slate-600 mt-1">{company.description}</p>
-              <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500">
-                <span>📍 {company.address.city}</span>
-                <span>🏢 NIP: {company.nip}</span>
-                {company.krs && <span>📋 KRS: {company.krs}</span>}
-                <span>📅 Założona: {company.founded}</span>
+              <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500 items-center">
+                <span className="flex items-center gap-1"><LocationIcon className="w-4 h-4" /> {company.address.city}</span>
+                <span className="flex items-center gap-1"><BuildingIcon className="w-4 h-4" /> NIP: {company.nip}</span>
+                {company.krs && <span className="flex items-center gap-1"><DocumentIcon className="w-4 h-4" /> KRS: {company.krs}</span>}
+                <span className="flex items-center gap-1"><CalendarIcon className="w-4 h-4" /> {t('info.founded')}: {company.founded}</span>
                 {company.employees_range && (
-                  <span>👥 {company.employees_range} pracowników</span>
+                  <span className="flex items-center gap-1"><GroupIcon className="w-4 h-4" /> {company.employees_range} {t('info.employees')}</span>
                 )}
               </div>
             </div>
@@ -418,9 +455,10 @@ export default function CompanyProfilePage() {
                   href={company.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
                 >
-                  🌐 Strona www
+                  <GlobeIcon className="w-4 h-4 mr-1" />
+                  {t('info.website')}
                 </a>
               )}
               <button
@@ -435,22 +473,23 @@ export default function CompanyProfilePage() {
                 {refreshing ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-700"></div>
-                    Odświeżanie...
+                    {t('refresh.refreshing')}
                   </>
                 ) : (
                   <>
-                    🔄 Odśwież dane
+                    <ArrowPathIcon className="w-4 h-4 mr-1" />
+                    {t('refresh.button')}
                   </>
                 )}
               </button>
               {company.last_updated && (
                 <p className="text-xs text-slate-500">
-                  Ostatnia aktualizacja: {formatDate(company.last_updated)}
+                  {t('refresh.lastUpdate')}: {formatDate(company.last_updated)}
                 </p>
               )}
               {refreshMessage && (
                 <div className={`text-xs px-3 py-1 rounded ${
-                  refreshMessage.includes('Błąd')
+                  refreshMessage.includes(t('refresh.error'))
                     ? 'bg-red-100 text-red-700'
                     : 'bg-green-100 text-green-700'
                 }`}>
@@ -467,24 +506,24 @@ export default function CompanyProfilePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex gap-1">
             {[
-              { id: 'overview' as Tab, label: 'Przegląd', icon: '📊' },
-              { id: 'timeline' as Tab, label: 'Oś czasu', icon: '📅' },
-              { id: 'news' as Tab, label: 'Aktualności', icon: '📰' },
-              { id: 'financials' as Tab, label: 'Finanse', icon: '💰' },
-              { id: 'people' as Tab, label: 'Osoby', icon: '👥' },
-              { id: 'data-quality' as Tab, label: 'Jakość Danych', icon: '✓' },
-              { id: 'conflicts' as Tab, label: 'Konflikty', icon: '⚠️' },
+              { id: 'overview' as Tab, labelKey: 'overview', icon: <ChartIcon className="w-5 h-5" /> },
+              { id: 'timeline' as Tab, labelKey: 'timeline', icon: <CalendarIcon className="w-5 h-5" /> },
+              { id: 'news' as Tab, labelKey: 'news', icon: <NewspaperIcon className="w-5 h-5" /> },
+              { id: 'financials' as Tab, labelKey: 'financials', icon: <MoneyIcon className="w-5 h-5" /> },
+              { id: 'people' as Tab, labelKey: 'people', icon: <GroupIcon className="w-5 h-5" /> },
+              { id: 'data-quality' as Tab, labelKey: 'dataQuality', icon: <CheckIcon className="w-5 h-5" /> },
+              { id: 'conflicts' as Tab, labelKey: 'conflicts', icon: <WarningIcon className="w-5 h-5" /> },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-emerald-600 text-emerald-600'
                     : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
                 }`}
               >
-                {tab.icon} {tab.label}
+                {tab.icon} {t(`tabs.${tab.labelKey}` as any)}
               </button>
             ))}
           </nav>
@@ -501,7 +540,7 @@ export default function CompanyProfilePage() {
               {/* PKD Codes */}
               <div className="bg-white rounded-xl border border-slate-200 p-6">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                  Kody PKD
+                  {t('sectionHeaders.pkdCodes')}
                 </h2>
                 <div className="space-y-3">
                   {company.pkd_descriptions.map((pkd) => (
@@ -509,7 +548,7 @@ export default function CompanyProfilePage() {
                       key={pkd.code}
                       className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg"
                     >
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-mono rounded">
+                      <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-mono rounded">
                         {pkd.code}
                       </span>
                       <div>
@@ -524,7 +563,7 @@ export default function CompanyProfilePage() {
               {/* Address */}
               <div className="bg-white rounded-xl border border-slate-200 p-6">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                  Lokalizacja
+                  {t('sectionHeaders.location')}
                 </h2>
                 <div className="text-slate-600">
                   <p>{company.address.street}</p>
@@ -538,14 +577,14 @@ export default function CompanyProfilePage() {
               {company.related_companies && company.related_companies.length > 0 && (
                 <div className="bg-white rounded-xl border border-slate-200 p-6">
                   <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                    Powiązane Spółki
+                    {t('sectionHeaders.relatedCompanies')}
                   </h2>
                   <div className="space-y-3">
                     {company.related_companies.map((related) => (
                       <Link
                         key={related.id}
                         href={`/companies/${related.id}`}
-                        className="block p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200 hover:border-blue-300"
+                        className="block p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200 hover:border-emerald-300"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
@@ -555,22 +594,22 @@ export default function CompanyProfilePage() {
                               </h3>
                               {related.relationship === 'subsidiary' && (
                                 <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-                                  Spółka zależna
+                                  {t('relationships.subsidiary')}
                                 </span>
                               )}
                               {related.relationship === 'parent' && (
-                                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                  Spółka matka
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">
+                                  {t('relationships.parent')}
                                 </span>
                               )}
                               {related.relationship === 'sister' && (
                                 <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
-                                  Spółka siostra
+                                  {t('relationships.sister')}
                                 </span>
                               )}
                               {related.relationship === 'affiliate' && (
                                 <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">
-                                  Podmiot powiązany
+                                  {t('relationships.affiliate')}
                                 </span>
                               )}
                             </div>
@@ -580,7 +619,7 @@ export default function CompanyProfilePage() {
                             </p>
                             {related.ownership_percentage && (
                               <p className="text-sm text-slate-600 mt-1">
-                                Udział: {related.ownership_percentage}%
+                                {t('relationships.ownership')}: {related.ownership_percentage}%
                               </p>
                             )}
                             {related.description && (
@@ -614,7 +653,7 @@ export default function CompanyProfilePage() {
             <div className="space-y-6">
               <div className="bg-white rounded-xl border border-slate-200 p-6">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                  Informacje
+                  {t('sectionHeaders.information')}
                 </h2>
                 <dl className="space-y-3 text-sm">
                   {/* NIP - always present */}
@@ -630,8 +669,8 @@ export default function CompanyProfilePage() {
                       <dd className="text-slate-900 font-mono">{company.krs}</dd>
                     ) : (
                       <dd className="text-amber-600 italic text-xs flex items-center gap-1">
-                        <span>⚠️</span>
-                        <span>Brak danych</span>
+                        <WarningIcon className="w-3 h-3" />
+                        <span>{t('missingData.label')}</span>
                       </dd>
                     )}
                   </div>
@@ -643,34 +682,34 @@ export default function CompanyProfilePage() {
                       <dd className="text-slate-900 font-mono">{company.regon}</dd>
                     ) : (
                       <dd className="text-amber-600 italic text-xs flex items-center gap-1">
-                        <span>⚠️</span>
-                        <span>Brak danych</span>
+                        <WarningIcon className="w-3 h-3" />
+                        <span>{t('missingData.label')}</span>
                       </dd>
                     )}
                   </div>
 
                   {/* Rok założenia - show even if missing with highlighting */}
                   <div className={`flex justify-between ${!company.founded ? 'bg-amber-50 border border-amber-200 -mx-3 px-3 py-2 rounded' : ''}`}>
-                    <dt className="text-slate-500">Rok założenia</dt>
+                    <dt className="text-slate-500">{t('fields.founded')}</dt>
                     {company.founded ? (
                       <dd className="text-slate-900">{company.founded}</dd>
                     ) : (
                       <dd className="text-amber-600 italic text-xs flex items-center gap-1">
-                        <span>⚠️</span>
-                        <span>Brak danych</span>
+                        <WarningIcon className="w-3 h-3" />
+                        <span>{t('missingData.label')}</span>
                       </dd>
                     )}
                   </div>
 
                   {/* Zatrudnienie - show even if missing with highlighting */}
                   <div className={`flex justify-between ${!company.employees_range ? 'bg-amber-50 border border-amber-200 -mx-3 px-3 py-2 rounded' : ''}`}>
-                    <dt className="text-slate-500">Zatrudnienie</dt>
+                    <dt className="text-slate-500">{t('fields.employment')}</dt>
                     {company.employees_range ? (
                       <dd className="text-slate-900">{company.employees_range}</dd>
                     ) : (
                       <dd className="text-amber-600 italic text-xs flex items-center gap-1">
-                        <span>⚠️</span>
-                        <span>Brak danych</span>
+                        <WarningIcon className="w-3 h-3" />
+                        <span>{t('missingData.label')}</span>
                       </dd>
                     )}
                   </div>
@@ -678,32 +717,32 @@ export default function CompanyProfilePage() {
 
                 {/* Missing Data Suggestions */}
                 {(!company.krs || !company.regon || !company.founded || !company.employees_range) && (
-                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
                     <div className="flex items-start gap-2">
-                      <span className="text-blue-600 text-lg">💡</span>
+                      <LightbulbIcon className="w-5 h-5 text-emerald-600" />
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-blue-900 mb-2">
-                          Sugestie uzupełnienia danych
+                        <h3 className="text-sm font-semibold text-emerald-900 mb-2">
+                          {t('missingData.suggestions')}
                         </h3>
-                        <ul className="text-xs text-blue-800 space-y-1">
+                        <ul className="text-xs text-emerald-800 space-y-1">
                           {!company.krs && (
-                            <li>• Dodaj numer KRS aby zwiększyć wiarygodność profilu</li>
+                            <li>• {t('missingData.addKrs')}</li>
                           )}
                           {!company.regon && (
-                            <li>• Uzupełnij REGON z oficjalnych rejestrów</li>
+                            <li>• {t('missingData.addRegon')}</li>
                           )}
                           {!company.founded && (
-                            <li>• Podaj rok założenia firmy</li>
+                            <li>• {t('missingData.addFounded')}</li>
                           )}
                           {!company.employees_range && (
-                            <li>• Określ przedział zatrudnienia</li>
+                            <li>• {t('missingData.addEmployees')}</li>
                           )}
                         </ul>
                         <button
                           onClick={() => setActiveTab('data-quality')}
-                          className="mt-3 text-xs text-blue-700 hover:text-blue-900 font-medium underline"
+                          className="mt-3 text-xs text-emerald-700 hover:text-emerald-900 font-medium underline"
                         >
-                          Zobacz pełny raport jakości danych →
+                          {t('missingData.viewQualityReport')}
                         </button>
                       </div>
                     </div>
@@ -715,11 +754,11 @@ export default function CompanyProfilePage() {
               {customFields.length > 0 && (
                 <div className="bg-white rounded-xl border border-slate-200 p-6">
                   <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                    Custom Fields
+                    {t('sectionHeaders.customFields')}
                   </h2>
                   {customFieldsLoading ? (
                     <div className="text-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600 mx-auto"></div>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -748,9 +787,9 @@ export default function CompanyProfilePage() {
                                   });
                                   setEditingFieldId(field.field_definition.id);
                                 }}
-                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                               >
-                                <option value="">Select...</option>
+                                <option value="">{t('fields.select')}</option>
                                 {field.field_definition.options?.map((option) => (
                                   <option key={option} value={option}>
                                     {option}
@@ -760,9 +799,9 @@ export default function CompanyProfilePage() {
                               {editingFieldId === field.field_definition.id && (
                                 <button
                                   onClick={() => handleSaveFieldValue(field.field_definition.id)}
-                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                  className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
                                 >
-                                  Save
+                                  {t('fields.save')}
                                 </button>
                               )}
                             </div>
@@ -796,7 +835,7 @@ export default function CompanyProfilePage() {
                                           });
                                           setEditingFieldId(field.field_definition.id);
                                         }}
-                                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                                        className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-2 focus:ring-emerald-500"
                                       />
                                       <span className="text-sm text-slate-700">{option}</span>
                                     </label>
@@ -806,9 +845,9 @@ export default function CompanyProfilePage() {
                               {editingFieldId === field.field_definition.id && (
                                 <button
                                   onClick={() => handleSaveFieldValue(field.field_definition.id)}
-                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                  className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
                                 >
-                                  Save
+                                  {t('fields.save')}
                                 </button>
                               )}
                             </div>
@@ -824,15 +863,15 @@ export default function CompanyProfilePage() {
                                   });
                                   setEditingFieldId(field.field_definition.id);
                                 }}
-                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter value..."
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                placeholder={t('fields.enterValue')}
                               />
                               {editingFieldId === field.field_definition.id && (
                                 <button
                                   onClick={() => handleSaveFieldValue(field.field_definition.id)}
-                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                  className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
                                 >
-                                  Save
+                                  {t('fields.save')}
                                 </button>
                               )}
                             </div>
@@ -848,15 +887,15 @@ export default function CompanyProfilePage() {
                                   });
                                   setEditingFieldId(field.field_definition.id);
                                 }}
-                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter value..."
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                placeholder={t('fields.enterValue')}
                               />
                               {editingFieldId === field.field_definition.id && (
                                 <button
                                   onClick={() => handleSaveFieldValue(field.field_definition.id)}
-                                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                  className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
                                 >
-                                  Save
+                                  {t('fields.save')}
                                 </button>
                               )}
                             </div>
@@ -866,7 +905,7 @@ export default function CompanyProfilePage() {
                             (field.value_json && field.field_definition.field_type === 'multiselect')) &&
                             !editingFieldId && (
                             <div className="text-sm text-slate-600">
-                              Current: <span className="font-medium">
+                              {t('fields.current')}: <span className="font-medium">
                                 {field.field_definition.field_type === 'multiselect' && field.value_json
                                   ? field.value_json.join(', ')
                                   : field.value}
@@ -883,11 +922,12 @@ export default function CompanyProfilePage() {
               {/* Actions */}
               <div className="bg-white rounded-xl border border-slate-200 p-6">
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                  Akcje
+                  {t('sectionHeaders.actions')}
                 </h2>
                 <div className="space-y-2">
-                  <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                    📊 Generuj raport
+                  <button className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm flex items-center justify-center">
+                    <ChartIcon className="w-4 h-4 mr-1" />
+                    {t('actions.generateReport')}
                   </button>
                   <button
                     onClick={handleToggleWatchlist}
@@ -898,10 +938,26 @@ export default function CompanyProfilePage() {
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     } ${watchlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    {watchlistLoading ? '⏳ Przetwarzanie...' : isWatched ? '⭐ Obserwujesz' : '⭐ Dodaj do obserwowanych'}
+                    {watchlistLoading ? (
+                      <>
+                        <TimerIcon className="w-4 h-4 mr-1" />
+                        {t('actions.processing')}
+                      </>
+                    ) : isWatched ? (
+                      <>
+                        <StarIcon className="w-4 h-4 mr-1" filled />
+                        {t('actions.watching')}
+                      </>
+                    ) : (
+                      <>
+                        <StarIcon className="w-4 h-4 mr-1" />
+                        {t('actions.addToWatched')}
+                      </>
+                    )}
                   </button>
-                  <button className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm">
-                    🔔 Ustaw alert
+                  <button className="w-full px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm flex items-center justify-center">
+                    <BellIcon className="w-4 h-4 mr-1" />
+                    {t('actions.setAlert')}
                   </button>
                 </div>
               </div>
@@ -917,25 +973,26 @@ export default function CompanyProfilePage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-slate-600 mr-2">Typ wydarzenia:</span>
                 {[
-                  { value: '', label: 'Wszystkie' },
-                  { value: 'founding', label: '🏛️ Założenie' },
-                  { value: 'investment', label: '💰 Inwestycja' },
-                  { value: 'partnership', label: '🤝 Partnerstwo' },
-                  { value: 'product', label: '📦 Produkt' },
-                  { value: 'legal', label: '⚖️ Prawne' },
-                  { value: 'hr', label: '👥 Kadry' },
-                  { value: 'milestone', label: '🎯 Kamień milowy' },
+                  { value: '', labelKey: 'all' },
+                  { value: 'founding', labelKey: 'founding', icon: <BuildingLibraryIcon className="w-4 h-4" /> },
+                  { value: 'investment', labelKey: 'investment', icon: <MoneyIcon className="w-4 h-4" /> },
+                  { value: 'partnership', labelKey: 'partnership', icon: <HandshakeIcon className="w-4 h-4" /> },
+                  { value: 'product', labelKey: 'product', icon: <ShoppingBagIcon className="w-4 h-4" /> },
+                  { value: 'legal', labelKey: 'legal', icon: <ScaleIcon className="w-4 h-4" /> },
+                  { value: 'hr', labelKey: 'hr', icon: <GroupIcon className="w-4 h-4" /> },
+                  { value: 'milestone', labelKey: 'milestone', icon: <TargetIcon className="w-4 h-4" /> },
                 ].map((type) => (
                   <button
                     key={type.value}
                     onClick={() => setTimelineEventType(type.value)}
                     className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                       timelineEventType === type.value
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {type.label}
+                    {type.icon && <span className="mr-1">{type.icon}</span>}
+                    {t(`eventTypes.${type.labelKey}` as any)}
                   </button>
                 ))}
               </div>
@@ -943,21 +1000,22 @@ export default function CompanyProfilePage() {
               <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-200">
                 <span className="text-sm text-slate-600 mr-2">Wpływ:</span>
                 {[
-                  { value: '', label: 'Wszystkie' },
-                  { value: 'high', label: '🔴 Wysoki' },
-                  { value: 'medium', label: '🟡 Średni' },
-                  { value: 'low', label: '🟢 Niski' },
+                  { value: '', labelKey: 'all', color: 'bg-gray-100 text-gray-800' },
+                  { value: 'high', labelKey: 'high', color: 'bg-red-100 text-red-800', icon: <WarningIcon className="w-3 h-3" /> },
+                  { value: 'medium', labelKey: 'medium', color: 'bg-yellow-100 text-yellow-800', icon: <WarningIcon className="w-3 h-3" /> },
+                  { value: 'low', labelKey: 'low', color: 'bg-green-100 text-green-800', icon: <CheckIcon className="w-3 h-3" /> },
                 ].map((imp) => (
                   <button
                     key={imp.value}
                     onClick={() => setTimelineImpact(imp.value)}
                     className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                       timelineImpact === imp.value
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {imp.label}
+                    {imp.icon && <span className="mr-1">{imp.icon}</span>}
+                    {t(`impactLevels.${imp.labelKey}` as any)}
                   </button>
                 ))}
               </div>
@@ -966,15 +1024,15 @@ export default function CompanyProfilePage() {
             {/* Timeline Display */}
             {timelineLoading ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-slate-600">Ładowanie osi czasu...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+                <p className="mt-4 text-slate-600">{t('timeline.loading')}</p>
               </div>
             ) : timeline.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
-                <div className="text-4xl mb-4">📅</div>
-                <h3 className="text-lg font-semibold text-slate-900">Brak wydarzeń</h3>
+                <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+                <h3 className="text-lg font-semibold text-slate-900">{t('empty.noEvents')}</h3>
                 <p className="text-slate-600 mt-1">
-                  Nie znaleziono wydarzeń dla wybranych kryteriów.
+                  {t('timeline.noEventsDescription')}
                 </p>
               </div>
             ) : (
@@ -991,14 +1049,14 @@ export default function CompanyProfilePage() {
                     const day = date.getDate();
 
                     // Event type icon
-                    const typeIcons: Record<string, string> = {
-                      founding: '🏛️',
-                      investment: '💰',
-                      partnership: '🤝',
-                      product: '📦',
-                      legal: '⚖️',
-                      hr: '👥',
-                      milestone: '🎯',
+                    const typeIcons: Record<string, React.ReactElement> = {
+                      founding: <BuildingLibraryIcon className="w-5 h-5" />,
+                      investment: <MoneyIcon className="w-5 h-5" />,
+                      partnership: <HandshakeIcon className="w-5 h-5" />,
+                      product: <ShoppingBagIcon className="w-5 h-5" />,
+                      legal: <ScaleIcon className="w-5 h-5" />,
+                      hr: <GroupIcon className="w-5 h-5" />,
+                      milestone: <TargetIcon className="w-5 h-5" />,
                     };
 
                     // Impact color
@@ -1015,7 +1073,7 @@ export default function CompanyProfilePage() {
                         {/* Date marker */}
                         <div className="absolute left-0 top-0">
                           <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 rounded-full bg-white border-4 border-blue-600 flex items-center justify-center text-2xl z-10 shadow-md">
+                            <div className="w-16 h-16 rounded-full bg-white border-4 border-emerald-600 flex items-center justify-center text-2xl z-10 shadow-md">
                               {typeIcons[event.event_type]}
                             </div>
                             <div className="text-center mt-2">
@@ -1039,10 +1097,10 @@ export default function CompanyProfilePage() {
                             <h3 className="text-lg font-semibold text-slate-900 flex-1">
                               {event.title}
                             </h3>
-                            <span className={`px-3 py-1 text-xs rounded-full ${impactStyle.bg} ${impactStyle.text} whitespace-nowrap`}>
-                              {event.impact === 'high' && '🔴 Wysoki wpływ'}
-                              {event.impact === 'medium' && '🟡 Średni wpływ'}
-                              {event.impact === 'low' && '🟢 Niski wpływ'}
+                            <span className={`px-3 py-1 text-xs rounded-full flex items-center gap-1 ${impactStyle.bg} ${impactStyle.text} whitespace-nowrap`}>
+                              {event.impact === 'high' && <><WarningIcon className="w-3 h-3" /> Wysoki wpływ</>}
+                              {event.impact === 'medium' && <><WarningIcon className="w-3 h-3" /> Średni wpływ</>}
+                              {event.impact === 'low' && <><CheckIcon className="w-3 h-3" /> Niski wpływ</>}
                             </span>
                           </div>
 
@@ -1053,13 +1111,14 @@ export default function CompanyProfilePage() {
                           {selectedEvent?.id === event.id && event.source && (
                             <div className="mt-4 pt-4 border-t border-slate-200">
                               <div className="flex items-center gap-2 text-xs text-slate-500">
-                                <span>📄 Źródło: {event.source}</span>
+                                <DocumentIcon className="w-3 h-3" />
+                                <span>Źródło: {event.source}</span>
                                 {event.source_url && (
                                   <a
                                     href={event.source_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline"
+                                    className="text-emerald-600 hover:underline"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     Zobacz więcej →
@@ -1075,7 +1134,7 @@ export default function CompanyProfilePage() {
                 </div>
 
                 {/* Timeline summary */}
-                <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
+                <div className="mt-8 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-semibold text-slate-900 mb-1">
@@ -1086,7 +1145,9 @@ export default function CompanyProfilePage() {
                         {timeline.length > 1 && ` do ${new Date(timeline[timeline.length - 1].date).getFullYear()}`}
                       </p>
                     </div>
-                    <div className="text-4xl">🎯</div>
+                    <div className="text-4xl text-purple-600">
+                      <TargetIcon className="w-12 h-12" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1103,23 +1164,24 @@ export default function CompanyProfilePage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-slate-600 mr-2">Kategoria:</span>
                 {[
-                  { value: '', label: 'Wszystkie' },
-                  { value: 'general', label: '📰 Ogólne' },
-                  { value: 'financial', label: '💰 Finanse' },
-                  { value: 'product', label: '📦 Produkty' },
-                  { value: 'hr', label: '👥 Kadry' },
-                  { value: 'legal', label: '⚖️ Prawne' },
+                  { value: '', labelKey: 'all' },
+                  { value: 'general', labelKey: 'general', icon: <NewspaperIcon className="w-4 h-4" /> },
+                  { value: 'financial', labelKey: 'financial', icon: <MoneyIcon className="w-4 h-4" /> },
+                  { value: 'product', labelKey: 'products', icon: <ShoppingBagIcon className="w-4 h-4" /> },
+                  { value: 'hr', labelKey: 'hr', icon: <GroupIcon className="w-4 h-4" /> },
+                  { value: 'legal', labelKey: 'legal', icon: <ScaleIcon className="w-4 h-4" /> },
                 ].map((cat) => (
                   <button
                     key={cat.value}
                     onClick={() => setNewsCategory(cat.value)}
                     className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                       newsCategory === cat.value
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {cat.label}
+                    {cat.icon && <span className="mr-1">{cat.icon}</span>}
+                    {t(`newsCategories.${cat.labelKey}` as any)}
                   </button>
                 ))}
 
@@ -1129,11 +1191,12 @@ export default function CompanyProfilePage() {
                     onClick={() => setShowDateFilter(!showDateFilter)}
                     className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${
                       showDateFilter || dateFrom || dateTo
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    📅 Zakres dat
+                    <CalendarIcon className="w-4 h-4 mr-1" />
+                    Zakres dat
                     {(dateFrom || dateTo) && (
                       <span className="bg-white bg-opacity-30 px-1.5 rounded text-xs">
                         Aktywny
@@ -1147,21 +1210,22 @@ export default function CompanyProfilePage() {
               <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-200">
                 <span className="text-sm text-slate-600 mr-2">Sentyment:</span>
                 {[
-                  { value: '', label: 'Wszystkie' },
-                  { value: 'positive', label: '✅ Pozytywny' },
-                  { value: 'neutral', label: '⚪ Neutralny' },
-                  { value: 'negative', label: '❌ Negatywny' },
+                  { value: '', labelKey: 'all' },
+                  { value: 'positive', labelKey: 'positive', icon: <CheckCircleIcon className="w-4 h-4" /> },
+                  { value: 'neutral', labelKey: 'neutral', icon: <CircleIcon className="w-4 h-4" /> },
+                  { value: 'negative', labelKey: 'negative', icon: <XCircleIcon className="w-4 h-4" /> },
                 ].map((sent) => (
                   <button
                     key={sent.value}
                     onClick={() => setNewsSentiment(sent.value)}
                     className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                       newsSentiment === sent.value
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {sent.label}
+                    {sent.icon && <span className="mr-1">{sent.icon}</span>}
+                    {t(`newsSentiments.${sent.labelKey}` as any)}
                   </button>
                 ))}
               </div>
@@ -1176,7 +1240,7 @@ export default function CompanyProfilePage() {
                       type="date"
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
-                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -1185,7 +1249,7 @@ export default function CompanyProfilePage() {
                       type="date"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
-                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>
                   {(dateFrom || dateTo) && (
@@ -1202,14 +1266,15 @@ export default function CompanyProfilePage() {
               {/* Active filters summary */}
               {(dateFrom || dateTo) && (
                 <div className="flex items-center gap-2 text-sm text-slate-600 pt-2 border-t border-slate-100">
-                  <span>📅 Filtr dat:</span>
+                  <CalendarIcon className="w-4 h-4" />
+                  <span>Filtr dat:</span>
                   {dateFrom && (
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">
                       Od: {new Date(dateFrom).toLocaleDateString('pl-PL')}
                     </span>
                   )}
                   {dateTo && (
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">
                       Do: {new Date(dateTo).toLocaleDateString('pl-PL')}
                     </span>
                   )}
@@ -1220,17 +1285,17 @@ export default function CompanyProfilePage() {
             {/* News List */}
             {newsLoading ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-slate-600">Ładowanie aktualności...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+                <p className="mt-4 text-slate-600">{t('news.loading')}</p>
               </div>
             ) : news.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
-                <div className="text-4xl mb-4">📭</div>
+                <EnvelopeIcon className="w-12 h-12 mx-auto mb-4 text-slate-400" />
                 <h3 className="text-lg font-semibold text-slate-900">
-                  Brak aktualności
+                  {t('empty.noNews')}
                 </h3>
                 <p className="text-slate-600 mt-1">
-                  Nie znaleziono artykułów dla wybranych kryteriów.
+                  {t('news.noArticlesDescription')}
                 </p>
               </div>
             ) : (
@@ -1254,10 +1319,12 @@ export default function CompanyProfilePage() {
                         </p>
                         <div className="flex items-center gap-4 text-xs text-slate-500">
                           <span className="flex items-center gap-1">
-                            📰 {article.source}
+                            <NewspaperIcon className="w-3 h-3" />
+                            {article.source}
                           </span>
                           <span className="flex items-center gap-1">
-                            🕒 {formatDate(article.published_at)}
+                            <ClockIcon className="w-3 h-3" />
+                            {formatDate(article.published_at)}
                           </span>
                         </div>
                       </div>
@@ -1282,8 +1349,8 @@ export default function CompanyProfilePage() {
           <div className="space-y-6">
             {financialsLoading ? (
               <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-                <div className="text-5xl mb-4">💰</div>
-                <p className="text-slate-600">Ładowanie danych finansowych...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+                <p className="text-slate-600 mt-4">Ładowanie danych finansowych...</p>
               </div>
             ) : financials ? (
               <>
@@ -1510,7 +1577,17 @@ export default function CompanyProfilePage() {
                               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                                 isAbove ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
                               }`}>
-                                {isAbove ? '✓ Powyżej średniej' : '⚠ Poniżej średniej'}
+                                {isAbove ? (
+                                  <>
+                                    <CheckIcon className="w-3 h-3 inline mr-1" />
+                                    Powyżej średniej
+                                  </>
+                                ) : (
+                                  <>
+                                    <WarningIcon className="w-3 h-3 inline mr-1" />
+                                    Poniżej średniej
+                                  </>
+                                )}
                               </div>
                             </div>
                             <div className="grid grid-cols-4 gap-4 text-sm">
@@ -1528,7 +1605,7 @@ export default function CompanyProfilePage() {
                               </div>
                               <div>
                                 <div className="text-slate-600">Percentyl</div>
-                                <div className="font-bold text-blue-600">{metric.percentile}%</div>
+                                <div className="font-bold text-emerald-600">{metric.percentile}%</div>
                               </div>
                             </div>
                           </div>
@@ -1540,7 +1617,7 @@ export default function CompanyProfilePage() {
               </>
             ) : (
               <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-                <div className="text-5xl mb-4">💰</div>
+                <MoneyIcon className="w-16 h-16 mx-auto mb-4 text-slate-400" />
                 <h3 className="text-lg font-semibold text-slate-900">
                   Brak danych finansowych
                 </h3>
@@ -1555,7 +1632,7 @@ export default function CompanyProfilePage() {
         {/* People Tab (Placeholder) */}
         {activeTab === 'people' && (
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-            <div className="text-5xl mb-4">👥</div>
+            <GroupIcon className="w-16 h-16 mx-auto mb-4 text-slate-400" />
             <h3 className="text-lg font-semibold text-slate-900">
               Kluczowe osoby
             </h3>
@@ -1572,14 +1649,14 @@ export default function CompanyProfilePage() {
             {dataQualityLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
-                  <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="mt-2 text-slate-600">Ładowanie metryk jakości...</p>
+                  <div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="mt-2 text-slate-600">{t('dataQuality.loadingMetrics')}</p>
                 </div>
               </div>
             ) : dataQuality ? (
               <>
                 {/* Overall Score Card */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-6">
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border-2 border-emerald-200 p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-2xl font-bold text-slate-900">Jakość Danych</h2>
@@ -1588,7 +1665,7 @@ export default function CompanyProfilePage() {
                     <div className="text-center">
                       <div className={`text-5xl font-bold ${
                         dataQuality.overall_status === 'excellent' ? 'text-green-600' :
-                        dataQuality.overall_status === 'good' ? 'text-blue-600' :
+                        dataQuality.overall_status === 'good' ? 'text-emerald-600' :
                         dataQuality.overall_status === 'fair' ? 'text-amber-600' :
                         'text-red-600'
                       }`}>
@@ -1596,14 +1673,27 @@ export default function CompanyProfilePage() {
                       </div>
                       <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium mt-2 ${
                         dataQuality.overall_status === 'excellent' ? 'bg-green-100 text-green-800' :
-                        dataQuality.overall_status === 'good' ? 'bg-blue-100 text-blue-800' :
+                        dataQuality.overall_status === 'good' ? 'bg-emerald-100 text-emerald-800' :
                         dataQuality.overall_status === 'fair' ? 'bg-amber-100 text-amber-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {dataQuality.overall_status === 'excellent' ? '✓ Doskonała' :
-                         dataQuality.overall_status === 'good' ? '✓ Dobra' :
-                         dataQuality.overall_status === 'fair' ? '⚠ Wystarczająca' :
-                         '✗ Słaba'}
+                        {dataQuality.overall_status === 'excellent' ? (
+                          <>
+                            <CheckIcon className="w-4 h-4 inline mr-1" /> Doskonała
+                          </>
+                        ) : dataQuality.overall_status === 'good' ? (
+                          <>
+                            <CheckIcon className="w-4 h-4 inline mr-1" /> Dobra
+                          </>
+                        ) : dataQuality.overall_status === 'fair' ? (
+                          <>
+                            <WarningIcon className="w-4 h-4 inline mr-1" /> Wystarczająca
+                          </>
+                        ) : (
+                          <>
+                            <XIcon className="w-4 h-4 inline mr-1" /> Słaba
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1614,10 +1704,12 @@ export default function CompanyProfilePage() {
                   {/* Completeness */}
                   <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-slate-900">📊 Kompletność</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                      <ChartIcon className="w-5 h-5" /> Kompletność
+                    </h3>
                       <span className={`text-2xl font-bold ${
                         dataQuality.completeness.status === 'excellent' ? 'text-green-600' :
-                        dataQuality.completeness.status === 'good' ? 'text-blue-600' :
+                        dataQuality.completeness.status === 'good' ? 'text-emerald-600' :
                         dataQuality.completeness.status === 'fair' ? 'text-amber-600' :
                         'text-red-600'
                       }`}>
@@ -1650,10 +1742,12 @@ export default function CompanyProfilePage() {
                   {/* Freshness */}
                   <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-slate-900">🕐 Świeżość</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                      <ClockIcon className="w-5 h-5" /> Świeżość
+                    </h3>
                       <span className={`text-2xl font-bold ${
                         dataQuality.freshness.status === 'excellent' ? 'text-green-600' :
-                        dataQuality.freshness.status === 'good' ? 'text-blue-600' :
+                        dataQuality.freshness.status === 'good' ? 'text-emerald-600' :
                         dataQuality.freshness.status === 'fair' ? 'text-amber-600' :
                         'text-red-600'
                       }`}>
@@ -1682,10 +1776,12 @@ export default function CompanyProfilePage() {
                   {/* Source Reliability */}
                   <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-slate-900">🛡️ Wiarygodność</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                      <ShieldIcon className="w-5 h-5" /> Wiarygodność
+                    </h3>
                       <span className={`text-2xl font-bold ${
                         dataQuality.source_reliability.status === 'excellent' ? 'text-green-600' :
-                        dataQuality.source_reliability.status === 'good' ? 'text-blue-600' :
+                        dataQuality.source_reliability.status === 'good' ? 'text-emerald-600' :
                         dataQuality.source_reliability.status === 'fair' ? 'text-amber-600' :
                         'text-red-600'
                       }`}>
@@ -1700,7 +1796,7 @@ export default function CompanyProfilePage() {
                             <span className="text-sm font-medium text-slate-700">{detail.source}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${
                               (detail.confidence || 0) >= 90 ? 'bg-green-100 text-green-700' :
-                              (detail.confidence || 0) >= 75 ? 'bg-blue-100 text-blue-700' :
+                              (detail.confidence || 0) >= 75 ? 'bg-emerald-100 text-emerald-700' :
                               'bg-amber-100 text-amber-700'
                             }`}>
                               {detail.reliability}
@@ -1716,7 +1812,7 @@ export default function CompanyProfilePage() {
                 {dataQuality.improvement_suggestions.length > 0 && (
                   <div className="bg-white rounded-xl border border-slate-200 p-6">
                     <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                      💡 Sugestie poprawy
+                      <LightbulbIcon className="w-5 h-5" /> {t('dataQuality.improvements')}
                     </h3>
                     <div className="space-y-4">
                       {dataQuality.improvement_suggestions.map((suggestion, idx) => (
@@ -1725,7 +1821,7 @@ export default function CompanyProfilePage() {
                           className={`p-4 rounded-lg border-l-4 ${
                             suggestion.priority === 'high' ? 'bg-red-50 border-red-500' :
                             suggestion.priority === 'medium' ? 'bg-amber-50 border-amber-500' :
-                            'bg-blue-50 border-blue-500'
+                            'bg-emerald-50 border-emerald-500'
                           }`}
                         >
                           <div className="flex items-start justify-between">
@@ -1734,11 +1830,24 @@ export default function CompanyProfilePage() {
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                   suggestion.priority === 'high' ? 'bg-red-200 text-red-800' :
                                   suggestion.priority === 'medium' ? 'bg-amber-200 text-amber-800' :
-                                  'bg-blue-200 text-blue-800'
+                                  'bg-emerald-200 text-emerald-800'
                                 }`}>
-                                  {suggestion.priority === 'high' ? '🔴 Wysoki' :
-                                   suggestion.priority === 'medium' ? '🟡 Średni' :
-                                   '🟢 Niski'} priorytet
+                                  {suggestion.priority === 'high' ? (
+                                    <>
+                                      <WarningIcon className="w-3 h-3 inline mr-1" />
+                                      {t('impactLevels.high')}
+                                    </>
+                                  ) : suggestion.priority === 'medium' ? (
+                                    <>
+                                      <WarningIcon className="w-3 h-3 inline mr-1" />
+                                      {t('impactLevels.medium')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckIcon className="w-3 h-3 inline mr-1" />
+                                      {t('impactLevels.low')}
+                                    </>
+                                  )} priority
                                 </span>
                                 <span className="text-xs text-slate-500">
                                   {suggestion.category}
@@ -1751,7 +1860,7 @@ export default function CompanyProfilePage() {
                                 {suggestion.description}
                               </p>
                               <p className="text-xs text-slate-500 italic">
-                                📈 {suggestion.impact}
+                                <TrendUpIcon className="w-3 h-3 inline mr-1" /> {suggestion.impact}
                               </p>
                             </div>
                           </div>
@@ -1763,15 +1872,15 @@ export default function CompanyProfilePage() {
 
                 {/* Last Assessment */}
                 <div className="text-center text-sm text-slate-500">
-                  Ostatnia ocena: {new Date(dataQuality.last_assessment).toLocaleString('pl-PL')}
+                  Ostatnia ocena: {new Date(dataQuality.last_assessment).toLocaleString(locale === 'pl' ? 'pl-PL' : 'en-US')}
                 </div>
               </>
             ) : (
               <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
                 <div className="text-4xl mb-4">✓</div>
-                <h3 className="text-lg font-semibold text-slate-900">Brak danych</h3>
+                <h3 className="text-lg font-semibold text-slate-900">{t('dataQuality.noData')}</h3>
                 <p className="text-slate-600 mt-1">
-                  Nie można załadować metryk jakości danych.
+                  {t('dataQuality.loadError')}
                 </p>
               </div>
             )}
@@ -1782,29 +1891,31 @@ export default function CompanyProfilePage() {
         {activeTab === 'conflicts' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Konflikty danych</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">{t('conflicts.title')}</h2>
               <p className="text-slate-600">
-                Pola z różnymi wartościami z wielu źródeł. Wybierz preferowaną wartość aby rozwiązać konflikt.
+                {t('conflicts.description')}
               </p>
             </div>
 
             {conflictsLoading ? (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="ml-3 text-slate-600">Ładowanie konfliktów...</span>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                <span className="ml-3 text-slate-600">{t('conflicts.loading')}</span>
               </div>
             ) : conflicts && conflicts.conflict_count > 0 ? (
               <div className="space-y-6">
                 {conflicts.conflicts.map((conflict) => (
                   <div key={conflict.field_name} className="bg-white border border-amber-200 rounded-lg p-6">
                     <div className="flex items-start gap-3 mb-4">
-                      <span className="text-2xl">⚠️</span>
+                      <div className="text-amber-600">
+                        <WarningIcon className="w-8 h-8" />
+                      </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-slate-900">
                           {conflict.field_label}
                         </h3>
                         <p className="text-sm text-slate-600 mt-1">
-                          Znaleziono {conflict.conflicting_values.length} różne wartości z różnych źródeł
+                          {t('conflicts.foundValues', { count: conflict.conflicting_values.length })}
                         </p>
                       </div>
                     </div>
@@ -1828,26 +1939,26 @@ export default function CompanyProfilePage() {
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold text-slate-900">{value.value}</span>
                                   {value.is_verified && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                      ✓ Zweryfikowane
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                                      ✓ {t('conflicts.verified')}
                                     </span>
                                   )}
                                   {isRecommended && (
                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                      👍 Rekomendowane
+                                      <ThumbsUpIcon className="w-3 h-3 mr-1" /> {t('conflicts.recommended')}
                                     </span>
                                   )}
                                 </div>
                                 <div className="mt-2 text-sm text-slate-600 space-y-1">
                                   <div>
-                                    <span className="font-medium">Źródło:</span> {value.source}
+                                    <span className="font-medium">{t('conflicts.source')}</span> {value.source}
                                   </div>
                                   <div>
-                                    <span className="font-medium">Pewność:</span> {value.confidence}%
+                                    <span className="font-medium">{t('conflicts.confidence')}</span> {value.confidence}%
                                   </div>
                                   <div>
-                                    <span className="font-medium">Ostatnia aktualizacja:</span>{' '}
-                                    {new Date(value.last_updated).toLocaleDateString('pl-PL')}
+                                    <span className="font-medium">{t('conflicts.lastUpdated')}</span>{' '}
+                                    {new Date(value.last_updated).toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-US')}
                                   </div>
                                 </div>
                               </div>
@@ -1857,10 +1968,10 @@ export default function CompanyProfilePage() {
                                 className={`ml-4 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                                   isResolving
                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
                                 }`}
                               >
-                                {isResolving ? 'Zapisywanie...' : 'Wybierz'}
+                                {isResolving ? t('conflicts.resolving') : t('conflicts.choose')}
                               </button>
                             </div>
                           </div>
@@ -1872,10 +1983,10 @@ export default function CompanyProfilePage() {
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
-                <div className="text-4xl mb-4">✅</div>
-                <h3 className="text-lg font-semibold text-slate-900">Brak konfliktów</h3>
+                <CheckBadgeIcon className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                <h3 className="text-lg font-semibold text-slate-900">{t('conflicts.noConflicts')}</h3>
                 <p className="text-slate-600 mt-1">
-                  Wszystkie dane są spójne. Nie wykryto konfliktów między źródłami.
+                  {t('conflicts.allConsistent')}
                 </p>
               </div>
             )}
