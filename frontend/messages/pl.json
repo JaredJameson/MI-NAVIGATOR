@@ -3314,6 +3314,9 @@
         "saving": "Zapisywanie...",
         "complete": "Zakończ konfigurację →"
       }
+    },
+    "root": {
+      "loading": "Ładowanie MI-Navigator..."
     }
   }
 }

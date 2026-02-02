@@ -55,6 +55,8 @@ logs/
 
 # Secrets
 .env
+.env.staging
+.env.production
 *.pem
 secrets/
 

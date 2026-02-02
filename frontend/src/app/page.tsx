@@ -2,8 +2,10 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 export default function Home() {
+  const t = useTranslations('root')
   const router = useRouter()
 
   useEffect(() => {
@@ -15,7 +17,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="animate-pulse text-lg text-muted-foreground">
-        Loading MI-Navigator...
+        {t('loading')}
       </div>
     </div>
   )

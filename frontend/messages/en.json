@@ -3314,6 +3314,9 @@
         "saving": "Saving...",
         "complete": "Complete Setup →"
       }
+    },
+    "root": {
+      "loading": "Loading MI-Navigator..."
     }
   }
 }
