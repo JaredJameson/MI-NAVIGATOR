@@ -2,8 +2,8 @@
 ## Complete Internationalization Strategy (Polish + English)
 
 **Created**: 2026-01-29
-**Updated**: 2026-02-02 (Session 419 - Settings Page COMPLETE)
-**Status**: 🔄 **IN PROGRESS** (66% complete - 35/53 pages)
+**Updated**: 2026-02-02 (Session 419 - Settings Pages COMPLETE: settings, workspace, security)
+**Status**: 🔄 **IN PROGRESS** (68% complete - 36/53 pages)
 **Framework**: next-intl with cookie-based locale detection
 **Languages**: Polish (pl - default), English (en)
 **Target**: 100% frontend i18n coverage across all 53 pages
@@ -12,7 +12,7 @@
 
 ## 📊 Current Status (Session 419 COMPLETE - 2026-02-02)
 
-### ✅ Completed Pages (35/53 = 66%)
+### ✅ Completed Pages (36/53 = 68%)
 
 **Session 381** (2026-01-28):
 1. ✅ **Activity page** (`/activity`) - User activity log
@@ -54,12 +54,13 @@
 29. ✅ **page.tsx** (root) - Root landing page with redirect
 30. ✅ **companies/[id]/page.tsx** - Company detail page (all sections)
 
-**Session 419** (2026-02-02) - Report Pages & Accessibility:
+**Session 419** (2026-02-02) - Settings Pages Complete:
 31. ✅ **reports/[id]/page.tsx** - Report detail viewer (6,794 lines - LARGEST FILE)
 32. ✅ **dashboard/page.tsx** - Fixed translation key path mismatches
 33. ✅ **reports/page.tsx** - Reports list with bulk operations (1,900 lines)
 34. ✅ **chat/page.tsx** - Accessibility aria-labels (1,518 lines)
 35. ✅ **settings/page.tsx** - Settings hub with profile, preferences, notifications (1,182 lines)
+36. ✅ **settings/security/page.tsx** - Security settings with 2FA (573 lines, error messages fixed)
 
 ### 📈 Translation Coverage
 
@@ -70,7 +71,7 @@
 - **Session 394**: ~920 keys (14 test pages, ~460 per language)
 - **Session 417**: ~300 keys (6 Authentication pages, ~150 per language)
 - **Session 418**: ~80 keys (root + companies/[id] complete, ~40 per language)
-- **Session 419**: ~125 keys (reports detail + reports list + chat aria-labels + settings page)
+- **Session 419**: ~125 keys (reports detail + reports list + chat aria-labels + settings page + security error messages)
 
 **Test Pages Translation Keys Breakdown**:
 - test-error: ~35 keys
@@ -135,6 +136,13 @@
   - errors.*: 10 keys (failedToLoadProfile, fieldNameRequired, optionsRequired, failedToGetCsrfToken, failedToCreateField, failedToDeleteField, failedToUpdateProfile, failedToUpdatePreferences, failedToUpdateNotifications, failedToSave)
   - success.*: 3 keys (fieldCreated, fieldDeleted, settingsSaved)
   - Status: FULLY internationalized - profile, preferences, notifications, custom fields all complete
+- settings/workspace/page.tsx: Already fully internationalized with ~50 keys:
+  - All keys exist in translation files (lines 416-466 in pl.json/en.json)
+  - Status: No changes needed - page was already complete
+- settings/security/page.tsx: 6 error message replacements:
+  - Replaced hardcoded errors with translation calls (failedToFetch2FAStatus, failedToSetup2FA, invalidVerificationCode, verificationFailed, failedToDisable2FA, failedToChangePassword)
+  - All translation keys already existed in files (lines 467-526 in pl.json/en.json)
+  - Status: FULLY internationalized - 2FA, password change, all error messages complete
 
 **Key Features Implemented**:
 - ✅ Cookie-based locale detection (NEXT_LOCALE)
@@ -146,7 +154,7 @@
 
 ---
 
-## 🎯 Remaining Work (18 pages = 34%)
+## 🎯 Remaining Work (17 pages = 32%)
 
 ### **High Priority Pages** (8 pages) - Core User Journeys
 
