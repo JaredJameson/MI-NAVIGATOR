@@ -12,7 +12,7 @@
 
 ## 📊 Current Status (Session 418 - 2026-02-02)
 
-### ✅ Completed Pages (29/53 = 55%)
+### ✅ Completed Pages (30/53 = 57%)
 
 **Session 381** (2026-01-28):
 1. ✅ **Activity page** (`/activity`) - User activity log
@@ -52,17 +52,17 @@
 
 **Session 418** (2026-02-02) - Core Detail Pages (STARTED):
 29. ✅ **page.tsx** (root) - Root landing page with redirect
-30. 🔄 **companies/[id]/page.tsx** - PARTIAL (Data Quality & Conflicts sections + loading states)
+30. ✅ **companies/[id]/page.tsx** - COMPLETE (All sections internationalized)
 
 ### 📈 Translation Coverage
 
 **Translation Keys**:
-- **Total**: ~1,485 keys across pl.json + en.json
+- **Total**: ~1,525 keys across pl.json + en.json
 - **Session 381**: ~120 keys (activity, feedback, onboarding, offline, maintenance)
 - **Session 382**: ~105 keys (notifications, invitations, chat)
 - **Session 394**: ~920 keys (14 test pages, ~460 per language)
 - **Session 417**: ~300 keys (6 Authentication pages, ~150 per language)
-- **Session 418**: ~40 keys (root + companies/[id] Data Quality/Conflicts sections, ~20 per language)
+- **Session 418**: ~80 keys (root + companies/[id] complete, ~40 per language)
 
 **Test Pages Translation Keys Breakdown**:
 - test-error: ~35 keys
@@ -90,12 +90,14 @@
 
 **Core Detail Pages Translation Keys Breakdown** (Session 418):
 - page.tsx (root): ~1 key (loading message)
-- companies/[id]/page.tsx (PARTIAL): ~19 keys per language:
+- companies/[id]/page.tsx (COMPLETE): ~39 keys per language:
   - conflicts.*: 11 keys (title, description, loading, verified, recommended, source, confidence, lastUpdated, noConflicts, allConsistent, foundValues)
-  - dataQuality.*: 4 keys (title, improvements, loadingMetrics, noData, loadError)
-  - timeline.*: 3 keys (loading, noEventsDescription, source)
-  - news.*: 2 keys (loading, noArticlesDescription)
-  - Note: Page is PARTIALLY translated - many sections still have hardcoded Polish strings (Financials, People, Timeline details, etc.)
+  - dataQuality.*: 5 keys (title, improvements, loadingMetrics, noData, loadError)
+  - timeline.*: 10 keys (loading, noEventsDescription, impact, impactHigh/Medium/Low, details, source, sourceLabel, viewMore, eventCount)
+  - news.*: 4 keys (loading, noArticlesDescription, clear, readMore)
+  - financials.*: 12 keys (loading, historicalData, revenue, value, profitabilityRatios, financialRatios, industryComparison, source, aboveAverage, belowAverage, industryAverage, industryMedian)
+  - people.*: 1 key (comingSoon)
+  - Status: FULLY internationalized - all sections complete
 
 **Key Features Implemented**:
 - ✅ Cookie-based locale detection (NEXT_LOCALE)

@@ -1669,15 +1669,23 @@
       "dateFrom": "From",
       "dateTo": "To",
       "showDateFilter": "Show date filter",
-      "clearFilters": "Clear filters"
+      "clearFilters": "Clear filters",
+      "clear": "✕ Clear",
+      "readMore": "Read more →"
     },
     "timeline": {
       "loading": "Loading timeline...",
       "noEventsDescription": "No events found for selected criteria.",
       "eventType": "Event type",
       "impact": "Impact",
+      "impactHigh": "High impact",
+      "impactMedium": "Medium impact",
+      "impactLow": "Low impact",
       "details": "Details",
-      "source": "Source"
+      "source": "Source",
+      "sourceLabel": "Source:",
+      "viewMore": "View more →",
+      "eventCount": "{count} {count, plural, one {event} other {events}} since {year}"
     },
     "sentiment": {
       "positive": "Positive",
@@ -1790,6 +1798,23 @@
       "loadingMetrics": "Loading quality metrics...",
       "noData": "No data",
       "loadError": "Cannot load data quality metrics."
+    },
+    "financials": {
+      "loading": "Loading financials...",
+      "historicalData": "Historical Data",
+      "revenue": "Revenue (PLN)",
+      "value": "Value",
+      "profitabilityRatios": "Profitability Ratios",
+      "financialRatios": "Financial Ratios {year}",
+      "industryComparison": "Industry Comparison",
+      "source": "Source:",
+      "aboveAverage": "Above average",
+      "belowAverage": "Below average",
+      "industryAverage": "Industry average",
+      "industryMedian": "Industry median"
+    },
+    "people": {
+      "comingSoon": "This section is under development. Information about management and key people will be available here soon."
     }
   },
   "reportDetail": {

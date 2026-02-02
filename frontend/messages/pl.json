@@ -1669,15 +1669,23 @@
       "dateFrom": "Od",
       "dateTo": "Do",
       "showDateFilter": "Pokaż filtr dat",
-      "clearFilters": "Wyczyść filtry"
+      "clearFilters": "Wyczyść filtry",
+      "clear": "✕ Wyczyść",
+      "readMore": "Czytaj więcej →"
     },
     "timeline": {
       "loading": "Ładowanie osi czasu...",
       "noEventsDescription": "Nie znaleziono wydarzeń dla wybranych kryteriów.",
       "eventType": "Typ wydarzenia",
       "impact": "Wpływ",
+      "impactHigh": "Wysoki wpływ",
+      "impactMedium": "Średni wpływ",
+      "impactLow": "Niski wpływ",
       "details": "Szczegóły",
-      "source": "Źródło"
+      "source": "Źródło",
+      "sourceLabel": "Źródło:",
+      "viewMore": "Zobacz więcej →",
+      "eventCount": "{count} {count, plural, one {wydarzenie} few {wydarzenia} other {wydarzeń}} od {year}"
     },
     "sentiment": {
       "positive": "Pozytywny",
@@ -1790,6 +1798,23 @@
       "loadingMetrics": "Ładowanie metryk jakości...",
       "noData": "Brak danych",
       "loadError": "Nie można załadować metryk jakości danych."
+    },
+    "financials": {
+      "loading": "Ładowanie danych finansowych...",
+      "historicalData": "Dane Historyczne",
+      "revenue": "Przychody (PLN)",
+      "value": "Wartość",
+      "profitabilityRatios": "Wskaźniki Rentowności",
+      "financialRatios": "Wskaźniki Finansowe {year}",
+      "industryComparison": "Porównanie z Branżą",
+      "source": "Źródło:",
+      "aboveAverage": "Powyżej średniej",
+      "belowAverage": "Poniżej średniej",
+      "industryAverage": "Średnia branży",
+      "industryMedian": "Mediana branży"
+    },
+    "people": {
+      "comingSoon": "Ta sekcja jest w przygotowaniu. Wkrótce będą tutaj informacje o zarządzie i kluczowych osobach w firmie."
     }
   },
   "reportDetail": {

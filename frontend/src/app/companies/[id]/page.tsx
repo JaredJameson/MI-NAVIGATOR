@@ -998,7 +998,7 @@ export default function CompanyProfilePage() {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-200">
-                <span className="text-sm text-slate-600 mr-2">Wpływ:</span>
+                <span className="text-sm text-slate-600 mr-2">{t('timeline.impact')}:</span>
                 {[
                   { value: '', labelKey: 'all', color: 'bg-gray-100 text-gray-800' },
                   { value: 'high', labelKey: 'high', color: 'bg-red-100 text-red-800', icon: <WarningIcon className="w-3 h-3" /> },
@@ -1098,9 +1098,9 @@ export default function CompanyProfilePage() {
                               {event.title}
                             </h3>
                             <span className={`px-3 py-1 text-xs rounded-full flex items-center gap-1 ${impactStyle.bg} ${impactStyle.text} whitespace-nowrap`}>
-                              {event.impact === 'high' && <><WarningIcon className="w-3 h-3" /> Wysoki wpływ</>}
-                              {event.impact === 'medium' && <><WarningIcon className="w-3 h-3" /> Średni wpływ</>}
-                              {event.impact === 'low' && <><CheckIcon className="w-3 h-3" /> Niski wpływ</>}
+                              {event.impact === 'high' && <><WarningIcon className="w-3 h-3" /> {t('timeline.impactHigh')}</>}
+                              {event.impact === 'medium' && <><WarningIcon className="w-3 h-3" /> {t('timeline.impactMedium')}</>}
+                              {event.impact === 'low' && <><CheckIcon className="w-3 h-3" /> {t('timeline.impactLow')}</>}
                             </span>
                           </div>
 
@@ -1112,7 +1112,7 @@ export default function CompanyProfilePage() {
                             <div className="mt-4 pt-4 border-t border-slate-200">
                               <div className="flex items-center gap-2 text-xs text-slate-500">
                                 <DocumentIcon className="w-3 h-3" />
-                                <span>Źródło: {event.source}</span>
+                                <span>{t('timeline.sourceLabel')} {event.source}</span>
                                 {event.source_url && (
                                   <a
                                     href={event.source_url}
@@ -1121,7 +1121,7 @@ export default function CompanyProfilePage() {
                                     className="text-emerald-600 hover:underline"
                                     onClick={(e) => e.stopPropagation()}
                                   >
-                                    Zobacz więcej →
+                                    {t('timeline.viewMore')}
                                   </a>
                                 )}
                               </div>
@@ -1141,7 +1141,7 @@ export default function CompanyProfilePage() {
                         Historia firmy {company?.name}
                       </h4>
                       <p className="text-sm text-slate-600">
-                        {timeline.length} {timeline.length === 1 ? 'wydarzenie' : timeline.length < 5 ? 'wydarzenia' : 'wydarzeń'} od {new Date(timeline[0].date).getFullYear()}
+                        {timeline.length} {timeline.length === 1 ? t('eventTypes.founding') : timeline.length < 5 ? 'wydarzenia' : 'wydarzeń'} od {new Date(timeline[0].date).getFullYear()}
                         {timeline.length > 1 && ` do ${new Date(timeline[timeline.length - 1].date).getFullYear()}`}
                       </p>
                     </div>
@@ -1257,7 +1257,7 @@ export default function CompanyProfilePage() {
                       onClick={clearDateFilters}
                       className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                     >
-                      ✕ Wyczyść
+                      {t('news.clear')}
                     </button>
                   )}
                 </div>
@@ -1334,7 +1334,7 @@ export default function CompanyProfilePage() {
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm flex items-center gap-2 whitespace-nowrap"
                       >
-                        Czytaj więcej →
+                        {t('news.readMore')}
                       </a>
                     </div>
                   </article>
@@ -1350,7 +1350,7 @@ export default function CompanyProfilePage() {
             {financialsLoading ? (
               <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-                <p className="text-slate-600 mt-4">Ładowanie danych finansowych...</p>
+                <p className="text-slate-600 mt-4">{t('financials.loading')}</p>
               </div>
             ) : financials ? (
               <>
@@ -1358,18 +1358,18 @@ export default function CompanyProfilePage() {
                 {financials.statements && financials.statements.length > 1 && (
                   <div className="bg-white rounded-xl border border-slate-200 p-6">
                     <h2 className="text-xl font-semibold text-slate-900 mb-4">
-                      Dane Historyczne
+                      {t('financials.historicalData')}
                     </h2>
 
                     {/* Revenue Trend */}
                     <div className="mb-6">
-                      <h3 className="text-sm font-medium text-slate-700 mb-3">Przychody (PLN)</h3>
+                      <h3 className="text-sm font-medium text-slate-700 mb-3">{t('financials.revenue')}</h3>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-slate-200">
                               <th className="text-left py-2 px-3 text-slate-600 font-medium">Rok</th>
-                              <th className="text-right py-2 px-3 text-slate-600 font-medium">Wartość</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">{t('financials.value')}</th>
                               <th className="text-right py-2 px-3 text-slate-600 font-medium">YoY</th>
                               <th className="text-right py-2 px-3 text-slate-600 font-medium">Wzrost</th>
                             </tr>
@@ -1425,7 +1425,7 @@ export default function CompanyProfilePage() {
                           <thead>
                             <tr className="border-b border-slate-200">
                               <th className="text-left py-2 px-3 text-slate-600 font-medium">Rok</th>
-                              <th className="text-right py-2 px-3 text-slate-600 font-medium">Wartość</th>
+                              <th className="text-right py-2 px-3 text-slate-600 font-medium">{t('financials.value')}</th>
                               <th className="text-right py-2 px-3 text-slate-600 font-medium">YoY</th>
                               <th className="text-right py-2 px-3 text-slate-600 font-medium">Wzrost</th>
                             </tr>
@@ -1476,7 +1476,7 @@ export default function CompanyProfilePage() {
                     {/* Key Ratios Historical Comparison */}
                     {financials.ratios && financials.ratios.length > 1 && (
                       <div>
-                        <h3 className="text-sm font-medium text-slate-700 mb-3">Wskaźniki Rentowności</h3>
+                        <h3 className="text-sm font-medium text-slate-700 mb-3">{t('financials.profitabilityRatios')}</h3>
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
@@ -1533,7 +1533,7 @@ export default function CompanyProfilePage() {
                 {financials.ratios && financials.ratios.length > 0 && (
                   <div className="bg-white rounded-xl border border-slate-200 p-6">
                     <h2 className="text-xl font-semibold text-slate-900 mb-4">
-                      Wskaźniki Finansowe {financials.ratios[0].year}
+                      {t('financials.financialRatios', { year: financials.ratios[0].year })}
                     </h2>
                     <div className="grid grid-cols-3 gap-4">
                       <div className="p-4 bg-slate-50 rounded-lg">
@@ -1556,10 +1556,10 @@ export default function CompanyProfilePage() {
                 {financials.industry_benchmarks && (
                   <div className="bg-white rounded-xl border border-slate-200 p-6">
                     <div className="mb-4">
-                      <h2 className="text-xl font-semibold text-slate-900">Porównanie z Branżą</h2>
+                      <h2 className="text-xl font-semibold text-slate-900">{t('financials.industryComparison')}</h2>
                       <p className="text-sm text-slate-600 mt-1">{financials.industry_benchmarks.industry}</p>
                       <p className="text-xs text-slate-500 mt-1">
-                        Źródło: {financials.industry_benchmarks.source} ({financials.industry_benchmarks.year})
+                        {t('financials.source')} {financials.industry_benchmarks.source} ({financials.industry_benchmarks.year})
                       </p>
                     </div>
 
@@ -1580,12 +1580,12 @@ export default function CompanyProfilePage() {
                                 {isAbove ? (
                                   <>
                                     <CheckIcon className="w-3 h-3 inline mr-1" />
-                                    Powyżej średniej
+                                    {t('financials.aboveAverage')}
                                   </>
                                 ) : (
                                   <>
                                     <WarningIcon className="w-3 h-3 inline mr-1" />
-                                    Poniżej średniej
+                                    {t('financials.belowAverage')}
                                   </>
                                 )}
                               </div>
@@ -1596,11 +1596,11 @@ export default function CompanyProfilePage() {
                                 <div className="font-bold text-slate-900">{metric.company_value.toFixed(2)}</div>
                               </div>
                               <div>
-                                <div className="text-slate-600">Średnia branży</div>
+                                <div className="text-slate-600">{t('financials.industryAverage')}</div>
                                 <div className="font-medium text-slate-700">{metric.industry_average.toFixed(2)}</div>
                               </div>
                               <div>
-                                <div className="text-slate-600">Mediana branży</div>
+                                <div className="text-slate-600">{t('financials.industryMedian')}</div>
                                 <div className="font-medium text-slate-700">{metric.industry_median.toFixed(2)}</div>
                               </div>
                               <div>
@@ -1637,8 +1637,7 @@ export default function CompanyProfilePage() {
               Kluczowe osoby
             </h3>
             <p className="text-slate-600 mt-2">
-              Ta sekcja jest w przygotowaniu. Wkrótce będą tutaj informacje o
-              zarządzie i kluczowych osobach w firmie.
+              {t('people.comingSoon')}
             </p>
           </div>
         )}
