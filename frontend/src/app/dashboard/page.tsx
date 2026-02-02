@@ -3,10 +3,24 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { authApi, searchApi, SearchSuggestion, getStoredToken } from '@/services/api'
 import { DashboardSkeleton } from '@/components/Skeleton'
 import { formatRelativeTime } from '@/utils/date'
 import { Sidebar } from '@/components/Sidebar'
+import { SeverityHighIcon, SeverityMediumIcon, SeverityLowIcon } from '@/components/icons/AlertIcons'
+import {
+  CircleIcon,
+  BuildingIcon,
+  DocumentIcon,
+  UserIcon,
+  TagIcon,
+  MagnifyingGlassIcon,
+  ClockIcon,
+  FolderOpenIcon,
+  BellIcon
+} from '@/components/icons/CommonIcons'
+import { StaggerContainer } from '@/components/motion/StaggerContainer'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
@@ -41,6 +55,7 @@ interface SearchHistoryItem {
 }
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard')
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -56,6 +71,18 @@ export default function DashboardPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  // Helper function to get translated widget title based on type
+  const getWidgetTitle = (type: Widget['type']): string => {
+    const widgetTitleMap: Record<Widget['type'], string> = {
+      'active-research': t('widgets.activeResearch.title'),
+      'recent-activity': t('widgets.recentActivity.title'),
+      'usage-stats': t('widgets.usageStats.title'),
+      'projects': t('widgets.projects.title'),
+      'alerts': t('widgets.alerts.title'),
+    }
+    return widgetTitleMap[type]
+  }
 
   // Load saved layout on mount
   useEffect(() => {
@@ -143,11 +170,11 @@ export default function DashboardPage() {
     setIsSaving(true)
     try {
       localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(widgets))
-      setSaveMessage('Układ zapisany pomyślnie!')
+      setSaveMessage(t('messages.layout_saved'))
       setTimeout(() => setSaveMessage(''), 3000)
     } catch (e) {
       console.error('Failed to save layout:', e)
-      setSaveMessage('Błąd zapisu układu')
+      setSaveMessage(t('messages.layout_save_error'))
     } finally {
       setIsSaving(false)
       setIsCustomizeMode(false)
@@ -157,7 +184,7 @@ export default function DashboardPage() {
   const resetLayout = () => {
     setWidgets(DEFAULT_WIDGETS)
     localStorage.removeItem(LAYOUT_STORAGE_KEY)
-    setSaveMessage('Układ przywrócony do domyślnego')
+    setSaveMessage(t('messages.layout_reset'))
     setTimeout(() => setSaveMessage(''), 3000)
   }
 
@@ -350,15 +377,15 @@ export default function DashboardPage() {
   const getSuggestionIcon = (type: string) => {
     switch (type) {
       case 'company':
-        return '🏢'
+        return <BuildingIcon className="w-5 h-5" />
       case 'report':
-        return '📄'
+        return <DocumentIcon className="w-5 h-5" />
       case 'person':
-        return '👤'
+        return <UserIcon className="w-5 h-5" />
       case 'pkd':
-        return '🏷️'
+        return <TagIcon className="w-5 h-5" />
       default:
-        return '🔍'
+        return <MagnifyingGlassIcon className="w-5 h-5" />
     }
   }
 
@@ -369,7 +396,7 @@ export default function DashboardPage() {
 
     const isHidden = !widget.visible
     const wrapperClasses = isCustomizeMode
-      ? `relative border-2 border-dashed rounded-xl ${isHidden ? 'border-red-300 bg-red-50 opacity-60' : 'border-blue-300'}`
+      ? `relative border-2 border-dashed rounded-xl ${isHidden ? 'border-red-300 bg-red-50 opacity-60' : 'border-emerald-300'}`
       : ''
 
     const CustomizeOverlay = () => (
@@ -377,8 +404,8 @@ export default function DashboardPage() {
         <button
           onClick={() => moveWidget(index, 'up')}
           disabled={isFirst}
-          className="rounded-full bg-blue-600 p-1.5 text-white shadow-md transition-colors hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          title="Przesuń w górę"
+          className="rounded-full bg-emerald-600 p-1.5 text-white shadow-md transition-colors hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          title={t('moveUp')}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -387,8 +414,8 @@ export default function DashboardPage() {
         <button
           onClick={() => moveWidget(index, 'down')}
           disabled={isLast}
-          className="rounded-full bg-blue-600 p-1.5 text-white shadow-md transition-colors hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          title="Przesuń w dół"
+          className="rounded-full bg-emerald-600 p-1.5 text-white shadow-md transition-colors hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          title={t('moveDown')}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -397,7 +424,7 @@ export default function DashboardPage() {
         <button
           onClick={() => toggleWidgetVisibility(widget.id)}
           className={`rounded-full p-1.5 text-white shadow-md transition-colors ${isHidden ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
-          title={isHidden ? 'Pokaż widget' : 'Ukryj widget'}
+          title={isHidden ? t('showWidget') : t('hideWidget')}
         >
           {isHidden ? (
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -478,14 +505,14 @@ export default function DashboardPage() {
         <header className="bg-white border-b border-gray-200">
           <div className="px-4 py-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
               <div className="flex items-center space-x-4">
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
                   className="rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                 >
-                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                  {isLoggingOut ? t('loggingOut') : t('logout')}
                 </button>
               </div>
             </div>
@@ -496,56 +523,56 @@ export default function DashboardPage() {
         <main id="main-content" className="flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Customize Mode Banner */}
         {isCustomizeMode && (
-          <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
+          <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                 </svg>
-                <span className="font-medium text-blue-800">Tryb dostosowywania</span>
-                <span className="text-sm text-blue-600">- Użyj strzałek aby zmienić kolejność, czerwonej ikony aby ukryć widget</span>
+                <span className="font-medium text-emerald-800">{t('customizeMode')}</span>
+                <span className="text-sm text-emerald-600">- {t('customizeModeDescription')}</span>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={resetLayout}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
-                  Resetuj
+                  {t('reset')}
                 </button>
                 <button
                   onClick={cancelCustomize}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
-                  Anuluj
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={saveLayout}
                   disabled={isSaving}
-                  className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
-                  {isSaving ? 'Zapisywanie...' : 'Zapisz układ'}
+                  {isSaving ? t('saving') : t('saveLayout')}
                 </button>
               </div>
             </div>
             {/* Hidden widgets section */}
             {hiddenWidgets.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-blue-200">
-                <div className="text-sm text-blue-700 mb-2">
-                  Ukryte widgety ({hiddenWidgets.length}):
+              <div className="mt-3 pt-3 border-t border-emerald-200">
+                <div className="text-sm text-emerald-700 mb-2">
+                  {t('hiddenWidgets', { count: hiddenWidgets.length })}:
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {hiddenWidgets.map(w => (
                     <button
                       key={w.id}
                       onClick={() => toggleWidgetVisibility(w.id)}
-                      className="flex items-center gap-1 rounded-md bg-white border border-blue-300 px-2 py-1 text-sm text-blue-700 transition-colors hover:bg-blue-100 max-w-[200px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                      title={w.title}
+                      className="flex items-center gap-1 rounded-md bg-white border border-emerald-300 px-2 py-1 text-sm text-emerald-700 transition-colors hover:bg-emerald-100 max-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                      title={getWidgetTitle(w.type)}
                     >
                       <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      <span className="truncate">{w.title}</span>
+                      <span className="truncate">{getWidgetTitle(w.type)}</span>
                     </button>
                   ))}
                 </div>
@@ -566,19 +593,19 @@ export default function DashboardPage() {
           <div className="mb-4 flex justify-end">
             <button
               onClick={() => setIsCustomizeMode(true)}
-              className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
               </svg>
-              Dostosuj układ
+              {t('customizeLayout')}
             </button>
           </div>
         )}
 
         {/* Quick Search */}
-        <div className="mb-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-          <h2 className="mb-4 text-xl font-semibold">Rozpocznij badanie</h2>
+        <div className="mb-8 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white">
+          <h2 className="mb-4 text-xl font-semibold">{t('quickSearch.title')}</h2>
           <div className="relative">
             <input
               ref={searchInputRef}
@@ -592,7 +619,7 @@ export default function DashboardPage() {
                   setShowSuggestions(true)
                 }
               }}
-              placeholder="Szukaj firmy, osoby, wklej URL do analizy..."
+              placeholder={t('quickSearch.placeholder')}
               className="w-full rounded-lg bg-white px-4 py-3 pl-12 text-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
             />
             <svg
@@ -612,7 +639,7 @@ export default function DashboardPage() {
             {/* Loading indicator */}
             {isLoadingSuggestions && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-emerald-600"></div>
               </div>
             )}
             {/* Search history dropdown (when query is empty) */}
@@ -622,17 +649,17 @@ export default function DashboardPage() {
                 className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-lg bg-white shadow-xl"
               >
                 <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase border-b border-gray-100">
-                  Ostatnie wyszukiwania
+                  {t('quickSearch.recentSearchesTitle')}
                 </div>
                 {searchHistory.map((item, index) => (
                   <button
                     key={`history-${item.url}-${item.timestamp}`}
                     onClick={() => handleHistoryClick(item)}
                     className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                      index === selectedSuggestionIndex ? 'bg-blue-50' : ''
+                      index === selectedSuggestionIndex ? 'bg-emerald-50' : ''
                     } ${index !== searchHistory.length - 1 ? 'border-b border-gray-100' : ''}`}
                   >
-                    <span className="text-xl">🕐</span>
+                    <ClockIcon className="w-5 h-5" />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-gray-900 truncate">{item.name}</div>
                     </div>
@@ -652,7 +679,7 @@ export default function DashboardPage() {
                     key={`${suggestion.type}-${suggestion.id}`}
                     onClick={() => handleSuggestionClick(suggestion)}
                     className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                      index === selectedSuggestionIndex ? 'bg-blue-50' : ''
+                      index === selectedSuggestionIndex ? 'bg-emerald-50' : ''
                     } ${index !== suggestions.length - 1 ? 'border-b border-gray-100' : ''}`}
                   >
                     <span className="text-xl">{getSuggestionIcon(suggestion.type)}</span>
@@ -674,13 +701,13 @@ export default function DashboardPage() {
                 className="absolute left-0 right-0 top-full z-50 mt-2 rounded-lg bg-white p-4 shadow-xl"
               >
                 <div className="text-center text-gray-500">
-                  Brak wyników dla &quot;{searchQuery}&quot;
+                  {t('quickSearch.noResults', { query: searchQuery })}
                 </div>
               </div>
             )}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-sm text-white">Ostatnie:</span>
+            <span className="text-sm text-white">{t('recentSearches')}</span>
             {searchHistory.slice(0, 3).map((item) => (
               <button
                 key={`recent-${item.id}`}
@@ -695,20 +722,20 @@ export default function DashboardPage() {
         </div>
 
         {/* Widgets Grid - Rendered based on saved order */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {gridWidgets.map((widget, idx) => {
             const globalIndex = widgets.findIndex(w => w.id === widget.id)
             return renderWidget(widget, globalIndex)
           })}
-        </div>
+        </StaggerContainer>
 
         {/* Full-width Widgets */}
-        <div className="mt-8 space-y-8">
+        <StaggerContainer className="mt-8 space-y-8">
           {fullWidgets.map((widget) => {
             const globalIndex = widgets.findIndex(w => w.id === widget.id)
             return renderWidget(widget, globalIndex)
           })}
-        </div>
+        </StaggerContainer>
         </main>
       </div>
     </div>
@@ -717,6 +744,7 @@ export default function DashboardPage() {
 
 // Individual Widget Components
 function ActiveResearchWidget() {
+  const t = useTranslations('dashboard.widgets.activeResearch')
   const [activeResearch, setActiveResearch] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -751,22 +779,22 @@ function ActiveResearchWidget() {
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm h-full">
-      <h3 className="mb-4 font-semibold text-gray-900">Active Research</h3>
+      <h3 className="mb-4 font-semibold text-gray-900">{t('title')}</h3>
       {isLoading ? (
-        <div className="text-center py-4 text-gray-500">Loading...</div>
+        <div className="text-center py-4 text-gray-500">{t('loading')}</div>
       ) : activeResearch.length > 0 ? (
         <div className="space-y-3">
           {activeResearch.slice(0, 2).map((research) => (
             <div key={research.id} className="rounded-lg bg-gray-50 p-4">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                 <span className="text-sm font-medium">{research.name}</span>
               </div>
               <div className="mt-2">
-                <div className="text-sm text-gray-500">Progress: {research.progress}%</div>
+                <div className="text-sm text-gray-500">{t('progress', { percent: research.progress })}</div>
                 <div className="mt-1 h-2 rounded-full bg-gray-200">
                   <div
-                    className="h-full rounded-full bg-blue-500"
+                    className="h-full rounded-full bg-emerald-500"
                     style={{ width: `${research.progress}%` }}
                   />
                 </div>
@@ -776,27 +804,27 @@ function ActiveResearchWidget() {
         </div>
       ) : (
         <div className="text-center py-4">
-          <p className="text-sm text-gray-500 mb-4">No active research. Start a new analysis!</p>
+          <p className="text-sm text-gray-500 mb-4">{t('noActiveResearch')}</p>
         </div>
       )}
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href="/chat"
-          className="inline-block rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
+          className="inline-block rounded-md bg-emerald-600 px-4 py-2 text-sm text-white transition-colors hover:bg-emerald-700"
         >
-          Start New Research
+          {t('startNewResearch')}
         </Link>
         <Link
           href="/analysis"
-          className="inline-block rounded-md border border-blue-600 px-4 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50"
+          className="inline-block rounded-md border border-emerald-600 px-4 py-2 text-sm text-emerald-600 transition-colors hover:bg-emerald-50"
         >
-          Market Analysis
+          {t('marketAnalysis')}
         </Link>
         <Link
           href="/search"
-          className="inline-block rounded-md border border-indigo-600 px-4 py-2 text-sm text-indigo-600 transition-colors hover:bg-indigo-50"
+          className="inline-block rounded-md border border-teal-600 px-4 py-2 text-sm text-teal-600 transition-colors hover:bg-teal-50"
         >
-          PKD Search
+          {t('pkdSearch')}
         </Link>
       </div>
     </div>
@@ -804,6 +832,7 @@ function ActiveResearchWidget() {
 }
 
 function RecentActivityWidget() {
+  const t = useTranslations('dashboard.widgets.recentActivity')
   const [activities, setActivities] = useState<{ id: string; title: string; timestamp: string }[]>([])
   const [userTimezone, setUserTimezone] = useState('Europe/Warsaw')
   const [isLoading, setIsLoading] = useState(true)
@@ -854,7 +883,7 @@ function RecentActivityWidget() {
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm h-full">
-      <h3 className="mb-4 font-semibold text-gray-900">Recent Activity</h3>
+      <h3 className="mb-4 font-semibold text-gray-900">{t('title')}</h3>
       {isLoading ? (
         <div className="space-y-3">
           <div className="h-4 bg-gray-200 rounded animate-pulse" />
@@ -870,16 +899,17 @@ function RecentActivityWidget() {
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-gray-500">Brak ostatniej aktywności</p>
+        <p className="text-sm text-gray-500">{t('noActivity')}</p>
       )}
-      <Link href="/activity" className="mt-4 inline-block text-sm text-blue-600 hover:underline">
-        Zobacz wszystkie →
+      <Link href="/activity" className="mt-4 inline-block text-sm text-emerald-600 hover:underline">
+        {t('viewAll')}
       </Link>
     </div>
   )
 }
 
 function UsageStatsWidget() {
+  const t = useTranslations('dashboard.widgets.usageStats')
   const [usageStats, setUsageStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -915,8 +945,8 @@ function UsageStatsWidget() {
   if (isLoading) {
     return (
       <div className="rounded-xl bg-white p-6 shadow-sm h-full">
-        <h3 className="mb-4 font-semibold text-gray-900">Usage Stats</h3>
-        <div className="text-center py-4 text-gray-500">Loading...</div>
+        <h3 className="mb-4 font-semibold text-gray-900">{t('title')}</h3>
+        <div className="text-center py-4 text-gray-500">{t('loading')}</div>
       </div>
     )
   }
@@ -924,31 +954,31 @@ function UsageStatsWidget() {
   if (!usageStats) {
     return (
       <div className="rounded-xl bg-white p-6 shadow-sm h-full">
-        <h3 className="mb-4 font-semibold text-gray-900">Usage Stats</h3>
-        <div className="text-center py-4 text-gray-500">Unable to load stats</div>
+        <h3 className="mb-4 font-semibold text-gray-900">{t('title')}</h3>
+        <div className="text-center py-4 text-gray-500">{t('unableToLoad')}</div>
       </div>
     )
   }
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm h-full">
-      <h3 className="mb-4 font-semibold text-gray-900">Usage Stats</h3>
+      <h3 className="mb-4 font-semibold text-gray-900">{t('title')}</h3>
       <div className="space-y-4">
         <div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Analyses this month</span>
+            <span className="text-gray-600">{t('analysesThisMonth')}</span>
             <span className="font-medium">{usageStats.analyses_count}/{usageStats.analyses_limit}</span>
           </div>
           <div className="mt-1 h-2 rounded-full bg-gray-200">
             <div
-              className="h-full rounded-full bg-blue-500"
+              className="h-full rounded-full bg-emerald-500"
               style={{ width: `${Math.min(usageStats.analyses_percentage, 100)}%` }}
             />
           </div>
         </div>
         <div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Storage</span>
+            <span className="text-gray-600">{t('storage')}</span>
             <span className="font-medium">{usageStats.storage_used_gb} GB / {usageStats.storage_limit_gb} GB</span>
           </div>
           <div className="mt-1 h-2 rounded-full bg-gray-200">
@@ -959,7 +989,7 @@ function UsageStatsWidget() {
           </div>
         </div>
         <div className="text-sm text-gray-600">
-          API calls: <span className="font-medium">{usageStats.api_calls_count.toLocaleString()}</span>
+          {t('apiCalls', { count: usageStats.api_calls_count.toLocaleString() })}
         </div>
       </div>
     </div>
@@ -967,6 +997,7 @@ function UsageStatsWidget() {
 }
 
 function ProjectsWidget() {
+  const t = useTranslations('dashboard.widgets.projects')
   const [projects, setProjects] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -1006,18 +1037,18 @@ function ProjectsWidget() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">My Projects</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
         <Link
           href="/projects/new"
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700"
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-emerald-700"
         >
-          + New
+          {t('newProject')}
         </Link>
       </div>
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">Loading projects...</div>
+        <div className="text-center py-8 text-gray-500">{t('loading')}</div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No projects yet</div>
+        <div className="text-center py-8 text-gray-500">{t('noProjects')}</div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.slice(0, 3).map((project) => (
@@ -1027,15 +1058,15 @@ function ProjectsWidget() {
               className="block rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="flex items-start gap-3">
-                <span className="text-2xl">📁</span>
+                <FolderOpenIcon className="w-6 h-6" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-gray-900 truncate" title={project.name}>{project.name}</h3>
-                  <div className="mt-2 flex gap-4 text-sm text-gray-500">
-                    <span>📄 {project.report_ids?.length || 0} reports</span>
-                    <span>🔔 {project.alert_count || 0} alerts</span>
+                  <div className="mt-2 flex gap-4 text-sm text-gray-500 items-center">
+                    <span className="flex items-center gap-1"><DocumentIcon className="w-4 h-4" /> {project.report_ids?.length || 0} {t('reports')}</span>
+                    <span className="flex items-center gap-1"><BellIcon className="w-4 h-4" /> {project.alert_count || 0} {t('alerts')}</span>
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
-                    Updated: {formatDate(project.updated_at)}
+                    {t('updated', { time: formatDate(project.updated_at) })}
                   </div>
                 </div>
               </div>
@@ -1048,6 +1079,7 @@ function ProjectsWidget() {
 }
 
 function AlertsWidget() {
+  const t = useTranslations('dashboard.widgets.alerts')
   const [alerts, setAlerts] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -1086,7 +1118,7 @@ function AlertsWidget() {
     switch (severity) {
       case 'high':
         return {
-          indicator: '🔴',
+          indicator: <SeverityHighIcon className="w-5 h-5" />,
           bg: 'bg-red-50',
           border: 'border-red-200',
           titleColor: 'text-red-900',
@@ -1094,7 +1126,7 @@ function AlertsWidget() {
         }
       case 'medium':
         return {
-          indicator: '🟡',
+          indicator: <SeverityMediumIcon className="w-5 h-5" />,
           bg: 'bg-yellow-50',
           border: 'border-yellow-200',
           titleColor: 'text-yellow-900',
@@ -1102,7 +1134,7 @@ function AlertsWidget() {
         }
       case 'low':
         return {
-          indicator: '🟢',
+          indicator: <SeverityLowIcon className="w-5 h-5" />,
           bg: 'bg-green-50',
           border: 'border-green-200',
           titleColor: 'text-green-900',
@@ -1110,7 +1142,7 @@ function AlertsWidget() {
         }
       default:
         return {
-          indicator: '⚪',
+          indicator: <CircleIcon className="w-5 h-5" />,
           bg: 'bg-gray-50',
           border: 'border-gray-200',
           titleColor: 'text-gray-800',
@@ -1121,11 +1153,11 @@ function AlertsWidget() {
 
   return (
     <section>
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">Alerts & Monitoring</h2>
+      <h2 className="mb-4 text-lg font-semibold text-gray-900">{t('title')}</h2>
       {isLoading ? (
-        <div className="py-4 text-center text-sm text-gray-500">Loading alerts...</div>
+        <div className="py-4 text-center text-sm text-gray-500">{t('loading')}</div>
       ) : alerts.length === 0 ? (
-        <div className="py-4 text-center text-sm text-gray-500">No alerts</div>
+        <div className="py-4 text-center text-sm text-gray-500">{t('noAlerts')}</div>
       ) : (
         <div className="space-y-2">
           {alerts.map((alert) => {
