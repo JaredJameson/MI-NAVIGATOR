@@ -921,7 +921,8 @@
       "connected": "Połączono",
       "disconnected": "Rozłączono",
       "saveAsReport": "Zapisz jako raport",
-      "newChat": "Nowy czat"
+      "newChat": "Nowy czat",
+      "backToDashboard": "Powrót do dashboardu"
     },
     "welcome": {
       "title": "Rozpocznij badanie",
@@ -935,10 +936,15 @@
     },
     "loading": {
       "response": "Ładowanie odpowiedzi...",
-      "inProgress": "Badanie w toku"
+      "inProgress": "Badanie w toku",
+      "ariaLabel": "Ładowanie odpowiedzi, proszę czekać"
     },
     "progress": {
       "estimatedTime": "Szacowany czas"
+    },
+    "research": {
+      "ariaLabel": "Badanie w toku: {phase}",
+      "progressAriaLabel": "Postęp badania: {percentage}%"
     },
     "checkpoint": {
       "preliminaryFindings": "Wstępne ustalenia:",
@@ -982,11 +988,13 @@
       "waiting": "Oczekiwanie...",
       "uploadTitle": "Prześlij plik (PDF, DOCX, XLSX, CSV, PNG, JPG - maks. 50MB)",
       "attached": "Załączono {count} plik(ów): {files}",
-      "fileUploadOnly": "[Przesyłanie pliku]"
+      "fileUploadOnly": "[Przesyłanie pliku]",
+      "ariaLabel": "Załącz plik"
     },
     "input": {
       "placeholder": "Zapytaj o firmę, poproś o analizę lub wygeneruj raport...",
-      "disclaimer": "MI-Navigator używa AI do analizy rynków i firm. Wyniki mogą się różnić."
+      "disclaimer": "MI-Navigator używa AI do analizy rynków i firm. Wyniki mogą się różnić.",
+      "sendAriaLabel": "Wyślij wiadomość"
     },
     "saveReport": {
       "title": "Zapisz jako raport",

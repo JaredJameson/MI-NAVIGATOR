@@ -921,7 +921,8 @@
       "connected": "Connected",
       "disconnected": "Disconnected",
       "saveAsReport": "Save as Report",
-      "newChat": "New Chat"
+      "newChat": "New Chat",
+      "backToDashboard": "Back to dashboard"
     },
     "welcome": {
       "title": "Start Your Research",
@@ -935,10 +936,15 @@
     },
     "loading": {
       "response": "Loading response...",
-      "inProgress": "Research in progress"
+      "inProgress": "Research in progress",
+      "ariaLabel": "Loading response, please wait"
     },
     "progress": {
       "estimatedTime": "Estimated time"
+    },
+    "research": {
+      "ariaLabel": "Research in progress: {phase}",
+      "progressAriaLabel": "Research progress: {percentage}%"
     },
     "checkpoint": {
       "preliminaryFindings": "Preliminary Findings:",
@@ -982,11 +988,13 @@
       "waiting": "Waiting...",
       "uploadTitle": "Upload file (PDF, DOCX, XLSX, CSV, PNG, JPG - max 50MB)",
       "attached": "Attached {count} file(s): {files}",
-      "fileUploadOnly": "[File upload]"
+      "fileUploadOnly": "[File upload]",
+      "ariaLabel": "Attach file"
     },
     "input": {
       "placeholder": "Ask about a company, request analysis, or generate a report...",
-      "disclaimer": "MI-Navigator uses AI to analyze markets and companies. Results may vary."
+      "disclaimer": "MI-Navigator uses AI to analyze markets and companies. Results may vary.",
+      "sendAriaLabel": "Send message"
     },
     "saveReport": {
       "title": "Save as Report",

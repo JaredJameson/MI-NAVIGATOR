@@ -3,8 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { getStoredToken, fetchCsrfToken } from '@/services/api'
 import { StructuredMessage } from '@/components/chat/StructuredMessage'
+import { listSlideIn } from '@/lib/animations'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1'
@@ -38,6 +41,7 @@ interface Conversation {
 }
 
 export default function ChatPage() {
+  const t = useTranslations('chat')
   const router = useRouter()
   const searchParams = useSearchParams()
   const [conversation, setConversation] = useState<Conversation | null>(null)
@@ -225,7 +229,7 @@ export default function ChatPage() {
 
       ws.onerror = (error) => {
         console.error('[WS] Error:', error)
-        setError('WebSocket connection error')
+        setError(t('errors.webSocketConnection'))
         setWsConnected(false)
       }
 
@@ -243,7 +247,7 @@ export default function ChatPage() {
       wsRef.current = ws
     } catch (err) {
       console.error('[WS] Connection failed:', err)
-      setError('Failed to connect to chat')
+      setError(t('errors.failedToConnect'))
       setWsConnected(false)
     }
   }
@@ -302,7 +306,7 @@ export default function ChatPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create conversation')
+        throw new Error(t('errors.failedToCreateConversation'))
       }
 
       const conv = await response.json()
@@ -311,7 +315,7 @@ export default function ChatPage() {
       router.push(`/chat?conversation_id=${conv.id}`, { scroll: false })
       return conv
     } catch (err) {
-      setError('Failed to start conversation')
+      setError(t('errors.failedToStartConversation'))
       return null
     }
   }
@@ -336,14 +340,14 @@ export default function ChatPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to load conversation')
+        throw new Error(t('errors.failedToLoadConversation'))
       }
 
       const conv = await response.json()
       setConversation(conv)
       setError('')
     } catch (err) {
-      setError('Failed to load conversation history')
+      setError(t('errors.failedToLoadConversation'))
       console.error('Load conversation error:', err)
     } finally {
       setIsLoading(false)
@@ -419,7 +423,7 @@ export default function ChatPage() {
       const isConnected = await waitForWebSocketConnection(5000)
 
       if (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        throw new Error('WebSocket connection timeout')
+        throw new Error(t('errors.webSocketTimeout'))
       }
 
       console.log('[WS] Connection ready')
@@ -457,7 +461,7 @@ export default function ChatPage() {
 
     } catch (err) {
       console.error('[WS] Send error:', err)
-      setError('Failed to send message. Please try again.')
+      setError(t('errors.failedToSend'))
       setIsLoading(false)
     }
   }
@@ -553,7 +557,7 @@ export default function ChatPage() {
       const isConnected = await waitForWebSocketConnection(5000)
 
       if (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        throw new Error('WebSocket connection timeout')
+        throw new Error(t('errors.webSocketTimeout'))
       }
 
       console.log('[WS] Connection ready')
@@ -588,7 +592,7 @@ export default function ChatPage() {
 
     } catch (err) {
       console.error('[WS] Send error:', err)
-      setError('Failed to send message. Please try again.')
+      setError(t('errors.failedToSend'))
       setIsLoading(false)
     }
   }
@@ -619,7 +623,7 @@ export default function ChatPage() {
       const isConnected = await waitForWebSocketConnection(5000)
 
       if (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        throw new Error('WebSocket connection timeout')
+        throw new Error(t('errors.webSocketTimeout'))
       }
 
       console.log('[WS] Connection ready')
@@ -658,7 +662,7 @@ export default function ChatPage() {
 
     } catch (err) {
       console.error('[WS] Send error:', err)
-      setError('Failed to send message. Please try again.')
+      setError(t('errors.failedToSend'))
       setIsLoading(false)
     }
   }
@@ -674,13 +678,13 @@ export default function ChatPage() {
 
     Array.from(files).forEach(file => {
       if (file.size > maxSize) {
-        setError(`File ${file.name} is too large. Max size is 50MB.`)
+        setError(t('errors.fileTooLarge', { filename: file.name }))
         hasError = true
         return
       }
 
       if (!supportedTypes.includes(file.type)) {
-        setError(`File type "${file.type}" is not supported. Supported types: PDF, DOCX, XLSX, CSV, PNG, JPG.`)
+        setError(t('errors.fileTypeNotSupported', { type: file.type }))
         hasError = true
         return
       }
@@ -717,7 +721,7 @@ export default function ChatPage() {
         uploadedFileIds.push(fileId)
       } catch (err) {
         console.error(`Error uploading ${file.name}:`, err)
-        setError(`Failed to upload ${file.name}`)
+        setError(t('errors.failedToUpload', { filename: file.name }))
       }
     }
 
@@ -751,15 +755,15 @@ export default function ChatPage() {
             const data = JSON.parse(xhr.responseText)
             resolve(data.id)
           } catch (err) {
-            reject(new Error(`Failed to parse response for ${file.name}`))
+            reject(new Error(t('errors.failedToParseResponse', { filename: file.name })))
           }
         } else {
-          reject(new Error(`Failed to upload ${file.name}: ${xhr.statusText}`))
+          reject(new Error(t('errors.failedToUpload', { filename: file.name }) + `: ${xhr.statusText}`))
         }
       })
 
       xhr.addEventListener('error', () => {
-        reject(new Error(`Network error uploading ${file.name}`))
+        reject(new Error(t('errors.networkError', { filename: file.name })))
       })
 
       xhr.open('POST', `${API_BASE_URL}/files/upload`)
@@ -770,7 +774,7 @@ export default function ChatPage() {
 
   const handleSaveAsReport = async () => {
     if (!conversation || conversation.messages.length === 0) {
-      setError('No conversation to save')
+      setError(t('errors.noConversationToSave'))
       return
     }
 
@@ -779,7 +783,7 @@ export default function ChatPage() {
     // Fetch projects list
     const token = getStoredToken()
     if (!token) {
-      setError('Not authenticated')
+      setError(t('errors.notAuthenticated'))
       return
     }
 
@@ -796,18 +800,18 @@ export default function ChatPage() {
       }
     } catch (err) {
       console.error('Failed to fetch projects:', err)
-      setError('Failed to load projects')
+      setError(t('errors.failedToLoadProjects'))
     }
   }
 
   const saveReport = async () => {
     if (!selectedProjectId) {
-      setError('Please select a project')
+      setError(t('errors.pleaseSelectProject'))
       return
     }
 
     if (!conversation) {
-      setError('No conversation to save')
+      setError(t('errors.noConversationToSave'))
       return
     }
 
@@ -843,7 +847,7 @@ export default function ChatPage() {
       })
 
       if (!reportResponse.ok) {
-        throw new Error('Failed to create report')
+        throw new Error(t('errors.failedToCreateReport'))
       }
 
       const reportData = await reportResponse.json()
@@ -862,7 +866,7 @@ export default function ChatPage() {
       )
 
       if (!assignResponse.ok) {
-        throw new Error('Failed to assign report to project')
+        throw new Error(t('errors.failedToAssignReport'))
       }
 
       // Success!
@@ -871,11 +875,11 @@ export default function ChatPage() {
       setIsSavingReport(false)
 
       // Show success message
-      alert('Report saved successfully!')
+      alert(t('saveReport.success'))
 
     } catch (err) {
       console.error('Error saving report:', err)
-      setError('Failed to save report. Please try again.')
+      setError(t('errors.failedToSaveReport'))
       setIsSavingReport(false)
     }
   }
@@ -887,19 +891,19 @@ export default function ChatPage() {
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" role="img" aria-label="Back to dashboard">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" role="img" aria-label={t('header.backToDashboard')}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </Link>
             <h1 className="text-lg font-semibold text-gray-900">
-              {conversation?.title || 'New Research'}
+              {conversation?.title || t('header.newResearch')}
             </h1>
             {/* WebSocket Status Indicator */}
             {conversation && (
               <div className="flex items-center gap-2">
                 <div className={`h-2 w-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`} />
                 <span className="text-xs text-gray-500">
-                  {wsConnected ? 'Connected' : 'Disconnected'}
+                  {wsConnected ? t('header.connected') : t('header.disconnected')}
                 </span>
               </div>
             )}
@@ -913,11 +917,11 @@ export default function ChatPage() {
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
-                Save as Report
+                {t('header.saveAsReport')}
               </button>
             )}
-            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
-              New Chat
+            <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700">
+              {t('header.newChat')}
             </button>
           </div>
         </div>
@@ -928,22 +932,21 @@ export default function ChatPage() {
         <div className="mx-auto max-w-4xl px-4 py-6">
           {conversation?.messages.length === 0 || !conversation ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <div className="mb-6 rounded-full bg-blue-100 p-4">
-                <svg className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <div className="mb-6 rounded-full bg-emerald-100 p-4">
+                <svg className="h-12 w-12 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <h2 className="mb-2 text-xl font-semibold text-gray-900">Start Your Research</h2>
+              <h2 className="mb-2 text-xl font-semibold text-gray-900">{t('welcome.title')}</h2>
               <p className="mb-6 max-w-md text-center text-gray-600">
-                Ask me about any company, market, or business topic. I can analyze companies,
-                generate reports, and provide market intelligence.
+                {t('welcome.subtitle')}
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {[
-                  'Analyze company FADO Sp. z o.o.',
-                  'Generate Due Diligence report',
-                  'Compare competitors in logistics',
-                  'Market trends in e-commerce',
+                  t('welcome.suggestions.analyzeCompany'),
+                  t('welcome.suggestions.dueDiligence'),
+                  t('welcome.suggestions.compareCompetitors'),
+                  t('welcome.suggestions.marketTrends'),
                 ].map((suggestion) => (
                   <button
                     key={suggestion}
@@ -957,15 +960,19 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {conversation.messages.map((message) => (
-                <div
+              {conversation.messages.map((message, index) => (
+                <motion.div
                   key={message.id}
+                  initial="initial"
+                  animate="animate"
+                  variants={listSlideIn}
+                  transition={{ delay: index * 0.05 }}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                       message.role === 'user'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-white shadow-sm border'
                     }`}
                   >
@@ -977,25 +984,30 @@ export default function ChatPage() {
                       <StructuredMessage content={message.content} />
                     )}
                   </div>
-                </div>
+                </motion.div>
               ))}
               {isLoading && !researchProgress && (
-                <div className="flex justify-start">
+                <motion.div
+                  initial="initial"
+                  animate="animate"
+                  variants={listSlideIn}
+                  className="flex justify-start"
+                >
                   <div
                     className="max-w-[80%] rounded-2xl bg-white px-4 py-3 shadow-sm border"
                     role="status"
                     aria-live="polite"
                     aria-busy="true"
-                    aria-label="Loading response, please wait"
+                    aria-label={t('loading.ariaLabel')}
                   >
                     <div className="flex items-center gap-2 text-gray-500">
                       <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }} aria-hidden="true"></div>
                       <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }} aria-hidden="true"></div>
                       <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }} aria-hidden="true"></div>
                     </div>
-                    <span className="sr-only">Loading response...</span>
+                    <span className="sr-only">{t('loading.response')}</span>
                   </div>
-                </div>
+                </motion.div>
               )}
               {researchProgress && (
                 <div className="flex justify-start">
@@ -1004,16 +1016,16 @@ export default function ChatPage() {
                     role="status"
                     aria-live="polite"
                     aria-busy="true"
-                    aria-label={`Research in progress: ${researchProgress.phase}`}
+                    aria-label={t('research.ariaLabel', {phase: researchProgress.phase})}
                   >
                     <div className="space-y-3">
                       {/* Phase and Message */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" aria-hidden="true"></div>
+                          <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden="true"></div>
                           <span className="text-sm font-medium text-gray-900">{researchProgress.phase}</span>
                         </div>
-                        <span className="text-sm font-semibold text-blue-600">{researchProgress.percentage}%</span>
+                        <span className="text-sm font-semibold text-emerald-600">{researchProgress.percentage}%</span>
                       </div>
 
                       {/* Progress Bar */}
@@ -1023,10 +1035,10 @@ export default function ChatPage() {
                         aria-valuenow={researchProgress.percentage}
                         aria-valuemin={0}
                         aria-valuemax={100}
-                        aria-label={`Research progress: ${researchProgress.percentage}%`}
+                        aria-label={t('research.progressAriaLabel', {percentage: researchProgress.percentage})}
                       >
                         <div
-                          className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                          className="h-full bg-emerald-600 transition-all duration-500 ease-out"
                           style={{ width: `${researchProgress.percentage}%` }}
                         ></div>
                       </div>
@@ -1034,7 +1046,7 @@ export default function ChatPage() {
                       {/* Message and Time */}
                       <div className="flex items-center justify-between text-xs text-gray-600">
                         <span>{researchProgress.message}</span>
-                        <span className="text-gray-500">⏱️ {researchProgress.estimated_time_remaining}</span>
+                        <span className="text-gray-500">{t('progress.estimatedTime')}: {researchProgress.estimated_time_remaining}</span>
                       </div>
                     </div>
                   </div>
@@ -1042,11 +1054,11 @@ export default function ChatPage() {
               )}
               {checkpoint && (
                 <div className="flex justify-start">
-                  <div className="w-full max-w-2xl rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 px-6 py-5 shadow-lg">
+                  <div className="w-full max-w-2xl rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 px-6 py-5 shadow-lg">
                     <div className="space-y-4">
                       {/* Checkpoint Header */}
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center">
                           <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -1059,8 +1071,8 @@ export default function ChatPage() {
 
                       {/* Partial Results */}
                       {checkpoint.partial_results && (
-                        <div className="bg-white rounded-lg p-4 border border-blue-200">
-                          <h4 className="text-sm font-semibold text-gray-900 mb-2">Preliminary Findings:</h4>
+                        <div className="bg-white rounded-lg p-4 border border-emerald-200">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('checkpoint.preliminaryFindings')}</h4>
                           <div className="grid grid-cols-2 gap-3 text-sm">
                             {Object.entries(checkpoint.partial_results).map(([key, value]) => (
                               <div key={key} className="flex flex-col">
@@ -1080,7 +1092,7 @@ export default function ChatPage() {
                             onClick={() => respondToCheckpoint(option.id)}
                             className={`flex-1 min-w-[180px] px-4 py-3 rounded-lg font-medium transition-all ${
                               option.id === 'continue'
-                                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
+                                ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md'
                                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                             }`}
                           >
@@ -1095,7 +1107,7 @@ export default function ChatPage() {
                       {/* Modify Scope Input (shown if user clicks Modify) */}
                       {checkpoint.options.some(opt => opt.id === 'modify') && (
                         <div className="text-xs text-gray-500 text-center">
-                          Click "Modify Scope" to adjust research focus
+                          {t('checkpoint.modifyScope')}
                         </div>
                       )}
                     </div>
@@ -1124,7 +1136,7 @@ export default function ChatPage() {
                         <div className="space-y-3">
                           <input
                             type="text"
-                            placeholder={briefQuestion.placeholder || 'Enter your answer...'}
+                            placeholder={briefQuestion.placeholder || t('briefQuestion.enterAnswer')}
                             className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
@@ -1136,7 +1148,7 @@ export default function ChatPage() {
                               }
                             }}
                           />
-                          <p className="text-xs text-gray-500">Press Enter to submit your answer</p>
+                          <p className="text-xs text-gray-500">{t('briefQuestion.pressEnterToSubmit')}</p>
                         </div>
                       ) : (
                         <div className="grid gap-3">
@@ -1155,7 +1167,7 @@ export default function ChatPage() {
                                   {option.label}
                                   {option.default && (
                                     <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full">
-                                      Your preference
+                                      {t('briefQuestion.yourPreference')}
                                     </span>
                                   )}
                                 </div>
@@ -1183,7 +1195,7 @@ export default function ChatPage() {
                           </svg>
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">Research Plan Generated</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">{t('researchPlan.title')}</h3>
                           <p className="text-sm text-gray-600">{researchPlan.message}</p>
                         </div>
                       </div>
@@ -1192,21 +1204,21 @@ export default function ChatPage() {
                       <div className="bg-white rounded-lg p-4 border border-green-200">
                         <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
                           <div>
-                            <span className="text-gray-500 text-xs">Objective</span>
+                            <span className="text-gray-500 text-xs">{t('researchPlan.objective')}</span>
                             <p className="text-gray-900 font-medium mt-1">{researchPlan.objective}</p>
                           </div>
                           <div>
-                            <span className="text-gray-500 text-xs">Scope</span>
+                            <span className="text-gray-500 text-xs">{t('researchPlan.scope')}</span>
                             <p className="text-gray-900 font-medium mt-1 capitalize">{researchPlan.scope.replace(/_/g, ' ')}</p>
                           </div>
                           <div>
-                            <span className="text-gray-500 text-xs">Depth</span>
+                            <span className="text-gray-500 text-xs">{t('researchPlan.depth')}</span>
                             <p className="text-gray-900 font-medium mt-1 capitalize">{researchPlan.depth.replace(/_/g, ' ')}</p>
                           </div>
                         </div>
 
                         <div className="border-t border-gray-200 pt-4">
-                          <h4 className="text-sm font-semibold text-gray-900 mb-3">Research Steps:</h4>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('researchPlan.researchSteps')}</h4>
                           <div className="space-y-2">
                             {researchPlan.steps.map((step, index) => (
                               <div key={index} className="flex gap-3">
@@ -1216,13 +1228,13 @@ export default function ChatPage() {
                                 <div className="flex-1">
                                   <div className="font-medium text-sm text-gray-900">{step.phase}</div>
                                   <div className="text-xs text-gray-600">{step.description}</div>
-                                  <div className="text-xs text-gray-500 mt-1">⏱️ {step.estimated_time}</div>
+                                  <div className="text-xs text-gray-500 mt-1">{t('progress.estimatedTime')}: {step.estimated_time}</div>
                                 </div>
                               </div>
                             ))}
                           </div>
                           <div className="mt-3 pt-3 border-t border-gray-200 text-sm font-semibold text-gray-900">
-                            Total estimated time: ~{researchPlan.total_estimated_time} minutes
+                            {t('researchPlan.totalEstimatedTime', { minutes: researchPlan.total_estimated_time })}
                           </div>
                         </div>
                       </div>
@@ -1233,22 +1245,22 @@ export default function ChatPage() {
                           onClick={() => respondToPlan('confirm')}
                           className="flex-1 min-w-[150px] px-4 py-3 rounded-lg font-medium transition-all bg-green-600 text-white hover:bg-green-700 shadow-md"
                         >
-                          ✓ Proceed with Plan
+                          {t('researchPlan.proceedWithPlan')}
                         </button>
                         <button
                           onClick={() => {
-                            const mods = prompt('What would you like to modify in the plan?')
+                            const mods = prompt(t('researchPlan.modifyPrompt'))
                             if (mods) respondToPlan('modify', mods)
                           }}
                           className="flex-1 min-w-[150px] px-4 py-3 rounded-lg font-medium transition-all bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
                         >
-                          ✏️ Modify Plan
+                          {t('researchPlan.modifyPlan')}
                         </button>
                         <button
                           onClick={() => respondToPlan('cancel')}
                           className="px-4 py-3 rounded-lg font-medium transition-all bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
                         >
-                          ✕ Cancel
+                          {t('researchPlan.cancel')}
                         </button>
                       </div>
                     </div>
@@ -1275,22 +1287,22 @@ export default function ChatPage() {
         <div className="mx-auto max-w-4xl">
           {/* URL Detection Suggestion */}
           {detectedUrl && (
-            <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+            <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-blue-900">URL Detected</p>
-                    <p className="text-xs text-blue-700">Would you like to analyze this website?</p>
+                    <p className="text-sm font-medium text-emerald-900">{t('detection.url.title')}</p>
+                    <p className="text-xs text-emerald-700">{t('detection.url.message')}</p>
                   </div>
                 </div>
                 <button
                   onClick={startUrlAnalysis}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                 >
-                  Analyze Website
+                  {t('detection.url.button')}
                 </button>
               </div>
             </div>
@@ -1305,15 +1317,15 @@ export default function ChatPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-green-900">NIP Detected: {detectedNIP}</p>
-                    <p className="text-xs text-green-700">Would you like to lookup this company?</p>
+                    <p className="text-sm font-medium text-green-900">{t('detection.nip.title', { number: detectedNIP })}</p>
+                    <p className="text-xs text-green-700">{t('detection.nip.message')}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => startCompanyLookup('NIP')}
                   className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
                 >
-                  Lookup Company
+                  {t('detection.nip.button')}
                 </button>
               </div>
             </div>
@@ -1328,15 +1340,15 @@ export default function ChatPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">KRS Detected: {detectedKRS}</p>
-                    <p className="text-xs text-purple-700">Would you like to lookup this company?</p>
+                    <p className="text-sm font-medium text-purple-900">{t('detection.krs.title', { number: detectedKRS })}</p>
+                    <p className="text-xs text-purple-700">{t('detection.krs.message')}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => startCompanyLookup('KRS')}
                   className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
                 >
-                  Lookup Company
+                  {t('detection.krs.button')}
                 </button>
               </div>
             </div>
@@ -1377,11 +1389,11 @@ export default function ChatPage() {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-blue-600 transition-all duration-300"
+                            className="h-full bg-emerald-600 transition-all duration-300"
                             style={{ width: `${progress}%` }}
                           />
                         </div>
-                        <span className="text-xs font-medium text-blue-600 min-w-[45px] text-right">
+                        <span className="text-xs font-medium text-emerald-600 min-w-[45px] text-right">
                           {progress}%
                         </span>
                       </div>
@@ -1394,7 +1406,7 @@ export default function ChatPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span>Waiting...</span>
+                        <span>{t('fileUpload.waiting')}</span>
                       </div>
                     )}
                   </div>
@@ -1418,9 +1430,9 @@ export default function ChatPage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               className="rounded-xl border border-gray-300 px-4 py-3 text-gray-600 transition-colors hover:bg-gray-50"
-              title="Upload file (PDF, DOCX, XLSX, CSV, PNG, JPG - max 50MB)"
+              title={t('fileUpload.uploadTitle')}
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" role="img" aria-label="Attach file">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" role="img" aria-label={t('fileUpload.ariaLabel')}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
             </button>
@@ -1429,22 +1441,22 @@ export default function ChatPage() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about a company, request analysis, or generate a report..."
+              placeholder={t('input.placeholder')}
               rows={1}
-              className="flex-1 resize-none rounded-xl border bg-gray-50 px-4 py-3 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 resize-none rounded-xl border bg-gray-50 px-4 py-3 text-sm focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <button
               onClick={sendMessage}
               disabled={(!inputValue.trim() && uploadedFiles.length === 0) || isLoading}
-              className="rounded-xl bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="rounded-xl bg-emerald-600 px-6 py-3 text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" role="img" aria-label="Send message">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" role="img" aria-label={t('input.sendAriaLabel')}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </button>
           </div>
           <p className="mt-2 text-center text-xs text-gray-400">
-            MI-Navigator uses AI to analyze markets and companies. Results may vary.
+            {t('input.disclaimer')}
           </p>
         </div>
       </div>
@@ -1453,18 +1465,18 @@ export default function ChatPage() {
       {showSaveDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900">Save as Report</h2>
+            <h2 className="mb-4 text-xl font-semibold text-gray-900">{t('saveReport.title')}</h2>
 
             <div className="mb-4">
               <label className="mb-2 block text-sm font-medium text-gray-700">
-                Select Project
+                {t('saveReport.selectProject')}
               </label>
               <select
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="">-- Select a project --</option>
+                <option value="">{t('saveReport.selectProjectPlaceholder')}</option>
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -1475,7 +1487,7 @@ export default function ChatPage() {
 
             {projects.length === 0 && (
               <div className="mb-4 rounded-lg bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
-                No projects found. <Link href="/projects/new" className="underline">Create a new project</Link> first.
+                {t('saveReport.noProjects')} <Link href="/projects/new" className="underline">{t('saveReport.createProject')}</Link> {t('saveReport.createProjectFirst')}
               </div>
             )}
 
@@ -1488,14 +1500,14 @@ export default function ChatPage() {
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 disabled={isSavingReport}
               >
-                Cancel
+                {t('saveReport.cancel')}
               </button>
               <button
                 onClick={saveReport}
                 disabled={!selectedProjectId || isSavingReport}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                {isSavingReport ? 'Saving...' : 'Save Report'}
+                {isSavingReport ? t('saveReport.saving') : t('saveReport.save')}
               </button>
             </div>
           </div>
