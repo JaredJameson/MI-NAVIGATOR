@@ -156,41 +156,31 @@
 
 ## 🎯 Remaining Work (17 pages = 32%)
 
-### **High Priority Pages** (8 pages) - Core User Journeys
+### **High Priority Pages** (6 pages) - Core User Journeys
 
-**Estimated Effort**: 4.5-5.5 hours total
+**Estimated Effort**: 3.5-4.5 hours total
 
-1. **Settings - Workspace** (`/settings/workspace`) - Workspace configuration
-   - **Complexity**: MEDIUM (forms, validation)
-   - **Estimated**: 0.5 hours
-   - **Keys**: ~30 (fields, validation, actions)
-
-3. **Settings - Security** (`/settings/security`) - Security settings (2FA, etc.)
-   - **Complexity**: MEDIUM (forms, sensitive operations)
-   - **Estimated**: 0.5 hours
-   - **Keys**: ~30 (fields, warnings, actions)
-
-4. **Companies List** (`/companies`) - Company directory
+1. **Companies List** (`/companies`) - Company directory
    - **Complexity**: MEDIUM (search, filters, cards)
    - **Estimated**: 0.5 hours
    - **Keys**: ~30 (filters, sorting, actions)
 
-5. **Search** (`/search`) - Global search interface
+2. **Search** (`/search`) - Global search interface
    - **Complexity**: HIGH (filters, results, facets)
    - **Estimated**: 1 hour
    - **Keys**: ~35 (filters, results, actions)
 
-6. **Analysis** (`/analysis`) - Analysis tools hub
+3. **Analysis** (`/analysis`) - Analysis tools hub
    - **Complexity**: MEDIUM (navigation, tools)
    - **Estimated**: 0.5 hours
    - **Keys**: ~25 (tools, descriptions, actions)
 
-7. **Analysis - SWOT** (`/analysis/swot`) - SWOT analysis tool
+4. **Analysis - SWOT** (`/analysis/swot`) - SWOT analysis tool
    - **Complexity**: HIGH (interactive forms, visualization)
    - **Estimated**: 0.5 hours
    - **Keys**: ~30 (quadrants, fields, actions)
 
-8. **Not Found** (`/not-found`) - 404 error page
+5. **Not Found** (`/not-found`) - 404 error page
     - **Complexity**: LOW (simple error page)
     - **Estimated**: 0.25 hours
     - **Keys**: ~10 (message, actions)
